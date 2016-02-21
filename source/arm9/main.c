@@ -8,7 +8,9 @@
 #include "arm9/firm.h"
 #include "arm9/sdmmc.h"
 #include "crypto.h"
+//#include "ndma.h"
 #include "hid.h"
+//#include "linux_config.h"
 
 
 
@@ -257,52 +259,6 @@ bool restoreNand(void)
 	return res;
 }
 
-/*void loadLinux(void)
-{
-	FIL file;
-	UINT bytesRead;
-	extern void *linux_payloads_start;
-	extern void *linux_payloads_end;
-
-
-	if(f_open(&file, LINUXIMAGE_FILENAME, FA_READ) != FR_OK)
-	{
-		printf("Failed to open '%s'!\n", LINUXIMAGE_FILENAME);
-		return;
-	}
-	if(f_read(&file, (u8*)ZIMAGE_ADDR, 0x4000000, &bytesRead) != FR_OK)
-	{
-		printf("Failed to read from file!\n");
-		f_close(&file);
-		return;
-	}
-	f_close(&file);
-
-	bytesRead = 0;
-	if(f_open(&file, DTB_FILENAME, FA_READ) != FR_OK)
-	{
-		printf("Failed to open '%s'!\n", DTB_FILENAME);
-		return;
-	}
-	if(f_read(&file, (u8*)PARAMS_TMP_ADDR, 0x400000, &bytesRead) != FR_OK)
-	{
-		printf("Failed to read from file!\n");
-		f_close(&file);
-		return;
-	}
-	f_close(&file);
-	printf("Unmount result: 0x%X\n", f_mount(NULL, "", 1));
-
-	*((vu32*)0x214FFFFC) = bytesRead;
-
-	NDMA_copy((u32*)0x23F00000, &linux_payloads_start, ((u32)&linux_payloads_end - (u32)&linux_payloads_start)>>2);
-	NDMA_fill((u32*)0x18000000, 0, 0x00600000>>2);
-
-	CORE_SYNC_VAL = 0x544F4F42;
-
-	__asm__ __volatile__("ldr pc, =0x23F00000");
-}*/
-
 void initGfx(void)
 {
 	static bool isInitialized = false;
@@ -315,6 +271,28 @@ void initGfx(void)
 		while(CORE_SYNC_VAL == 1);
 	}
 }
+
+/*void loadLinux(void)
+{
+	u32 bytesRead;
+	extern void linux_payloads_start;
+	extern void linux_payloads_end;
+
+
+	initGfx();
+	loadFile(LINUXIMAGE_FILENAME, (void*)ZIMAGE_ADDR, 0x4000000, NULL);
+	loadFile(DTB_FILENAME, (void*)PARAMS_TMP_ADDR, 0x400000, &bytesRead);
+	f_mount(NULL, "sdmc:", 1);
+
+	*((vu32*)0x214FFFFC) = bytesRead;
+
+	NDMA_copy((void*)0x23F00000, &linux_payloads_start, ((u32)&linux_payloads_end - (u32)&linux_payloads_start)>>2);
+	//NDMA_fill((u32*)0x18000000, 0, 0x00600000>>2);
+
+	CORE_SYNC_VAL = 0x544F4F42;
+
+	__asm__ __volatile__("ldr pc, =0x23F00000");
+}*/
 
 int main(void)
 {
@@ -417,6 +395,7 @@ int main(void)
 			continue_ = false;
 		}
 		*((vu32*)0x01FF800C) = 3; // FIRMLAUNCH_RUNNINGTYPE = 3
+		//loadLinux();
 	}
 
 	if(f_mount(NULL, "sdmc:", 1) != FR_OK)

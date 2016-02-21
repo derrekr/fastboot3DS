@@ -1,3 +1,4 @@
+#include "arm9/linux_config.h"
 
 .arm
 .align 4
@@ -8,11 +9,15 @@
 #define LCD_FB_PDC0           (0x10400400)
 #define LCD_FB_PDC1           (0x10400500)
 #define LCD_FB_A_ADDR_OFFSET  (0x68)
+#define LCD_FB_FORMAT_OFFSET  (0x70)
+#define LCD_FB_PDC0_FORMAT    (0x80341)
 #define LCD_FB_SELECT_OFFSET  (0x78)
+#define LCD_FB_STRIDE_OFFSET  (0x90)
+#define LCD_FB_PDC0_STRIDE    (0x2D0)
 #define LCD_FB_B_ADDR_OFFSET  (0x94)
 #define FB_TOP_SIZE           (400*240*3)
 #define FB_BOT_SIZE           (320*240*3)
-#define FB_TOP_LEFT1          (0x18000000)
+#define FB_TOP_LEFT1          (FB_BASE_PA)
 #define FB_TOP_LEFT2          (FB_TOP_LEFT1  + FB_TOP_SIZE)
 #define FB_TOP_RIGHT1         (FB_TOP_LEFT2  + FB_TOP_SIZE)
 #define FB_TOP_RIGHT2         (FB_TOP_RIGHT1 + FB_TOP_SIZE)
@@ -48,20 +53,20 @@ linux_arm9_stage_start:
 	msr cpsr_c, r0
 
 	@ Get the Linux Params size
-	ldr r2, =0x214FFFFC
+	ldr r2, =PARAMS_SIZE_ADDR
 	ldr r2, [r2]
 
 	@ Copy the Linux Params to its
 	@ destination address
-	ldr r0, =0x20000100
-	ldr r1, =0x21400000
+	ldr r0, =PARAMS_ADDR
+	ldr r1, =PARAMS_TMP_ADDR
 	bl memcpy32
 
 	@ The ARM9 code is loaded to 0x23F00000 so the
 	@ linux_arm11_stage_start address will be at:
 	@     0x23F00000 + ARM9_payload_size
 
-	ldr r0, =0x1FFFFFFC
+	ldr r0, =PA_ARM11_CODE_ADDR
 	ldr r1, linux_arm11_stage_pa
 	str r1, [r0]
 
@@ -138,13 +143,13 @@ linux_arm11_stage_start:
 	ldr r1, =FB_TOP_RIGHT2
 	str r1, [r0, #(LCD_FB_B_ADDR_OFFSET + 4)]
 
-	@ Select framebuffer 0
+	@ Select framebuffer 0 and adjust format/stride
 	mov r1, #0
 	str r1, [r0, #LCD_FB_SELECT_OFFSET]
-	ldr r1, =0x80341
-	str r1, [r0, #0x70]
-	mov r1, #0x2D0
-	str r1, [r0, #0x90]
+	ldr r1, =LCD_FB_PDC0_FORMAT
+	str r1, [r0, #LCD_FB_FORMAT_OFFSET]
+	mov r1, #LCD_FB_PDC0_STRIDE
+	str r1, [r0, #LCD_FB_STRIDE_OFFSET]
 
 	@@@ Bottom screen @@@
 	ldr r0, =LCD_FB_PDC1
@@ -157,19 +162,15 @@ linux_arm11_stage_start:
 	@ Select framebuffer 0
 	mov r1, #0
 	str r1, [r0, #LCD_FB_SELECT_OFFSET]
-	ldr r1, =0x80301
-	str r1, [r0, #0x70]
-	mov r1, #0x2D0
-	str r1, [r0, #0x90]
 
 	@@@@@ Jump to the kernel @@@@@
 
 	@ Setup the registers before
 	@ jumping to the kernel entry
 	mov r0, #0
-	ldr r1, =0xFFFFFFFF
-	ldr r2, =0x20000100
-	ldr lr, =0x20008000
+	ldr r1, =MACHINE_NUMBER
+	ldr r2, =PARAMS_ADDR
+	ldr lr, =ZIMAGE_ADDR
 
 	@ Jump to the kernel!
 	bx lr

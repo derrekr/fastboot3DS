@@ -39,7 +39,7 @@ CFLAGS	:=	-std=c11 -g -O2 -Wall \
 CFLAGS	+=	$(INCLUDE) -DARM9 $(DEFINES)
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
-ASFLAGS	:=	-g $(ARCH) $(DEFINES)
+ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
 LDFLAGS	=	-nostartfiles -T../$(LDNAME) -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 #---------------------------------------------------------------------------------
