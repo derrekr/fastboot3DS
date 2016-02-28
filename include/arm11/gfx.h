@@ -1,5 +1,8 @@
-
 #pragma once
+
+#include "types.h"
+
+
 
 #define SCREEN_HEIGHT_TOP	240
 #define SCREEN_WIDTH_TOP	400

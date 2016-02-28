@@ -1,7 +1,5 @@
 #pragma once
 
-#include "types.h"
-
 
 
 /* ARM9 MEM */

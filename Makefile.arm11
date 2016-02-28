@@ -31,14 +31,14 @@ LDNAME	:=	arm11.ld
 
 ARCH	:=	-march=armv6k -mtune=mpcore
 
-CFLAGS	:=	-std=c11 -flto -g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-std=c11 -g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffast-math -fstrict-aliasing -Wstrict-aliasing \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
-ASFLAGS	:=	-g $(ARCH) $(DEFINES)
+ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
 LDFLAGS	=	-nostartfiles -T../arm11.ld -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 #---------------------------------------------------------------------------------

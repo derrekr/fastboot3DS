@@ -25,7 +25,7 @@
 /   3: f_lseek() function is removed in addition to 2. */
 
 
-#define	_USE_STRFUNC	1
+#define	_USE_STRFUNC	0
 /* This option switches string functions, f_gets(), f_putc(), f_puts() and
 /  f_printf().
 /

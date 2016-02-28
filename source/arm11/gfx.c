@@ -1,10 +1,9 @@
-#include <stdbool.h>
 #include "types.h"
 #include "IO.h"
 #include "mem_map.h"
 #include "util.h"
 #include "arm11/i2c.h"
-#include "gfx.h"
+#include "arm11/gfx.h"
 
 
 
@@ -135,7 +134,7 @@ void gfx_lcd_set_mcu_conf()
 void gfx_init_step1()
 {
 	gfx_init_framebufsetup();
-	//*((vu32 *) 0x10202000) = 0;
+	*((vu32 *) 0x10202000) = 0;
 	*((vu32 *) 0x10202004) = 0xA390A39;
 	gfx_lcd_set_mcu_conf();
 }

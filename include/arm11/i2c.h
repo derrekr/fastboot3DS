@@ -1,3 +1,9 @@
+#pragma once
+
+#include "types.h"
+#include <stdbool.h>
+
+
 
 // general i2c routines
 u32 i2c_readregdata(u32 dev_id, u32 regaddr, u8 *out, u32 size);

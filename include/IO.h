@@ -1,3 +1,6 @@
+#pragma once
+
+
 
 /* PDN */
 #define PDN_REGS_BASE				0x10140000

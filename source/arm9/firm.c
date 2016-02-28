@@ -5,8 +5,8 @@
 #include "types.h"
 #include "firm.h"
 #include "mem_map.h"
-#include "crypto.h"
-#include "ndma.h"
+#include "arm9/crypto.h"
+#include "arm9/ndma.h"
 
 
 
@@ -41,43 +41,6 @@ bool firm_load_verify(void)
 	return true;
 }
 
-/*void firmLaunchStub(void)
-{	
-	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	void (*arm9_entry)(void) = (void*)firm_hdr->entrypointarm9;
-
-
-	for(int i = 0; i < 4; i++)
-	{
-		firm_sectionheader *section = &firm_hdr->section[i];
-		if(section->size == 0)
-			continue;
-
-		REG_NDMA_SRC_ADDR(i) = FIRM_LOAD_ADDR + section->offset;
-		REG_NDMA_DST_ADDR(i) = section->address;
-		REG_NDMA_WRITE_CNT(i) = section->size>>2;
-		REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
-		REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC | NDMA_IMMEDIATE_MODE | NDMA_ENABLE;*/
-		/*u32 *src = (u32*)(FIRM_LOAD_ADDR + section->offset);
-		u32 *dst = (u32*)section->address;
-		for(int i = 0; i < section->size>>2; i++)
-		{
-			dst[i] = src[i];
-		}*/
-	/*}
-
-	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE || REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
-
-	// Tell ARM11 its entrypoint
-	A11_ENTRY_VAL = firm_hdr->entrypointarm11;
-
-	// Wait for ARM11...
-	while(CORE_SYNC_VAL != 0x544F4F42);
-
-	// go for it!
-	arm9_entry();
-	//__asm__ __volatile__("mov lr, %[in]\nldr pc, =0x01FF8000" : : [in] "r" (firm_hdr->entrypointarm9));
-}*/
 void firmLaunchStub(void *entry)
 {	
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;

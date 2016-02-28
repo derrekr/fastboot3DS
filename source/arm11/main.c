@@ -1,10 +1,8 @@
-#include <string.h>
-#include <stdbool.h>
 #include "types.h"
 #include "mem_map.h"
 #include "util.h"
 #include "arm11/i2c.h"
-#include "gfx.h"
+#include "arm11/gfx.h"
 
 
 
@@ -16,7 +14,7 @@ void turn_off(void)
 
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
-	while(true)
+	while(1)
 	{
 		i2c_writeregdata(3, 0x20, 0xff);
 		sleep_wait(0x200000);
@@ -35,7 +33,6 @@ void firmLaunchStub(void)
 	CORE_SYNC_VAL = 0x544F4F42;
 
 	void (*arm11_entry)(void) = (void*)A11_ENTRY_VAL;
-	//for(u32 i = (240*320>>1); i < 240*320; i++) ((u32*)0x18300000)[i] = 0x0000FFFF;
 	arm11_entry();
 }
 
@@ -73,9 +70,6 @@ int main(void)
 	// Turn off LCDs and backlight before FIRM launch.
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
-
-	void (*stub_entry)(void) = (void*)A11_STUB_ENTRY;
-	stub_entry();
 
 	return 0;
 }

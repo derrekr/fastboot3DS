@@ -10,8 +10,8 @@
 #include <sys/param.h>
 #include <sys/fcntl.h>
 #include "types.h"
-#include "gfx.h"
-#include "console.h"
+#include "arm11/gfx.h"
+#include "arm9/console.h"
 #include "default_font_bin.h"
 
 #define TAB_SIZE	4

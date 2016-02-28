@@ -7,12 +7,11 @@
 /* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "arm9/fatfs/ff.h"
-#include "diskio.h"		/* FatFs lower layer API */
 #include "types.h"
+#include "arm9/fatfs/ff.h"
+#include "arm9/fatfs/diskio.h"		/* FatFs lower layer API */
 #include "arm9/sdmmc.h"
 #include "arm9/crypto.h"
 #include "old_3DS_MBR_bin.h"

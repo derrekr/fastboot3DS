@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+#include "types.h"
 #include "mem_map.h"
 
 #define FIRM_LOAD_ADDR  (FCRAM_BASE + 0x400000)

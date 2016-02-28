@@ -11,6 +11,7 @@
 //#include "ndma.h"
 #include "hid.h"
 //#include "linux_config.h"
+//#include "arm9/cache.h"
 
 
 
@@ -287,12 +288,34 @@ void initGfx(void)
 	*((vu32*)0x214FFFFC) = bytesRead;
 
 	NDMA_copy((void*)0x23F00000, &linux_payloads_start, ((u32)&linux_payloads_end - (u32)&linux_payloads_start)>>2);
-	//NDMA_fill((u32*)0x18000000, 0, 0x00600000>>2);
 
 	CORE_SYNC_VAL = 0x544F4F42;
 
+	flushDCache();
 	__asm__ __volatile__("ldr pc, =0x23F00000");
 }*/
+
+void testCode(void)
+{
+	FATFS nandFs;
+	FRESULT res;
+
+	printf("Mount res: %X\n", (res = f_mount(&nandFs, "nand:", 1)));
+	if(res != FR_OK) return;
+	FILINFO fileInfo;
+	DIR dir;
+	char lfn[255 + 1];
+	fileInfo.lfname = lfn;
+	fileInfo.lfsize = 256;
+
+	f_opendir(&dir, "nand:/");
+	while(f_readdir(&dir, &fileInfo) == FR_OK && fileInfo.fname[0] != 0)
+	{
+		printf("%s 0x%X\n", ((*fileInfo.lfname) ? fileInfo.lfname : fileInfo.fname), (unsigned int)fileInfo.fsize);
+	}
+	f_closedir(&dir);
+	printf("Unmount res: %X\n", f_mount(NULL, "nand:", 1));
+}
 
 int main(void)
 {
@@ -301,6 +324,9 @@ int main(void)
 	void *entry = NULL;
 	u32 kDown;
 
+
+	// Relocate FIRM launch stub
+	//NDMA_copy((void*)A9_STUB_ENTRY, firmLaunchStub, 0x200>>2);
 
 	hidScanInput();
 	kDown = hidKeysDown();
@@ -311,14 +337,14 @@ int main(void)
 	{
 		initGfx();
 		printf("Failed to mount SD card fs!\n");
-		return 1;
+		return -1;
 	}
 
 	if(kDown & KEY_R)
 	{
 		initGfx();
 		printf("Boot3r v0.0a\n\n");
-		printf("\nA boot firm.bin\nB boot test_firm.bin\nY boot firm1:/\nUp enable 3dshax\nDown test code\n");
+		printf("\nA boot firm.bin\nB boot test_firm.bin\nY boot firm1:/\nUp enable 3dshax\nDown update loader\n");
 		while(true)
 		{
 			hidScanInput();
@@ -348,28 +374,14 @@ int main(void)
 			}
 			if(kDown & KEY_DDOWN)
 			{
-				//updateNandLoader("sdmc:/update.bin");
+				updateNandLoader("sdmc:/update.bin");
 				/*if(!restoreNand())
 				{
 					continue_ = false;
 					break;
 				}*/
-				FATFS nandFs;
-
-				printf("Mount res: %X\n", f_mount(&nandFs, "nand:", 1));
-				FILINFO fileInfo;
-				DIR dir;
-				char lfn[255 + 1];
-				fileInfo.lfname = lfn;
-				fileInfo.lfsize = 256;
-
-				f_opendir(&dir, "nand:/");
-				while(f_readdir(&dir, &fileInfo) == FR_OK && fileInfo.fname[0] != 0)
-				{
-					printf("%s 0x%X\n", ((*fileInfo.lfname) ? fileInfo.lfname : fileInfo.fname), (unsigned int)fileInfo.fsize);
-				}
-				f_closedir(&dir);
-				printf("Unmount res: %X\n", f_mount(NULL, "nand:", 1));
+				//testCode();
+				//loadLinux();
 			}
 			if(CORE_SYNC_VAL == 2) // Poweroff signal from ARM11.
 			{
@@ -395,23 +407,22 @@ int main(void)
 			continue_ = false;
 		}
 		*((vu32*)0x01FF800C) = 3; // FIRMLAUNCH_RUNNINGTYPE = 3
-		//loadLinux();
 	}
 
 	if(f_mount(NULL, "sdmc:", 1) != FR_OK)
 	{
 		initGfx();
 		printf("Failed to unmount SD card fs!\n");
-		return 1;
+		return -1;
 	}
 
 	CORE_SYNC_VAL = 0;
-	if(!continue_) return 1;
+	if(!continue_) return -1;
 
-	if(!firm_load_verify()) return 1;
-	firm_launch(entry);
+	if(!firm_load_verify()) return -1;
+	//firm_launch(entry);
 
-	return 0;
+	return (int)entry; // TODO: Better way to do this
 }
 
 void heap_init(void)
