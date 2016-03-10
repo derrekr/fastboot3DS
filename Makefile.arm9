@@ -19,7 +19,7 @@ include $(DEVKITARM)/3ds_rules
 TARGET		:=	code9
 BUILD		:=	build9
 SOURCES		:=	source/arm9 source/arm9/fatfs source
-INCLUDES	:=	include include/arm9 include/arm9/fatfs
+INCLUDES	:=	include
 DATA		:=	data
 
 #---------------------------------------------------------------------------------
@@ -29,18 +29,17 @@ DEFINES	:=
 
 LDNAME	:=	arm9.ld
 
-ARCH	:=	
+ARCH	:=	-march=armv5te -mtune=arm946e-s -mfloat-abi=soft -mthumb -mthumb-interwork
 
-CFLAGS	:=	-std=c11 -g -O2 -Wall \
- 		-march=armv5te -mtune=arm946e-s -fomit-frame-pointer -fstrict-aliasing -Wstrict-aliasing\
-		-ffast-math \
-		$(ARCH)
+CFLAGS	:=	-std=c11 -g -Wall -O2 -mword-relocations \
+			-fomit-frame-pointer -ffast-math -fstrict-aliasing -Wstrict-aliasing \
+			-ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9 $(DEFINES)
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
-LDFLAGS	=	-nostartfiles -T../$(LDNAME) -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project (order is important)

@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "types.h"
-#include "crypto.h"
+#include "arm9/crypto.h"
 
 
 
@@ -235,7 +235,7 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val)
 
 void SHA_start(u32 params)
 {
-	REG_SHA_CNT = SHA_NORMAL_ROUND | params;
+	REG_SHA_CNT = SHA_ENABLE | params;
 }
 
 void SHA_update(const void *restrict data, u32 size)
@@ -251,22 +251,18 @@ void SHA_update(const void *restrict data, u32 size)
 			REG_SHA_INFIFO[2 + i] = *dataPtr++;
 			REG_SHA_INFIFO[3 + i] = *dataPtr++;
 		}
-		while(REG_SHA_CNT & SHA_NORMAL_ROUND);
+		while(REG_SHA_CNT & SHA_ENABLE);
 
 		size -= 0x40;
 	}
 
-	if(size)
-	{
-		memcpy((u32*)REG_SHA_INFIFO, dataPtr, size);
-		while(REG_SHA_CNT & SHA_NORMAL_ROUND);
-	}
+	if(size) memcpy((u32*)REG_SHA_INFIFO, dataPtr, size);
 }
 
 void SHA_finish(void *restrict hash, u32 endianess)
 {
-	REG_SHA_CNT = SHA_FINAL_ROUND | endianess | (REG_SHA_CNT & (SHA_MODE_256 | SHA_MODE_224 | SHA_MODE_1));
-	while(REG_SHA_CNT & SHA_FINAL_ROUND);
+	REG_SHA_CNT = SHA_PAD_INPUT | endianess | (REG_SHA_CNT & (SHA_MODE_1 | SHA_MODE_224 | SHA_MODE_256));
+	while(REG_SHA_CNT & SHA_ENABLE);
 
 	u32 hashSize;
 	switch(REG_SHA_CNT & (SHA_MODE_256 | SHA_MODE_224 | SHA_MODE_1))

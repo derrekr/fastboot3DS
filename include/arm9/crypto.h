@@ -206,16 +206,12 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val);
 #define REG_SHA_HASH       ( ((u32*) 0x1000A040))
 #define REG_SHA_INFIFO     ( ((vu32*)0x1000A080))
 
-#define SHA_HASH_READY     (0)
-#define SHA_NORMAL_ROUND   (1)
-#define SHA_FINAL_ROUND    (1<<1)
+#define SHA_ENABLE         (1) // Also used as busy flag
+#define SHA_PAD_INPUT      (1<<1)
 #define SHA_INPUT_BIG      (1<<3)
 #define SHA_INPUT_LITTLE   (0)
 #define SHA_OUTPUT_BIG     SHA_INPUT_BIG
 #define SHA_OUTPUT_LITTLE  SHA_INPUT_LITTLE
-
-#define SHA_ENABLE         (1<<16)
-#define SHA_FIFO_READY     (1<<17)
 
 #define SHA_MODE_256       (0)
 #define SHA_MODE_224       (1<<4)

@@ -1,19 +1,22 @@
 #include <stdio.h>
-#include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "arm9/console.h"
+#include "arm9/firm.h"
 #include "arm9/dev.h"
 #include "arm9/fatfs/ff.h"
-#include "arm9/firm.h"
-#include "arm9/sdmmc.h"
-#include "crypto.h"
-//#include "ndma.h"
 #include "hid.h"
-//#include "linux_config.h"
-//#include "arm9/cache.h"
+#include "arm9/utils.h"
+#include "arm9/linux.h"
 
 
+
+void heap_init(void)
+{
+	extern void* fake_heap_start;
+	extern void* fake_heap_end;
+	fake_heap_start = (void*)A9_HEAP_START;
+	fake_heap_end = (void*)A9_HEAP_END;
+}
 
 /*void test(void)
 {
@@ -32,275 +35,12 @@
 	printf("\n");
 }*/
 
-bool loadFirmNand(void)
-{
-	u32 hash[8];
-	AES_ctx aesCtx;
-	u32 size = 0;
-	u8 *buf = (u8*)FIRM_LOAD_ADDR;
-
-
-	// Hash the NAND CID the bootrom left for us in ITCM.
-	sha((void*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
-
-	// Setup AES engine.
-	AES_selectKeyslot(6); // firmX:/ keyslot
-	AES_setCtrIvNonce(&aesCtx, hash, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, 0x0B530000);
-	AES_setCryptParams(&aesCtx, AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | AES_BIT12 | AES_BIT13 | AES_OUTPUT_BIG |
-						AES_INPUT_BIG | AES_OUTPUT_NORMAL_ORDER | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR);
-
-	// Read FIRM header from NAND and decrypt it.
-	if(sdmmc_nand_readsectors(0x0B530000>>9, 1, buf))
-	{
-		printf("Failed to read FIRM header!\n");
-		return false;
-	}
-	AES_crypt(&aesCtx, buf, buf, 512);
-	buf += 512;
-
-	// Calculate remaining size.
-	firm_header *header = (firm_header*)FIRM_LOAD_ADDR;
-	for(int i = 0; i < 4; i++) size += header->section[i].size;
-
-	// Read remaining data.
-	if(sdmmc_nand_readsectors(0x0B530200>>9, size>>9, buf))
-	{
-		printf("Failed to read FIRM sections!\n");
-		return false;
-	}
-
-	// Decrypt remaining data of FIRM.
-	AES_crypt(&aesCtx, buf, buf, size);
-
-	return true;
-}
-
-bool loadFile(const char *filePath, void *address, u32 size, u32 *bytesRead)
-{
-	FIL file;
-	bool res = true;
-
-
-	if(f_open(&file, filePath, FA_READ) != FR_OK)
-	{
-		printf("Failed to open '%s'!\n", filePath);
-		return false;
-	}
-	if(f_read(&file, address, size, (UINT*)bytesRead) != FR_OK)
-	{
-		printf("Failed to read from file!\n");
-		res = false;
-	}
-	f_close(&file);
-
-	return res;
-}
-
-bool updateNandLoader(const char *filePath)
-{
-	u32 hash[8];
-	AES_ctx aesCtx;
-	u32 size, cmpVal = 0xAAAAAAAA;
-	u8 *buf = (u8*)0x20800000;
-	firm_header *header = (firm_header*)0x20800000;
-
-
-	// Hash the NAND CID the bootrom left for us in ITCM.
-	sha((void*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
-
-	// Setup AES engine.
-	AES_selectKeyslot(6); // firmX:/ keyslot
-	AES_setCtrIvNonce(&aesCtx, hash, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, 0x0B130000);
-	AES_setCryptParams(&aesCtx, AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | AES_BIT12 | AES_BIT13 | AES_OUTPUT_BIG |
-						AES_INPUT_BIG | AES_OUTPUT_NORMAL_ORDER | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR);
-
-	// Read FIRM from file.
-	if(!loadFile(filePath, buf, FIRM_MAX_SIZE, &size)) return false;
-
-	// Check for hax.
-	if(memcmp(header->signature, &cmpVal, 4) == 0)
-	{
-		printf("Invalid FIRM!\n");
-		return false;
-	}
-
-	// Delete update file.
-	if(f_unlink(filePath) != FR_OK)
-	{
-		printf("Failed to delete '%s'!\n", filePath);
-		return false;
-	}
-
-	// Encrypt FIRM.
-	AES_crypt(&aesCtx, buf, buf, size);
-
-	// Write FIRM to firm0:/.
-	if(sdmmc_nand_writesectors(0x0B130000>>9, size>>9, buf))
-	{
-		printf("Failed to write sector 0xB130000!\n");
-		return false;
-	}
-
-	printf("Loader successfully updated.\n");
-	return true;
-}
-
-u64 getFreeSpace(const char *drive)
-{
-	FATFS *fs;
-	DWORD freeClusters;
-
-	if(f_getfree(drive, &freeClusters, &fs) != FR_OK)
-	{
-		printf("Failed to get free space for '%s'!\n", drive);
-		return 0;
-	}
-	return ((u64)(freeClusters * fs->csize)) * 512;
-}
-
-bool dumpNand(void)
-{
-	u32 nandSectorCnt = getMMCDevice(0)->total_size;
-	u32 sectorBlkSize = 0x4000, curSector = 0;
-	u8 *buf = (u8*)0x20800000;
-	FIL file;
-	UINT bytesWritten;
-	u32 blockSize;
-	bool res = true;
-
-
-	if(getFreeSpace("sdmc:") < nandSectorCnt<<9)
-	{
-		printf("Not enough space on the SD card!\n");
-		return false;
-	}
-	if(f_open(&file, "sdmc:/NAND.bin", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
-	{
-		printf("Failed to create '%s'!\n", "sdmc:/NAND.bin");
-		return false;
-	}
-
-	while(curSector < nandSectorCnt)
-	{
-		blockSize = ((nandSectorCnt - curSector < sectorBlkSize) ? nandSectorCnt - curSector : sectorBlkSize);
-
-		if(sdmmc_nand_readsectors(curSector, blockSize, buf))
-		{
-			printf("\nFailed to read sector 0x%X!\n", (unsigned int)curSector);
-			res = false;
-			break;
-		}
-		if(f_write(&file, buf, blockSize<<9, &bytesWritten) != FR_OK || bytesWritten>>9 != blockSize)
-		{
-			printf("\nFailed to write to file!\n");
-			res = false;
-			break;
-		}
-
-		curSector += blockSize;
-		printf("\r%u%% (Sector 0x%X/0x%X)", (unsigned int)(curSector * 100 / nandSectorCnt), (unsigned int)curSector, (unsigned int)nandSectorCnt);
-	}
-
-	f_close(&file);
-	return res;
-}
-
-bool restoreNand(void)
-{
-	FIL file;
-	UINT bytesRead;
-	u32 blockSize;
-	bool res = true;
-	u32 offset = 0;
-	u32 bufSize = 0x800000;
-	u8 *buf = (u8*)0x20800000;
-
-
-	FILINFO fileStat;
-	if(f_stat("sdmc:/NAND.bin", &fileStat) != FR_OK)
-	{
-		printf("Failed to get file status!\n");
-		return false;
-	}
-	if(fileStat.fsize > (getMMCDevice(0)->total_size * 512))
-	{
-		printf("NAND file is bigger than NAND!\n");
-		return false;
-	}
-
-	if(f_open(&file, "sdmc:/NAND.bin", FA_READ) != FR_OK)
-	{
-		printf("Failed to open '%s'!\n", "sdmc:/NAND.bin");
-		return false;
-	}
-
-	u32 size = fileStat.fsize;
-	while(offset < size)
-	{
-		blockSize = ((size - offset < bufSize) ? size - offset : bufSize);
-
-		if(f_read(&file, buf, blockSize, &bytesRead) != FR_OK || bytesRead != blockSize)
-		{
-			printf("\nFailed to read from file!\n");
-			res = false;
-			break;
-		}
-		if(sdmmc_nand_writesectors(offset>>9, blockSize>>9, buf))
-		{
-			printf("\nFailed to write sector 0x%X!\n", (unsigned int)offset>>9);
-			res = false;
-			break;
-		}
-
-		offset += blockSize;
-		printf("\r%d%% (Sector 0x%X/0x%X)", (unsigned int)((u64)offset * 100 / size), (unsigned int)offset>>9, (unsigned int)size>>9);
-	}
-
-	f_close(&file);
-	return res;
-}
-
-void initGfx(void)
-{
-	static bool isInitialized = false;
-
-	if(!isInitialized)
-	{
-		isInitialized = true;
-		consoleInit(1, NULL);
-		CORE_SYNC_VAL = 1; // Tell ARM11 to turn on gfx.
-		while(CORE_SYNC_VAL == 1);
-	}
-}
-
-/*void loadLinux(void)
-{
-	u32 bytesRead;
-	extern void linux_payloads_start;
-	extern void linux_payloads_end;
-
-
-	initGfx();
-	loadFile(LINUXIMAGE_FILENAME, (void*)ZIMAGE_ADDR, 0x4000000, NULL);
-	loadFile(DTB_FILENAME, (void*)PARAMS_TMP_ADDR, 0x400000, &bytesRead);
-	f_mount(NULL, "sdmc:", 1);
-
-	*((vu32*)0x214FFFFC) = bytesRead;
-
-	NDMA_copy((void*)0x23F00000, &linux_payloads_start, ((u32)&linux_payloads_end - (u32)&linux_payloads_start)>>2);
-
-	CORE_SYNC_VAL = 0x544F4F42;
-
-	flushDCache();
-	__asm__ __volatile__("ldr pc, =0x23F00000");
-}*/
-
 void testCode(void)
 {
 	FATFS nandFs;
 	FRESULT res;
 
-	printf("Mount res: %X\n", (res = f_mount(&nandFs, "nand:", 1)));
+	printf("Mount res: %X\n", (res = f_mount(&nandFs, "twln:", 1)));
 	if(res != FR_OK) return;
 	FILINFO fileInfo;
 	DIR dir;
@@ -308,13 +48,13 @@ void testCode(void)
 	fileInfo.lfname = lfn;
 	fileInfo.lfsize = 256;
 
-	f_opendir(&dir, "nand:/");
+	f_opendir(&dir, "twln:/");
 	while(f_readdir(&dir, &fileInfo) == FR_OK && fileInfo.fname[0] != 0)
 	{
 		printf("%s 0x%X\n", ((*fileInfo.lfname) ? fileInfo.lfname : fileInfo.fname), (unsigned int)fileInfo.fsize);
 	}
 	f_closedir(&dir);
-	printf("Unmount res: %X\n", f_mount(NULL, "nand:", 1));
+	printf("Unmount res: %X\n", f_mount(NULL, "twln:", 1));
 }
 
 int main(void)
@@ -325,8 +65,6 @@ int main(void)
 	u32 kDown;
 
 
-	// Relocate FIRM launch stub
-	//NDMA_copy((void*)A9_STUB_ENTRY, firmLaunchStub, 0x200>>2);
 
 	hidScanInput();
 	kDown = hidKeysDown();
@@ -337,7 +75,7 @@ int main(void)
 	{
 		initGfx();
 		printf("Failed to mount SD card fs!\n");
-		return -1;
+		return 1;
 	}
 
 	if(kDown & KEY_R)
@@ -383,7 +121,7 @@ int main(void)
 				//testCode();
 				//loadLinux();
 			}
-			if(CORE_SYNC_VAL == 2) // Poweroff signal from ARM11.
+			if(*((vu32*)CORE_SYNC_ID) == 2) // Poweroff signal from ARM11.
 			{
 				printf("Poweroff...\n");
 				continue_ = false;
@@ -413,22 +151,14 @@ int main(void)
 	{
 		initGfx();
 		printf("Failed to unmount SD card fs!\n");
-		return -1;
+		return 1;
 	}
 
-	CORE_SYNC_VAL = 0;
-	if(!continue_) return -1;
+	*((vu32*)CORE_SYNC_ID) = 0;
+	if(!continue_) return 1;
 
-	if(!firm_load_verify()) return -1;
-	//firm_launch(entry);
+	if(!firm_load_verify()) return 1;
+	firm_launch(entry);
 
-	return (int)entry; // TODO: Better way to do this
-}
-
-void heap_init(void)
-{
-	extern void* fake_heap_start;
-	extern void* fake_heap_end;
-	fake_heap_start = (void*)A9_HEAP_START;
-	fake_heap_end = (void*)A9_HEAP_END;
+	return 0;
 }

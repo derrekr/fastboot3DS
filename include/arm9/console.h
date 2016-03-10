@@ -15,6 +15,7 @@ consoleInit()
 */
 
 #include <stdbool.h>
+#include "types.h"
 
 
 typedef bool(* ConsolePrint)(void* con, int c);

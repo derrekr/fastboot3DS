@@ -29,17 +29,17 @@ DEFINES	:=
 
 LDNAME	:=	arm11.ld
 
-ARCH	:=	-march=armv6k -mtune=mpcore
+ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=soft -mthumb -mthumb-interwork
 
 CFLAGS	:=	-std=c11 -g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffast-math -fstrict-aliasing -Wstrict-aliasing \
-			$(ARCH)
+			-ffunction-sections $(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS $(DEFINES)
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
-LDFLAGS	=	-nostartfiles -T../arm11.ld -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project (order is important)

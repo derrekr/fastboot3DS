@@ -74,15 +74,13 @@ bool rwPartitionDec(u32 sector, u32 num, void *buf, bool write)
 
 	if(isTwl)
 	{
-		AES_setCtrIvNonce(&twlAesCtx, twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR, sector<<9);
-
 		if((sector >= 0x00012E00>>9 && sector < (0x00012E00 + 0x08FB5200)>>9) ||
 			(sector >= 0x09011A00>>9 && sector < (0x09011A00 + 0x020B6600)>>9))
 		{
+			AES_setCtrIvNonce(&twlAesCtx, twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR, sector<<9);
 			AES_selectKeyslot(3);
+			AES_crypt(&twlAesCtx, buf, buf, num<<9);
 		}
-
-		AES_crypt(&twlAesCtx, buf, buf, num<<9);
 	}
 	else
 	{

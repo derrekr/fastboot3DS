@@ -3,14 +3,17 @@
 #include "util.h"
 #include "arm11/i2c.h"
 #include "arm11/gfx.h"
+#include "arm11/firm_launch_stub.h"
 
 
+
+extern void disableCaches(void);
 
 void turn_off(void)
 {
 	// Tell ARM9 to deinit everything for poweroff.
-	CORE_SYNC_VAL = 2;
-	while(CORE_SYNC_VAL == 2);
+	*((vu32*)CORE_SYNC_ID) = 2;
+	while(*((vu32*)CORE_SYNC_ID) == 2);
 
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
@@ -21,21 +24,6 @@ void turn_off(void)
 	}
 }
 
-void firmLaunchStub(void)
-{
-	// Answer ARM0
-	CORE_SYNC_VAL = 0x4F4B4F4B;
-
-	// Wait for entry address
-	while(!A11_ENTRY_VAL);
-
-	// Tell ARM9 we got the entry
-	CORE_SYNC_VAL = 0x544F4F42;
-
-	void (*arm11_entry)(void) = (void*)A11_ENTRY_VAL;
-	arm11_entry();
-}
-
 int main(void)
 {
 	// Relocate ARM11 stub
@@ -44,12 +32,12 @@ int main(void)
 		((u32*)A11_STUB_ENTRY)[i] = ((u32*)firmLaunchStub)[i];
 	}
 
-	while(CORE_SYNC_VAL != 0x544F4F42)
+	while(*((vu32*)CORE_SYNC_ID) != 0x544F4F42)
 	{
-		if(CORE_SYNC_VAL == 1)
+		if(*((vu32*)CORE_SYNC_ID) == 1)
 		{
 			gfx_init();
-			CORE_SYNC_VAL = 0;
+			*((vu32*)CORE_SYNC_ID) = 0;
 		}
 		u8 hidstate = i2cmcu_readreg_hid();
 
@@ -70,6 +58,10 @@ int main(void)
 	// Turn off LCDs and backlight before FIRM launch.
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
+
+	void (*stub_entry)(void) = (void*)A11_STUB_ENTRY;
+	disableCaches();
+	stub_entry();
 
 	return 0;
 }

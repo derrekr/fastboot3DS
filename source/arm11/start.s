@@ -2,37 +2,25 @@
 
 .arm
 .cpu mpcore
+.fpu vfpv2
 
 .global _start
 .global _init
-.global flushDCache
-.global invalidateICache
+.global disableCaches
 
 .type _start STT_FUNC
 .type _init STT_FUNC
-.type flushDCache STT_FUNC
-.type invalidateICache STT_FUNC
+.type disableCaches STT_FUNC
 
 .section .init
 
+
+
 _start:
-	@ Disable all interrupts and enter svc mode
-	cpsid aif, #0x13
+	cpsid aif                  @ Disable all interrupts
 
-	ldr sp, =(0x1FFFFE00-8)    @ Stack starts at the end of AXIWRAM
-                               @ before the FIRM launch stub
+	ldr sp, =(A11_STUB_ENTRY-8)
 
-	ldr r0, =0x1FFFFFF0
-	mov r1, #0
-	str r1, [r0, #0xC]         @ Clear arm9 communication fields
-	str r1, [r0, #0x8]
-
-	bl bss_clear
-
-	mrc p15, 0, r0, c1, c0, 0  @ Read control register
-	ldr r1, =0x1004            @ D-Cache and I-Cache bitmask
-	orr r0, r0, r1             @ Enable D-Cache and I-Cache
-	mcr p15, 0, r0, c1, c0, 0  @ Write control register
 	mov r0, #0
 	mcr p15, 0, r0, c7, c14, 0 @ Clear and invalidate entire data cache
 	mcr p15, 0, r0, c7, c10, 5 @ Data memory barrier
@@ -41,18 +29,24 @@ _start:
 	mcr p15, 0, r0, c7, c5, 4  @ Flush prefetch buffer
 	mcr p15, 0, r0, c7, c5, 6  @ Flush entire branch target cache
 	mcr p15, 0, r0, c7, c10, 4 @ Data synchronization barrier
+	mrc p15, 0, r0, c1, c0, 1  @ Read auxiliary control register
+	orr r0, r0, #0x5F          @ Enable return stack, dynamic branch prediction,
+                               @ static branch prediction, exclusive behavior of L1,
+                               @ instruction folding and parity checking
+	mcr p15, 0, r0, c1, c0, 1  @ Write auxiliary control register
+	mrc p15, 0, r0, c1, c0, 0  @ Read control register
+	ldr r1, =0x1804            @ D-Cache, program flow prediction and I-Cache bitmask
+	orr r0, r0, r1             @ Enable D-Cache, program flow prediction and I-Cache
+	mcr p15, 0, r0, c1, c0, 0  @ Write control register
+
+	ldr r0, =(CORE_SYNC_ID & 0xFFFFFFF0)
+	mov r1, #0
+	str r1, [r0, #0xC]         @ Clear arm9 communication fields
+	str r1, [r0, #0x8]
+
+	bl bss_clear
 
 	blx main
-	cmp r0, #0
-	bne endlessLoop
-
-	bl flushDCache
-	bl invalidateICache
-	mrc p15, 0, r0, c1, c0, 0  @ Read control register
-	ldr r1, =0x1004            @ D-Cache and I-Cache bitmask
-	bic r0, r0, r1             @ Disable D-Cache and I-Cache
-	mcr p15, 0, r0, c1, c0, 0  @ Write control register
-	ldr pc, =A11_STUB_ENTRY
 
 endlessLoop:
 	wfi                        @ Wait for interrupt
@@ -71,21 +65,15 @@ bss_clear:
 	add r1, r1, #1
 	b loop_clear
 
-flushDCache:
-	@ Clear and Invalidate Entire Data Cache
-	mov r0, #0
-	mcr p15, 0, r0, c7, c14, 0
-	bx lr
 
-invalidateICache:
-	@ Invalidate Entire Instruction Cache,
-	@ also flushes the branch target cache
-	mov r0, #0
-	mcr p15, 0, r0, c7, c5, 0
-	bx lr
-
-.pool
-
+disableCaches:
+	mov r2, lr
+	bl flushDCache
+	mrc p15, 0, r0, c1, c0, 0  @ Read control register
+	ldr r1, =0x1804            @ D-Cache, program flow prediction and I-Cache bitmask
+	bic r0, r0, r1             @ Disable D-Cache, program flow prediction and I-Cache
+	mcr p15, 0, r0, c1, c0, 0  @ Write control register
+	bx r2
 
 _init:
 	bx lr
