@@ -137,10 +137,7 @@ setupMpu:
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	orr r0, r0, r1              @ Enable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	mov r2, lr
-	bl invalidateICache
-	bl invalidateDCache
-	bx r2
+	bx lr
 
 
 disableMpu:
