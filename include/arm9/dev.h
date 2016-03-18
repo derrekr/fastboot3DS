@@ -1,21 +1,20 @@
+
 #pragma once
-
-#include <stdbool.h>
-#include "types.h"
-
-
 
 typedef struct
 {
 	char *name;
 	bool initialized;
 	bool (*init)();
-	bool (*read)(u32 sector_offset, u32 sector_count, void *buf);
-	bool (*write)(u32 sector_offset, u32 sector_count, void *buf);
+	bool (*read)(u32 offset, u32 size, void *buf);
+	bool (*write)(u32 offset, u32 size, void *buf);
 	bool (*close)();
 	bool (*is_active)();
 	
 } dev_struct;
 
 extern const dev_struct *dev_sdcard;
+extern const dev_struct *dev_rawnand;
+extern const dev_struct *dev_decnand;
+extern const dev_struct *dev_flash;
 

@@ -15,10 +15,10 @@
 bool firm_load_verify(void)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	const char *res[2] = {"BAD", "GOOD"};
+	const char *res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
 	bool isValid;
+	bool retval = true;
 	u8 hash[0x20];
-
 
 	printf("ARM9  entry: 0x%X\n", (unsigned int)firm_hdr->entrypointarm9);
 	printf("ARM11 entry: 0x%X\n", (unsigned int)firm_hdr->entrypointarm11);
@@ -35,12 +35,12 @@ bool firm_load_verify(void)
 
 		sha((void*)(FIRM_LOAD_ADDR + section->offset), section->size, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 		isValid = memcmp(hash, section->hash, 32) == 0;
-		printf("Hash: %s\n", res[isValid]);
+		printf("Hash: %s\e[0m\n", res[isValid]);
 
-		if(!isValid) return isValid;
+		retval &= isValid;
 	}
 	
-	return true;
+	return retval;
 }
 
 void firm_launch(void *entry)

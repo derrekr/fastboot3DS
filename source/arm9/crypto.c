@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "types.h"
-#include "arm9/crypto.h"
+#include "crypto.h"
 
 
 

@@ -1,11 +1,17 @@
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
 #include "types.h"
 #include "IO.h"
 #include "mem_map.h"
 #include "util.h"
 #include "arm11/i2c.h"
-#include "arm11/gfx.h"
+#include "gfx.h"
+//#include "test2_ppm_bin.h"
 
-
+extern void gpio_set_bit(vu16 *reg, u8 bit_num);
+extern void gpio_clear_bit(vu16 *reg, u8 bit_num);
 
 void gfx_setup_framebuf_top()
 {
@@ -77,10 +83,10 @@ void gfx_setup_framebuf_low()
 	*((vu32 *)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2; // framebuf A second address
 	*((vu32 *)(0x10400500+0x9C)) = 0x1920000;
 	*((vu32 *)(0x10400500+0x70)) = 0x80000;	// Framebuffer format: sub screen, GL_RGBA8_OES
-	*((vu32 *)(0x10400400+0x74)) = 0x10700; // gets set to 0x10501 later on
-	*((vu32 *)(0x10400400+0x78)) = 0x70100; // gets set to 0x0 later on
+	*((vu32 *)(0x10400500+0x74)) = 0x10700; // gets set to 0x10501 later on
+	*((vu32 *)(0x10400500+0x78)) = 0x70100; // gets set to 0x0 later on
 	*((vu32 *)(0x10400500+0x80)) = 0x0;
-
+	
 	for(int i=0; i<0x100; i++)
 	{
 		u32 val = 0x10101;
@@ -94,26 +100,45 @@ void gfx_init_framebufsetup()
 	PDN_REG_GPU_CNT2_8BIT |= 1;	// turn on GPU
 	PDN_REG_GPU_CNT |= 1<<0x10;	// turn on LCD backlight
 	sleep_wait(0x1000);
-
+	
 	PDN_REG_GPU_CNT |= 0x1007F;
 	PDN_REG_GPU_CNT4 |= 1;
-
+	
 	GPU_EXT_REG_CNT |= 0x300;
-
+	
+	//memset(VRAM_BASE, 0xFF, VRAM_SIZE);
 	gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
-
+	
 	gfx_setup_framebuf_top();
 	gfx_setup_framebuf_low();
-
+	
 	*((vu32 *)(0x1040044C)) = 0xFF00;
 	*((vu32 *)(0x1040054C)) = 0xFF;
 
-
+	
 	sleep_wait(0x8000);
 	*((vu32 *)(0x10400578)) = 0x0;
 	*((vu32 *)(0x10400478)) = 0x0;
 	*((vu32 *)(0x10400574)) = 0x10501;
 	*((vu32 *)(0x10400474)) = 0x10501;
+}
+
+void gpio_stuff_bit7_bit10()
+{
+	// gpio_stuff
+	*((vu32 *) 0x10202014) = 0;
+	if(((*((u16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
+	{
+		gpio_set_bit((vu16 *)0x10147022, 0xA);
+		gpio_clear_bit((vu16 *)0x10147020, 0xA);
+	}
+	
+	// gpio_stuff2
+	if(((*((vu16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
+	{
+		gpio_set_bit((vu16 *)0x10147022, 7);
+		gpio_clear_bit((vu16 *)0x10147020, 7);
+	}
 }
 
 void gfx_lcd_set_mcu_conf()
@@ -136,7 +161,18 @@ void gfx_init_step1()
 	gfx_init_framebufsetup();
 	*((vu32 *) 0x10202000) = 0;
 	*((vu32 *) 0x10202004) = 0xA390A39;
+	//gpio_stuff_bit7_bit10();
 	gfx_lcd_set_mcu_conf();
+}
+
+u32 gfx_i2c_lcd_init()
+{
+	if(!i2c_write_regdata_dev5_dev6(true, true, 0x11, 0x10) ||
+		!i2c_write_regdata_dev5_dev6(true, false, 0x50, 0x1) ||
+		!i2c_write_regdata_dev5_dev6(true, true, 0x60, 0) ||
+		!i2c_write_regdata_dev5_dev6(true, true, 1, 0x10))
+		return 0;
+	return 1;
 }
 
 void gfx_init_step2()
@@ -144,30 +180,52 @@ void gfx_init_step2()
 	sleep_wait(0x1000);
 	// gpio_stuff
 	*((vu32 *) 0x10202014) = 1;
+	if(((*((vu16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
+	{
+		gpio_set_bit((vu16 *)0x10147022, 0xA);
+		gpio_set_bit((vu16 *)0x10147020, 0xA);
+	}
 	
 	// enable color fill regs for both screens
 	LCD_REG_LCDCOLORFILLMAIN |= 1<<24;
 	LCD_REG_LCDCOLORFILLSUB |= 1<<24;
-
+	
 	*((vu32 *) 0x1020200C) &= 0xFFFEFFFE;
-
+	
 	sleep_wait(0x1000);
+	//gfx_i2c_lcd_init();
 	i2cmcu_lcd_poweron();
+}
+
+u32 gfx_i2c_lcd_finish()
+{
+	u8 response = i2c_write_echo_read(5, 0x40, 0x62);
+	if(i2c_write_echo_read(6, 0x40, 0x62) != response)
+		return 0;
+	if(response == 1)
+		return 1;
+	return 0;
 }
 
 void gfx_init_step3()
 {
-	LCD_REG_BACKLIGHTMAIN = 10;//0x40;
-	LCD_REG_BACKLIGHTSUB = 10;//0x40;
-
-	sleep_wait(0x140000);
-
+	LCD_REG_BACKLIGHTMAIN = 0xFF;
+	LCD_REG_BACKLIGHTSUB = 0xFF;
+	
+	int i;
+	for(i=0; i<10; i++)
+	{
+		//if(!gfx_i2c_lcd_finish())
+			sleep_wait(0x20000);
+		//else break;
+	}
+	
 	LCD_REG_LCDCOLORFILLMAIN = 0;
 	LCD_REG_LCDCOLORFILLSUB = 0;
-
+	
 	*((vu32 *) 0x10202244) = *((vu32 *) 0x10202244) | 0x10000;
 	*((vu32 *) 0x10202A44) = *((vu32 *) 0x10202A44) | 0x10000;
-
+	
 	// enable lcd lights
 	i2cmcu_lcd_backlight_poweron();
 }
@@ -198,4 +256,28 @@ void gfx_set_framebufs(u8 r, u8 g, u8 b, u8 a)
 		*framebuf++ = g;
 		*framebuf++ = r;
 	}
+}
+
+void gfx_set_black_sub()
+{
+	LCD_REG_LCDCOLORFILLSUB |= 1<<24;
+}
+
+void gfx_draw_ppm()
+{
+	/*
+	u8 *framebuf = (u8 *) FRAMEBUF_TOP_A_1;
+	u8 *imagedata = (u8 *) (test2_ppm_bin+0x26);	// skip ppm header
+	for(u32 x=0; x<400; x++)
+	{
+		for(u32 y=240; y>=1; y--)
+		{
+			
+			*framebuf++ = 0;
+			*framebuf++ = imagedata[(400*(y-1)+x)*3+2];
+			*framebuf++ = imagedata[(400*(y-1)+x)*3+1];
+			*framebuf++ = imagedata[(400*(y-1)+x)*3+0];
+		}
+	}
+	*/
 }

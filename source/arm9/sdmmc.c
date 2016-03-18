@@ -4,6 +4,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  * Copyright (c) 2014, Normmatt
+ * Copyright (c) 2016, derrek
  *
  * Alternatively, the contents of this file may be used under the terms
  * of the GNU General Public License Version 2, as described below:
@@ -21,8 +22,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see http://www.gnu.org/licenses/.
  */
- 
-// modified by derrek
  
 
 #include <stdint.h>
@@ -43,69 +42,11 @@
 
 #define DATA32_SUPPORT
 
-bool sdmmc_sd_init();
-bool sdmmc_sd_read(u32 offset, u32 sector_count, void *buf);
-bool sdmmc_sd_write(u32 offset, u32 sector_count, void *buf);
-bool sdmmc_sd_close();
-bool sdmmc_sd_is_active();
 
-static dev_struct dev_sd = {
-	"sd",
-	0,
-	&sdmmc_sd_init,
-	&sdmmc_sd_read,
-	&sdmmc_sd_write,
-	&sdmmc_sd_close
-};
-const dev_struct *dev_sdcard = &dev_sd;
+// ------------------------------------------ sdmmc driver ------------------------------------------
 
 struct mmcdevice handleNAND;
 struct mmcdevice handleSD;
-
-bool sdmmc_sd_init()
-{
-	if(!dev_sd.initialized)
-	{
-		// thanks yellows8
-		*((u16*)0x10000020) |= 0x200;//If not set, the hardware will not detect any inserted card on the sdbus.
-		*((u16*)0x10000020) &= ~0x1;//If set while bitmask 0x200 is set, a sdbus command timeout error will occur during sdbus init.
-		sdmmc_sdcard_init();
-		dev_sd.initialized = true;
-	}
-	return true;
-}
-
-bool sdmmc_sd_read(u32 offset, u32 sector_count, void *buf)
-{
-	if(!dev_sd.initialized)
-		return false;
-	
-	return !sdmmc_sdcard_readsectors(offset, sector_count, buf);
-}
-
-bool sdmmc_sd_write(u32 offset, u32 sector_count, void *buf)
-{
-	if(!dev_sd.initialized)
-		return false;
-	
-	return !sdmmc_sdcard_writesectors(offset, sector_count, buf);
-}
-
-bool sdmmc_sd_close()
-{
-	return true;
-}
-
-bool sdmmc_sd_is_active()
-{
-	for(int i=0; i<0x100; i++)
-	{
-		if(!((sdmmc_read16(REG_SDSTATUS1) & TMIO_STAT1_CMD_BUSY)))
-			return true;
-	}
-	return false;
-}
-
 
 mmcdevice *getMMCDevice(int drive)
 {
@@ -146,6 +87,7 @@ void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t args)
 	}
 	
 	ctx->error = 0;
+	
 	while((sdmmc_read16(REG_SDSTATUS1) & TMIO_STAT1_CMD_BUSY)); //mmc working?
 	sdmmc_write16(REG_SDIRMASK0,0);
 	sdmmc_write16(REG_SDIRMASK1,0);
@@ -305,8 +247,6 @@ int sdmmc_sdcard_readsectors(uint32_t sector_no, uint32_t numsectors, uint8_t *o
 	return geterror(&handleSD);
 }
 
-
-
 int sdmmc_nand_readsectors(uint32_t sector_no, uint32_t numsectors, uint8_t *out)
 {
 	if(handleNAND.isSDHC == 0) sector_no <<= 9;
@@ -369,7 +309,7 @@ static uint32_t calcSDSize(uint8_t* csd, int type)
   return result;
 }
 
-void InitSD()
+void sdmmc_init()
 {
 	//NAND
 	handleNAND.isSDHC = 0;
@@ -432,14 +372,15 @@ int Nand_Init()
 	sleep_wait(0xF000);
 	sdmmc_send_command(&handleNAND,0,0);
 	
-	do
+	for(int i=0; i<100; i++)
 	{
-		do
+		for(int j=0; j<20; j++)
 		{
 			sdmmc_send_command(&handleNAND,0x10701,0x100000);
-		} while ( !(handleNAND.error & 1) );
+			if(handleNAND.error & 1) break;
+		}
+		if((handleNAND.ret[0] & 0x80000000) != 0) break;
 	}
-	while((handleNAND.ret[0] & 0x80000000) == 0);
 	
 	sdmmc_send_command(&handleNAND,0x10602,0x0);
 	if((handleNAND.error & 0x4))return -1;
@@ -482,22 +423,28 @@ int SD_Init()
 {
 	inittarget(&handleSD);
 	sleep_wait(0xF000);
+	
+	if(!(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE)) return -1;
+	
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);
 	uint32_t temp = (handleSD.error & 0x1) << 0x1E;
 	
 	//int count = 0;
-	uint32_t temp2 = 0;
-	do
+	uint32_t temp2 = 0;	
+	
+	for(int i=0; i<100; i++)
 	{
-		do
+		for(int j=0; j<20; j++)
 		{
 			sdmmc_send_command(&handleSD,0x10437,handleSD.initarg << 0x10);
 			sdmmc_send_command(&handleSD,0x10769,0x00FF8000 | temp);
 			temp2 = 1;
-		} while ( !(handleSD.error & 1) );
+			if(handleSD.error & 1) break;
+		}
+		if((handleSD.ret[0] & 0x80000000) != 0) break;
 	}
-	while((handleSD.ret[0] & 0x80000000) == 0);
+	
 
 	if(!((handleSD.ret[0] >> 30) & 1) || !temp)
 		temp2 = 0;
@@ -536,11 +483,4 @@ int SD_Init()
 	handleSD.clk |= 0x200;
 	
 	return 0;
-}
-
-void sdmmc_sdcard_init()
-{
-	InitSD();
-	Nand_Init();
-	SD_Init();
 }

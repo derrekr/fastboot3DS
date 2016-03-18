@@ -2,6 +2,10 @@
 /  Low level disk interface modlue include file   (C)ChaN, 2014          /
 /-----------------------------------------------------------------------*/
 
+#define FATFS_DEV_NUM_SD      0
+#define FATFS_DEV_NUM_NAND    1
+
+
 #ifndef _DISKIO_DEFINED
 #define _DISKIO_DEFINED
 
@@ -12,9 +16,7 @@ extern "C" {
 #define _USE_WRITE	1	/* 1: Enable disk_write function */
 #define _USE_IOCTL	1	/* 1: Enable disk_ioctl fucntion */
 
-#include <stdbool.h>
 #include "integer.h"
-#include "types.h"
 
 
 /* Status of Disk Functions */
@@ -34,8 +36,6 @@ typedef enum {
 /* Prototypes for disk control functions */
 
 
-void nandCryptInit(void);
-bool rwPartitionDec(u32 sector, u32 num, void *buf, bool write);
 DSTATUS disk_initialize (BYTE pdrv);
 DSTATUS disk_status (BYTE pdrv);
 DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);

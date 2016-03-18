@@ -1,19 +1,10 @@
+
 #pragma once
-
-#include "types.h"
-
-
 
 #define SCREEN_HEIGHT_TOP	240
 #define SCREEN_WIDTH_TOP	400
 #define SCREEN_HEIGHT_SUB	240
 #define SCREEN_WIDTH_SUB	320
-
-// orignial fb addrs from boot11
-#define FRAMEBUF_ORIG_TOP_A_1 0x18000000
-#define FRAMEBUF_ORIG_TOP_A_2 0x18300000
-#define FRAMEBUF_ORIG_SUB_A_1 0x1805E000
-#define FRAMEBUF_ORIG_SUB_A_2 0x1835E000
 
 #define FRAMEBUF_TOP_A_1 0x18000000
 #define FRAMEBUF_TOP_A_2 0x18000000

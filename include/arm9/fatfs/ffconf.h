@@ -34,7 +34,7 @@
 /  2: Enable with LF-CRLF conversion. */
 
 
-#define _USE_FIND		1
+#define _USE_FIND		0
 /* This option switches filtered directory read feature and related functions,
 /  f_findfirst() and f_findnext(). (0:Disable or 1:Enable) */
 
@@ -124,7 +124,7 @@
 /  When _LFN_UNICODE is 0, this option has no effect. */
 
 
-#define _FS_RPATH	2
+#define _FS_RPATH	0
 /* This option configures relative path feature.
 /
 /   0: Disable relative path feature and remove related functions.
@@ -138,12 +138,12 @@
 / Drive/Volume Configurations
 /---------------------------------------------------------------------------*/
 
-#define _VOLUMES	4
+#define _VOLUMES	1
 /* Number of volumes (logical drives) to be used. */
 
 
-#define _STR_VOLUME_ID	1
-#define _VOLUME_STRS	"SDMC","TWLN","TWLP","NAND"
+#define _STR_VOLUME_ID	0
+#define _VOLUME_STRS	"RAM","NAND","CF","SD1","SD2","USB1","USB2","USB3"
 /* _STR_VOLUME_ID option switches string volume ID feature.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each
@@ -151,7 +151,7 @@
 /  the drive ID strings are: A-Z and 0-9. */
 
 
-#define	_MULTI_PARTITION	1
+#define	_MULTI_PARTITION	0
 /* This option switches multi-partition feature. By default (0), each logical drive
 /  number is bound to the same physical drive number and only an FAT volume found on
 /  the physical drive will be mounted. When multi-partition feature is enabled (1),
@@ -192,7 +192,7 @@
 / System Configurations
 /---------------------------------------------------------------------------*/
 
-#define	_FS_TINY	0
+#define	_FS_TINY	1
 /* This option switches tiny buffer configuration. (0:Normal or 1:Tiny)
 /  At the tiny configuration, size of the file object (FIL) is reduced _MAX_SS
 /  bytes. Instead of private sector buffer eliminated from the file object,

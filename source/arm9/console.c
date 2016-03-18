@@ -10,8 +10,9 @@
 #include <sys/param.h>
 #include <sys/fcntl.h>
 #include "types.h"
-#include "arm11/gfx.h"
-#include "arm9/console.h"
+#include "cache.h"
+#include "gfx.h"
+#include "console.h"
 #include "default_font_bin.h"
 
 #define TAB_SIZE	4
@@ -77,38 +78,7 @@ static const u32 colorTable[] =
 	0x00FFFF00,	// Cyan
 	0xFFFFFF00	// White
 };
-/*
-void console_init()
-{
-	gfx_set_framebufs(0x00, 0x00, 0x00, 00);
-	
-	console_top.frameBuffer = gfx_get_framebuf_ptr(1,0,0);
-	console_top.screen = 1;
-	console_top.height = SCREEN_HEIGHT_TOP;
-	console_top.width = SCREEN_WIDTH_TOP;
-	console_top.fg_color = color_table[15];
-	console_top.bg_color = color_table[0];
-	console_top.cursor_x = 0;
-	console_top.cursor_y = 0;
-	console_top.max_rows = SCREEN_HEIGHT_TOP / 8;
-	console_top.max_columns = SCREEN_WIDTH_TOP / 8;
-	console_select_screen(1);
-	
-	devoptab_list[STD_OUT] = &dotab_stdout;
-	devoptab_list[STD_ERR] = &dotab_stdout;
 
-	setvbuf(stdout, NULL , _IONBF, 0);
-	setvbuf(stderr, NULL , _IONBF, 0);
-}
-
-void console_select_screen(int screen)
-{
-	if(screen)
-		cur_console = &console_top;
-	else
-		cur_console = &console_sub;
-}
-*/
 PrintConsole currentCopy;
 
 PrintConsole* currentConsole = &currentCopy;
@@ -544,12 +514,13 @@ PrintConsole* consoleInit(int screen, PrintConsole* console) {
 
 	console->consoleInitialised = 1;
 
-	console->frameBuffer = (u32*)FRAMEBUF_TOP_A_1;
-
 	if(screen==1) {
+		console->frameBuffer = (u32*)FRAMEBUF_TOP_A_1;
 		console->consoleWidth = 50;
 		console->windowWidth = 50;
 	}
+	else
+		console->frameBuffer = (u32*)FRAMEBUF_SUB_A_1;
 
 	consoleCls('2');
 
@@ -716,6 +687,8 @@ void consolePrintChar(int c) {
 			++currentConsole->cursorX ;
 			break;
 	}
+	
+	flushDCache();
 }
 
 //---------------------------------------------------------------------------------
