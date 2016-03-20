@@ -32,7 +32,7 @@ bool dumpNand(const char *filepath)
 	UINT bytesWritten;
 	u32 blockSize;
 	bool res = true;
-	const u8 *buf = (u8 *) FCRAM_BASE;
+	u8 *buf = (u8 *) FCRAM_BASE;
 
 	if(getFreeSpace("sdmc") < (nandSectorCnt * 512))
 	{
