@@ -122,11 +122,11 @@ extern "C" {
 	void sdmmc_init();
 	int sdmmc_sdcard_readsector(uint32_t sector_no, uint8_t *out);
 	int sdmmc_sdcard_readsectors(uint32_t sector_no, uint32_t numsectors, uint8_t *out);
-	int sdmmc_sdcard_writesector(uint32_t sector_no, uint8_t *in);
-	int sdmmc_sdcard_writesectors(uint32_t sector_no, uint32_t numsectors, uint8_t *in);
+	int sdmmc_sdcard_writesector(uint32_t sector_no, const uint8_t *in);
+	int sdmmc_sdcard_writesectors(uint32_t sector_no, uint32_t numsectors, const uint8_t *in);
 	
 	int sdmmc_nand_readsectors(uint32_t sector_no, uint32_t numsectors, uint8_t *out);
-	int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, uint8_t *in);
+	int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, const uint8_t *in);
 	
 	mmcdevice *getMMCDevice(int drive);
 	
