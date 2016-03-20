@@ -7,7 +7,7 @@ typedef struct
 	bool initialized;
 	bool (*init)();
 	bool (*read)(u32 offset, u32 size, void *buf);
-	bool (*write)(u32 offset, u32 size, void *buf);
+	bool (*write)(u32 offset, u32 size, const void *buf);
 	bool (*close)();
 	bool (*is_active)();
 	

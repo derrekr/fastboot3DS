@@ -215,7 +215,7 @@ void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t args)
 	}
 }
 
-int sdmmc_sdcard_writesectors(uint32_t sector_no, uint32_t numsectors, uint8_t *in)
+int sdmmc_sdcard_writesectors(uint32_t sector_no, uint32_t numsectors, const uint8_t *in)
 {
 	if(handleSD.isSDHC == 0) sector_no <<= 9;
 	inittarget(&handleSD);
@@ -225,7 +225,7 @@ int sdmmc_sdcard_writesectors(uint32_t sector_no, uint32_t numsectors, uint8_t *
 	sdmmc_write16(REG_SDBLKLEN32,0x200);
 #endif
 	sdmmc_write16(REG_SDBLKCOUNT,numsectors);
-	handleSD.data = in;
+	handleSD.data = (uint8_t*) in;
 	handleSD.size = numsectors << 9;
 	sdmmc_send_command(&handleSD,0x52C19,sector_no);
 	return geterror(&handleSD);
@@ -264,7 +264,7 @@ int sdmmc_nand_readsectors(uint32_t sector_no, uint32_t numsectors, uint8_t *out
 	return geterror(&handleNAND);
 }
 
-int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, uint8_t *in) //experimental
+int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, const uint8_t *in) //experimental
 {
 	if(handleNAND.isSDHC == 0) sector_no <<= 9;
 	inittarget(&handleNAND);
@@ -274,7 +274,7 @@ int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, uint8_t *in
 	sdmmc_write16(REG_SDBLKLEN32,0x200);
 #endif
 	sdmmc_write16(REG_SDBLKCOUNT,numsectors);
-	handleNAND.data = in;
+	handleNAND.data = (uint8_t*) in;
 	handleNAND.size = numsectors << 9;
 	sdmmc_send_command(&handleNAND,0x52C19,sector_no);
 	inittarget(&handleSD);

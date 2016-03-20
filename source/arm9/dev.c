@@ -12,7 +12,7 @@
 // SD card device
 bool sdmmc_sd_init(void);
 bool sdmmc_sd_read(u32 offset, u32 size, void *buf);
-bool sdmmc_sd_write(u32 offset, u32 size, void *buf);
+bool sdmmc_sd_write(u32 offset, u32 size, const void *buf);
 bool sdmmc_sd_close(void);
 bool sdmmc_sd_is_active(void);
 
@@ -30,7 +30,7 @@ const dev_struct *dev_sdcard = &dev_sd;
 // Raw NAND device
 bool sdmmc_rnand_init(void);
 bool sdmmc_rnand_read(u32 offset, u32 size, void *buf);
-bool sdmmc_rnand_write(u32 offset, u32 size, void *buf);
+bool sdmmc_rnand_write(u32 offset, u32 size, const void *buf);
 bool sdmmc_rnand_close(void);
 bool sdmmc_rnand_is_active(void);
 
@@ -64,7 +64,7 @@ typedef struct {
 
 bool sdmmc_dnand_init(void);
 bool sdmmc_dnand_read(u32 offset, u32 size, void *buf);
-bool sdmmc_dnand_write(u32 offset, u32 size, void *buf);
+bool sdmmc_dnand_write(u32 offset, u32 size, const void *buf);
 bool sdmmc_dnand_close(void);
 bool sdmmc_dnand_is_active(void);
 
@@ -123,7 +123,7 @@ bool sdmmc_sd_read(u32 offset, u32 size, void *buf)
 	return !sdmmc_sdcard_readsectors(offset >> 9, size >> 9, buf);
 }
 
-bool sdmmc_sd_write(u32 offset, u32 size, void *buf)
+bool sdmmc_sd_write(u32 offset, u32 size, const void *buf)
 {
 	if(!dev_sd.initialized)
 		return false;
@@ -162,7 +162,7 @@ bool sdmmc_rnand_read(u32 offset, u32 size, void *buf)
 	return !sdmmc_nand_readsectors(offset >> 9, size >> 9, buf);
 }
 
-bool sdmmc_rnand_write(u32 offset, u32 size, void *buf)
+bool sdmmc_rnand_write(u32 offset, u32 size, const void *buf)
 {
 	if(!dev_rnand.initialized)
 		return false;
@@ -309,7 +309,7 @@ bool sdmmc_dnand_read(u32 offset, u32 size, void *buf)
 	return true;
 }
 
-bool sdmmc_dnand_write(u32 offset, u32 size, void *buf)
+bool sdmmc_dnand_write(u32 offset, u32 size, const void *buf)
 {
 	if(!dev_dnand.dev.initialized)
 		return false;
