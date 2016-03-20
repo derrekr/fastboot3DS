@@ -2,8 +2,9 @@
 /  Low level disk interface modlue include file   (C)ChaN, 2014          /
 /-----------------------------------------------------------------------*/
 
-#define FATFS_DEV_NUM_SD      0
-#define FATFS_DEV_NUM_NAND    1
+#define FATFS_DEV_NUM_SD        0
+#define FATFS_DEV_NUM_TWL_NAND  1
+#define FATFS_DEV_NUM_CTR_NAND  2
 
 
 #ifndef _DISKIO_DEFINED

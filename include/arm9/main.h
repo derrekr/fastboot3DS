@@ -1,4 +1,3 @@
-
 #pragma once
 
 enum menu_state_type {
@@ -11,10 +10,11 @@ const char *menu_main_slots[] = {
 	"Options..."
 };
 
-typedef struct config_format {
+// Shut up gcc warning
+/*typedef struct config_format {
 	u8 dev_id;
 
-};
+};*/
 
 
 extern bool unit_is_new3ds;

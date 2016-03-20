@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "types.h"
 #include "mem_map.h"
 #include "IO.h"
@@ -16,8 +17,8 @@
 PrintConsole con_top, con_bottom;
 // SD card FAT fs instance
 FATFS sd_fs;
-// same for NAND
-FATFS nand_fs;
+// same for all NAND fss
+FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 // 
 enum menu_state_type menu_state;
 
@@ -157,15 +158,22 @@ void mount_fs()
 {
 	FRESULT res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
-	
-	sd_fs.drv = FATFS_DEV_NUM_SD;
-	nand_fs.drv = FATFS_DEV_NUM_NAND;
-	
+
 	printf("Mounting SD card FAT FS... ");
-	res = f_mount(&sd_fs, "sd", 1);
+	res = f_mount(&sd_fs, "sdmc", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
-	
+
+	printf("Mounting twln FS... ");
+	f_mount(&nand_twlnfs, "twln", 1);
+	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
+	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
+
+	printf("Mounting twlp FS... ");
+	f_mount(&nand_twlpfs, "twlp", 1);
+	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
+	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
+
 	printf("Mounting CTR NAND FAT FS... ");
 	f_mount(&nand_fs, "nand", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);

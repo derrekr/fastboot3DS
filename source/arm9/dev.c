@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <string.h>
 #include "types.h"
 #include "mem_map.h"
+#include "arm9/ncsd.h"
 #include "arm9/sdmmc.h"
 #include "arm9/spiflash.h"
 #include "arm9/crypto.h"
@@ -8,11 +10,11 @@
 #include "arm9/dev.h"
 
 // SD card device
-bool sdmmc_sd_init();
+bool sdmmc_sd_init(void);
 bool sdmmc_sd_read(u32 offset, u32 size, void *buf);
 bool sdmmc_sd_write(u32 offset, u32 size, void *buf);
-bool sdmmc_sd_close();
-bool sdmmc_sd_is_active();
+bool sdmmc_sd_close(void);
+bool sdmmc_sd_is_active(void);
 
 static dev_struct dev_sd = {
 	"sd",
@@ -26,11 +28,11 @@ static dev_struct dev_sd = {
 const dev_struct *dev_sdcard = &dev_sd;
 
 // Raw NAND device
-bool sdmmc_rnand_init();
+bool sdmmc_rnand_init(void);
 bool sdmmc_rnand_read(u32 offset, u32 size, void *buf);
 bool sdmmc_rnand_write(u32 offset, u32 size, void *buf);
-bool sdmmc_rnand_close();
-bool sdmmc_rnand_is_active();
+bool sdmmc_rnand_close(void);
+bool sdmmc_rnand_is_active(void);
 
 static dev_struct dev_rnand = {
 	"rnand",
@@ -53,16 +55,18 @@ typedef struct {
 
 typedef struct {
 	dev_struct dev;
-	u32 cid_hash[8];	// NAND CID hash
-	AES_ctx aes_ctx;
+	u32 twlCounter[4];
+	u32 ctrCounter[4];
+	AES_ctx twlAesCtx;
+	AES_ctx ctrAesCtx;
 	nand_partition_struct partitions[8];
 } dev_dnand_struct;
 
-bool sdmmc_dnand_init();
+bool sdmmc_dnand_init(void);
 bool sdmmc_dnand_read(u32 offset, u32 size, void *buf);
 bool sdmmc_dnand_write(u32 offset, u32 size, void *buf);
-bool sdmmc_dnand_close();
-bool sdmmc_dnand_is_active();
+bool sdmmc_dnand_close(void);
+bool sdmmc_dnand_is_active(void);
 
 static dev_dnand_struct dev_dnand = {
 	{
@@ -78,10 +82,10 @@ static dev_dnand_struct dev_dnand = {
 const dev_struct *dev_decnand = &dev_dnand.dev;
 
 // wifi flash device
-bool wififlash_init();
+bool wififlash_init(void);
 bool wififlash_read(u32 offset, u32 size, void *buf);
-bool wififlash_close();
-bool wififlash_is_active();
+bool wififlash_close(void);
+bool wififlash_is_active(void);
 
 static dev_struct dev_wififlash = {
 	"wififlash",
@@ -95,7 +99,7 @@ static dev_struct dev_wififlash = {
 const dev_struct *dev_flash = &dev_wififlash;
 
 // -------------------------------- sd card glue functions --------------------------------
-bool sdmmc_sd_init()
+bool sdmmc_sd_init(void)
 {
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
 		sdmmc_init();
@@ -127,18 +131,18 @@ bool sdmmc_sd_write(u32 offset, u32 size, void *buf)
 	return !sdmmc_sdcard_writesectors(offset >> 9, size >> 9, buf);
 }
 
-bool sdmmc_sd_close()
+bool sdmmc_sd_close(void)
 {
 	return true;
 }
 
-bool sdmmc_sd_is_active()
+bool sdmmc_sd_is_active(void)
 {
 	return (sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE);
 }
 
 // -------------------------------- raw nand glue functions --------------------------------
-bool sdmmc_rnand_init()
+bool sdmmc_rnand_init(void)
 {
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
 		sdmmc_init();
@@ -166,77 +170,98 @@ bool sdmmc_rnand_write(u32 offset, u32 size, void *buf)
 	return !sdmmc_nand_writesectors(offset >> 9, size >> 9, buf);
 }
 
-bool sdmmc_rnand_close()
+bool sdmmc_rnand_close(void)
 {
 	return true;
 }
 
-bool sdmmc_rnand_is_active()
+bool sdmmc_rnand_is_active(void)
 {
 	return dev_rnand.initialized;
 }
 
 // ------------------------------ decrypted nand glue functions ------------------------------
-bool sdmmc_dnand_init()
+bool sdmmc_dnand_init(void)
 {
-	u8 sector[0x200];
-	const char *name;
-	const u32 magic = 0x4453434E; // 'NCSD'
-	
+	Ncsd_header header;
+	u32 hash[8];
+	u32 twlKeyX[4]; // TWL keys
+	u32 twlKeyY[4];
+	extern bool unit_is_new3ds;
+	extern u32 ctr_nand_offset;
+
+
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
 		sdmmc_init();
-	
-	if(!dev_dnand.dev.initialized) {
-		if(!dev_rnand.initialized) {
+
+	if(!dev_dnand.dev.initialized)
+	{
+		if(!dev_rnand.initialized)
+		{
 			Nand_Init();
 			dev_rnand.initialized = true;
 		}
-		
-		// this is needed for decryption
-		sha((void*)0x01FFCD84, 16, (u8*)dev_dnand.cid_hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
-		
-		if(sdmmc_nand_readsectors(0, 1, sector)) return false;	// read the first sector
-		
-		if(getleu32(&sector[0x100]) != magic) return false;	// verify magic
-		
-		printf(" NCSD image detected!\n Partitions:\n");
-		
-		// identify partitions
-		for(int i=0; i<8; i++) {
-			nand_partition_struct *partition = &dev_dnand.partitions[i];
-			partition->offset = getleu32(&sector[0x120+(i<<3)]);
-			partition->size = getleu32(&sector[0x120+(i<<3)+4]);
-			partition->type = sector[0x110+i];
-			switch(partition->type)
+
+		// Read NCSD header
+		if(sdmmc_nand_readsectors(0, 1, (void*)&header)) return false;
+
+		// Check "NCSD" magic
+		if(header.magic != 0x4453434E) return false;
+
+		// Collect partition infos...
+		for(int i = 0; i < 8; i++)
+		{
+			dev_dnand.partitions[i].offset = header.part[i].offset * 0x200;
+			dev_dnand.partitions[i].size   = header.part[i].size * 0x200;
+			dev_dnand.partitions[i].type   = header.partFsType[i];
+
+			switch(dev_dnand.partitions[i].type)
 			{
 				case 1:
-					if(i==0) {
-						partition->keyslot = 0x03;
-						name = "twln";
+					if(i == 0) dev_dnand.partitions[i].keyslot = 0x03; // TWL NAND partition
+					if(i == 4)                                         // CTR NAND partition
+					{
+						if(unit_is_new3ds) dev_dnand.partitions[i].keyslot = 0x05; // TODO: Load N3DS keyY
+						else dev_dnand.partitions[i].keyslot = 0x04;
+						// Set CTR NAND partition offset for diskio.c
+						ctr_nand_offset = header.part[i].offset * 0x200;
 					}
-					else if(i==4) {
-						partition->keyslot = 0x04;	// TODO: handle New3DS
-						name = "ctrnand";
-					}
 					break;
-				case 3:
-					partition->keyslot = 0x06;
-					if(i==2) name = "firm0";
-					else if(i==3) name = "firm1";
+				case 3: // firmX
+					dev_dnand.partitions[i].keyslot = 0x06;
 					break;
-				case 4:
-					partition->keyslot = 0x07;
-					name = "agbsave";
+				case 4: // AGB_FIRM savegame
+					dev_dnand.partitions[i].keyslot = 0x07;
 					break;
-				default: // unused
-					partition->keyslot = 0xFF;
-					name = "other";
+				default: // Unused
+					dev_dnand.partitions[i].keyslot = 0xFF;
 			}
-			// print partition info
-			if(partition->size)
-				printf(" %s:\n  offset: 0x%X, size: %d MiB\n", name, partition->offset << 9, partition->size >> 11);
 		}
-		
+
+		// Hash NAND CID to create the CTRs for crypto
+		sha((void*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
+		memcpy(dev_dnand.twlCounter, hash, 16);
+		sha((void*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
+		memcpy(dev_dnand.ctrCounter, hash, 16);
+
+		// TWL keyslot 0x03 keyX
+		twlKeyX[0] = (*((u32*)0x01FFB808) ^ 0xB358A6AF) | 0x80000000;
+		twlKeyX[1] = 0x544E494E; // "NINT"
+		twlKeyX[2] = 0x4F444E45; // "ENDO"
+		twlKeyX[3] = *((u32*)0x01FFB80C) ^ 0x08C267B7;
+		AES_setTwlKeyX(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, twlKeyX);
+
+		// TWL keyslot 0x03 keyY
+		for(int i = 0; i < 3; i++) twlKeyY[i] = ((u32*)0x01FFD3C8)[i];
+		twlKeyY[3] = 0xE1A00005;
+		AES_setTwlKeyY(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, twlKeyY);
+
+		// Crypt settings
+		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | AES_BIT12 | AES_BIT13 | AES_OUTPUT_LITTLE |
+							AES_INPUT_LITTLE | AES_OUTPUT_REVERSED_ORDER | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR);
+		AES_setCryptParams(&dev_dnand.ctrAesCtx, AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | AES_BIT12 | AES_BIT13 | AES_OUTPUT_BIG |
+							AES_INPUT_BIG | AES_OUTPUT_NORMAL_ORDER | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR);
+
 		dev_dnand.dev.initialized = true;
 	}
 	return true;
@@ -244,7 +269,8 @@ bool sdmmc_dnand_init()
 
 nand_partition_struct *find_partition(u32 offset, u32 size)
 {
-	for(int i=0; i<8; i++) {
+	for(int i=0; i<8; i++)
+	{
 		nand_partition_struct *partition = &dev_dnand.partitions[i];
 		if((partition->offset <= offset) && (partition->size >= size)
 			&& (partition->offset + partition->size >= offset + size))
@@ -254,27 +280,32 @@ nand_partition_struct *find_partition(u32 offset, u32 size)
 }
 
 bool sdmmc_dnand_read(u32 offset, u32 size, void *buf)
-{	
-	if(!dev_dnand.dev.initialized)
-		return false;
-		
-	nand_partition_struct *partition = find_partition(offset >> 9, size >> 9);
+{
+	//printf("Decnand read: offset: 0x%X, size: 0x%X\n", (unsigned int)offset, (unsigned int)size);
+	if(!dev_dnand.dev.initialized) return false;
+
+	AES_ctx *ctx;
+	nand_partition_struct *partition = find_partition(offset>>9, size>>9);
+
+
 	if(!partition) return false;
-	
 	if(partition->keyslot == 0xFF) return false;	// unknown partition type
 	
 	AES_selectKeyslot(partition->keyslot);
-	printf("dec read keyslot: %i\n", partition->keyslot);
+	if(partition->keyslot == 0x03)
+	{
+		ctx = &dev_dnand.twlAesCtx;
+		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR, offset);
+	}
+	else
+	{
+		ctx = &dev_dnand.ctrAesCtx;
+		AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, offset);
+	}
 	
-	AES_setCtrIvNonce(&dev_dnand.aes_ctx, dev_dnand.cid_hash, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, offset);
-	
-	AES_setCryptParams(&dev_dnand.aes_ctx, AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | AES_BIT12 | AES_BIT13 | AES_OUTPUT_BIG |
-						AES_INPUT_BIG | AES_OUTPUT_NORMAL_ORDER | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR);
-	
-	if(sdmmc_nand_readsectors(offset >> 9, size >> 9, buf))
-		return false;
-	printf("dec!!\n");
-	AES_crypt(&dev_dnand.aes_ctx, buf, buf, size);
+	if(sdmmc_nand_readsectors(offset>>9, size>>9, buf)) return false;
+	AES_crypt(ctx, buf, buf, size);
+
 	return true;
 }
 
@@ -284,16 +315,16 @@ bool sdmmc_dnand_write(u32 offset, u32 size, void *buf)
 		return false;
 	
 	//return !sdmmc_nand_writesectors(offset >> 9, size >> 9, buf);
-	printf("ugh\n");
+	printf("Decnand write not implemented!\n");
 	return false;
 }
 
-bool sdmmc_dnand_close()
+bool sdmmc_dnand_close(void)
 {
 	return true;
 }
 
-bool sdmmc_dnand_is_active()
+bool sdmmc_dnand_is_active(void)
 {
 	return sdmmc_rnand_is_active();
 }
@@ -301,7 +332,7 @@ bool sdmmc_dnand_is_active()
 
 // ------------------------------ wifi flash glue functions ------------------------------
 
-bool wififlash_init()
+bool wififlash_init(void)
 {
 	if(dev_wififlash.initialized) return true;
 	if(!spiflash_get_status()) return false;
@@ -316,13 +347,13 @@ bool wififlash_read(u32 offset, u32 size, void *buf)
 	return true;
 }
 
-bool wififlash_close()
+bool wififlash_close(void)
 {
 	// nothing to do here..?
 	return true;
 }
 
-bool wififlash_is_active()
+bool wififlash_is_active(void)
 {
 	if(dev_wififlash.initialized) return true;
 	return wififlash_init();

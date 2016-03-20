@@ -10,12 +10,12 @@
 #include "hid.h"
 #include "arm9/ndma.h"
 
-u64 getFreeSpaceSD(void)
+u64 getFreeSpace(const char *dev)
 {
 	DWORD freeClusters;
 	FATFS *fs;
 
-	if(f_getfree("", &freeClusters, &fs) != FR_OK)
+	if(f_getfree(dev, &freeClusters, &fs) != FR_OK)
 	{
 		printf("Failed to get free SD card space!\n");
 		return 0;
@@ -34,7 +34,7 @@ bool dumpNand(const char *filepath)
 	bool res = true;
 	const u8 *buf = (u8 *) FCRAM_BASE;
 
-	if(getFreeSpaceSD() < (nandSectorCnt * 512))
+	if(getFreeSpace("sdmc") < (nandSectorCnt * 512))
 	{
 		printf("Not enough space on the SD card!\n");
 		return false;
@@ -54,7 +54,7 @@ bool dumpNand(const char *filepath)
 		{
 			if(!dev_rawnand->read(curSector, blockSize, buf))
 			{
-				printf("\nFailed to read sector 0x%X!\n", curSector);
+				printf("\nFailed to read sector 0x%X!\n", (unsigned int)curSector);
 				res = false;
 				break;
 			}
@@ -66,7 +66,7 @@ bool dumpNand(const char *filepath)
 			}
 
 			curSector += blockSize;
-			printf("\r%d%% (Sector 0x%X/0x%X)", curSector * 100 / nandSectorCnt, curSector, nandSectorCnt);
+			printf("\r%d%% (Sector 0x%X/0x%X)", (int)(curSector * 100 / nandSectorCnt), (unsigned int)curSector, (unsigned int)nandSectorCnt);
 		}
 	}
 
@@ -118,13 +118,13 @@ bool restoreNand(const char *filepath)
 			}
 			if(!dev_rawnand->write((u32)(offset>>9), blockSize>>9, buf))
 			{
-				printf("\nFailed to write sector 0x%X!\n", offset>>9);
+				printf("\nFailed to write sector 0x%X!\n", (unsigned int)offset>>9);
 				res = false;
 				break;
 			}
 
 			offset += blockSize;
-			printf("\r%d%% (Sector 0x%X/0x%X)", (u32)(offset * 100 / size), (u32)(offset>>9), (u32)(size>>9));
+			printf("\r%d%% (Sector 0x%X/0x%X)", (int)(offset * 100 / size), (unsigned int)(offset>>9), (unsigned int)(size>>9));
 		}
 	}
 

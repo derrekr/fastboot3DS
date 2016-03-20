@@ -6,9 +6,22 @@
 /*-----------------------------------------------------------------------*/
 
 #include <stdbool.h>
-#include "diskio.h"		/* FatFs lower layer API */
+#include "fatfs/ff.h"
+#include "fatfs/diskio.h"		/* FatFs lower layer API */
 #include "types.h"
 #include "dev.h"
+
+
+
+// Get's set externally in dev.c
+u32 ctr_nand_offset;
+
+PARTITION VolToPart[] = {
+    {0, 0},     /* Logical drive 0 ==> Physical drive 0, autodetect partitiion */
+    {1, 1},     /* Logical drive 1 ==> Physical drive 1, 1st partition */
+    {1, 2},     /* Logical drive 2 ==> Physical drive 1, 2nd partition */
+    {2, 1}      /* Logical drive 3 ==> Physical drive 2, 1st partition */
+};
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -43,22 +56,19 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	u32 nand_offset;
-
-	switch(pdrv)
+	if(pdrv == FATFS_DEV_NUM_SD)
 	{
-		case FATFS_DEV_NUM_SD:
-			if(dev_sdcard->read((u32) sector << 9, (u32) count << 9, buff))
-				return RES_OK;
-			else
-				return RES_ERROR;
-		case FATFS_DEV_NUM_NAND:
-			nand_offset = 0x0B95CA00;	// TODO
-			if(dev_decnand->read(nand_offset + (u32) sector << 9, (u32) count << 9, buff))
-				return RES_OK;
-			else
-				return RES_ERROR;
+		if(dev_sdcard->read((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
 	}
+	else if(pdrv == FATFS_DEV_NUM_TWL_NAND)
+	{
+		if(dev_decnand->read((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
+	}
+	else if(pdrv == FATFS_DEV_NUM_CTR_NAND)
+	{
+		if(dev_decnand->read(ctr_nand_offset + ((u32)sector<<9), (u32)count<<9, buff)) return RES_OK;
+	}
+
 	return RES_ERROR;
 }
 
@@ -75,19 +85,19 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	switch(pdrv)
+	if(pdrv == FATFS_DEV_NUM_SD)
 	{
-		case FATFS_DEV_NUM_SD:
-			if(dev_sdcard->write((u32) sector << 9, (u32) count << 9, buff))
-				return RES_OK;
-			else
-				return RES_ERROR;
-		case FATFS_DEV_NUM_NAND:
-			if(dev_decnand->write((u32) sector << 9, (u32) count << 9, buff))
-				return RES_OK;
-			else
-				return RES_ERROR;
+		if(dev_sdcard->write((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
 	}
+	else if(pdrv == FATFS_DEV_NUM_TWL_NAND)
+	{
+		if(dev_decnand->write((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
+	}
+	else if(pdrv == FATFS_DEV_NUM_CTR_NAND)
+	{
+		if(dev_decnand->write(ctr_nand_offset + ((u32)sector<<9), (u32)count<<9, buff)) return RES_OK;
+	}
+
 	return RES_ERROR;
 }
 

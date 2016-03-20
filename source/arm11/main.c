@@ -7,6 +7,9 @@
 #include "arm11/firm_launch_stub.h"
 
 
+
+extern void disableCaches(void);
+
 void turn_off(void)
 {
 	//printf("Attempting to turn off...\n");
