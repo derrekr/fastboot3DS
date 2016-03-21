@@ -199,17 +199,17 @@ void mount_fs()
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 
 	printf("Mounting twln FS... ");
-	f_mount(&nand_twlnfs, "twln:", 1);
+	res = f_mount(&nand_twlnfs, "twln:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 
 	printf("Mounting twlp FS... ");
-	f_mount(&nand_twlpfs, "twlp:", 1);
+	res = f_mount(&nand_twlpfs, "twlp:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 
 	printf("Mounting CTR NAND FAT FS... ");
-	f_mount(&nand_fs, "nand:", 1);
+	res = f_mount(&nand_fs, "nand:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 }
