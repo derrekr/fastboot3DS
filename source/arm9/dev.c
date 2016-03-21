@@ -285,7 +285,7 @@ bool sdmmc_dnand_read(u32 offset, u32 size, void *buf)
 	if(!dev_dnand.dev.initialized) return false;
 
 	AES_ctx *ctx;
-	nand_partition_struct *partition = find_partition(offset>>9, size>>9);
+	nand_partition_struct *partition = find_partition(offset, size);
 
 
 	if(!partition) return false;
