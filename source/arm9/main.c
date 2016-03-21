@@ -22,6 +22,9 @@ FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 // 
 enum menu_state_type menu_state;
 
+enum menu_state_type menu_previous_states[8];
+int previous_states_count;
+
 bool unit_is_new3ds;
 
 void menu_main_draw_top()
@@ -62,6 +65,8 @@ int main(void)
 	
 	consoleClear();
 	
+	previous_states_count = 0;
+	
 	int cursor_pos = 0;
 	
 	// Menu main loop
@@ -76,20 +81,49 @@ int main(void)
 		consoleSelect(&con_bottom);
 		printf("\033[0;0H\n\n\n\n");
 		
+		const menu_state_options *cur_options = options_lookup[menu_state];
+		
 		switch(menu_state)
 		{
 		
 			case STATE_MAIN:
-				if((cursor_pos != 0) && (keys & KEY_DUP)) cursor_pos--;
-				else if((cursor_pos != 1) && (keys & KEY_DDOWN)) cursor_pos++;
-				else if(keys & KEY_A)
-				{
-					if(cursor_pos == 0) menu_state = STATE_FIRM_LAUNCH;
-				}
-				consoleSelect(&con_bottom);
-				for(int i=0; i<2; i++)
-					printf("\t\t\t%s\e[0m %s\n", cursor_pos == i ? "\x1B[33m*" : " ", menu_main_slots[i]);
+			case STATE_NAND_MENU:
+			
 				menu_main_draw_top();
+			
+				// print all the options of the current state
+				consoleSelect(&con_bottom);
+				for(int i=0; i < cur_options->count; i++)
+					printf("\t\t\t%s\e[0m %s\n", cursor_pos == i ? "\x1B[33m*" : " ", cur_options->options[i].name);
+
+				if(keys & KEY_DUP)
+				{
+					if(cursor_pos == 0) cursor_pos = cur_options->count - 1;	// jump to the last option
+					else cursor_pos--;
+				}
+				else if(keys & KEY_DDOWN)
+				{
+					if(cursor_pos == cur_options->count - 1) cursor_pos = 0;	// jump to the first option
+					else cursor_pos++;
+				}
+				else if(keys & KEY_A)	// select option
+				{
+					menu_previous_states[previous_states_count] = menu_state;
+					previous_states_count++;
+					menu_state = cur_options->options[cursor_pos].state;
+					consoleClear();
+					cursor_pos = 0;
+				}
+				else if(keys & KEY_B)	// go back
+				{
+					if(previous_states_count != 0)
+					{
+						menu_state = menu_previous_states[previous_states_count-1];
+						previous_states_count--;
+						consoleClear();
+						cursor_pos = 0;
+					}
+				}
 				break;
 			
 			case STATE_FIRM_LAUNCH:
@@ -109,7 +143,7 @@ int main(void)
 				else firm_launch(NULL);
 				break;
 			
-			default: ;
+			default: printf("OOPS!\n"); break;
 		}
 		
 		
