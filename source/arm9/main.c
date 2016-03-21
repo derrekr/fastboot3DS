@@ -194,22 +194,22 @@ void mount_fs()
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
 
 	printf("Mounting SD card FAT FS... ");
-	res = f_mount(&sd_fs, "sdmc", 1);
+	res = f_mount(&sd_fs, "sdmc:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 
 	printf("Mounting twln FS... ");
-	f_mount(&nand_twlnfs, "twln", 1);
+	f_mount(&nand_twlnfs, "twln:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 
 	printf("Mounting twlp FS... ");
-	f_mount(&nand_twlpfs, "twlp", 1);
+	f_mount(&nand_twlpfs, "twlp:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 
 	printf("Mounting CTR NAND FAT FS... ");
-	f_mount(&nand_fs, "nand", 1);
+	f_mount(&nand_fs, "nand:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
 }
