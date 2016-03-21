@@ -78,40 +78,42 @@ typedef struct
 
 
 /**
- * @brief      Selects keyslot and sets TWL (DSi) normal key for regular AES en-/decryption.
+ * @brief      Selects keyslot and sets TWL (DSi) normal key for regular AES
+ *             en-/decryption.
  *
- * @param[in]  params        Word order and endianess bitmask.
- * @param[in]  keyslot       The keyslot this key pair will be set for. Must be <4.
- * @param[in]  twlNormalKey  Pointer to 128-bit AES normal key data.
+ * @param[in]  params   Word order and endianess bitmask.
+ * @param[in]  keyslot  The keyslot this key pair will be set for. Must be <4.
+ * @param[in]  key      Pointer to 128-bit AES normal key data.
  */
-void AES_setTwlNormalKey(u32 params, u8 keyslot, const void *restrict twlNormalKey);
+void AES_setTwlNormalKey(u32 params, u8 keyslot, const u32 *restrict key);
 
 /**
  * @brief      Selects keyslot and sets TWL (DSi) keyY.
  *
  * @param[in]  params   Word order and endianess bitmask.
  * @param[in]  keyslot  The keyslot this key pair will be set for. Must be <4.
- * @param[in]  twlKeyY  Pointer to 128-bit AES keyY data.
+ * @param[in]  keyY     Pointer to 128-bit AES keyY data.
  */
-void AES_setTwlKeyY(u32 params, u8 keyslot, const void *restrict twlKeyY);
+void AES_setTwlKeyY(u32 params, u8 keyslot, const u32 *restrict keyY);
 
 /**
  * @brief      Selects keyslot and sets TWL (DSi) keyX.
  *
  * @param[in]  params   Word order and endianess bitmask.
  * @param[in]  keyslot  The keyslot this key pair will be set for. Must be <4.
- * @param[in]  twlKeyY  Pointer to 128-bit AES keyX data.
+ * @param[in]  keyX     Pointer to 128-bit AES keyX data.
  */
-void AES_setTwlKeyX(u32 params, u8 keyslot, const void *restrict twlKeyX);
+void AES_setTwlKeyX(u32 params, u8 keyslot, const u32 *restrict keyX);
 
 /**
- * @brief      Selects keyslot and sets normal key for regular AES en-/decryption.
+ * @brief      Selects keyslot and sets normal key for regular AES
+ *             en-/decryption.
  *
- * @param[in]  params     Word order and endianess bitmask.
- * @param[in]  keyslot    The keyslot this normal key will be set for.
- * @param[in]  normalKey  Pointer to 128-bit AES normal key data.
+ * @param[in]  params   Word order and endianess bitmask.
+ * @param[in]  keyslot  The keyslot this normal key will be set for.
+ * @param[in]  key      Pointer to 128-bit AES normal key data.
  */
-void AES_setNormalKey(u32 params, u8 keyslot, const void *restrict normalKey);
+void AES_setNormalKey(u32 params, u8 keyslot, const u32 *restrict key);
 
 /**
  * @brief      Selects keyslot and sets keyY. This updates the internal normal key.
@@ -121,7 +123,7 @@ void AES_setNormalKey(u32 params, u8 keyslot, const void *restrict normalKey);
  * @param[in]  keyY             Pointer to 128-bit AES keyY data.
  * @param[in]  useTwlScrambler  bool true if TWL keyscrambler is used instead of CTR keyscrambler.
  */
-void AES_setKeyY(u32 params, u8 keyslot, const void *restrict keyY, bool useTwlScrambler);
+void AES_setKeyY(u32 params, u8 keyslot, const u32 *restrict keyY, bool useTwlScrambler);
 
 /**
  * @brief      Selects keyslot and sets keyX. This does not updates the internal normal key.
@@ -132,7 +134,7 @@ void AES_setKeyY(u32 params, u8 keyslot, const void *restrict keyY, bool useTwlS
  * @param[in]  keyX     Pointer to 128-bit AES keyX data.
  * @param[in]  useTwlScrambler  bool true if TWL keyscrambler is used instead of CTR keyscrambler.
  */
-void AES_setKeyX(u32 params, u8 keyslot, const void *restrict keyX, bool useTwlScrambler);
+void AES_setKeyX(u32 params, u8 keyslot, const u32 *restrict keyX, bool useTwlScrambler);
 
 /**
  * @brief      Selects the given keyslot for all following crypto operations.
@@ -149,7 +151,7 @@ void AES_selectKeyslot(u8 keyslot);
  * @param[in]  params      Word order, endianess and AES cipher mode bitmask.
  * @param[in]  initialCtr  Value to update the counter in CTR mode with. Can be 0.
  */
-void AES_setCtrIvNonce(AES_ctx *restrict ctx, const void *restrict ctrIvNonce, u32 params, u32 initialCtr);
+void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u32 params, u32 initialCtr);
 
 /**
  * @brief      Returns a pointer to the CTR/IV/nonce stored in internal state.
@@ -158,7 +160,7 @@ void AES_setCtrIvNonce(AES_ctx *restrict ctx, const void *restrict ctrIvNonce, u
  *
  * @return     A pointer to the internal CTR/IV/nonce data.
  */
-void* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx);
+u32* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx);
 
 /**
  * @brief      Sets params in internal state for all following crypto operations.

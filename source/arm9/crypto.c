@@ -15,84 +15,76 @@
 //////////////////////////////////
 
 // TODO: Handle endianess!
-static void addCounter(void *restrict ctr, u32 val)
+static void addCounter(u32 *restrict ctr, u32 val)
 {
-	u32 *restrict ctr32 = ctr;
 	u32 carry, i = 1;
 	u64 sum;
 
 
-	sum = ctr32[0];
+	sum = ctr[0];
 	sum += (val>>4);
 	carry = sum>>32;
-	ctr32[0] = sum & 0xFFFFFFFF;
+	ctr[0] = sum & 0xFFFFFFFF;
 
 	while(carry)
 	{
-		sum = ctr32[i];
+		sum = ctr[i];
 		sum += carry;
 		carry = sum>>32;
-		ctr32[i] = sum & 0xFFFFFFFF;
+		ctr[i] = sum & 0xFFFFFFFF;
 		i++;
 	}
 }
 
 // TODO: Handle endianess!
-static void subCounter(void *restrict ctr, u32 val)
+static void subCounter(u32 *restrict ctr, u32 val)
 {
-	u32 *restrict ctr32 = ctr;
 	u32 carry, i = 1;
 	u32 sum;
 
 
-	sum = ctr32[0] - (val>>4);
-	carry = (sum > ctr32[0]);
-	ctr32[0] = sum;
+	sum = ctr[0] - (val>>4);
+	carry = (sum > ctr[0]);
+	ctr[0] = sum;
 
 	while(carry && i < 4)
 	{
-		sum = ctr32[i] - carry;
-		carry = (sum > ctr32[i]);
-		ctr32[i] = sum;
+		sum = ctr[i] - carry;
+		carry = (sum > ctr[i]);
+		ctr[i] = sum;
 		i++;
 	}
 }
 
-void AES_setTwlNormalKey(u32 params, u8 keyslot, const void *restrict twlNormalKey)
+void AES_setTwlNormalKey(u32 params, u8 keyslot, const u32 *restrict key)
 {
-	const u32 *restrict key = twlNormalKey;
-
 	REG_AESCNT = params;
 	REG_AESKEYCNT = keyslot | 0xC0;
 	for(int i = 0; i < 4; i++) REG_AESKEY0[i + keyslot * 12] = key[i];
 	REG_AESKEYSEL = keyslot;
 	REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
-void AES_setTwlKeyY(u32 params, u8 keyslot, const void *restrict twlKeyY)
-{
-	const u32 *restrict key = twlKeyY;
 
+void AES_setTwlKeyY(u32 params, u8 keyslot, const u32 *restrict keyY)
+{
 	REG_AESCNT = params;
 	REG_AESKEYCNT = keyslot | 0xC0;
-	for(int i = 0; i < 4; i++) REG_AESKEYY0[i + keyslot * 12] = key[i];
-	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
-}
-void AES_setTwlKeyX(u32 params, u8 keyslot, const void *restrict twlKeyX)
-{
-	const u32 *restrict key = twlKeyX;
-
-	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | 0xC0;
-	for(int i = 0; i < 4; i++) REG_AESKEYX0[i + keyslot * 12] = key[i];
+	for(int i = 0; i < 4; i++) REG_AESKEYY0[i + keyslot * 12] = keyY[i];
 	REG_AESKEYSEL = keyslot;
 	REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
 
-void AES_setNormalKey(u32 params, u8 keyslot, const void *restrict normalKey)
+void AES_setTwlKeyX(u32 params, u8 keyslot, const u32 *restrict keyX)
 {
-	const u32 *restrict key = normalKey;
+	REG_AESCNT = params;
+	REG_AESKEYCNT = keyslot | 0xC0;
+	for(int i = 0; i < 4; i++) REG_AESKEYX0[i + keyslot * 12] = keyX[i];
+	REG_AESKEYSEL = keyslot;
+	REG_AESCNT = AES_UPDATE_KEYSLOT;
+}
 
+void AES_setNormalKey(u32 params, u8 keyslot, const u32 *restrict key)
+{
 	REG_AESCNT = params;
 	REG_AESKEYCNT = keyslot | 0x80;
 	for(int i = 0; i < 4; i++) REG_AESKEYFIFO = key[i];
@@ -100,24 +92,20 @@ void AES_setNormalKey(u32 params, u8 keyslot, const void *restrict normalKey)
 	REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
 
-void AES_setKeyY(u32 params, u8 keyslot, const void *restrict keyY, bool useTwlScrambler)
+void AES_setKeyY(u32 params, u8 keyslot, const u32 *restrict keyY, bool useTwlScrambler)
 {
-	const u32 *restrict key = keyY;
-
 	REG_AESCNT = params;
 	REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
-	for(int i = 0; i < 4; i++) REG_AESKEYYFIFO = key[i];
+	for(int i = 0; i < 4; i++) REG_AESKEYYFIFO = keyY[i];
 	REG_AESKEYSEL = keyslot;
 	REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
 
-void AES_setKeyX(u32 params, u8 keyslot, const void *restrict keyX, bool useTwlScrambler)
+void AES_setKeyX(u32 params, u8 keyslot, const u32 *restrict keyX, bool useTwlScrambler)
 {
-	const u32 *restrict key = keyX;
-
 	REG_AESCNT = params;
 	REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
-	for(int i = 0; i < 4; i++) REG_AESKEYXFIFO = key[i];
+	for(int i = 0; i < 4; i++) REG_AESKEYXFIFO = keyX[i];
 	REG_AESKEYSEL = keyslot;
 	REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
@@ -128,9 +116,8 @@ void AES_selectKeyslot(u8 keyslot)
 	REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
 
-void AES_setCtrIvNonce(AES_ctx *restrict ctx, const void *restrict ctrIvNonce, u32 params, u32 initialCtr)
+void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u32 params, u32 initialCtr)
 {
-	const u32 *restrict inCtrIvNonce = ctrIvNonce;
 	int ctrIvNonceSize;
 
 
@@ -139,9 +126,9 @@ void AES_setCtrIvNonce(AES_ctx *restrict ctx, const void *restrict ctrIvNonce, u
 
 	if(params & AES_INPUT_NORMAL_ORDER)
 	{
-		for(int i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = inCtrIvNonce[ctrIvNonceSize - 1 - i];
+		for(int i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[ctrIvNonceSize - 1 - i];
 	}
-	else for(int i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = inCtrIvNonce[i];
+	else for(int i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[i];
 
 	ctx->ctrIvNonceEndianess = params & AES_INPUT_BIG; // Mask for input endianess.
 
@@ -153,7 +140,7 @@ void AES_setCtrIvNonce(AES_ctx *restrict ctx, const void *restrict ctrIvNonce, u
 	for(int i = 0; i < ctrIvNonceSize; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
 }
 
-void* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx)
+u32* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx)
 {
 	return ctx->ctrIvNonce;
 }
