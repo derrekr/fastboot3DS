@@ -33,13 +33,13 @@
 #define REG_AESKEYX3               ( (vu32*)0x100090E0)
 #define REG_AESKEYY3               ( (vu32*)0x100090F0)
 
-#define REG_AESKEYFIFO             (*(vu32*)0x10009100)
-#define REG_AESKEYXFIFO            (*(vu32*)0x10009104)
-#define REG_AESKEYYFIFO            (*(vu32*)0x10009108)
+#define REG_AESKEYFIFO             ( (vu32*)0x10009100)
+#define REG_AESKEYXFIFO            ( (vu32*)0x10009104)
+#define REG_AESKEYYFIFO            ( (vu32*)0x10009108)
 
 #define AES_WRITE_FIFO_COUNT       ((REG_AESCNT>>0) & 0x1F)
 #define AES_READ_FIFO_COUNT        ((REG_AESCNT>>5) & 0x1F)
-#define AES_BUSY                   (1<<31)
+#define AES_BUSY                   ((u32)1<<31)
 
 #define AES_FLUSH_READ_FIFO        (1<<10)
 #define AES_FLUSH_WRITE_FIFO       (1<<11)
@@ -58,7 +58,7 @@
 #define AES_INPUT_REVERSED_ORDER   (0)
 #define AES_UPDATE_KEYSLOT         (1<<26) // AES_UNKNOWN_26
 #define AES_INTERRUPT_ENABLE       (1<<30)
-#define AES_ENABLE                 (1<<31)
+#define AES_ENABLE                 ((u32)1<<31)
 
 #define AES_MODE_CCM_DECRYPT       (0)
 #define AES_MODE_CCM_ENCRYPT       (1<<27)
@@ -69,6 +69,13 @@
 #define AES_MODE_ECB_ENCRYPT       (7<<27)
 
 
+typedef enum
+{
+	AES_KEY_TYPE_NORMAL = 0,
+	AES_KEY_TYPE_X      = 1,
+	AES_KEY_TYPE_Y      = 2,
+} AesKeyType;
+
 typedef struct
 {
 	u32 ctrIvNonce[4];
@@ -78,70 +85,24 @@ typedef struct
 
 
 /**
- * @brief      Selects keyslot and sets TWL (DSi) normal key for regular AES
- *             en-/decryption.
- *
- * @param[in]  params   Word order and endianess bitmask.
- * @param[in]  keyslot  The keyslot this key pair will be set for. Must be <4.
- * @param[in]  key      Pointer to 128-bit AES normal key data.
- */
-void AES_setTwlNormalKey(u32 params, u8 keyslot, const u32 *restrict key);
-
-/**
- * @brief      Selects keyslot and sets TWL (DSi) keyY.
- *
- * @param[in]  params   Word order and endianess bitmask.
- * @param[in]  keyslot  The keyslot this key pair will be set for. Must be <4.
- * @param[in]  keyY     Pointer to 128-bit AES keyY data.
- */
-void AES_setTwlKeyY(u32 params, u8 keyslot, const u32 *restrict keyY);
-
-/**
- * @brief      Selects keyslot and sets TWL (DSi) keyX.
- *
- * @param[in]  params   Word order and endianess bitmask.
- * @param[in]  keyslot  The keyslot this key pair will be set for. Must be <4.
- * @param[in]  keyX     Pointer to 128-bit AES keyX data.
- */
-void AES_setTwlKeyX(u32 params, u8 keyslot, const u32 *restrict keyX);
-
-/**
- * @brief      Selects keyslot and sets normal key for regular AES
- *             en-/decryption.
- *
- * @param[in]  params   Word order and endianess bitmask.
- * @param[in]  keyslot  The keyslot this normal key will be set for.
- * @param[in]  key      Pointer to 128-bit AES normal key data.
- */
-void AES_setNormalKey(u32 params, u8 keyslot, const u32 *restrict key);
-
-/**
- * @brief      Selects keyslot and sets keyY. This updates the internal normal key.
+ * @brief      Selects keyslot and sets the key for the specified key type.
  *
  * @param[in]  params           Word order and endianess bitmask.
- * @param[in]  keyslot          The keyslot this keyY will be set for. Must be >3.
- * @param[in]  keyY             Pointer to 128-bit AES keyY data.
- * @param[in]  useTwlScrambler  bool true if TWL keyscrambler is used instead of CTR keyscrambler.
+ * @param[in]  keyslot          The keyslot this key will be set for.
+ * @param[in]  keyType          The key type. Can be AES_KEY_TYPE_NORMAL/X/Y.
+ * @param[in]  key              Pointer to 128-bit AES key data.
+ * @param[in]  useTwlScrambler  bool true if TWL keyscrambler is used instead of CTR keyscrambler (only with CTR keyslots).
+ * @param[in]  updateKeyslot    bool true if the final AES key should immediately be calculated and set.
  */
-void AES_setKeyY(u32 params, u8 keyslot, const u32 *restrict keyY, bool useTwlScrambler);
-
-/**
- * @brief      Selects keyslot and sets keyX. This does not updates the internal normal key.
- * @brief      A keyY must be set after this to update the internal normal key.
- *
- * @param[in]  params   Word order and endianess bitmask.
- * @param[in]  keyslot  The keyslot this keyX will be set for. Must be >3.
- * @param[in]  keyX     Pointer to 128-bit AES keyX data.
- * @param[in]  useTwlScrambler  bool true if TWL keyscrambler is used instead of CTR keyscrambler.
- */
-void AES_setKeyX(u32 params, u8 keyslot, const u32 *restrict keyX, bool useTwlScrambler);
+void AES_setKey(u32 params, u8 keyslot, AesKeyType type, const u32 *restrict key, bool useTwlScrambler, bool updateKeyslot);
 
 /**
  * @brief      Selects the given keyslot for all following crypto operations.
  *
- * @param[in]  keyslot  The keyslot to select.
+ * @param[in]  keyslot        The keyslot to select.
+ * @param[in]  updateKeyslot  bool true if the final AES key should immediately be calculated and set.
  */
-void AES_selectKeyslot(u8 keyslot);
+void AES_selectKeyslot(u8 keyslot, bool updateKeyslot);
 
 /**
  * @brief      Copies the given CTR/IV/nonce into internal state.
@@ -179,10 +140,10 @@ void AES_setCryptParams(AES_ctx *restrict ctx, u32 params);
  * @param      out   Out data pointer. Can be the same as in.
  * @param[in]  size  Data size. If not 16 bytes aligned it is rounded up.
  */
-void AES_crypt(AES_ctx *restrict ctx, const void *restrict in, void *restrict out, u32 size);
+void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size);
 
 /**
- * @brief      Increments the internal counter with the given value.
+ * @brief      Increments the internal counter with the given value (CTR mode).
  *
  * @param      ctx   Pointer to AES_ctx (AES context).
  * @param[in]  val   Value to add to the counter.
@@ -190,7 +151,7 @@ void AES_crypt(AES_ctx *restrict ctx, const void *restrict in, void *restrict ou
 void AES_addCounter(AES_ctx *restrict ctx, u32 val); // TODO: Handle endianess!
 
 /**
- * @brief      Decrements the internal counter with the given value.
+ * @brief      Decrements the internal counter with the given value (CTR mode).
  *
  * @param      ctx   Pointer to AES_ctx (AES context).
  * @param[in]  val   Value to substract from the counter.
@@ -206,7 +167,7 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val);
 #define REG_SHA_CNT        (*((vu32*)0x1000A000))
 #define REG_SHA_BLKCNT     (*((vu32*)0x1000A004))
 #define REG_SHA_HASH       ( ((u32*) 0x1000A040))
-#define REG_SHA_INFIFO     ( ((vu32*)0x1000A080))
+#define REG_SHA_INFIFO     (         0x1000A080)
 
 #define SHA_ENABLE         (1) // Also used as busy flag
 #define SHA_PAD_INPUT      (1<<1)
@@ -233,7 +194,7 @@ void SHA_start(u32 params);
  * @param[in]  data  Pointer to data to hash.
  * @param[in]  size  Size of the data to hash.
  */
-void SHA_update(const void *restrict data, u32 size);
+void SHA_update(const u32 *restrict data, u32 size);
 
 /**
  * @brief      Generates the final hash.
@@ -241,7 +202,7 @@ void SHA_update(const void *restrict data, u32 size);
  * @param      hash       Pointer to memory to copy the hash to.
  * @param[in]  endianess  Endianess bitmask for the hash.
  */
-void SHA_finish(void *restrict hash, u32 endianess);
+void SHA_finish(u32 *restrict hash, u32 endianess);
 
 /**
  * @brief      Hashes a single block of data and outputs the hash.
@@ -252,4 +213,4 @@ void SHA_finish(void *restrict hash, u32 endianess);
  * @param[in]  params         Mode and input endianess bitmask.
  * @param[in]  hashEndianess  Endianess bitmask for the hash.
  */
-void sha(const void *restrict data, u32 size, void *restrict hash, u32 params, u32 hashEndianess);
+void sha(const u32 *restrict data, u32 size, u32 *restrict hash, u32 params, u32 hashEndianess);

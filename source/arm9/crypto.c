@@ -56,69 +56,34 @@ static void subCounter(u32 *restrict ctr, u32 val)
 	}
 }
 
-void AES_setTwlNormalKey(u32 params, u8 keyslot, const u32 *restrict key)
+void AES_setKey(u32 params, u8 keyslot, AesKeyType type, const u32 *restrict key, bool useTwlScrambler, bool updateKeyslot)
 {
 	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | 0xC0;
-	for(int i = 0; i < 4; i++) REG_AESKEY0[i + keyslot * 12] = key[i];
+
+	if(keyslot > 3) // CTR keyslot
+	{
+		REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
+		for(u32 i = 0; i < 4; i++) REG_AESKEYFIFO[type * 4] = key[i];
+	}
+	else // TWL keyslot
+	{
+		REG_AESKEYCNT = keyslot | 0xC0;
+		for(u32 i = 0; i < 4; i++) REG_AESKEY0[(u32)12 * keyslot + ((u32)type * 4) + i] = key[i];
+	}
+
 	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
+	if(updateKeyslot) REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
 
-void AES_setTwlKeyY(u32 params, u8 keyslot, const u32 *restrict keyY)
-{
-	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | 0xC0;
-	for(int i = 0; i < 4; i++) REG_AESKEYY0[i + keyslot * 12] = keyY[i];
-	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
-}
-
-void AES_setTwlKeyX(u32 params, u8 keyslot, const u32 *restrict keyX)
-{
-	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | 0xC0;
-	for(int i = 0; i < 4; i++) REG_AESKEYX0[i + keyslot * 12] = keyX[i];
-	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
-}
-
-void AES_setNormalKey(u32 params, u8 keyslot, const u32 *restrict key)
-{
-	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | 0x80;
-	for(int i = 0; i < 4; i++) REG_AESKEYFIFO = key[i];
-	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
-}
-
-void AES_setKeyY(u32 params, u8 keyslot, const u32 *restrict keyY, bool useTwlScrambler)
-{
-	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
-	for(int i = 0; i < 4; i++) REG_AESKEYYFIFO = keyY[i];
-	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
-}
-
-void AES_setKeyX(u32 params, u8 keyslot, const u32 *restrict keyX, bool useTwlScrambler)
-{
-	REG_AESCNT = params;
-	REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
-	for(int i = 0; i < 4; i++) REG_AESKEYXFIFO = keyX[i];
-	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
-}
-
-void AES_selectKeyslot(u8 keyslot)
+void AES_selectKeyslot(u8 keyslot, bool updateKeyslot)
 {
 	REG_AESKEYSEL = keyslot;
-	REG_AESCNT = AES_UPDATE_KEYSLOT;
+	if(updateKeyslot) REG_AESCNT = AES_UPDATE_KEYSLOT;
 }
 
 void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u32 params, u32 initialCtr)
 {
-	int ctrIvNonceSize;
+	u32 ctrIvNonceSize;
 
 
 	if(((params>>27) & 7) > 1) ctrIvNonceSize = 4;
@@ -126,9 +91,9 @@ void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u3
 
 	if(params & AES_INPUT_NORMAL_ORDER)
 	{
-		for(int i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[ctrIvNonceSize - 1 - i];
+		for(u32 i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[ctrIvNonceSize - 1 - i];
 	}
-	else for(int i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[i];
+	else for(u32 i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[i];
 
 	ctx->ctrIvNonceEndianess = params & AES_INPUT_BIG; // Mask for input endianess.
 
@@ -137,7 +102,7 @@ void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u3
 
 	// Set CTR/IV/nonce.
 	REG_AESCNT = ctx->ctrIvNonceEndianess;
-	for(int i = 0; i < ctrIvNonceSize; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
+	for(u32 i = 0; i < ctrIvNonceSize; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
 }
 
 u32* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx)
@@ -150,13 +115,11 @@ void AES_setCryptParams(AES_ctx *restrict ctx, u32 params)
 	ctx->aesParams = params;
 }
 
-void AES_crypt(AES_ctx *restrict ctx, const void *restrict in, void *restrict out, u32 size)
+void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
 {
 	// Align to 16 bytes.
-	size = (size + 0xf) & ~0xf;
+	size = (size + 0xf) & (u32)~0xf;
 
-	const u32 *restrict inBuf = in;
-	u32 *restrict outBuf = out;
 	u32 blockSize;
 	u32 offset = 0;
 	u32 mode;
@@ -176,21 +139,21 @@ void AES_crypt(AES_ctx *restrict ctx, const void *restrict in, void *restrict ou
 
 		for(u32 j = 0; j < blockSize>>2; j += 4)
 		{
-			REG_AESWRFIFO = inBuf[0 + j];
-			REG_AESWRFIFO = inBuf[1 + j];
-			REG_AESWRFIFO = inBuf[2 + j];
-			REG_AESWRFIFO = inBuf[3 + j];
+			REG_AESWRFIFO = in[0 + j];
+			REG_AESWRFIFO = in[1 + j];
+			REG_AESWRFIFO = in[2 + j];
+			REG_AESWRFIFO = in[3 + j];
 
 			while(AES_READ_FIFO_COUNT != 4);
 
-			outBuf[0 + j] = REG_AESRDFIFO;
-			outBuf[1 + j] = REG_AESRDFIFO;
-			outBuf[2 + j] = REG_AESRDFIFO;
-			outBuf[3 + j] = REG_AESRDFIFO;
+			out[0 + j] = REG_AESRDFIFO;
+			out[1 + j] = REG_AESRDFIFO;
+			out[2 + j] = REG_AESRDFIFO;
+			out[3 + j] = REG_AESRDFIFO;
 		}
 
-		inBuf += blockSize>>2;
-		outBuf += blockSize>>2;
+		in += blockSize>>2;
+		out += blockSize>>2;
 		offset += blockSize;
 
 		if(mode == 2) // AES_MODE_CTR
@@ -225,28 +188,28 @@ void SHA_start(u32 params)
 	REG_SHA_CNT = SHA_ENABLE | params;
 }
 
-void SHA_update(const void *restrict data, u32 size)
+void SHA_update(const u32 *restrict data, u32 size)
 {
-	const u32 *restrict dataPtr = data;
+	//const u32 *restrict dataPtr = data;
 
 	while(size >= 0x40)
 	{
-		for(int i = 0; i < 4; i++)
+		for(u32 i = 0; i < 4; i++)
 		{
-			REG_SHA_INFIFO[0 + i] = *dataPtr++;
-			REG_SHA_INFIFO[1 + i] = *dataPtr++;
-			REG_SHA_INFIFO[2 + i] = *dataPtr++;
-			REG_SHA_INFIFO[3 + i] = *dataPtr++;
+			((vu32*)REG_SHA_INFIFO)[0 + i] = *data++;
+			((vu32*)REG_SHA_INFIFO)[1 + i] = *data++;
+			((vu32*)REG_SHA_INFIFO)[2 + i] = *data++;
+			((vu32*)REG_SHA_INFIFO)[3 + i] = *data++;
 		}
 		while(REG_SHA_CNT & SHA_ENABLE);
 
 		size -= 0x40;
 	}
 
-	if(size) memcpy((u32*)REG_SHA_INFIFO, dataPtr, size);
+	if(size) memcpy((void*)REG_SHA_INFIFO, data, size);
 }
 
-void SHA_finish(void *restrict hash, u32 endianess)
+void SHA_finish(u32 *restrict hash, u32 endianess)
 {
 	REG_SHA_CNT = SHA_PAD_INPUT | endianess | (REG_SHA_CNT & (SHA_MODE_1 | SHA_MODE_224 | SHA_MODE_256));
 	while(REG_SHA_CNT & SHA_ENABLE);
@@ -255,22 +218,23 @@ void SHA_finish(void *restrict hash, u32 endianess)
 	switch(REG_SHA_CNT & (SHA_MODE_256 | SHA_MODE_224 | SHA_MODE_1))
 	{
 		case SHA_MODE_256:
-			hashSize = 32;
+			hashSize = 8;//32;
 			break;
 		case SHA_MODE_224:
-			hashSize = 28;
+			hashSize = 7;//28;
 			break;
 		case SHA_MODE_1:
-			hashSize = 20;
+			hashSize = 5;//20;
 			break;
 		default:
 			return;
 	}
 
-	memcpy(hash, REG_SHA_HASH, hashSize);
+	//memcpy(hash, REG_SHA_HASH, hashSize);
+	for(u32 i = 0; i < hashSize; i++) hash[i] = REG_SHA_HASH[i];
 }
 
-void sha(const void *restrict data, u32 size, void *restrict hash, u32 params, u32 hashEndianess)
+void sha(const u32 *restrict data, u32 size, u32 *restrict hash, u32 params, u32 hashEndianess)
 {
 	SHA_start(params);
 	SHA_update(data, size);

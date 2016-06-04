@@ -12,13 +12,16 @@
 .type _init STT_FUNC
 .type disableCaches STT_FUNC
 
+.extern main
+.extern __bss_start__
+.extern __bss_end__
+
 .section .init
 
 
 
 _start:
-	cpsid aif                  @ Disable all interrupts
-
+	cpsid aif, #0x1F           @ Disable all interrupts, system mode
 	ldr sp, =(A11_STUB_ENTRY-8)
 
 	mov r0, #0
@@ -41,29 +44,20 @@ _start:
 
 	ldr r0, =(CORE_SYNC_ID & 0xFFFFFFF0)
 	mov r1, #0
-	str r1, [r0, #0xC]         @ Clear arm9 communication fields
-	str r1, [r0, #0x8]
+	str r1, [r0, #0x8]         @ Clear arm9 communication fields
+	str r1, [r0, #0xC]
 
-	bl bss_clear
+	ldr r0, =__bss_start__
+	ldr r1, =__bss_end__
+	sub r1, r1, r0
+	mov r2, #0
+	loop_bss_clear:
+		str r2, [r0], #4
+		subs r1, r1, #4
+		bne loop_bss_clear
 
 	blx main
-
-endlessLoop:
-	wfi                        @ Wait for interrupt
-	b endlessLoop
-
-
-bss_clear:
-	ldr r1, =__bss_start__
-	ldr r2, =__bss_end__
-	mov r3, #0
-
-	loop_clear:
-	cmp r1, r2
-	bxeq lr
-	strb r3, [r1]
-	add r1, r1, #1
-	b loop_clear
+	b .                        @ If main ever returns loop forever
 
 
 disableCaches:
@@ -74,6 +68,7 @@ disableCaches:
 	bic r0, r0, r1             @ Disable D-Cache, program flow prediction and I-Cache
 	mcr p15, 0, r0, c1, c0, 0  @ Write control register
 	bx r2
+
 
 _init:
 	bx lr

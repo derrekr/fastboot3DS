@@ -44,8 +44,8 @@ flushDCache:
 outer_loop:
 	mov	r0, #0
 inner_loop:
-	orr	r2, r1, r0              @ generate segment and line address
-	mcr	p15, 0, r2, c7, c14, 2  @ clean and flush the line
+	orr	r2, r1, r0              @ Generate segment and line address
+	mcr	p15, 0, r2, c7, c14, 2  @ Clean and flush the line
 	add	r0, r0, #CACHE_LINE_SIZE
 	cmp	r0, #DCACHE_SIZE/4
 	bne	inner_loop
@@ -59,14 +59,14 @@ flushDCacheRange:
 	add	r1, r1, r0
 	bic	r0, r0, #(CACHE_LINE_SIZE - 1)
 flush:
-	mcr	p15, 0, r0, c7, c14, 1  @ clean and flush address
+	mcr	p15, 0, r0, c7, c14, 1  @ Clean and flush address
 	add	r0, r0, #CACHE_LINE_SIZE
 	cmp	r0, r1
 	blt	flush
 
 drainWriteBuffer:
 	mov r0, #0
-	mcr p15, 0, r0, c7, c10, 4  @ drain write buffer
+	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 	bx  lr
 
 
@@ -79,9 +79,9 @@ invalidateDCache:
 invalidateDCacheRange:
 	add	r1, r1, r0
 	tst	r0, #CACHE_LINE_SIZE - 1
-	mcrne   p15, 0, r0, c7, c10, 1  @ clean D entry
+	mcrne   p15, 0, r0, c7, c10, 1  @ Clean D entry
 	tst	r1, #CACHE_LINE_SIZE - 1
-	mcrne   p15, 0, r1, c7, c10, 1  @ clean D entry
+	mcrne   p15, 0, r1, c7, c10, 1  @ Clean D entry
 	bic	r0, r0, #CACHE_LINE_SIZE - 1
 invalidateD:
 	mcr	p15, 0, r0, c7, c6, 1

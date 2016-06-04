@@ -20,38 +20,41 @@ TARGET		:=	code11
 BUILD		:=	build11
 SOURCES		:=	source/arm11 source
 INCLUDES	:=	include
-DATA		:=	
+DATA		:=
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-DEFINES	:=	
+DEFINES	:=
 
 LDNAME	:=	arm11.ld
 
-ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=soft -mthumb -mthumb-interwork
+ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=soft
 
-CFLAGS	:=	-std=c11 -g -Wall -O2 -mword-relocations \
-			-fomit-frame-pointer -ffast-math -fstrict-aliasing -Wstrict-aliasing \
-			-ffunction-sections $(ARCH)
+CFLAGS	:=	-Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
+			-Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls \
+			-Wshadow -Wsign-conversion -fstrict-overflow -Wstrict-overflow=5 \
+			-Wswitch-default -Wundef -fstrict-aliasing -Wstrict-aliasing \
+			-std=c11 -O2 -flto -mword-relocations -fomit-frame-pointer \
+			-ffast-math -ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS $(DEFINES)
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
-ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
+ASFLAGS	:=	$(INCLUDE) $(ARCH) $(DEFINES)
 LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project (order is important)
 #---------------------------------------------------------------------------------
-LIBS	:= 	
+LIBS	:=
  
  
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	
+LIBDIRS	:=
  
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

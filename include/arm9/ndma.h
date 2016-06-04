@@ -97,7 +97,7 @@
 #define NDMA_IMMEDIATE_MODE           (1<<28)
 #define NDMA_REPEATING_MODE           (1<<29)
 #define NDMA_INTERRUPT_ENABLE         (1<<30)
-#define NDMA_ENABLE                   (1<<31)
+#define NDMA_ENABLE                   ((u32)1<<31)
 
 
 

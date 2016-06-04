@@ -4,4 +4,4 @@
 
 
 
-void firmLaunchStub(void *entry);
+void firmLaunchStub(void (*entry)(void));

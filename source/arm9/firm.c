@@ -18,7 +18,7 @@ bool firm_load_verify(void)
 	const char *res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
 	bool isValid;
 	bool retval = true;
-	u8 hash[0x20];
+	u32 hash[8];
 
 	printf("ARM9  entry: 0x%X\n", (unsigned int)firm_hdr->entrypointarm9);
 	printf("ARM11 entry: 0x%X\n", (unsigned int)firm_hdr->entrypointarm11);
@@ -33,7 +33,7 @@ bool firm_load_verify(void)
 		printf("Section %i:\noffset: 0x%X, addr: 0x%X, size 0x%X\n", i,
 				(unsigned int)section->offset, (unsigned int)section->address, (unsigned int)section->size);
 
-		sha((void*)(FIRM_LOAD_ADDR + section->offset), section->size, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
+		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 		isValid = memcmp(hash, section->hash, 32) == 0;
 		printf("Hash: %s\e[0m\n", res[isValid]);
 
@@ -43,7 +43,7 @@ bool firm_load_verify(void)
 	return retval;
 }
 
-void firm_launch(void *entry)
+void firm_launch(void (*entry)(void))
 {
 	*((vu32*)CORE_SYNC_ID) = 0x544F4F42;
 
@@ -51,10 +51,10 @@ void firm_launch(void *entry)
 	while(*((vu32*)CORE_SYNC_ID) != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
-	NDMA_copy((void*)A9_STUB_ENTRY, firmLaunchStub, 0x200>>2);
+	NDMA_copy((void*)A9_STUB_ENTRY, (void*)firmLaunchStub, 0x200>>2);
 
 	//printf("Starting firm launch...\n");
-	void (*stub_entry)(void *entry) = (void*)A9_STUB_ENTRY;
+	void (*stub_entry)(void (*)(void)) = (void (*)(void (*)(void)))A9_STUB_ENTRY;
 	disableMpu();
 	stub_entry(entry);
 }

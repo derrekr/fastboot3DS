@@ -1,13 +1,89 @@
+#include "mem_map.h"
+
 .arm
 .arch armv5te
 .fpu softvfp
 
-.global setupMpu
+.global setupSystem
 .global disableMpu
 
+.type setupSystem STT_FUNC
+.type setupTcms STT_FUNC
+.type setupExceptionVectors STT_FUNC
 .type setupMpu STT_FUNC
 .type disableMpu STT_FUNC
 
+.extern undefHandler
+.extern prefetchAbortHandler
+.extern dataAbortHandler
+.extern invalidateICache
+.extern flushDCache
+.extern invalidateDCache
+
+
+
+setupSystem:
+	push {r4-r10, lr}
+
+	@ Control register:
+	@ [19] ITCM load mode         : disabled
+	@ [18] ITCM                   : disabled
+	@ [17] DTCM load mode         : disabled
+	@ [16] DTCM                   : disabled
+	@ [15] Disable loading TBIT   : disabled
+	@ [14] Round-robin replacement: disabled
+	@ [13] Vector select          : 0xFFFF0000
+	@ [12] I-Cache                : disabled
+	@ [7]  Endianess              : little
+	@ [2]  D-Cache                : disabled
+	@ [0]  MPU                    : disabled
+	ldr r0, =0x2078
+	mcr p15, 0, r0, c1, c0, 0   @ Write control register
+
+	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
+	bl setupTcms                @ Setup and enable DTCM and ITCM
+	bl setupMpu
+
+	pop {r4-r10, pc}
+
+
+setupTcms:
+	ldr r0, =0xFFF0000A         @ Base = 0xFFF00000, size = 16 KB
+	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
+	mov r0, #0x00000024         @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
+	mcr p15, 0, r0, c9, c1, 1   @ Write ITCM region reg
+
+	mrc p15, 0, r0, c1, c0, 0   @ Read control register
+	orr r0, r0, #0x50000        @ Enable DTCM and ITCM
+	mcr p15, 0, r0, c1, c0, 0   @ Write control register
+
+	bx lr
+
+
+#define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
+
+setupExceptionVectors:
+	mov r10, lr
+	ldr r0, =_vectorStubs_
+	mov r1, #A9_RAM_BASE
+	ldmia r0!, {r2-r9}
+	stmia r1!, {r2-r9}
+	ldmia r0, {r2-r5}
+	stmia r1, {r2-r5}
+	bx r10
+_vectorStubs_:
+	.word MAKE_BRANCH(A9_RAM_BASE + 0x00, A9_RAM_BASE + 0x00) // IRQ
+	.word 0
+	.word MAKE_BRANCH(A9_RAM_BASE + 0x08, A9_RAM_BASE + 0x08) // FIQ
+	.word 0
+	.word MAKE_BRANCH(A9_RAM_BASE + 0x10, A9_RAM_BASE + 0x10) // SVC
+	.word 0
+	ldr pc, undefHandlerPtr
+	undefHandlerPtr:                .word undefHandler
+	ldr pc, prefetchAbortHandlerPtr
+	prefetchAbortHandlerPtr:        .word prefetchAbortHandler
+	ldr pc, dataAbortHandlerPtr
+	dataAbortHandlerPtr:            .word dataAbortHandler
 
 
 #define REGION_4KB   (0b01011)
@@ -48,7 +124,7 @@ setupMpu:
 	@ Region 3: VRAM 4 MB
 	@ Region 4: AXIWRAM 512 KB
 	@ Region 5: FCRAM 128 MB
-	@ Region 6: Exception vectors + ARM9 bootrom 64 KB
+	@ Region 6: Exception vectors + ARM9 bootrom 32 KB
 	@ Region 7: -
 	ldr r0, =MAKE_REGION(0x01FF8000, REGION_32KB)
 	mcr p15, 0, r0, c6, c0, 0
@@ -62,7 +138,7 @@ setupMpu:
 	mcr p15, 0, r0, c6, c4, 0
 	ldr r0, =MAKE_REGION(0x20000000, REGION_128MB)
 	mcr p15, 0, r0, c6, c5, 0
-	ldr r0, =MAKE_REGION(0xFFFF0000, REGION_64KB)
+	ldr r0, =MAKE_REGION(0xFFFF0000, REGION_32KB)
 	mcr p15, 0, r0, c6, c6, 0
 	mov r0, #0
 	mcr p15, 0, r0, c6, c7, 0
@@ -112,7 +188,7 @@ setupMpu:
 	@ Instruction cachable bits:
 	@ Region 0 = no
 	@ Region 1 = yes
-	@ Region 2 = no  <-- Never cache IO regs
+	@ Region 2 = no
 	@ Region 3 = no
 	@ Region 4 = no
 	@ Region 5 = yes

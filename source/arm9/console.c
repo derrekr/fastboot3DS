@@ -23,7 +23,7 @@ PrintConsole defaultConsole =
 {
 	//Font:
 	{
-		(u8*)default_font_bin, //font gfx
+		default_font_bin, //font gfx
 		0, //first ascii character in the set
 		256 //number of characters in the font set
 	},
@@ -49,6 +49,24 @@ static const devoptab_t dotab_stdout = {
 	NULL,
 	NULL,
 	con_write,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	0,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL
@@ -137,6 +155,7 @@ static void consoleCls(char mode) {
 			currentConsole->cursorX  = 0;
 			break;
 		}
+	default: ;
 	}
 	//gfxFlushBuffers();
 }
@@ -190,6 +209,7 @@ static void consoleClearLine(char mode) {
 
 			break;
 		}
+	default: ;
 	}
 	//gfxFlushBuffers();
 }
@@ -208,7 +228,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 
 	i = 0;
 
-	while(i<len) {
+	while((size_t)i<len) {
 
 		chr = *(tmp++);
 		i++; count++;
@@ -441,7 +461,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 								break;
 
 							case 30 ... 37: // writing color
-								currentConsole->fg = parameter - 30;
+								currentConsole->fg = (u32)parameter - 30;
 								break;
 
 							case 39: // reset foreground color
@@ -449,12 +469,13 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 								break;
 
 							case 40 ... 47: // screen color
-								currentConsole->bg = parameter - 40;
+								currentConsole->bg = (u32)parameter - 40;
 								break;
 
 							case 49: // reset background color
 								currentConsole->fg = 0;
 								break;
+							default: ;
 							}
 						} while (escapelen > 0);
 
@@ -480,6 +501,24 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 static const devoptab_t dotab_null = {
 	"null",
 	0,
+	NULL,
+	NULL,
+	con_write,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	0,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -579,10 +618,10 @@ void consoleDrawChar(int c) {
 	c -= currentConsole->font.asciiOffset;
 	if ( c < 0 || c > currentConsole->font.numChars ) return;
 
-	u8 *fontdata = currentConsole->font.gfx + (8 * c);
+	const u8 *fontdata = currentConsole->font.gfx + (8 * c);
 
-	int writingColor = currentConsole->fg;
-	int screenColor = currentConsole->bg;
+	u32 writingColor = currentConsole->fg;
+	u32 screenColor = currentConsole->bg;
 
 	if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
 		writingColor += 8;
@@ -591,7 +630,7 @@ void consoleDrawChar(int c) {
 	}
 
 	if (currentConsole->flags & CONSOLE_COLOR_REVERSE) {
-		int tmp = writingColor;
+		u32 tmp = writingColor;
 		writingColor = screenColor;
 		screenColor = tmp;
 	}
@@ -688,6 +727,7 @@ void consolePrintChar(int c) {
 			break;
 	}
 	
+	//flushDCacheRange((void*)FRAMEBUF_TOP_A_1, 0xA8C00);
 	flushDCache();
 }
 

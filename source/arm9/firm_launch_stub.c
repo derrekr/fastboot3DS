@@ -7,10 +7,10 @@
 
 
 
-void firmLaunchStub(void *entry)
+void firmLaunchStub(void (*entry)(void))
 {	
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	if(entry == NULL) entry = (void*)firm_hdr->entrypointarm9;
+	if(entry == NULL) entry = (void (*)(void))firm_hdr->entrypointarm9;
 
 
 	for(int i = 0; i < 4; i++)

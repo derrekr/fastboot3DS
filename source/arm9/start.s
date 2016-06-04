@@ -10,50 +10,41 @@
 .type _start STT_FUNC
 .type _init STT_FUNC
 
+.extern setupSystem
+.extern __libc_init_array
+.extern heap_init
+.extern main
+.extern __bss_start__
+.extern __bss_end__
+
 .section .init
 
 
 
 _start:
-	mrs r0, cpsr
-	orr r0, r0, #0xC0           @ Disable all interrupts
-	msr cpsr_c, r0
-
+	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
 	ldr sp, =(A9_STUB_ENTRY-8)
 
-	bl flushDCache             @ Flush/invalidate caches to make sure nothing goes wrong
-	bl invalidateICache        @ if we are loaded from a bad loader.
-	bl invalidateDCache
-	bl setupMpu
+	bl setupSystem
 
 	ldr r0, =(CORE_SYNC_ID & 0xFFFFFFF0)
 	mov r1, #0
-	str r1, [r0, #0xC]          @ Clear arm9 communication fields
-	str r1, [r0, #0x8]
+	str r1, [r0, #0x8]          @ Clear arm9 communication fields
+	str r1, [r0, #0xC]
 
-	bl bss_clear
-	blx heap_init
+	ldr r0, =__bss_start__
+	ldr r1, =__bss_end__
+	sub r1, r1, r0
+	mov r2, #0
+	loop_bss_clear:
+		str r2, [r0], #4
+		subs r1, r1, #4
+		bne loop_bss_clear
+
 	blx __libc_init_array
-	
+	blx heap_init
 	blx main
-
-endlessLoop:
-	mov r0, #0
-	mcr p15, 0, r0, c7, c0, 4  @ Wait for interrupt
-	b endlessLoop
-
-
-bss_clear:
-	ldr r1, =__bss_start__
-	ldr r2, =__bss_end__
-	mov r3, #0
-
-	loop_clear:
-	cmp r1, r2
-	bxeq lr
-	strb r3, [r1]
-	add r1, r1, #1
-	b loop_clear
+	b .                         @ If main ever returns loop forever
 
 
 @ needed by libc

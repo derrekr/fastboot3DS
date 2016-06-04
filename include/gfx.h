@@ -1,4 +1,3 @@
-
 #pragma once
 
 #define SCREEN_HEIGHT_TOP	240
@@ -8,8 +7,8 @@
 
 #define FRAMEBUF_TOP_A_1 0x18000000
 #define FRAMEBUF_TOP_A_2 0x18000000
-#define FRAMEBUF_SUB_A_1 0x18300000
-#define FRAMEBUF_SUB_A_2 0x18300000
+#define FRAMEBUF_SUB_A_1 0x1805DC00
+#define FRAMEBUF_SUB_A_2 0x1805DC00
 
 
 void gfx_init();

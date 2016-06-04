@@ -27,7 +27,9 @@ int previous_states_count;
 
 bool unit_is_new3ds;
 
-void menu_main_draw_top()
+void heap_init();
+
+static void menu_main_draw_top()
 {
 	const char *sd_res[2] = {"\x1B[31mNo ", "\x1B[32mYes"};
 	const char *nand_res[2] = {"\x1B[31mError ", "\x1B[32mOK   "};
@@ -224,13 +226,13 @@ void unit_detect()
 	printf("%s3DS detected!\n", unit_is_new3ds ? "New " : "");
 }
 
-void loadFirmNand(void)
+static void loadFirmNand(void)
 {
 	memset((u8*)FCRAM_BASE, 0x00, 0x200);
 	dev_decnand->read(0x0005A980, 0x00002000, (u8*)FCRAM_BASE);
 }
 
-bool loadFirmSd(const char *filePath)
+static bool loadFirmSd(const char *filePath)
 {
 	FIL file;
 	UINT bytesRead = 0;

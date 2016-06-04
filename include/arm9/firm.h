@@ -30,4 +30,4 @@ typedef struct
 } firm_header;
 
 bool firm_load_verify(void);
-void firm_launch(void *entry);
+void firm_launch(void (*entry)(void));
