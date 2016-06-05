@@ -16,9 +16,6 @@
 .extern undefHandler
 .extern prefetchAbortHandler
 .extern dataAbortHandler
-.extern invalidateICache
-.extern flushDCache
-.extern invalidateDCache
 
 
 
@@ -39,6 +36,11 @@ setupSystem:
 	@ [0]  MPU                    : disabled
 	ldr r0, =0x2078
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
+
+	mov r0, #0
+	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
+	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
@@ -140,8 +142,8 @@ setupMpu:
 	mcr p15, 0, r0, c6, c5, 0
 	ldr r0, =MAKE_REGION(0xFFFF0000, REGION_32KB)
 	mcr p15, 0, r0, c6, c6, 0
-	mov r0, #0
-	mcr p15, 0, r0, c6, c7, 0
+	mov r2, #0
+	mcr p15, 0, r2, c6, c7, 0
 
 	@ Data access permissions:
 	@ Region 0: User = RO, Privileged = RW
@@ -213,17 +215,21 @@ setupMpu:
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	orr r0, r0, r1              @ Enable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	mov r2, lr
-	bl invalidateICache
-	bl invalidateDCache
-	bx r2
+	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
+	bx lr
 
 
 disableMpu:
-	mov r3, lr
-	bl flushDCache              @ Make sure all data has been written back
+	mov r2, #0
+	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
+
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	bx r3
+
+	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
+	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
+	bx lr
