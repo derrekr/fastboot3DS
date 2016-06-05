@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "types.h"
+#include "mem_map.h"
 #include "console.h"
-
-
 
 void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 {
@@ -35,11 +34,15 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 			excStack[8], excStack[0],
 			excStack[9], realPc);
 
-	puts("Stack dump:");
-	for(u32 i = 0; i < 15; i++)
+	// make sure we can actually dump the stack without triggering another fault.
+	if((stackPointer >= A9_RAM_BASE) && (stackPointer < A9_RAM_BASE + A9_RAM_SIZE))
 	{
-		printf("0x%08X: %08X %08X\n", (u32)stackPointer, stackPointer[0], stackPointer[1]);
-		stackPointer += 2;
+		puts("Stack dump:");
+		for(u32 i = 0; i < 15; i++)
+		{
+			printf("0x%08X: %08X %08X\n", (u32)stackPointer, stackPointer[0], stackPointer[1]);
+			stackPointer += 2;
+		}
 	}
 
 	while(1);

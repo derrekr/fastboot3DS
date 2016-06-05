@@ -15,6 +15,7 @@ bool sdmmc_sd_read(u32 offset, u32 size, void *buf);
 bool sdmmc_sd_write(u32 offset, u32 size, const void *buf);
 bool sdmmc_sd_close(void);
 bool sdmmc_sd_is_active(void);
+u32 sdmmc_sd_get_size(void);
 
 static dev_struct dev_sd = {
 	"sd",
@@ -23,7 +24,8 @@ static dev_struct dev_sd = {
 	&sdmmc_sd_read,
 	&sdmmc_sd_write,
 	&sdmmc_sd_close,
-	&sdmmc_sd_is_active
+	&sdmmc_sd_is_active,
+	&sdmmc_sd_get_size
 };
 const dev_struct *dev_sdcard = &dev_sd;
 
@@ -33,6 +35,7 @@ bool sdmmc_rnand_read(u32 offset, u32 size, void *buf);
 bool sdmmc_rnand_write(u32 offset, u32 size, const void *buf);
 bool sdmmc_rnand_close(void);
 bool sdmmc_rnand_is_active(void);
+u32 sdmmc_rnand_get_size(void);
 
 static dev_struct dev_rnand = {
 	"rnand",
@@ -41,7 +44,8 @@ static dev_struct dev_rnand = {
 	&sdmmc_rnand_read,
 	&sdmmc_rnand_write,
 	&sdmmc_rnand_close,
-	&sdmmc_rnand_is_active
+	&sdmmc_rnand_is_active,
+	&sdmmc_rnand_get_size
 };
 const dev_struct *dev_rawnand = &dev_rnand;
 
@@ -76,7 +80,8 @@ static dev_dnand_struct dev_dnand = {
 		&sdmmc_dnand_read,
 		&sdmmc_dnand_write,
 		&sdmmc_dnand_close,
-		&sdmmc_dnand_is_active
+		&sdmmc_dnand_is_active,
+		NULL
 	}
 };
 const dev_struct *dev_decnand = &dev_dnand.dev;
@@ -86,15 +91,17 @@ bool wififlash_init(void);
 bool wififlash_read(u32 offset, u32 size, void *buf);
 bool wififlash_close(void);
 bool wififlash_is_active(void);
+u32 wififlash_get_size(void);
 
 static dev_struct dev_wififlash = {
 	"wififlash",
 	0,
 	&wififlash_init,
 	&wififlash_read,
-	0,
+	NULL,
 	&wififlash_close,
-	&wififlash_is_active
+	&wififlash_is_active,
+	&wififlash_get_size
 };
 const dev_struct *dev_flash = &dev_wififlash;
 
@@ -141,6 +148,11 @@ bool sdmmc_sd_is_active(void)
 	return (sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE);
 }
 
+u32 sdmmc_sd_get_size(void)
+{
+	return getMMCDevice(1)->total_size << 9;
+}
+
 // -------------------------------- raw nand glue functions --------------------------------
 bool sdmmc_rnand_init(void)
 {
@@ -178,6 +190,11 @@ bool sdmmc_rnand_close(void)
 bool sdmmc_rnand_is_active(void)
 {
 	return dev_rnand.initialized;
+}
+
+u32 sdmmc_rnand_get_size(void)
+{
+	return getMMCDevice(0)->total_size << 9;
 }
 
 // ------------------------------ decrypted nand glue functions ------------------------------
@@ -357,4 +374,9 @@ bool wififlash_is_active(void)
 {
 	if(dev_wififlash.initialized) return true;
 	return wififlash_init();
+}
+
+u32 wififlash_get_size(void)
+{
+	return 0x20000;
 }

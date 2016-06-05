@@ -10,6 +10,7 @@ typedef struct
 	bool (*write)(u32 offset, u32 size, const void *buf);
 	bool (*close)();
 	bool (*is_active)();
+	u32  (*get_size)();
 	
 } dev_struct;
 

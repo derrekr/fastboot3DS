@@ -424,7 +424,7 @@ int SD_Init()
 	inittarget(&handleSD);
 	sleep_wait(0xF000);
 	
-	if(!(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE)) return -1;
+	//if(!(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE)) return -1;
 	
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);
