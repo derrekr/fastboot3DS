@@ -17,6 +17,8 @@ consoleInit()
 #include <stdbool.h>
 #include "types.h"
 
+#define SCREEN_TOP	1
+#define SCREEN_LOW	0
 
 typedef bool(* ConsolePrint)(void* con, int c);
 

@@ -752,3 +752,53 @@ void consoleSetWindow(PrintConsole* console, int x, int y, int width, int height
 	console->cursorY = 0;
 
 }
+
+void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
+
+	if(colorIndex >= 16) return;
+
+	if(!console) console = currentConsole;
+	
+	int startx = console->windowX * 8 - thickness;
+	int endx = (console->windowX + console->windowWidth) * 8 + thickness;
+	
+	int starty = (console->windowY - 1) * 8 - thickness;
+	int endy = console->windowHeight * 8 + thickness;
+	
+	/*
+	printf("startx: %i\n", startx);
+	printf("endx: %i\n", endx);
+	printf("endy: %i\n", endy);
+	printf("starty: %i\n", starty);
+	*/
+
+	u32 color = colorTable[colorIndex];
+	
+	// upper line
+	for(int y = starty; y < starty + thickness; y++)
+		for(int x = startx; x < endx; x++)
+		{
+			u32 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
+			*screen = color;
+		}
+	
+	// lower line
+	for(int y = endy; y > endy - thickness; y--)
+		for(int x = startx; x < endx; x++)
+		{
+			u32 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
+			*screen = color;
+		}
+		
+	// left and right
+	for(int y = starty; y < endy; y++)
+	{
+		for(int i = 0; i < thickness; i++)
+		{
+			u32 *screen = &currentConsole->frameBuffer[((startx + i) * 240) + (239 - (y + 7))];
+			*screen = color;
+			screen = &currentConsole->frameBuffer[((endx - thickness + i) * 240) + (239 - (y + 7))];
+			*screen = color;
+		}
+	}
+}
