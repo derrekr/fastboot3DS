@@ -126,6 +126,11 @@ bool sdmmc_sd_read(u32 offset, u32 size, void *buf)
 {
 	if(!dev_sd.initialized)
 		return false;
+		
+	if((u32)buf & 3) panic();
+		
+	if(size < 0x200)
+		panic();
 	
 	return !sdmmc_sdcard_readsectors(offset >> 9, size >> 9, buf);
 }
@@ -134,6 +139,11 @@ bool sdmmc_sd_write(u32 offset, u32 size, const void *buf)
 {
 	if(!dev_sd.initialized)
 		return false;
+		
+	if((u32)buf & 3) panic();
+		
+	if(size < 0x200)
+		panic();
 	
 	return !sdmmc_sdcard_writesectors(offset >> 9, size >> 9, buf);
 }
@@ -170,6 +180,11 @@ bool sdmmc_rnand_read(u32 offset, u32 size, void *buf)
 {
 	if(!dev_rnand.initialized)
 		return false;
+		
+	if((u32)buf & 3) panic();
+		
+	if(size < 0x200)
+		panic();
 	
 	return !sdmmc_nand_readsectors(offset >> 9, size >> 9, buf);
 }
@@ -178,6 +193,11 @@ bool sdmmc_rnand_write(u32 offset, u32 size, const void *buf)
 {
 	if(!dev_rnand.initialized)
 		return false;
+		
+	if((u32)buf & 3) panic();
+		
+	if(size < 0x200)
+		panic();
 	
 	return !sdmmc_nand_writesectors(offset >> 9, size >> 9, buf);
 }
@@ -300,6 +320,11 @@ bool sdmmc_dnand_read(u32 offset, u32 size, void *buf)
 {
 	//printf("Decnand read: offset: 0x%X, size: 0x%X\n", (unsigned int)offset, (unsigned int)size);
 	if(!dev_dnand.dev.initialized) return false;
+	
+	if((u32)buf & 3) panic();
+		
+	if(size < 0x200)
+		panic();
 
 	AES_ctx *ctx;
 	nand_partition_struct *partition = find_partition(offset, size);
@@ -330,6 +355,11 @@ bool sdmmc_dnand_write(u32 offset, u32 size, const void *buf)
 {
 	if(!dev_dnand.dev.initialized)
 		return false;
+		
+	if((u32)buf & 3) panic();
+		
+	if(size < 0x200)
+		panic();
 	
 	//return !sdmmc_nand_writesectors(offset >> 9, size >> 9, buf);
 	printf("Decnand write not implemented!\n");

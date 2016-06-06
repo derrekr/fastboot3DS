@@ -45,5 +45,20 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 		}
 	}
 
+	// avoid fs corruptions
+	unmount_fs();
+	devs_close();
+
 	while(1);
 }
+
+void NORETURN panic()
+{
+	printf("\x1b[41m\x1b[0J\x1b[9CGPANIC!!!\n");
+	
+	unmount_fs();
+	devs_close();
+	
+	while(1);
+}
+
