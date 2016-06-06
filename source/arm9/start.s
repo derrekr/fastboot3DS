@@ -1,4 +1,5 @@
 #include "mem_map.h"
+#include "version.h"
 
 .arm
 .arch armv5te
@@ -19,9 +20,16 @@
 
 .section .init
 
-
-
 _start:
+
+	b skip_pool
+	
+	// 
+	.string "3DS BOOTLOADER  "
+	.word	BOOTLOADER_VERSION
+	.align
+
+skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
 	ldr sp, =(A9_STUB_ENTRY-8)
 
