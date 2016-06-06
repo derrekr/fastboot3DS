@@ -25,8 +25,15 @@ void heap_init();
 
 static void menu_main_draw_top()
 {
-	const char *sd_res[2] = {"\x1B[31mNo ", "\x1B[32mYes"};
-	const char *nand_res[2] = {"\x1B[31mError ", "\x1B[32mOK   "};
+	const char *sd_res[2]	= {"\x1B[31mNo ", "\x1B[32mYes"};
+	const char *nand_res[2]	= {"\x1B[31mError ", "\x1B[32mOK   "};
+	const char *unit[2]		= {"Original 3DS", "New 3DS"};
+	const char *boot_environment [2]	=	{	"Cold boot",				// 0
+												"Booted from Native FIRM",	// 1
+												"Booted from <Unknown>",	// 2, etc
+												"Booted from Legacy FIRM"	// 3
+											};
+	
 	bool sd_status, nand_status, wififlash_status;
 	
 	sd_status = dev_sdcard->is_active();
@@ -35,7 +42,10 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	drawConsoleWindow(&con_top, 2, color);
-	printf("\n\t\t\t\t3DS Bootloader v0.1\n\n\n\n");
+	printf("\n\t\t\t\t\t3DS Bootloader v0.1\n\n\n\n");
+	
+	printf(" Model: %s\n", unit[unit_is_new3ds]);
+	printf(" \x1B[33m%s\e[0m\n\n", boot_environment[boot_env]);
 	printf(" SD card inserted: %s\e[0m\n", sd_res[sd_status]);
 	printf(" NAND status: %s\e[0m\n", nand_res[nand_status]);
 	printf(" Wifi flash status: %s\e[0m", nand_res[wififlash_status]);
@@ -64,7 +74,7 @@ int enter_menu(void)
 	int cursor_pos;
 	
 	// randomize color
-	color = (rng_get_byte() % 9) + 7;
+	color = (rng_get_byte() % 6) + 1;
 	
 	previous_states_count = 0;
 	

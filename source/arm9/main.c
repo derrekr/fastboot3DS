@@ -21,12 +21,14 @@ FATFS sd_fs;
 // same for all NAND fss
 FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 
-bool unit_is_new3ds;
-
+bool	unit_is_new3ds;
+u8		boot_env;
 
 int main(void)
 {
 	u32 keys;
+	
+	hashCodeRoData();	// TODO: remove after debugging
 
 	//Initialize console for both screen using the two different PrintConsole we have defined
 	consoleInit(SCREEN_TOP, &con_top);
@@ -140,7 +142,16 @@ void unit_detect()
 	if(PDN_MPCORE_CLKCNT != 0)
 		unit_is_new3ds = true;
 		
-	printf("%s3DS detected!\n", unit_is_new3ds ? "New " : "");
+	bool is_panda = CFG_UNITINFO != 0;
+		
+	printf("%s%s 3DS detected!\n", is_panda ? "Dev " : "",
+									unit_is_new3ds ? "New" : "Original");
+}
+
+void boot_env_detect()
+{
+	boot_env = CFG_BOOTENV;
+	if(boot_env > 3) boot_env = 2;
 }
 
 u8 rng_get_byte()

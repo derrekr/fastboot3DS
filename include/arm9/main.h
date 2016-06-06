@@ -6,14 +6,16 @@
 
 };*/
 
-
-extern bool unit_is_new3ds;
 // PrintConsole for each screen
 extern PrintConsole con_top, con_bottom;
 // SD card FAT fs instance
 extern FATFS sd_fs;
 // same for all NAND filesystems
 extern FATFS nand_twlnfs, nand_twlpfs, nand_fs;
+
+extern bool	unit_is_new3ds;
+extern u8	boot_env;
+
 
 void heap_init();
 void devs_init();
