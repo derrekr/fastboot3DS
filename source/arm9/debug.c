@@ -4,11 +4,26 @@
 #include "mem_map.h"
 #include "console.h"
 
+static bool exceptionTriggered = false;
+
+static u32 debugHash = 0;
+
 void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 {
 	const char *typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
 	u32 realPc, instSize = 4;
+	bool codeChanged = false;
 
+	if(exceptionTriggered)	// inception :(
+		while(1);
+	
+	exceptionTriggered = true;
+	
+	// verify text and rodata
+	u32 prevHash = debugHash;
+	hashCodeRoData();
+	if(prevHash != debugHash)
+		codeChanged = true;
 
 	consoleInit(0, NULL);
 
@@ -44,6 +59,8 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 			stackPointer += 2;
 		}
 	}
+	
+	if(codeChanged) printf("Attention: RO section data changed!!");
 
 	// avoid fs corruptions
 	unmount_fs();
@@ -54,6 +71,8 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 
 void NORETURN panic()
 {
+	consoleInit(0, NULL);
+
 	printf("\x1b[41m\x1b[0J\x1b[9CGPANIC!!!\n");
 	
 	unmount_fs();
@@ -62,3 +81,16 @@ void NORETURN panic()
 	while(1);
 }
 
+void hashCodeRoData()
+{
+	extern u32 *__text_start;
+	extern u32 *__exidx_start;
+	
+	u32 *start = __text_start;
+	u32 *end = __exidx_start;
+	
+	debugHash = 0;
+	
+	for(u32 *ptr = start; ptr < end; ptr++)
+		debugHash += *ptr;
+}

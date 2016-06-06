@@ -232,6 +232,8 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 
 		chr = *(tmp++);
 		i++; count++;
+		
+		if((u32) tmp > 0x8100000) panic();	// ptr poisoned.
 
 		if ( chr == 0x1b && *tmp == '[' ) {
 			bool escaping = true;
@@ -243,6 +245,9 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 				chr = *(tmp++);
 				i++; count++; escapelen++;
 				int parameter, assigned, consumed;
+				
+				if((u32) tmp > 0x8100000) panic();	// ptr poisoned.
+				if((u32) escapeseq > 0x8100000) panic();	// ptr poisoned.
 
 				// make sure parameters are positive values and delimited by semicolon
 				if((chr >= '0' && chr <= '9') || chr == ';')
@@ -374,9 +379,12 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							parameter = 0;
 							if (escapelen == 1) {
 								consumed = 1;
-							} else if (strchr(escapeseq,';')) {
-								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
+								if((u32) escapeseq > 0x8100000) panic();	// ptr poisoned.
+								if (strchr(escapeseq,';')) {
+									sscanf(escapeseq,"%d;%n", &parameter, &consumed);
+								}
+							 else 
 								sscanf(escapeseq,"%dm%n", &parameter, &consumed);
 							}
 
