@@ -482,5 +482,7 @@ int SD_Init()
 	if((handleSD.error & 0x4)) return -1;
 	handleSD.clk |= 0x200;
 	
+	while(!(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE));
+	
 	return 0;
 }
