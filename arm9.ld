@@ -4,7 +4,7 @@ ENTRY(_start)
 
 MEMORY {
 
-	memregion	: ORIGIN = 0x8006800, LENGTH = 300K
+	memregion	: ORIGIN = 0x08000040, LENGTH = 300K
 }
 
 __memregion_start	=	ORIGIN(memregion);

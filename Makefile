@@ -12,5 +12,5 @@ code9.bin:
 code11.bin:
 	make -f Makefile.arm11
 firm.bin:
-	firm_builder firm.bin 0x8006800 0x1FF80000 0x8006800 0 code9.bin 0x1FF80000 1 code11.bin
+	firm_builder firm.bin 0x08000040 0x1FF80000 0x08000040 0 code9.bin 0x1FF80000 1 code11.bin
 	

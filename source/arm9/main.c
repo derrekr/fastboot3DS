@@ -155,16 +155,8 @@ void boot_env_detect()
 }
 
 u8 rng_get_byte()
-{
-	u8 number;	// uninitialized stack byte
-
-	for(int i=0; i<0x100; i++)
-	{
-		// grab a byte from the uninitialized memory.
-		number += *(u8 *)(A9_RAM_BASE + 0x1000 + i);
-	}
-	
-	return number;
+{	
+	return *((u32*)0x10011000) & 0xFF; // PRNG reg
 }
 
 static void loadFirmNand(void)

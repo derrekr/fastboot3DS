@@ -5,7 +5,7 @@
 /* ARM9 MEM */
 #define A9_RAM_BASE       (0x08000000)
 #define A9_RAM_SIZE       (0x00100000)
-#define A9_HEAP_START     (0x08060000)
+#define A9_HEAP_START     (0x0804C000)
 #define A9_HEAP_END       (0x080F0000)
 #define	A9_STUB_ENTRY     (0x080FFE00)
 
