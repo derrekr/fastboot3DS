@@ -4,7 +4,7 @@
 /* CFG */
 #define CFG_REGS_BASE				0x10000000
 #define CFG_BOOTENV					*((vu32 *)(CFG_REGS_BASE+0x10000))
-#define CFG_UNITINFO				*((vu32 *)(CFG_REGS_BASE+0x10010))
+#define CFG_UNITINFO				*((vu8 *)(CFG_REGS_BASE+0x10010))
 
 /* PDN */
 #define PDN_REGS_BASE				0x10140000
