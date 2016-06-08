@@ -72,10 +72,10 @@ static void set_target(struct mmcdevice *ctx)
 
 static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t args)
 {
-	uint32_t getSDRESP = (cmd << 15) >> 31;
+	const bool getSDRESP = (cmd << 15) >> 31;
 	uint16_t flags = (cmd << 15) >> 31;
-	const int readdata = cmd & 0x20000;
-	const int writedata = cmd & 0x40000;
+	const bool readdata = cmd & 0x20000;
+	const bool writedata = cmd & 0x40000;
 
 	if(readdata || writedata)
 	{
@@ -97,8 +97,8 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 	uint8_t *rDataPtr = ctx->rData;
 	const uint8_t *tDataPtr = ctx->tData;
 
-	int rUseBuf = ( NULL != rDataPtr );
-	int tUseBuf = ( NULL != tDataPtr );
+	bool rUseBuf = ( NULL != rDataPtr );
+	bool tUseBuf = ( NULL != tDataPtr );
 
 	uint16_t status0 = 0;
 	while(1)
@@ -119,8 +119,6 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 					if(size > 0x1FF)
 					{
 						#ifdef DATA32_SUPPORT
-						//Gabriel Marcano: This implementation doesn't assume alignment.
-						//I've removed the alignment check doen with former rUseBuf32 as a result
 						for(int i = 0; i<0x200; i+=4)
 						{
 							uint32_t data = sdmmc_read32(REG_SDFIFO32);
@@ -285,7 +283,7 @@ int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, const uint8
 	return get_error(&handleNAND);
 }
 
-static uint32_t calcSDSize(uint8_t* csd, int type)
+static uint32_t sdmmc_calc_size(uint8_t* csd, int type)
 {
   uint32_t result = 0;
   if(type == -1) type = csd[14] >> 6;
@@ -397,7 +395,7 @@ int Nand_Init()
 	sdmmc_send_command(&handleNAND,0x10609,handleNAND.initarg << 0x10);
 	if((handleNAND.error & 0x4))return -1;
 
-	handleNAND.total_size = calcSDSize((uint8_t*)&handleNAND.ret[0],0);
+	handleNAND.total_size = sdmmc_calc_size((uint8_t*)&handleNAND.ret[0],0);
 	handleNAND.clk = 1;
 	setckl(1);
 
@@ -466,7 +464,7 @@ int SD_Init()
 	sdmmc_send_command(&handleSD,0x10609,handleSD.initarg << 0x10);
 	if((handleSD.error & 0x4)) return -3;
 
-	handleSD.total_size = calcSDSize((uint8_t*)&handleSD.ret[0],-1);
+	handleSD.total_size = sdmmc_calc_size((uint8_t*)&handleSD.ret[0],-1);
 	handleSD.clk = 1;
 	setckl(1);
 
