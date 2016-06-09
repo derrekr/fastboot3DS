@@ -209,8 +209,8 @@ u32 gfx_i2c_lcd_finish()
 
 void gfx_init_step3()
 {
-	LCD_REG_BACKLIGHTMAIN = 0xFF;
-	LCD_REG_BACKLIGHTSUB = 0xFF;
+	LCD_REG_BACKLIGHTMAIN = 0x0F; // Equals home menu brightness level 1
+	LCD_REG_BACKLIGHTSUB = 0x0F;
 	
 	int i;
 	for(i=0; i<10; i++)
