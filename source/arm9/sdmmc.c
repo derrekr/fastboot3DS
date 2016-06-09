@@ -94,11 +94,15 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 	sdmmc_write16(REG_SDCMD,cmd &0xFFFF);
 
 	uint32_t size = ctx->size;
-	uint8_t *rDataPtr = ctx->rData;
-	const uint8_t *tDataPtr = ctx->tData;
+	u32 *rDataPtr32 = (u32*)ctx->rData;
+	u16 *rDataPtr16 = (u16*)ctx->rData;
+	u8  *rDataPtr8  = ctx->rData;
+	const u32 *tDataPtr32 = (u32*)ctx->tData;
+	const u16 *tDataPtr16 = (u16*)ctx->tData;
+	const u8  *tDataPtr8  = ctx->tData;
 
-	bool rUseBuf = ( NULL != rDataPtr );
-	bool tUseBuf = ( NULL != tDataPtr );
+	bool rUseBuf = ( NULL != rDataPtr32 );
+	bool tUseBuf = ( NULL != tDataPtr32 );
 
 	uint16_t status0 = 0;
 	while(1)
@@ -119,20 +123,40 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 					if(size > 0x1FF)
 					{
 						#ifdef DATA32_SUPPORT
-						for(int i = 0; i<0x200; i+=4)
+						if(!((u32)rDataPtr32 & 3))
 						{
-							uint32_t data = sdmmc_read32(REG_SDFIFO32);
-							*rDataPtr++ = data;
-							*rDataPtr++ = data >> 8;
-							*rDataPtr++ = data >> 16;
-							*rDataPtr++ = data >> 24;
+							for(int i = 0; i<0x200; i+=4)
+							{
+								*rDataPtr32++ = sdmmc_read32(REG_SDFIFO32);
+							}
+						}
+						else
+						{
+							for(int i = 0; i<0x200; i+=4)
+							{
+								u32 data = sdmmc_read32(REG_SDFIFO32);
+								*rDataPtr8++ = data;
+								*rDataPtr8++ = data >> 8;
+								*rDataPtr8++ = data >> 16;
+								*rDataPtr8++ = data >> 24;
+							}
 						}
 						#else
-						for(int i = 0; i<0x200; i+=2)
+						if(!((u32)rDataPtr16 & 1))
 						{
-							uint16_t data = sdmmc_read16(REG_SDFIFO);
-							*rDataPtr++ = data;
-							*rDataPtr++ = data >> 8;
+							for(int i = 0; i<0x200; i+=4)
+							{
+								*rDataPtr16++ = sdmmc_read16(REG_SDFIFO);
+							}
+						}
+						else
+						{
+							for(int i = 0; i<0x200; i+=4)
+							{
+								u16 data = sdmmc_read16(REG_SDFIFO);
+								*rDataPtr8++ = data;
+								*rDataPtr8++ = data >> 8;
+							}
 						}
 						#endif
 						size -= 0x200;
@@ -156,20 +180,40 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 					if(size > 0x1FF)
 					{
 						#ifdef DATA32_SUPPORT
-						for(int i = 0; i<0x200; i+=4)
+						if(!((u32)tDataPtr32 & 3))
 						{
-							uint32_t data = *tDataPtr++;
-							data |= (uint32_t)*tDataPtr++ << 8;
-							data |= (uint32_t)*tDataPtr++ << 16;
-							data |= (uint32_t)*tDataPtr++ << 24;
-							sdmmc_write32(REG_SDFIFO32, data);
+							for(int i = 0; i<0x200; i+=4)
+							{
+								sdmmc_write32(REG_SDFIFO32, *tDataPtr32++);
+							}
+						}
+						else
+						{
+							for(int i = 0; i<0x200; i+=4)
+							{
+								uint32_t data = *tDataPtr8++;
+								data |= (uint32_t)*tDataPtr8++ << 8;
+								data |= (uint32_t)*tDataPtr8++ << 16;
+								data |= (uint32_t)*tDataPtr8++ << 24;
+								sdmmc_write32(REG_SDFIFO32, data);
+							}
 						}
 						#else
-						for(int i = 0; i<0x200; i+=2)
+						if(!((u32)tDataPtr16 & 1))
 						{
-							uint16_t data = *tDataPtr++;
-							data |= (uint8_t)(*tDataPtr++ << 8);
-							sdmmc_write16(REG_SDFIFO, data);
+							for(int i = 0; i<0x200; i+=2)
+							{
+								sdmmc_write16(REG_SDFIFO, *tDataPtr16++);
+							}
+						}
+						else
+						{
+							for(int i = 0; i<0x200; i+=2)
+							{
+								uint16_t data = *tDataPtr8++;
+								data |= (uint16_t)(*tDataPtr8++ << 8);
+								sdmmc_write16(REG_SDFIFO, data);
+							}
 						}
 						#endif
 						size -= 0x200;
