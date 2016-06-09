@@ -41,7 +41,7 @@ CFLAGS	:=	-Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
 CFLAGS	+=	$(INCLUDE) -DARM9 $(DEFINES)
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
-ASFLAGS	:=	$(INCLUDE) $(ARCH) $(DEFINES)
+ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
 LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections
 
 #---------------------------------------------------------------------------------

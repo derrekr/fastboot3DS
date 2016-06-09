@@ -8,8 +8,8 @@
 .global disableMpu
 
 .type setupSystem STT_FUNC
-.type setupTcms STT_FUNC
 .type setupExceptionVectors STT_FUNC
+.type setupTcms STT_FUNC
 .type setupMpu STT_FUNC
 .type disableMpu STT_FUNC
 
@@ -20,7 +20,7 @@
 
 
 setupSystem:
-	push {r4-r10, lr}
+	mov r10, lr
 
 	@ Control register:
 	@ [19] ITCM load mode         : disabled
@@ -45,34 +45,19 @@ setupSystem:
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 	bl setupMpu
-
-	pop {r4-r10, pc}
-
-
-setupTcms:
-	ldr r0, =0xFFF0000A         @ Base = 0xFFF00000, size = 16 KB
-	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
-	mov r0, #0x00000024         @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
-	mcr p15, 0, r0, c9, c1, 1   @ Write ITCM region reg
-
-	mrc p15, 0, r0, c1, c0, 0   @ Read control register
-	orr r0, r0, #0x50000        @ Enable DTCM and ITCM
-	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-
-	bx lr
+	bx r10
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
 setupExceptionVectors:
-	mov r10, lr
 	ldr r0, =_vectorStubs_
 	mov r1, #A9_RAM_BASE
 	ldmia r0!, {r2-r9}
 	stmia r1!, {r2-r9}
 	ldmia r0, {r2-r5}
 	stmia r1, {r2-r5}
-	bx r10
+	bx lr
 _vectorStubs_:
 	.word MAKE_BRANCH(A9_RAM_BASE + 0x00, A9_RAM_BASE + 0x00) // IRQ
 	.word 0
@@ -86,6 +71,18 @@ _vectorStubs_:
 	prefetchAbortHandlerPtr:        .word prefetchAbortHandler
 	ldr pc, dataAbortHandlerPtr
 	dataAbortHandlerPtr:            .word dataAbortHandler
+
+
+setupTcms:
+	ldr r0, =0xFFF0000A         @ Base = 0xFFF00000, size = 16 KB
+	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
+	mov r0, #0x00000024         @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
+	mcr p15, 0, r0, c9, c1, 1   @ Write ITCM region reg
+
+	mrc p15, 0, r0, c1, c0, 0   @ Read control register
+	orr r0, r0, #0x50000        @ Enable DTCM and ITCM
+	mcr p15, 0, r0, c1, c0, 0   @ Write control register
+	bx lr
 
 
 #define REGION_4KB   (0b01011)

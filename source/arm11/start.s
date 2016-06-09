@@ -22,7 +22,7 @@
 
 _start:
 	cpsid aif, #0x1F           @ Disable all interrupts, system mode
-	ldr sp, =(A11_STUB_ENTRY-8)
+	ldr sp, =(A11_STUB_ENTRY)
 
 	mov r0, #0
 	mcr p15, 0, r0, c7, c14, 0 @ Clear and invalidate entire data cache

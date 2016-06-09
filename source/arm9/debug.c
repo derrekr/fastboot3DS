@@ -8,7 +8,7 @@ static bool exceptionTriggered = false;
 
 static u32 debugHash = 0;
 
-void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
+void NORETURN guruMeditation(u8 type, unsigned int *excStack, unsigned int *stackPointer)
 {
 	const char *typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
 	u32 realPc, instSize = 4;
@@ -16,9 +16,9 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 
 	if(exceptionTriggered)	// inception :(
 		while(1);
-	
+
 	exceptionTriggered = true;
-	
+
 	// verify text and rodata
 	u32 prevHash = debugHash;
 	hashCodeRoData();
@@ -45,21 +45,21 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 			excStack[4], excStack[12],
 			excStack[5], excStack[13],
 			excStack[6], excStack[14],
-			excStack[7], (u32)stackPointer,
+			excStack[7], (unsigned int)stackPointer,
 			excStack[8], excStack[0],
 			excStack[9], realPc);
 
 	// make sure we can actually dump the stack without triggering another fault.
-	if((stackPointer >= A9_RAM_BASE) && (stackPointer < A9_RAM_BASE + A9_RAM_SIZE))
+	if((stackPointer >= (unsigned int*)A9_RAM_BASE) && (stackPointer < (unsigned int*)(A9_RAM_BASE + A9_RAM_SIZE)))
 	{
 		puts("Stack dump:");
 		for(u32 i = 0; i < 15; i++)
 		{
-			printf("0x%08X: %08X %08X\n", (u32)stackPointer, stackPointer[0], stackPointer[1]);
+			printf("0x%08X: %08X %08X\n", (unsigned int)stackPointer, stackPointer[0], stackPointer[1]);
 			stackPointer += 2;
 		}
 	}
-	
+
 	if(codeChanged) printf("Attention: RO section data changed!!");
 
 	// avoid fs corruptions

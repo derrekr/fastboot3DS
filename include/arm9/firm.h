@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
 #include "types.h"
 #include "mem_map.h"
 
@@ -29,5 +28,10 @@ typedef struct
 	u8 signature[0x100];
 } firm_header;
 
+
+extern void (*firmLaunchEntry9)(void);
+extern void (*firmLaunchEntry11)(void);
+
+
 bool firm_load_verify(void);
-void firm_launch(void (*entry)(void));
+void NORETURN firm_launch(void);

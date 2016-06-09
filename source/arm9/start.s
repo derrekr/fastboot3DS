@@ -7,6 +7,8 @@
 
 .global _start
 .global _init
+.global firmLaunchEntry9
+.global firmLaunchEntry11
 
 .type _start STT_FUNC
 .type _init STT_FUNC
@@ -15,6 +17,7 @@
 .extern __libc_init_array
 .extern heap_init
 .extern main
+.extern firm_launch
 .extern __bss_start__
 .extern __bss_end__
 
@@ -23,22 +26,20 @@
 _start:
 
 	b skip_pool
-	
-	// 
-	.string "3DS BOOTLOADER  "
-	.word	BOOTLOADER_VERSION
-	.align
+
+	.string "3DS BOOTLOADER "
+	.word   BOOTLOADER_VERSION
+	.word   0                   @ Flags
+firmLaunchEntry9:
+	.word   0                   @ Entrypoint override field
+firmLaunchEntry11:
+	.word   0
 
 skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	ldr sp, =(A9_STUB_ENTRY-8)
+	ldr sp, =(A9_STUB_ENTRY)
 
 	bl setupSystem
-
-	ldr r0, =(CORE_SYNC_ID & 0xFFFFFFF0)
-	mov r1, #0
-	str r1, [r0, #0x8]          @ Clear arm9 communication fields
-	str r1, [r0, #0xC]
 
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
@@ -52,7 +53,9 @@ skip_pool:
 	blx __libc_init_array
 	blx heap_init
 	blx main
-	b .                         @ If main ever returns loop forever
+	cmp r0, #0
+	beq firm_launch
+	b .
 
 
 @ needed by libc

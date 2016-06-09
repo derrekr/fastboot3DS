@@ -37,4 +37,4 @@ exceptionHandler:
 	str lr, [r1, #-4]!          @ Save lr on exception stack
 	mov r2, sp
 	mov sp, r1
-	blx guruMeditation          @ r0 = exception type, r1 = reg dump ptr {lr, cpsr, r0-r12, pc + X}, r2 = sp
+	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {lr, cpsr, r0-r12, pc + X}, r2 = sp

@@ -155,8 +155,13 @@ void boot_env_detect()
 }
 
 u8 rng_get_byte()
-{	
-	return *((u32*)0x10011000) & 0xFF; // PRNG reg
+{
+	u32 tmp = *((u32*)0x10011000); // PRNG reg
+	for(u32 i = 8; i < 40; i += 8)
+	{
+		tmp ^= (u8)(tmp >> i);
+	}
+	return (u8)tmp;
 }
 
 static void loadFirmNand(void)

@@ -165,7 +165,7 @@ int enter_menu(void)
 					} while(!(keys & KEY_B));
 					menu_state = STATE_MAIN;
 				}
-				else firm_launch(NULL);
+				else goto exitAndLaunchFirm;
 				break;
 			
 			default: printf("OOPS!\n"); break;
@@ -173,6 +173,8 @@ int enter_menu(void)
 		
 		
 	}
+
+exitAndLaunchFirm:
 
 	return 0;
 }
