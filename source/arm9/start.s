@@ -55,7 +55,6 @@ skip_pool:
 	blx main
 	cmp r0, #0
 	beq firm_launch
-	b .
 
 
 @ needed by libc

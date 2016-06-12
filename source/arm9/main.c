@@ -53,6 +53,8 @@ int main(void)
 	
 	enter_menu();
 
+	unmount_fs();
+
 	return 0;
 }
 
