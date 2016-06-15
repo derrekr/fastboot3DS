@@ -501,7 +501,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 		consolePrintChar(chr);
 	}
 
-	flushDCacheRange((void*)FRAMEBUF_TOP_A_1, 0xA8C00);
+	//flushDCacheRange((void*)FRAMEBUF_TOP_A_1, 0xA8C00);
 
 	return count;
 }

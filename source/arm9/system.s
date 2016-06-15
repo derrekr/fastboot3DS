@@ -200,12 +200,12 @@ setupMpu:
 	@ Region 0 = yes
 	@ Region 1 = yes
 	@ Region 2 = no  <-- Never buffer IO reg writes
-	@ Region 3 = yes
+	@ Region 3 = no
 	@ Region 4 = no
 	@ Region 5 = yes
 	@ Region 6 = no
 	@ Region 7 = no
-	mov r0, #0b00101011
+	mov r0, #0b00100011
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
