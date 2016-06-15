@@ -14,7 +14,6 @@ consoleInit()
 
 */
 
-#include <stdbool.h>
 #include "types.h"
 
 #define SCREEN_TOP	1

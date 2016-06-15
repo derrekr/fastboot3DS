@@ -2,7 +2,7 @@
 #define __SDMMC_H__
 
 #include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
 
 #define SDMMC_BASE				0x10006000
 

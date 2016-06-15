@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include "types.h"
 #include "arm9/firm.h"
@@ -55,8 +54,8 @@ bool firm_load_verify(void)
 	bool retval = true;
 	u32 hash[8];
 
-	printf("ARM9  entry: 0x%X\n", (unsigned int)firm_hdr->entrypointarm9);
-	printf("ARM11 entry: 0x%X\n", (unsigned int)firm_hdr->entrypointarm11);
+	printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
+	printf("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
 
 	for(int i=0; i<4; i++)
 	{
@@ -65,8 +64,8 @@ bool firm_load_verify(void)
 		if(section->size == 0)
 			continue;
 
-		printf("Section %i:\noffset: 0x%X, addr: 0x%X, size 0x%X\n", i,
-				(unsigned int)section->offset, (unsigned int)section->address, (unsigned int)section->size);
+		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size 0x%"PRIX32"\n",
+				i, section->offset, section->address, section->size);
 
 		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 		isValid = memcmp(hash, section->hash, 32) == 0;
@@ -86,7 +85,7 @@ void NORETURN firm_launch(void)
 	while(*((vu32*)CORE_SYNC_ID) != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
-	NDMA_copy((void*)A9_STUB_ENTRY, (void*)firmLaunchStub, 0x200>>2);
+	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, 0x200>>2);
 
 	//printf("Starting firm launch...\n");
 	void (*stub)(void) = (void (*)(void))A9_STUB_ENTRY;

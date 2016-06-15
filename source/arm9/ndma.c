@@ -9,7 +9,7 @@
 
 
 
-void NDMA_copy(void *dest, const void *source, u32 num)
+void NDMA_copy(u32 *dest, const u32 *source, u32 num)
 {
 	flushDCacheRange(source, num<<2); // Make sure possible writes finished before DMAing.
 	flushDCacheRange(dest, num<<2);
@@ -25,7 +25,7 @@ void NDMA_copy(void *dest, const void *source, u32 num)
 	invalidateDCacheRange(dest, num<<2); // Make sure no old data is in cache.
 }
 
-void NDMA_fill(void *dest, u32 value, u32 num)
+void NDMA_fill(u32 *dest, u32 value, u32 num)
 {
 	flushDCacheRange(dest, num<<2);
 

@@ -39,34 +39,34 @@
 
 #define AES_WRITE_FIFO_COUNT       ((REG_AESCNT>>0) & 0x1F)
 #define AES_READ_FIFO_COUNT        ((REG_AESCNT>>5) & 0x1F)
-#define AES_BUSY                   ((u32)1<<31)
+#define AES_BUSY                   (1u<<31)
 
-#define AES_FLUSH_READ_FIFO        (1<<10)
-#define AES_FLUSH_WRITE_FIFO       (1<<11)
-#define AES_BIT12                  (1<<12)
-#define AES_BIT13                  (1<<13)
-#define AES_MAC_SIZE(n)            ((n & 7)<<16)
-#define AES_MAC_REGISTER_SOURCE    (1<<20)
-#define AES_MAC_STATUS             (1<<21) // AES_UNKNOWN_21
-#define AES_OUTPUT_BIG             (1<<22)
-#define AES_OUTPUT_LITTLE          (0)
-#define AES_INPUT_BIG              (1<<23)
-#define AES_INPUT_LITTLE           (0)
-#define AES_OUTPUT_NORMAL_ORDER    (1<<24)
-#define AES_OUTPUT_REVERSED_ORDER  (0)
-#define AES_INPUT_NORMAL_ORDER     (1<<25)
-#define AES_INPUT_REVERSED_ORDER   (0)
-#define AES_UPDATE_KEYSLOT         (1<<26) // AES_UNKNOWN_26
-#define AES_INTERRUPT_ENABLE       (1<<30)
-#define AES_ENABLE                 ((u32)1<<31)
+#define AES_FLUSH_READ_FIFO        (1u<<10)
+#define AES_FLUSH_WRITE_FIFO       (1u<<11)
+#define AES_BIT12                  (1u<<12)
+#define AES_BIT13                  (1u<<13)
+#define AES_MAC_SIZE(n)            ((n & 7u)<<16)
+#define AES_MAC_REGISTER_SOURCE    (1u<<20)
+#define AES_MAC_STATUS             (1u<<21) // AES_UNKNOWN_21
+#define AES_OUTPUT_BIG             (1u<<22)
+#define AES_OUTPUT_LITTLE          (0u)
+#define AES_INPUT_BIG              (1u<<23)
+#define AES_INPUT_LITTLE           (0u)
+#define AES_OUTPUT_NORMAL_ORDER    (1u<<24)
+#define AES_OUTPUT_REVERSED_ORDER  (0u)
+#define AES_INPUT_NORMAL_ORDER     (1u<<25)
+#define AES_INPUT_REVERSED_ORDER   (0u)
+#define AES_UPDATE_KEYSLOT         (1u<<26) // AES_UNKNOWN_26
+#define AES_INTERRUPT_ENABLE       (1u<<30)
+#define AES_ENABLE                 (1u<<31)
 
-#define AES_MODE_CCM_DECRYPT       (0)
-#define AES_MODE_CCM_ENCRYPT       (1<<27)
-#define AES_MODE_CTR               (2<<27)
-#define AES_MODE_CBC_DECRYPT       (4<<27)
-#define AES_MODE_CBC_ENCRYPT       (5<<27)
-#define AES_MODE_ECB_DECRYPT       (6<<27)
-#define AES_MODE_ECB_ENCRYPT       (7<<27)
+#define AES_MODE_CCM_DECRYPT       (0u)
+#define AES_MODE_CCM_ENCRYPT       (1u<<27)
+#define AES_MODE_CTR               (2u<<27)
+#define AES_MODE_CBC_DECRYPT       (4u<<27)
+#define AES_MODE_CBC_ENCRYPT       (5u<<27)
+#define AES_MODE_ECB_DECRYPT       (6u<<27)
+#define AES_MODE_ECB_ENCRYPT       (7u<<27)
 
 
 typedef enum
@@ -169,16 +169,16 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val);
 #define REG_SHA_HASH       ( ((u32*) 0x1000A040))
 #define REG_SHA_INFIFO     (         0x1000A080)
 
-#define SHA_ENABLE         (1) // Also used as busy flag
-#define SHA_PAD_INPUT      (1<<1)
-#define SHA_INPUT_BIG      (1<<3)
-#define SHA_INPUT_LITTLE   (0)
+#define SHA_ENABLE         (1u) // Also used as busy flag
+#define SHA_PAD_INPUT      (1u<<1)
+#define SHA_INPUT_BIG      (1u<<3)
+#define SHA_INPUT_LITTLE   (0u)
 #define SHA_OUTPUT_BIG     SHA_INPUT_BIG
 #define SHA_OUTPUT_LITTLE  SHA_INPUT_LITTLE
 
-#define SHA_MODE_256       (0)
-#define SHA_MODE_224       (1<<4)
-#define SHA_MODE_1         (1<<5)
+#define SHA_MODE_256       (0u)
+#define SHA_MODE_224       (1u<<4)
+#define SHA_MODE_1         (1u<<5)
 
 
 /**

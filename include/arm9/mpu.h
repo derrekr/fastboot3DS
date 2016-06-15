@@ -2,5 +2,4 @@
 
 
 
-void setupMpu(void);
 void disableMpu(void);

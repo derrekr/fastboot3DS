@@ -110,22 +110,22 @@ void mount_fs()
 	printf("Mounting SD card FAT FS... ");
 	res = f_mount(&sd_fs, "sdmc:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
+	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
 
 	printf("Mounting twln FS... ");
 	res = f_mount(&nand_twlnfs, "twln:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
+	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
 
 	printf("Mounting twlp FS... ");
 	res = f_mount(&nand_twlpfs, "twlp:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
+	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
 
 	printf("Mounting CTR NAND FAT FS... ");
 	res = f_mount(&nand_fs, "nand:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%X\e[0m\n", res_str[0], res);
+	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
 	sleep_wait(0x8000000);
 }
 
@@ -193,4 +193,3 @@ static bool loadFirmSd(const char *filePath)
 
 	return res;
 }
-

@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <malloc.h>
 #include <sys/types.h>
 #include <sys/param.h>
@@ -222,7 +221,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 	char chr;
 
 	int i, count = 0;
-	char *tmp = (char*)ptr;
+	const char *tmp = ptr;
 
 	if(!tmp || len<=0) return -1;
 

@@ -33,13 +33,13 @@ bool dumpNand(const char *filePath)
 	FIL file;
 	FRESULT fres;
 	UINT bytes_written;
-	
+
 	consoleSelect(&con_bottom);
-	
+
 	printf("\n\t\tPress B to cancel");
-	
+
 	consoleSelect(&con_top);
-	
+
 	u8 *buf = (u8 *) malloc(chunk_size);
 	if(!buf)
 	{
@@ -52,10 +52,10 @@ bool dumpNand(const char *filePath)
 		printf("Not enough space on the SD card!\n");
 		goto fail;
 	}
-	
+
 	if((fres = f_open(&file, filePath, FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
 	{
-		printf("Failed to create '%s'! Error: %x\n", filePath, fres);
+		printf("Failed to create '%s'! Error: %X\n", filePath, fres);
 		f_close(&file);
 		goto fail;
 	}
@@ -67,7 +67,7 @@ bool dumpNand(const char *filePath)
 
 		if(!dev_rawnand->read(cur_offset, cur_size, buf))
 		{
-			printf("\nFailed to read sector 0x%X!\n", (unsigned int)cur_offset>>9);
+			printf("\nFailed to read sector 0x%"PRIx32"!\n", cur_offset>>9);
 			f_close(&file);
 			goto fail;
 		}
@@ -77,25 +77,25 @@ bool dumpNand(const char *filePath)
 			f_close(&file);
 			goto fail;
 		}
-		
+
 		hidScanInput();
-		
+
 		if(hidKeysDown() & KEY_B)
 		{
 			printf("\n...canceled!\n");
 			f_close(&file);
 			goto fail;
 		}
-		
+
 		cur_offset += cur_size;
-		printf("\r%d/%d MB (Sector 0x%X/0x%X)", (unsigned int)cur_offset>>20, (unsigned int)nand_size>>20, 
-				(unsigned int)cur_offset>>9, (unsigned int)nand_size>>9);
+		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", cur_offset>>20, nand_size>>20, 
+				cur_offset>>9, nand_size>>9);
 	}
 
 	f_close(&file);
 	free(buf);
 	return true;
-	
+
 fail:
 	free(buf);
 	sleep_wait(0x8000000);
@@ -111,13 +111,13 @@ bool restoreNand(const char *filePath)
 	const u32 nand_size = dev_rawnand->get_size();
 	const u32 chunk_size = 0x80000;
 	u8 *buf;
-	
+
 	consoleSelect(&con_bottom);
-	
+
 	printf("\n\t\tPress B to cancel");
-	
+
 	consoleSelect(&con_top);
-	
+
 	buf = (u8 *) malloc(chunk_size);
 	if(!buf)
 	{
@@ -163,20 +163,20 @@ bool restoreNand(const char *filePath)
 		}
 		if(!dev_rawnand->write(cur_offset, cur_size, buf))
 		{
-			printf("\nFailed to write sector 0x%X!\n", (unsigned int)cur_offset>>9);
+			printf("\nFailed to write sector 0x%"PRIX32"!\n", cur_offset>>9);
 			f_close(&file);
 			goto fail;
 		}
 
 		cur_offset += cur_size;
-		printf("\r%d/%d MB (Sector 0x%X/0x%X)", (unsigned int)cur_offset>>20, (unsigned int)nand_size>>20, 
-				(unsigned int)cur_offset>>9, (unsigned int)nand_size>>9);
+		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", cur_offset>>20, nand_size>>20, 
+				cur_offset>>9, nand_size>>9);
 	}
 
 	f_close(&file);
 	free(buf);
 	return true;
-	
+
 fail:
 	free(buf);
 	sleep_wait(0x8000000);

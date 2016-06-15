@@ -31,17 +31,18 @@ LDNAME	:=	arm9.ld
 
 ARCH	:=	-march=armv5te -mtune=arm946e-s -mfloat-abi=soft
 
-CFLAGS	:=	-Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
+DBGWARM	:=	-Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
 			-Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls \
 			-Wshadow -Wsign-conversion -fstrict-overflow -Wstrict-overflow=5 \
-			-Wswitch-default -Wundef -fstrict-aliasing -Wstrict-aliasing \
-			-std=c11 -Og -mword-relocations -fomit-frame-pointer \
-			-ffast-math -ffunction-sections $(ARCH)
+			-Wswitch-default -Wundef
+
+CFLAGS	:=	-Wall $(DBGWARM) -fstrict-aliasing -Wstrict-aliasing -std=c11 -Og \
+			-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9 $(DEFINES)
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
-ASFLAGS	:=	-g $(INCLUDE) $(ARCH) $(DEFINES)
+ASFLAGS	:=	-g $(INCLUDE) $(ARCH) -DARM9 $(DEFINES)
 LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections
 
 #---------------------------------------------------------------------------------

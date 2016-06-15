@@ -3,7 +3,6 @@
  */
 
 
-#include <stdbool.h>
 #include <string.h>
 #include "types.h"
 #include "crypto.h"
