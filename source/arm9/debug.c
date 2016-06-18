@@ -35,7 +35,7 @@ void NORETURN panic()
 	while(1);
 }
 
-void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
+void NORETURN guruMeditation(u8 type, u32 *excStack)
 {
 	const char *typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
 	static bool exceptionTriggered = false;
@@ -55,9 +55,9 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 
 	consoleInit(0, NULL);
 
-	if(excStack[1] & 0x20) instSize = 2; // Processor was in Thumb mode?
-	if(type == 2) realPc = excStack[15] - (instSize * 2); // Data abort
-	else realPc = excStack[15] - instSize; // Other
+	if(excStack[0] & 0x20) instSize = 2; // Processor was in Thumb mode?
+	if(type == 2) realPc = excStack[1] - (instSize * 2); // Data abort
+	else realPc = excStack[1] - instSize; // Other
 
 	printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
 	printf("CPSR: 0x%08"PRIX32"\n"
@@ -69,24 +69,24 @@ void NORETURN guruMeditation(u8 type, u32 *excStack, u32 *stackPointer)
 			"r5 = 0x%08"PRIX32" sp  = 0x%08"PRIX32"\n"
 			"r6 = 0x%08"PRIX32" lr  = 0x%08"PRIX32"\n"
 			"r7 = 0x%08"PRIX32" pc  = 0x%08"PRIX32"\n\n",
-			excStack[1],
+			excStack[0],
 			excStack[2], excStack[10],
 			excStack[3], excStack[11],
 			excStack[4], excStack[12],
 			excStack[5], excStack[13],
 			excStack[6], excStack[14],
-			excStack[7], (u32)stackPointer,
-			excStack[8], excStack[0],
+			excStack[7], excStack[15],
+			excStack[8], excStack[16],
 			excStack[9], realPc);
 
 	// make sure we can actually dump the stack without triggering another fault.
-	if((stackPointer >= (u32*)A9_RAM_BASE) && (stackPointer < (u32*)(A9_RAM_BASE + A9_RAM_SIZE)))
+	if((excStack[15] >= (u32)A9_RAM_BASE) && (excStack[15] < (u32)(A9_RAM_BASE + A9_RAM_SIZE)))
 	{
 		puts("Stack dump:");
 		for(u32 i = 0; i < 15; i++)
 		{
-			printf("0x%08"PRIX32": %08"PRIX32" %08"PRIX32"\n", (u32)stackPointer, stackPointer[0], stackPointer[1]);
-			stackPointer += 2;
+			printf("0x%08"PRIX32": %08"PRIX32" %08"PRIX32"\n", excStack[15], ((u32*)excStack[15])[0], ((u32*)excStack[15])[1]);
+			excStack[15] += 8;
 		}
 	}
 

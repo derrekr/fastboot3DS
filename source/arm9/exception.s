@@ -16,25 +16,21 @@
 
 
 undefHandler:
-	ldr sp, =(0x02000000-8)
-	stmfd sp!, {r0-r12, lr}     @ Save all non-banked regs and lr (pc)
-	mov r0, #0
+	msr cpsr_f, #(0<<29)        @ Abuse conditional flags in cpsr for temporary exception type storage
 	b exceptionHandler
 prefetchAbortHandler:
-	ldr sp, =(0x02000000-8)
-	stmfd sp!, {r0-r12, lr}
-	mov r0, #1
+	msr cpsr_f, #(1<<29)
 	b exceptionHandler
 dataAbortHandler:
-	ldr sp, =(0x02000000-8)
-	stmfd sp!, {r0-r12, lr}
-	mov r0, #2
+	msr cpsr_f, #(2<<29)
 exceptionHandler:
+	ldr sp, =0x02000000
+	stmfd sp!, {r0-r14}^        @ Save all user/system mode regs except pc
+	mrs r0, cpsr
+	lsr r0, r0, #29             @ Get back the exception type from cpsr
 	mrs r1, spsr                @ Get saved cpsr
-	str r1, [sp, #-4]!          @ Save spsr on exception stack
+	stmfd sp!, {r1, lr}         @ Save spsr and lr (pc) on exception stack
 	mov r1, sp
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	str lr, [r1, #-4]!          @ Save lr on exception stack
-	mov r2, sp
 	mov sp, r1
-	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {lr, cpsr, r0-r12, pc + X}, r2 = sp
+	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {cpsr, pc + X, r0-r14}

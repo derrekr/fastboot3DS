@@ -20,11 +20,14 @@
 .extern firm_launch
 .extern __bss_start__
 .extern __bss_end__
+.extern fake_heap_start
+.extern fake_heap_end
 
 .section .init
 
-_start:
 
+
+_start:
 	b skip_pool
 
 	.string "3DS BOOTLOADER "
@@ -37,10 +40,11 @@ firmLaunchEntry11:
 
 skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	ldr sp, =(A9_STUB_ENTRY)
+	ldr sp, =A9_STUB_ENTRY
 
 	bl setupSystem
 
+	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
@@ -50,11 +54,19 @@ skip_pool:
 		subs r1, r1, #4
 		bne loop_bss_clear
 
-	blx __libc_init_array
-	blx heap_init
+	@ Setup newlib heap
+	ldr r0, =A9_HEAP_START
+	ldr r1, =fake_heap_start
+	str r0, [r1]
+	add r0, r0, #(A9_HEAP_END - A9_HEAP_START)
+	ldr r1, =fake_heap_end
+	str r0, [r1]
+
+	blx __libc_init_array       @ Initialize ctors and dtors
 	blx main
 	cmp r0, #0
 	beq firm_launch
+	b .
 
 
 @ needed by libc

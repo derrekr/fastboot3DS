@@ -58,14 +58,6 @@ int main(void)
 	return 0;
 }
 
-void heap_init()
-{
-	extern void* fake_heap_start;
-	extern void* fake_heap_end;
-	fake_heap_start = (void*)A9_HEAP_START;
-	fake_heap_end = (void*)A9_HEAP_END;
-}
-
 void devs_init()
 {
 	bool res = true;
