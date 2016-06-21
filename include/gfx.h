@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.h"
+
 #define SCREEN_HEIGHT_TOP	240
 #define SCREEN_WIDTH_TOP	400
 #define SCREEN_HEIGHT_SUB	240
@@ -7,8 +9,11 @@
 
 #define FRAMEBUF_TOP_A_1 0x18000000
 #define FRAMEBUF_TOP_A_2 0x18000000
-#define FRAMEBUF_SUB_A_1 0x1805DC00
-#define FRAMEBUF_SUB_A_2 0x1805DC00
+#define FRAMEBUF_SUB_A_1 0x1802EE00
+#define FRAMEBUF_SUB_A_2 0x1802EE00
+
+/// Converts packed RGB8 to packed RGB565.
+#define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 
 void gfx_init();

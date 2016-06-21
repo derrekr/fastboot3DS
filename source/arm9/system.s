@@ -17,6 +17,8 @@
 .extern prefetchAbortHandler
 .extern dataAbortHandler
 
+.section ".init"
+
 
 
 setupSystem:

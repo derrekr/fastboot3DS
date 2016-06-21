@@ -37,11 +37,11 @@ void gfx_setup_framebuf_top()
 	*((vu32 *)(0x10400400+0x44)) = 0;
 	*((vu32 *)(0x10400400+0x48)) = 0x0;
 	*((vu32 *)(0x10400400+0x5C)) = 0x19000F0; // framebuf width & height, 400x240 
-	*((vu32 *)(0x10400400+0x90)) = 0x3C0; // framebuf stride, observed to be 0
+	*((vu32 *)(0x10400400+0x90)) = 0x1E0; // 0x3C0; // framebuf stride, observed to be 0
 	*((vu32 *)(0x10400400+0x68)) = FRAMEBUF_TOP_A_1; // framebuf A first address
 	*((vu32 *)(0x10400400+0x6C)) = FRAMEBUF_TOP_A_2; // framebuf A second address
 	*((vu32 *)(0x10400400+0x9C)) = 0x1920000;
-	*((vu32 *)(0x10400400+0x70)) = 0x80040;	// Framebuffer format: main screen, GL_RGBA8_OES
+	*((vu32 *)(0x10400400+0x70)) = 0x80042; // 0x80040;	// Framebuffer format: main screen, GL_RGBA8_OES
 	*((vu32 *)(0x10400400+0x74)) = 0x10700; // gets set to 0x10501 later on
 	*((vu32 *)(0x10400400+0x78)) = 0x70100; // gets set to 0x0 later on
 	*((vu32 *)(0x10400400+0x80)) = 0x0;
@@ -78,11 +78,11 @@ void gfx_setup_framebuf_low()
 	*((vu32 *)(0x10400500+0x44)) = 0;
 	*((vu32 *)(0x10400500+0x48)) = 0x11;
 	*((vu32 *)(0x10400500+0x5C)) = 0x14000F0; // framebuf width & height
-	*((vu32 *)(0x10400500+0x90)) = 0x3C0; // framebuf stride, observed to be 0
+	*((vu32 *)(0x10400500+0x90)) = 0x1E0; // 0x3C0; // framebuf stride, observed to be 0
 	*((vu32 *)(0x10400500+0x68)) = FRAMEBUF_SUB_A_1; // framebuf A first address
 	*((vu32 *)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2; // framebuf A second address
 	*((vu32 *)(0x10400500+0x9C)) = 0x1920000;
-	*((vu32 *)(0x10400500+0x70)) = 0x80000;	// Framebuffer format: sub screen, GL_RGBA8_OES
+	*((vu32 *)(0x10400500+0x70)) = 0x80002; // 0x80000;	// Framebuffer format: sub screen, GL_RGBA8_OES
 	*((vu32 *)(0x10400500+0x74)) = 0x10700; // gets set to 0x10501 later on
 	*((vu32 *)(0x10400500+0x78)) = 0x70100; // gets set to 0x0 later on
 	*((vu32 *)(0x10400500+0x80)) = 0x0;

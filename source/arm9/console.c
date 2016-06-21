@@ -1,22 +1,41 @@
-#include <sys/iosupport.h>
-#include <errno.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <string.h>
 #include <stdio.h>
-#include <malloc.h>
-#include <sys/types.h>
-#include <sys/param.h>
-#include <sys/fcntl.h>
+#include <string.h>
+#include <sys/iosupport.h>
 #include "types.h"
-#include "cache.h"
 #include "gfx.h"
 #include "console.h"
+
 #include "default_font_bin.h"
 
-#define TAB_SIZE	4
+//set up the palette for color printing
+static u16 colorTable[] = {
+	RGB8_to_565(  0,  0,  0),	// black
+	RGB8_to_565(128,  0,  0),	// red
+	RGB8_to_565(  0,128,  0),	// green
+	RGB8_to_565(128,128,  0),	// yellow
+	RGB8_to_565(  0,  0,128),	// blue
+	RGB8_to_565(128,  0,128),	// magenta
+	RGB8_to_565(  0,128,128),	// cyan
+	RGB8_to_565(192,192,192),	// white
 
-ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len);
+	RGB8_to_565(128,128,128),	// bright black
+	RGB8_to_565(255,  0,  0),	// bright red
+	RGB8_to_565(  0,255,  0),	// bright green
+	RGB8_to_565(255,255,  0),	// bright yellow
+	RGB8_to_565(  0,  0,255),	// bright blue
+	RGB8_to_565(255,  0,255),	// bright magenta
+	RGB8_to_565(  0,255,255),	// bright cyan
+	RGB8_to_565(255,255,255),	// bright white
+
+	RGB8_to_565(  0,  0,  0),	// faint black
+	RGB8_to_565( 64,  0,  0),	// faint red
+	RGB8_to_565(  0, 64,  0),	// faint green
+	RGB8_to_565( 64, 64,  0),	// faint yellow
+	RGB8_to_565(  0,  0, 64),	// faint blue
+	RGB8_to_565( 64,  0, 64),	// faint magenta
+	RGB8_to_565(  0, 64, 64),	// faint cyan
+	RGB8_to_565( 96, 96, 96),	// faint white
+};
 
 PrintConsole defaultConsole =
 {
@@ -26,7 +45,7 @@ PrintConsole defaultConsole =
 		0, //first ascii character in the set
 		256 //number of characters in the font set
 	},
-	(u32*)NULL,
+	(u16*)NULL,
 	0,0,	//cursorX cursorY
 	0,0,	//prevcursorX prevcursorY
 	40,		//console width
@@ -36,64 +55,11 @@ PrintConsole defaultConsole =
 	40,		//window width
 	30,		//window height
 	3,		//tab size
-	15,		// foreground color
+	7,		// foreground color
 	0,		// background color
 	0,		// flags
+	0,		//print callback
 	false	//console initialized
-};
-
-static const devoptab_t dotab_stdout = {
-	"con",
-	0,
-	NULL,
-	NULL,
-	con_write,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
-
-
-// Format: RGBA
-static const u32 colorTable[] =
-{
-	// Normal
-	0x00000000,	// Black
-	0xAA000000,	// Red
-	0x00AA0000,	// Green
-	0xAAAA0000,	// Yellow
-	0x000000AA,	// Blue
-	0xAA00AA00,	// Magenta
-	0x00AAAA00,	// Cyan
-	0xC0C0C000,	// Gray
-	
-	// Bright
-	0xAAAAAA00,	// Darkgray
-	0xFF000000,	// Red
-	0x00FF0000,	// Green
-	0xFFFF0000,	// Yellow
-	0x0000FF00,	// Blue
-	0xFF00FF00,	// Magenta
-	0x00FFFF00,	// Cyan
-	0xFFFFFF00	// White
 };
 
 PrintConsole currentCopy;
@@ -154,9 +120,7 @@ static void consoleCls(char mode) {
 			currentConsole->cursorX  = 0;
 			break;
 		}
-	default: ;
 	}
-	//gfxFlushBuffers();
 }
 //---------------------------------------------------------------------------------
 static void consoleClearLine(char mode) {
@@ -208,9 +172,7 @@ static void consoleClearLine(char mode) {
 
 			break;
 		}
-	default: ;
 	}
-	//gfxFlushBuffers();
 }
 
 
@@ -227,12 +189,10 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 
 	i = 0;
 
-	while((size_t)i<len) {
+	while(i<len) {
 
 		chr = *(tmp++);
 		i++; count++;
-		
-		if((u32) tmp > 0x8100000) panic();	// ptr poisoned.
 
 		if ( chr == 0x1b && *tmp == '[' ) {
 			bool escaping = true;
@@ -244,9 +204,6 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 				chr = *(tmp++);
 				i++; count++; escapelen++;
 				int parameter, assigned, consumed;
-				
-				if((u32) tmp > 0x8100000) panic();	// ptr poisoned.
-				if((u32) escapeseq > 0x8100000) panic();	// ptr poisoned.
 
 				// make sure parameters are positive values and delimited by semicolon
 				if((chr >= '0' && chr <= '9') || chr == ';')
@@ -378,12 +335,9 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							parameter = 0;
 							if (escapelen == 1) {
 								consumed = 1;
+							} else if (strchr(escapeseq,';')) {
+								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
-								if((u32) escapeseq > 0x8100000) panic();	// ptr poisoned.
-								if (strchr(escapeseq,';')) {
-									sscanf(escapeseq,"%d;%n", &parameter, &consumed);
-								}
-							 else 
 								sscanf(escapeseq,"%dm%n", &parameter, &consumed);
 							}
 
@@ -468,7 +422,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 								break;
 
 							case 30 ... 37: // writing color
-								currentConsole->fg = (u32)parameter - 30;
+								currentConsole->fg = parameter - 30;
 								break;
 
 							case 39: // reset foreground color
@@ -476,13 +430,12 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 								break;
 
 							case 40 ... 47: // screen color
-								currentConsole->bg = (u32)parameter - 40;
+								currentConsole->bg = parameter - 40;
 								break;
 
 							case 49: // reset background color
 								currentConsole->fg = 0;
 								break;
-							default: ;
 							}
 						} while (escapelen > 0);
 
@@ -501,18 +454,44 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 		consolePrintChar(chr);
 	}
 
-	//flushDCacheRange((void*)FRAMEBUF_TOP_A_1, 0xA8C00);
-
 	return count;
 }
 
+static const devoptab_t dotab_stdout = {
+	"con",
+	0,
+	NULL,
+	NULL,
+	con_write,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	0,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
 
 static const devoptab_t dotab_null = {
 	"null",
 	0,
 	NULL,
 	NULL,
-	con_write,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -541,11 +520,11 @@ PrintConsole* consoleInit(int screen, PrintConsole* console) {
 //---------------------------------------------------------------------------------
 
 	static bool firstConsoleInit = true;
-	
+
 	if(firstConsoleInit) {
 		devoptab_list[STD_OUT] = &dotab_stdout;
 		devoptab_list[STD_ERR] = &dotab_stdout;
-		
+
 		setvbuf(stdout, NULL , _IONBF, 0);
 		setvbuf(stderr, NULL , _IONBF, 0);
 
@@ -563,12 +542,12 @@ PrintConsole* consoleInit(int screen, PrintConsole* console) {
 	console->consoleInitialised = 1;
 
 	if(screen==1) {
-		console->frameBuffer = (u32*)FRAMEBUF_TOP_A_1;
+		console->frameBuffer = (u16*)FRAMEBUF_TOP_A_1;
 		console->consoleWidth = 50;
 		console->windowWidth = 50;
 	}
-	else
-		console->frameBuffer = (u32*)FRAMEBUF_SUB_A_1;
+	else console->frameBuffer = (u16*)FRAMEBUF_SUB_A_1;
+
 
 	consoleCls('2');
 
@@ -604,21 +583,20 @@ static void newRow() {
 
 	if(currentConsole->cursorY  >= currentConsole->windowHeight)  {
 		currentConsole->cursorY --;
-		u32 *dst = &currentConsole->frameBuffer[(currentConsole->windowX * 8 * 240) + (239 - (currentConsole->windowY * 8))];
-		u32 *src = dst - 8;
+		u16 *dst = &currentConsole->frameBuffer[(currentConsole->windowX * 8 * 240) + (239 - (currentConsole->windowY * 8))];
+		u16 *src = dst - 8;
 
 		int i,j;
 
 		for (i=0; i<currentConsole->windowWidth*8; i++) {
-			u32 *from = src;
-			u32 *to = dst;
-			for (j=0;j<((currentConsole->windowHeight-1)*8);j++) *(to--) = *(from--);
+			u32 *from = (u32*)((int)src & ~3);
+			u32 *to = (u32*)((int)dst & ~3);
+			for (j=0;j<(((currentConsole->windowHeight-1)*8)/2);j++) *(to--) = *(from--);
 			dst += 240;
 			src += 240;
 		}
 
 		consoleClearLine('2');
-		//gfxFlushBuffers();
 	}
 }
 //---------------------------------------------------------------------------------
@@ -627,10 +605,10 @@ void consoleDrawChar(int c) {
 	c -= currentConsole->font.asciiOffset;
 	if ( c < 0 || c > currentConsole->font.numChars ) return;
 
-	const u8 *fontdata = currentConsole->font.gfx + (8 * c);
+	u8 *fontdata = currentConsole->font.gfx + (8 * c);
 
-	u32 writingColor = currentConsole->fg;
-	u32 screenColor = currentConsole->bg;
+	int writingColor = currentConsole->fg;
+	int screenColor = currentConsole->bg;
 
 	if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
 		writingColor += 8;
@@ -639,13 +617,13 @@ void consoleDrawChar(int c) {
 	}
 
 	if (currentConsole->flags & CONSOLE_COLOR_REVERSE) {
-		u32 tmp = writingColor;
+		int tmp = writingColor;
 		writingColor = screenColor;
 		screenColor = tmp;
 	}
 
-	u32 bg = colorTable[screenColor];
-	u32 fg = colorTable[writingColor];
+	u16 bg = colorTable[screenColor];
+	u16 fg = colorTable[writingColor];
 
 	u8 b1 = *(fontdata++);
 	u8 b2 = *(fontdata++);
@@ -668,7 +646,7 @@ void consoleDrawChar(int c) {
 	int x = (currentConsole->cursorX + currentConsole->windowX) * 8;
 	int y = ((currentConsole->cursorY + currentConsole->windowY) *8 );
 
-	u32 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
+	u16 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
 
 	for (i=0;i<8;i++) {
 		if (b8 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
@@ -689,6 +667,10 @@ void consoleDrawChar(int c) {
 void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
 	if (c==0) return;
+
+	if(currentConsole->PrintChar)
+		if(currentConsole->PrintChar(currentConsole, c))
+			return;
 
 	if(currentConsole->cursorX  >= currentConsole->windowWidth) {
 		currentConsole->cursorX  = 0;
@@ -728,7 +710,6 @@ void consolePrintChar(int c) {
 			newRow();
 		case 13:
 			currentConsole->cursorX  = 0;
-			//gfxFlushBuffers();
 			break;
 		default:
 			consoleDrawChar(c);
@@ -778,13 +759,13 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
 	printf("starty: %i\n", starty);
 	*/
 
-	u32 color = colorTable[colorIndex];
+	u16 color = colorTable[colorIndex];
 	
 	// upper line
 	for(int y = starty; y < starty + thickness; y++)
 		for(int x = startx; x < endx; x++)
 		{
-			u32 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
+			u16 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
 			*screen = color;
 		}
 	
@@ -792,7 +773,7 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
 	for(int y = endy; y > endy - thickness; y--)
 		for(int x = startx; x < endx; x++)
 		{
-			u32 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
+			u16 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
 			*screen = color;
 		}
 		
@@ -801,7 +782,7 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
 	{
 		for(int i = 0; i < thickness; i++)
 		{
-			u32 *screen = &currentConsole->frameBuffer[((startx + i) * 240) + (239 - (y + 7))];
+			u16 *screen = &currentConsole->frameBuffer[((startx + i) * 240) + (239 - (y + 7))];
 			*screen = color;
 			screen = &currentConsole->frameBuffer[((endx - thickness + i) * 240) + (239 - (y + 7))];
 			*screen = color;

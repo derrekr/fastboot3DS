@@ -16,7 +16,7 @@
 .extern __bss_start__
 .extern __bss_end__
 
-.section .init
+.section ".init"
 
 
 

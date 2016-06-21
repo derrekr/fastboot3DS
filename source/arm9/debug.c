@@ -11,10 +11,10 @@ static u32 debugHash = 0;
 
 void hashCodeRoData()
 {
-	extern u32 *__text_start;
+	extern u32 *__start__;
 	extern u32 *__exidx_start;
 	
-	u32 *start = __text_start;
+	u32 *start = __start__;
 	u32 *end = __exidx_start;
 	
 	debugHash = 0;

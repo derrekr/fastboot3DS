@@ -23,7 +23,7 @@
 .extern fake_heap_start
 .extern fake_heap_end
 
-.section .init
+.section ".init"
 
 
 
