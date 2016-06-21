@@ -3,6 +3,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "console.h"
+#include "mpu.h"
 
 
 
@@ -25,9 +26,12 @@ void hashCodeRoData()
 
 void NORETURN panic()
 {
+	volatile register lr;
+
+	disableMpu();
 	consoleInit(0, NULL);
 
-	printf("\x1b[41m\x1b[0J\x1b[9CGPANIC!!!\n");
+	printf("\x1b[41m\x1b[0J\x1b[9CGPANIC!!!\n\nlr = 0x%08"PRIX32"\n", lr);
 	
 	unmount_fs();
 	devs_close();
@@ -46,6 +50,8 @@ void NORETURN guruMeditation(u8 type, u32 *excStack)
 		while(1);
 
 	exceptionTriggered = true;
+
+	disableMpu();
 
 	// verify text and rodata
 	u32 prevHash = debugHash;
