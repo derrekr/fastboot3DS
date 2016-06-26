@@ -1,11 +1,13 @@
 /*
  *  AES code based on code from Normmatt
+ *
+ *  2016
+ *  profi200
  */
-
 
 #include <string.h>
 #include "types.h"
-#include "crypto.h"
+#include "arm9/crypto.h"
 
 
 

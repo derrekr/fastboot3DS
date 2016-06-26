@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
@@ -7,6 +8,7 @@
 
 
 #define NORETURN __attribute__((noreturn))
+#define PACKED   __attribute__((packed))
 #define ALIGN(n) __attribute__((aligned(n)))
 
 
