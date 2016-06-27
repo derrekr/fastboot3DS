@@ -16,6 +16,7 @@
 .extern undefHandler
 .extern prefetchAbortHandler
 .extern dataAbortHandler
+.extern flushDCache
 
 .section ".init"
 
@@ -40,9 +41,9 @@ setupSystem:
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 
 	mov r0, #0
+	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
-	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
@@ -220,15 +221,15 @@ setupMpu:
 
 
 disableMpu:
-	mov r2, #0
-	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
+	mov r3, lr
+	bl flushDCache
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 
-	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
-	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
-	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
-	bx lr
+	mov r0, #0
+	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
+	bx r3
