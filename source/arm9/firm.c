@@ -5,6 +5,7 @@
 #include "arm9/firm.h"
 #include "mem_map.h"
 #include "arm9/crypto.h"
+#include "cache.h"
 #include "arm9/ndma.h"
 #include "arm9/mpu.h"
 
@@ -85,6 +86,7 @@ void NORETURN firm_launch(void)
 	while(*((vu32*)CORE_SYNC_ID) != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
+	flushDCacheRange((void*)A9_STUB_ENTRY, 0x200);
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, 0x200>>2);
 
 	//printf("Starting firm launch...\n");

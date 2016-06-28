@@ -6,16 +6,17 @@
 .fpu softvfp
 
 .global _start
+.global clearMem
 .global _init
 .global firmLaunchEntry9
 .global firmLaunchEntry11
 
 .type _start STT_FUNC
+.type clearMem STT_FUNC
 .type _init STT_FUNC
 
 .extern setupSystem
 .extern __libc_init_array
-.extern heap_init
 .extern main
 .extern firm_launch
 .extern __bss_start__
@@ -40,19 +41,18 @@ firmLaunchEntry11:
 
 skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	ldr sp, =A9_STUB_ENTRY
-
 	bl setupSystem
+
+	@ Set sp and clear heap + stack
+	ldr sp, =A9_STUB_ENTRY
+	ldr r0, =A9_HEAP_START
+	mov r1, sp
+	bl clearMem
 
 	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
-	sub r1, r1, r0
-	mov r2, #0
-	loop_bss_clear:
-		str r2, [r0], #4
-		subs r1, r1, #4
-		bne loop_bss_clear
+	bl clearMem
 
 	@ Setup newlib heap
 	ldr r0, =A9_HEAP_START
@@ -67,6 +67,17 @@ skip_pool:
 	cmp r0, #0
 	beq firm_launch
 	b .
+
+
+@ void clearMem(void *start, void *end)
+clearMem:
+	sub r1, r1, r0
+	mov r2, #0
+	loop_clear:
+		str r2, [r0], #4
+		subs r1, r1, #4
+		bne loop_clear
+	bx lr
 
 
 @ needed by libc
