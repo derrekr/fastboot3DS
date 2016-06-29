@@ -52,7 +52,7 @@
 #define AES_FLUSH_WRITE_FIFO       (1u<<11)
 #define AES_BIT12                  (1u<<12)
 #define AES_BIT13                  (1u<<13)
-#define AES_MAC_SIZE(n)            ((n - 2 / 2)<<16)
+#define AES_MAC_SIZE(n)            (((n - 2) / 2)<<16)
 #define AES_MAC_REGISTER_SOURCE    (1u<<20)
 #define AES_MAC_STATUS             (1u<<21) // AES_UNKNOWN_21
 #define AES_OUTPUT_BIG             (1u<<22)

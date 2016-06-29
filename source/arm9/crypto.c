@@ -64,7 +64,7 @@ void AES_setKey(u32 params, u8 keyslot, AesKeyType type, const u32 *restrict key
 	if(keyslot > 3) // CTR keyslot
 	{
 		REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
-		for(u32 i = 0; i < 4; i++) REG_AESKEYFIFO[type * 4] = key[i];
+		for(u32 i = 0; i < 4; i++) REG_AESKEYFIFO[type] = key[i];
 	}
 	else // TWL keyslot
 	{
@@ -95,8 +95,7 @@ void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u3
 		for(u32 i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[ctrIvNonceSize - 1 - i];
 	}
 	else for(u32 i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[i];
-
-	ctx->ctrIvNonceEndianess = params & AES_INPUT_BIG; // Mask for input endianess.
+	ctx->ctrIvNonceEndianess = params;
 
 	// If cipher mode is CTR add the initial value to it. Can be 0.
 	if(((params>>27) & 7) == 2) addCounter(ctx->ctrIvNonce, initialCtr);
@@ -136,7 +135,7 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 		blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
 
 		REG_AESBLKCNT = (blockSize>>4)<<16;
-		REG_AESCNT = AES_ENABLE | ctx->aesParams;
+		REG_AESCNT = AES_ENABLE | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | ctx->aesParams;
 
 		for(u32 j = 0; j < blockSize>>2; j += 4)
 		{
