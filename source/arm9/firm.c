@@ -85,11 +85,9 @@ bool firm_load_verify(void)
 
 void NORETURN firm_launch(void)
 {
-	//*((vu32*)CORE_SYNC_ID) = 0x544F4F42;
 	PXI_sendWord(0x544F4F42);
 
 	//printf("Waiting for ARM11...\n");
-	//while(*((vu32*)CORE_SYNC_ID) != 0x4F4B4F4B);
 	while(PXI_recvWord() != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
