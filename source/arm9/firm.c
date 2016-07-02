@@ -8,6 +8,7 @@
 #include "cache.h"
 #include "arm9/ndma.h"
 #include "arm9/mpu.h"
+#include "pxi.h"
 
 
 
@@ -36,10 +37,14 @@ void NORETURN firmLaunchStub(void)
 	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE || REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
-	*((vu32*)CORE_SYNC_PARAM) = (u32)entry11;
+	REG_PXI_SYNC9 = 0; // Disable all IRQs
+	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
+	REG_PXI_SEND9 = (u32)entry11;
 
 	// Wait for ARM11...
-	while(*((vu32*)CORE_SYNC_ID) != 0x544F4F42);
+	while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
+	if(REG_PXI_RECV9 != 0x544F4F42) while(1);
+	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
 	__asm__ __volatile__("mov lr, %[in]\n" : : [in] "r" (firm_hdr->entrypointarm9));
@@ -80,10 +85,12 @@ bool firm_load_verify(void)
 
 void NORETURN firm_launch(void)
 {
-	*((vu32*)CORE_SYNC_ID) = 0x544F4F42;
+	//*((vu32*)CORE_SYNC_ID) = 0x544F4F42;
+	PXI_sendWord(0x544F4F42);
 
 	//printf("Waiting for ARM11...\n");
-	while(*((vu32*)CORE_SYNC_ID) != 0x4F4B4F4B);
+	//while(*((vu32*)CORE_SYNC_ID) != 0x4F4B4F4B);
+	while(PXI_recvWord() != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
 	flushDCacheRange((void*)A9_STUB_ENTRY, 0x200);

@@ -43,9 +43,9 @@ skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
 	bl setupSystem
 
-	@ Set sp and clear heap + stack
+	@ Set sp and clear stack
 	ldr sp, =A9_STUB_ENTRY
-	ldr r0, =A9_HEAP_START
+	ldr r0, =A9_HEAP_END
 	mov r1, sp
 	bl clearMem
 

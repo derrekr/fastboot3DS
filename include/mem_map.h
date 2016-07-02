@@ -16,8 +16,6 @@
 #define VRAM_BANK1        (0x18300000)
 
 /* AXIWRAM */
-#define CORE_SYNC_ID      (0x1FFFFFF8)
-#define CORE_SYNC_PARAM   (0x1FFFFFFC)
 #define A11_STUB_ENTRY    (0x1FFFFE00)
 
 /* FCRAM */

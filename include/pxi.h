@@ -1,44 +1,38 @@
-
 #pragma once
 
-#define PXI_SYNC_CMD_RECEIVED(cmd)	(cmd | 0x1)
-#define PXI_CMD_DUMMY			0
-#define PXI_SYNC_CMD_CONNECT	0x40
-#define PXI_SYNC_CMD_MMC_READ	0x42
+#include "types.h"
 
-#define PXI_RESULT_OK			0x4F4B4159
 
-typedef struct
-{
-	vu8 cmd_id;
-	vu32 cmd_params[8];
-	vu32 result;
-} _pxi_table;
 
-static _pxi_table *pxi_table = (_pxi_table *) 0x1FFFFF80;
+#define REG_PXI_SYNC9               *((vu32*)0x10008000)
+#define REG_PXI_CNT9                *((vu32*)0x10008004)
+#define REG_PXI_SEND9               *((vu32*)0x10008008)
+#define REG_PXI_RECV9               *((vu32*)0x1000800C)
 
-u8 pxi9_sync_getval()
-{
-	return PXI_SYNC9 & 0xFF;
-}
+#define REG_PXI_SYNC11              *((vu32*)0x10163000)
+#define REG_PXI_CNT11               *((vu32*)0x10163004)
+#define REG_PXI_SEND11              *((vu32*)0x10163008)
+#define REG_PXI_RECV11              *((vu32*)0x1016300C)
 
-void pxi9_sync_sendval(u8 val)
-{
-	u32 write_val = PXI_SYNC9;
-	write_val &= 0xFFFF00FF;
-	write_val |= val<<8;
-	PXI_SYNC11 = write_val;
-}
+// Defines for PX_SYNC regs
+#define PXI_DATA_RECEIVED(reg)      (reg & 0xFF)
+#define PXI_DATA_SENT(reg)          ((reg>>8) & 0xFF)
+#define PXI_NOTIFY_11               (1u<<29)
+#define PXI_NOTIFY_9                (1u<<30)
+#define PXI_INTERRUPT_ENABLE        (1u<<31)
 
-u8 pxi11_sync_getval()
-{
-	return PXI_SYNC11 & 0xFF;
-}
+// Defines for PX_CNT regs
+#define PXI_SEND_FIFO_EMPTY         (1u<<0)
+#define PXI_SEND_FIFO_FULL          (1u<<1)
+#define PXI_SEND_FIFO_EMPTY_IRQ     (1u<<2)
+#define PXI_FLUSH_SEND_FIFO         (1u<<3)
+#define PXI_RECV_FIFO_EMPTY         (1u<<8)
+#define PXI_RECV_FIFO_FULL          (1u<<9)
+#define PXI_RECV_FIFO_NOT_EMPTY_IRQ (1u<<10)
+#define PXI_EMPTY_FULL_ERROR        (1u<<14)
+#define PXI_ENABLE_SEND_RECV_FIFO   (1u<<15)
 
-void pxi11_sync_sendval(u8 val)
-{
-	u32 write_val = PXI_SYNC11;
-	write_val &= 0xFFFF00FF;
-	write_val |= val<<8;
-	PXI_SYNC11 = write_val;
-}
+
+void PXI_init(void);
+void PXI_sendWord(u32 val);
+u32  PXI_recvWord(void);

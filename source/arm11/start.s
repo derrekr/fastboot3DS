@@ -43,11 +43,6 @@ _start:
 	mcr p15, 0, r1, c7, c6, 0  @ Invalidate Entire Data Cache
 	mcr p15, 0, r1, c7, c10, 4 @ Data Synchronization Barrier
 
-	ldr r0, =(CORE_SYNC_ID & 0xFFFFFFF0)
-	mov r1, #0
-	str r1, [r0, #0x8]         @ Clear arm9 communication fields
-	str r1, [r0, #0xC]
-
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
 	sub r1, r1, r0

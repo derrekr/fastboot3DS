@@ -12,6 +12,7 @@
 #include "hid.h"
 #include "main.h"
 #include "spiflash.h"
+#include "pxi.h"
 
 // PrintConsole for each screen
 PrintConsole con_top, con_bottom;
@@ -26,9 +27,9 @@ u8		boot_env;
 
 int main(void)
 {
-	u32 keys;
-	
 	hashCodeRoData();	// TODO: remove after debugging
+
+	PXI_init();
 
 	//Initialize console for both screen using the two different PrintConsole we have defined
 	consoleInit(SCREEN_TOP, &con_top);
