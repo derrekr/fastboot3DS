@@ -43,11 +43,8 @@ skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
 	bl setupSystem
 
-	@ Set sp and clear stack
+	@ Set sp
 	ldr sp, =A9_STUB_ENTRY
-	ldr r0, =A9_HEAP_END
-	mov r1, sp
-	bl clearMem
 
 	@ Clear bss section
 	ldr r0, =__bss_start__
@@ -69,7 +66,7 @@ skip_pool:
 	b .
 
 
-@ void clearMem(void *start, void *end)
+@ void clearMem(u32 *start, u32 *end)
 clearMem:
 	sub r1, r1, r0
 	mov r2, #0
