@@ -92,21 +92,21 @@ const dev_struct *dev_decnand = &dev_dnand.dev;
 
 
 // wifi flash device
-bool nvram_init(void);
-bool nvram_read_sector(u32 sector, u32 count, void *buf);
-bool nvram_close(void);
-bool nvram_is_active(void);
-u32  nvram_get_sector_count(void);
+bool wififlash_init(void);
+bool wififlash_read_sector(u32 sector, u32 count, void *buf);
+bool wififlash_close(void);
+bool wififlash_is_active(void);
+u32  wififlash_get_sector_count(void);
 
 dev_struct dev_wififlash = {
 	"nvram",
 	false,
-	nvram_init,
-	nvram_read_sector,
+	wififlash_init,
+	wififlash_read_sector,
 	NULL,
-	nvram_close,
-	nvram_is_active,
-	nvram_get_sector_count
+	wififlash_close,
+	wififlash_is_active,
+	wififlash_get_sector_count
 };
 const dev_struct *dev_flash = &dev_wififlash;
 
@@ -349,7 +349,7 @@ bool sdmmc_dnand_is_active(void)
 
 // ------------------------------ wifi flash glue functions ------------------------------
 
-bool nvram_init(void)
+bool wififlash_init(void)
 {
 	if(dev_wififlash.initialized) return true;
 	if(!spiflash_get_status()) return false;
@@ -357,27 +357,27 @@ bool nvram_init(void)
 	return true;
 }
 
-bool nvram_read_sector(u32 sector, u32 count, void *buf)
+bool wififlash_read_sector(u32 sector, u32 count, void *buf)
 {
 	if(!dev_wififlash.initialized) return false;
 	spiflash_read(sector<<9, count<<9, buf);
 	return true;
 }
 
-bool nvram_close(void)
+bool wififlash_close(void)
 {
 	// nothing to do here..?
 	dev_wififlash.initialized = false;
 	return true;
 }
 
-bool nvram_is_active(void)
+bool wififlash_is_active(void)
 {
 	if(dev_wififlash.initialized) return true;
-	return nvram_init();
+	return wififlash_init();
 }
 
-u32 nvram_get_sector_count(void)
+u32 wififlash_get_sector_count(void)
 {
 	return 0x20000>>9;
 }
