@@ -26,28 +26,25 @@ u64 getFreeSpace(const char *drive)
 
 bool dumpNand(const char *filePath)
 {
-	const u32 nand_size = dev_rawnand->get_size();
-	const u32 chunk_size = 0x80000;
-	u32 cur_size;
-	u32 cur_offset = 0;
+	const u32 sectorCount = dev_rawnand->get_sector_count();
+	const u32 sectorBlkSize = 0x400; // 512 KB in sectors
 	FIL file;
 	FRESULT fres;
-	UINT bytes_written;
+	UINT bytesWritten;
+
 
 	consoleSelect(&con_bottom);
-
 	printf("\n\t\tPress B to cancel");
-
 	consoleSelect(&con_top);
 
-	u8 *buf = (u8 *) malloc(chunk_size);
+	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
 	{
 		printf("Not enough memory!\n");
 		return false;
 	}
 
-	if(getFreeSpace("sdmc:") < nand_size)
+	if(getFreeSpace("sdmc:") < sectorCount<<9)
 	{
 		printf("Not enough space on the SD card!\n");
 		goto fail;
@@ -60,18 +57,20 @@ bool dumpNand(const char *filePath)
 		goto fail;
 	}
 
-	while(cur_offset < nand_size)
+	u32 curSector = 0;
+	u32 curSectorBlkSize;
+	while(curSector < sectorCount)
 	{
-		if(cur_offset + chunk_size < nand_size) cur_size = chunk_size;
-		else cur_size = nand_size - cur_offset;
+		if(curSector + sectorBlkSize < sectorCount) curSectorBlkSize = sectorBlkSize;
+		else curSectorBlkSize = sectorCount - curSector;
 
-		if(!dev_rawnand->read(cur_offset, cur_size, buf))
+		if(!dev_rawnand->read_sector(curSector, curSectorBlkSize, buf))
 		{
-			printf("\nFailed to read sector 0x%"PRIx32"!\n", cur_offset>>9);
+			printf("\nFailed to read sector 0x%"PRIx32"!\n", curSector);
 			f_close(&file);
 			goto fail;
 		}
-		if((f_write(&file, buf, chunk_size, &bytes_written) != FR_OK) || (bytes_written != chunk_size))
+		if((f_write(&file, buf, curSectorBlkSize<<9, &bytesWritten) != FR_OK) || (bytesWritten != curSectorBlkSize<<9))
 		{
 			printf("\nFailed to write to file!\n");
 			f_close(&file);
@@ -79,7 +78,6 @@ bool dumpNand(const char *filePath)
 		}
 
 		hidScanInput();
-
 		if(hidKeysDown() & KEY_B)
 		{
 			printf("\n...canceled!\n");
@@ -87,9 +85,9 @@ bool dumpNand(const char *filePath)
 			goto fail;
 		}
 
-		cur_offset += cur_size;
-		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", cur_offset>>20, nand_size>>20, 
-				cur_offset>>9, nand_size>>9);
+		curSector += curSectorBlkSize;
+		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
+				curSector, sectorCount);
 	}
 
 	f_close(&file);
@@ -104,21 +102,16 @@ fail:
 
 bool restoreNand(const char *filePath)
 {
+	const u32 sectorBlkSize = 0x400; // 512 KB in sectors
 	FIL file;
 	UINT bytesRead;
-	u32 cur_size;
-	u32 cur_offset = 0;
-	const u32 nand_size = dev_rawnand->get_size();
-	const u32 chunk_size = 0x80000;
-	u8 *buf;
+
 
 	consoleSelect(&con_bottom);
-
 	printf("\n\t\tPress B to cancel");
-
 	consoleSelect(&con_top);
 
-	buf = (u8 *) malloc(chunk_size);
+	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
 	{
 		printf("Not enough memory!\n");
@@ -131,7 +124,7 @@ bool restoreNand(const char *filePath)
 		printf("Failed to get file status!\n");
 		goto fail;
 	}
-	if(fileStat.fsize > nand_size)
+	if(fileStat.fsize > dev_rawnand->get_sector_count()<<9)
 	{
 		printf("NAND file is bigger than NAND!\n");
 		goto fail;
@@ -149,28 +142,31 @@ bool restoreNand(const char *filePath)
 		goto fail;
 	}
 
-	u32 size = fileStat.fsize;
-	while(cur_offset < size)
-	{
-		if(cur_offset + chunk_size < nand_size) cur_size = chunk_size;
-		else cur_size = nand_size - cur_offset;
 
-		if(f_read(&file, buf, cur_size, &bytesRead) != FR_OK || bytesRead != cur_size)
+	const u32 sectorCount = fileStat.fsize>>9;
+	u32 curSector = 0;
+	u32 curSectorBlkSize;
+	while(curSector < sectorCount)
+	{
+		if(curSector + sectorBlkSize < sectorCount) curSectorBlkSize = sectorBlkSize;
+		else curSectorBlkSize = sectorCount - curSector;
+
+		if(f_read(&file, buf, curSectorBlkSize<<9, &bytesRead) != FR_OK || bytesRead != curSectorBlkSize<<9)
 		{
 			printf("\nFailed to read from file!\n");
 			f_close(&file);
 			goto fail;
 		}
-		if(!dev_rawnand->write(cur_offset, cur_size, buf))
+		if(!dev_rawnand->write_sector(curSector, curSectorBlkSize, buf))
 		{
-			printf("\nFailed to write sector 0x%"PRIX32"!\n", cur_offset>>9);
+			printf("\nFailed to write sector 0x%"PRIX32"!\n", curSector);
 			f_close(&file);
 			goto fail;
 		}
 
-		cur_offset += cur_size;
-		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", cur_offset>>20, nand_size>>20, 
-				cur_offset>>9, nand_size>>9);
+		curSector += curSectorBlkSize;
+		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
+				curSector, sectorCount);
 	}
 
 	f_close(&file);

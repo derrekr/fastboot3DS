@@ -162,7 +162,7 @@ u8 rng_get_byte()
 static void loadFirmNand(void)
 {
 	memset((u8*)FCRAM_BASE, 0x00, 0x200);
-	dev_decnand->read(0x0005A980, 0x00002000, (u8*)FCRAM_BASE);
+	dev_decnand->read_sector(0x0005A980, 0x00002000, (u8*)FCRAM_BASE);
 }
 
 static bool loadFirmSd(const char *filePath)

@@ -9,52 +9,56 @@
 #include "arm9/ndma.h"
 #include "arm9/dev.h"
 
+
+
 // SD card device
 bool sdmmc_sd_init(void);
-bool sdmmc_sd_read(u32 offset, u32 size, void *buf);
-bool sdmmc_sd_write(u32 offset, u32 size, const void *buf);
+bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf);
+bool sdmmc_sd_write_sector(u32 sector, u32 count, const void *buf);
 bool sdmmc_sd_close(void);
 bool sdmmc_sd_is_active(void);
-u32 sdmmc_sd_get_size(void);
+u32  sdmmc_sd_get_sector_count(void);
 
 static dev_struct dev_sd = {
 	"sd",
-	0,
-	&sdmmc_sd_init,
-	&sdmmc_sd_read,
-	&sdmmc_sd_write,
-	&sdmmc_sd_close,
-	&sdmmc_sd_is_active,
-	&sdmmc_sd_get_size
+	false,
+	sdmmc_sd_init,
+	sdmmc_sd_read_sector,
+	sdmmc_sd_write_sector,
+	sdmmc_sd_close,
+	sdmmc_sd_is_active,
+	sdmmc_sd_get_sector_count
 };
 const dev_struct *dev_sdcard = &dev_sd;
 
+
 // Raw NAND device
 bool sdmmc_rnand_init(void);
-bool sdmmc_rnand_read(u32 offset, u32 size, void *buf);
-bool sdmmc_rnand_write(u32 offset, u32 size, const void *buf);
+bool sdmmc_rnand_read_sector(u32 sector, u32 count, void *buf);
+bool sdmmc_rnand_write_sector(u32 sector, u32 count, const void *buf);
 bool sdmmc_rnand_close(void);
 bool sdmmc_rnand_is_active(void);
-u32 sdmmc_rnand_get_size(void);
+u32  sdmmc_rnand_get_sector_count(void);
 
 static dev_struct dev_rnand = {
 	"rnand",
-	0,
-	&sdmmc_rnand_init,
-	&sdmmc_rnand_read,
-	&sdmmc_rnand_write,
-	&sdmmc_rnand_close,
-	&sdmmc_rnand_is_active,
-	&sdmmc_rnand_get_size
+	false,
+	sdmmc_rnand_init,
+	sdmmc_rnand_read_sector,
+	sdmmc_rnand_write_sector,
+	sdmmc_rnand_close,
+	sdmmc_rnand_is_active,
+	sdmmc_rnand_get_sector_count
 };
 const dev_struct *dev_rawnand = &dev_rnand;
 
+
 // Decrypted NAND device
 typedef struct {
-	u32 offset;
-	u32 size;
-	u8 type;
-	u8 keyslot;
+	u32 sector;
+	u32 count;
+	u8  type;
+	u8  keyslot;
 } nand_partition_struct;
 
 typedef struct {
@@ -67,43 +71,45 @@ typedef struct {
 } dev_dnand_struct;
 
 bool sdmmc_dnand_init(void);
-bool sdmmc_dnand_read(u32 offset, u32 size, void *buf);
-bool sdmmc_dnand_write(u32 offset, u32 size, const void *buf);
+bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf);
+bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf);
 bool sdmmc_dnand_close(void);
 bool sdmmc_dnand_is_active(void);
 
 static dev_dnand_struct dev_dnand = {
 	{
 		"dnand",
-		0,
-		&sdmmc_dnand_init,
-		&sdmmc_dnand_read,
-		&sdmmc_dnand_write,
-		&sdmmc_dnand_close,
-		&sdmmc_dnand_is_active,
+		false,
+		sdmmc_dnand_init,
+		sdmmc_dnand_read_sector,
+		sdmmc_dnand_write_sector,
+		sdmmc_dnand_close,
+		sdmmc_dnand_is_active,
 		NULL
-	}
+	},
 };
 const dev_struct *dev_decnand = &dev_dnand.dev;
 
-// wifi flash device
-bool wififlash_init(void);
-bool wififlash_read(u32 offset, u32 size, void *buf);
-bool wififlash_close(void);
-bool wififlash_is_active(void);
-u32 wififlash_get_size(void);
 
-static dev_struct dev_wififlash = {
-	"wififlash",
-	0,
-	&wififlash_init,
-	&wififlash_read,
+// wifi flash device
+bool nvram_init(void);
+bool nvram_read_sector(u32 sector, u32 count, void *buf);
+bool nvram_close(void);
+bool nvram_is_active(void);
+u32  nvram_get_sector_count(void);
+
+dev_struct dev_wififlash = {
+	"nvram",
+	false,
+	nvram_init,
+	nvram_read_sector,
 	NULL,
-	&wififlash_close,
-	&wififlash_is_active,
-	&wififlash_get_size
+	nvram_close,
+	nvram_is_active,
+	nvram_get_sector_count
 };
 const dev_struct *dev_flash = &dev_wififlash;
+
 
 // -------------------------------- sd card glue functions --------------------------------
 bool sdmmc_sd_init(void)
@@ -122,34 +128,19 @@ bool sdmmc_sd_init(void)
 	return true;
 }
 
-bool sdmmc_sd_read(u32 offset, u32 size, void *buf)
+bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf)
 {
-	if(!dev_sd.initialized)
-		return false;
-		
-	if((u32)buf & 3) panic();
-		
-	if(size < 0x200)
-		panic();
-	
-	return !sdmmc_sdcard_readsectors(offset >> 9, size >> 9, buf);
+	return !sdmmc_sdcard_readsectors(sector, count, buf);
 }
 
-bool sdmmc_sd_write(u32 offset, u32 size, const void *buf)
+bool sdmmc_sd_write_sector(u32 sector, u32 count, const void *buf)
 {
-	if(!dev_sd.initialized)
-		return false;
-		
-	if((u32)buf & 3) panic();
-		
-	if(size < 0x200)
-		panic();
-	
-	return !sdmmc_sdcard_writesectors(offset >> 9, size >> 9, buf);
+	return !sdmmc_sdcard_writesectors(sector, count, buf);
 }
 
 bool sdmmc_sd_close(void)
 {
+	dev_sd.initialized = false;
 	return true;
 }
 
@@ -158,10 +149,11 @@ bool sdmmc_sd_is_active(void)
 	return (sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE);
 }
 
-u32 sdmmc_sd_get_size(void)
+u32 sdmmc_sd_get_sector_count(void)
 {
-	return getMMCDevice(1)->total_size << 9;
+	return getMMCDevice(1)->total_size;
 }
+
 
 // -------------------------------- raw nand glue functions --------------------------------
 bool sdmmc_rnand_init(void)
@@ -176,34 +168,19 @@ bool sdmmc_rnand_init(void)
 	return true;
 }
 
-bool sdmmc_rnand_read(u32 offset, u32 size, void *buf)
+bool sdmmc_rnand_read_sector(u32 sector, u32 count, void *buf)
 {
-	if(!dev_rnand.initialized)
-		return false;
-		
-	if((u32)buf & 3) panic();
-		
-	if(size < 0x200)
-		panic();
-	
-	return !sdmmc_nand_readsectors(offset >> 9, size >> 9, buf);
+	return !sdmmc_nand_readsectors(sector, count, buf);
 }
 
-bool sdmmc_rnand_write(u32 offset, u32 size, const void *buf)
+bool sdmmc_rnand_write_sector(u32 sector, u32 count, const void *buf)
 {
-	if(!dev_rnand.initialized)
-		return false;
-		
-	if((u32)buf & 3) panic();
-		
-	if(size < 0x200)
-		panic();
-	
-	return !sdmmc_nand_writesectors(offset >> 9, size >> 9, buf);
+	return !sdmmc_nand_writesectors(sector, count, buf);
 }
 
 bool sdmmc_rnand_close(void)
 {
+	dev_rnand.initialized = false;
 	return true;
 }
 
@@ -212,20 +189,21 @@ bool sdmmc_rnand_is_active(void)
 	return dev_rnand.initialized;
 }
 
-u32 sdmmc_rnand_get_size(void)
+u32 sdmmc_rnand_get_sector_count(void)
 {
-	return getMMCDevice(0)->total_size << 9;
+	return getMMCDevice(0)->total_size;
 }
+
 
 // ------------------------------ decrypted nand glue functions ------------------------------
 bool sdmmc_dnand_init(void)
 {
-	Ncsd_header header;
+	NCSD_header header;
 	u32 hash[8];
 	u32 twlKeyX[4]; // TWL keys
 	u32 twlKeyY[4];
 	extern bool unit_is_new3ds;
-	extern u32 ctr_nand_offset;
+	extern u32 ctr_nand_sector;
 
 
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
@@ -248,8 +226,8 @@ bool sdmmc_dnand_init(void)
 		// Collect partition infos...
 		for(int i = 0; i < 8; i++)
 		{
-			dev_dnand.partitions[i].offset = header.part[i].offset * 0x200;
-			dev_dnand.partitions[i].size   = header.part[i].size * 0x200;
+			dev_dnand.partitions[i].sector = header.partitions[i].mediaOffset;
+			dev_dnand.partitions[i].count  = header.partitions[i].mediaSize;
 			dev_dnand.partitions[i].type   = header.partFsType[i];
 
 			switch(dev_dnand.partitions[i].type)
@@ -261,7 +239,7 @@ bool sdmmc_dnand_init(void)
 						if(unit_is_new3ds) dev_dnand.partitions[i].keyslot = 0x05; // TODO: Load N3DS keyY
 						else dev_dnand.partitions[i].keyslot = 0x04;
 						// Set CTR NAND partition offset for diskio.c
-						ctr_nand_offset = header.part[i].offset * 0x200;
+						ctr_nand_sector = header.partitions[i].mediaOffset;
 					}
 					break;
 				case 3: // firmX
@@ -276,9 +254,9 @@ bool sdmmc_dnand_init(void)
 		}
 
 		// Hash NAND CID to create the CTRs for crypto
-		sha((void*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
+		sha((u32*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
 		memcpy(dev_dnand.twlCounter, hash, 16);
-		sha((void*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
+		sha((u32*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
 		memcpy(dev_dnand.ctrCounter, hash, 16);
 
 		// TWL keyslot 0x03 keyX
@@ -301,73 +279,65 @@ bool sdmmc_dnand_init(void)
 
 		dev_dnand.dev.initialized = true;
 	}
+
 	return true;
 }
 
-static nand_partition_struct *find_partition(u32 offset, u32 size)
+static nand_partition_struct *find_partition(u32 sector, u32 count)
 {
-	for(int i=0; i<8; i++)
+	for(u32 i = 0; i < 8; i++)
 	{
 		nand_partition_struct *partition = &dev_dnand.partitions[i];
-		if((partition->offset <= offset) && (partition->size >= size)
-			&& (partition->offset + partition->size >= offset + size))
+		if((partition->sector <= sector) && (partition->count >= count)
+			&& (partition->sector + partition->count >= sector + count))
 		return partition;
 	}
+
 	return NULL;
 }
 
-bool sdmmc_dnand_read(u32 offset, u32 size, void *buf)
+bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 {
-	//printf("Decnand read: offset: 0x%X, size: 0x%X\n", (unsigned int)offset, (unsigned int)size);
 	if(!dev_dnand.dev.initialized) return false;
-	
-	if((u32)buf & 3) panic();
-		
-	if(size < 0x200)
-		panic();
 
-	AES_ctx *ctx;
-	nand_partition_struct *partition = find_partition(offset, size);
+	nand_partition_struct *partition = find_partition(sector, count);
 
 
 	if(!partition) return false;
 	if(partition->keyslot == 0xFF) return false;	// unknown partition type
-	
+
+	AES_ctx *ctx;
 	AES_selectKeyslot(partition->keyslot, true);
 	if(partition->keyslot == 0x03)
 	{
 		ctx = &dev_dnand.twlAesCtx;
-		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR, offset);
+		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR, sector<<9);
 	}
 	else
 	{
 		ctx = &dev_dnand.ctrAesCtx;
-		AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, offset);
+		AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, sector<<9);
 	}
 	
-	if(sdmmc_nand_readsectors(offset>>9, size>>9, buf)) return false;
-	AES_crypt(ctx, buf, buf, size);
+	if(sdmmc_nand_readsectors(sector, count, buf)) return false;
+	AES_crypt(ctx, buf, buf, count<<9);
 
 	return true;
 }
 
-bool sdmmc_dnand_write(u32 offset, u32 size, const void *buf)
+bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 {
-	if(!dev_dnand.dev.initialized)
-		return false;
-		
-	if((u32)buf & 3) panic();
-		
-	if(size < 0x200)
-		panic();
-	
-	//return !sdmmc_nand_writesectors(offset >> 9, size >> 9, buf);
+	if(!dev_dnand.dev.initialized) return false;
+
+	//return !sdmmc_nand_writesectors(sector, count, buf);
 	printf("Decnand write not implemented!\n");
+
 	return false;
 }
 
 bool sdmmc_dnand_close(void)
 {
+	dev_dnand.dev.initialized = false;
 	return true;
 }
 
@@ -379,7 +349,7 @@ bool sdmmc_dnand_is_active(void)
 
 // ------------------------------ wifi flash glue functions ------------------------------
 
-bool wififlash_init(void)
+bool nvram_init(void)
 {
 	if(dev_wififlash.initialized) return true;
 	if(!spiflash_get_status()) return false;
@@ -387,26 +357,27 @@ bool wififlash_init(void)
 	return true;
 }
 
-bool wififlash_read(u32 offset, u32 size, void *buf)
+bool nvram_read_sector(u32 sector, u32 count, void *buf)
 {
 	if(!dev_wififlash.initialized) return false;
-	spiflash_read(offset, size, buf);
+	spiflash_read(sector<<9, count<<9, buf);
 	return true;
 }
 
-bool wififlash_close(void)
+bool nvram_close(void)
 {
 	// nothing to do here..?
+	dev_wififlash.initialized = false;
 	return true;
 }
 
-bool wififlash_is_active(void)
+bool nvram_is_active(void)
 {
 	if(dev_wififlash.initialized) return true;
-	return wififlash_init();
+	return nvram_init();
 }
 
-u32 wififlash_get_size(void)
+u32 nvram_get_sector_count(void)
 {
-	return 0x20000;
+	return 0x20000>>9;
 }

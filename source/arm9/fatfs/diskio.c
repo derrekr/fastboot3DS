@@ -5,16 +5,15 @@
 /* attached to the FatFs via a glue function rather than modifying it.   */
 /*-----------------------------------------------------------------------*/
 
-#include <stdbool.h>
-#include "fatfs/ff.h"
-#include "fatfs/diskio.h"		/* FatFs lower layer API */
+#include "arm9/fatfs/ff.h"
+#include "arm9/fatfs/diskio.h"		/* FatFs lower layer API */
 #include "types.h"
-#include "dev.h"
+#include "arm9/dev.h"
 
 
 
 // Get's set externally in dev.c
-u32 ctr_nand_offset;
+u32 ctr_nand_sector;
 
 PARTITION VolToPart[] = {
     {0, 0},     /* Logical drive 0 ==> Physical drive 0, autodetect partitiion */
@@ -58,15 +57,15 @@ DRESULT disk_read (
 {
 	if(pdrv == FATFS_DEV_NUM_SD)
 	{
-		if(dev_sdcard->read((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
+		if(dev_sdcard->read_sector((u32)sector, (u32)count, buff)) return RES_OK;
 	}
 	else if(pdrv == FATFS_DEV_NUM_TWL_NAND)
 	{
-		if(dev_decnand->read((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
+		if(dev_decnand->read_sector((u32)sector, (u32)count, buff)) return RES_OK;
 	}
 	else if(pdrv == FATFS_DEV_NUM_CTR_NAND)
 	{
-		if(dev_decnand->read(ctr_nand_offset + ((u32)sector<<9), (u32)count<<9, buff)) return RES_OK;
+		if(dev_decnand->read_sector(ctr_nand_sector + (u32)sector, (u32)count, buff)) return RES_OK;
 	}
 
 	return RES_ERROR;
@@ -87,15 +86,15 @@ DRESULT disk_write (
 {
 	if(pdrv == FATFS_DEV_NUM_SD)
 	{
-		if(dev_sdcard->write((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
+		if(dev_sdcard->write_sector((u32)sector, (u32)count, buff)) return RES_OK;
 	}
 	else if(pdrv == FATFS_DEV_NUM_TWL_NAND)
 	{
-		if(dev_decnand->write((u32)sector<<9, (u32)count<<9, buff)) return RES_OK;
+		if(dev_decnand->write_sector((u32)sector, (u32)count, buff)) return RES_OK;
 	}
 	else if(pdrv == FATFS_DEV_NUM_CTR_NAND)
 	{
-		if(dev_decnand->write(ctr_nand_offset + ((u32)sector<<9), (u32)count<<9, buff)) return RES_OK;
+		if(dev_decnand->write_sector(ctr_nand_sector + (u32)sector, (u32)count, buff)) return RES_OK;
 	}
 
 	return RES_ERROR;
