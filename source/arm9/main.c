@@ -61,28 +61,11 @@ int main(void)
 
 void devs_init()
 {
-	bool res = true;
-	bool flash_res;
+	bool res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
-	
-	printf(" Initializing SD card... ");
-	printf("%s\e[0m\n", res_str[dev_sdcard->init()]);
-	
-	printf(" Initializing NAND... ");
-	res &= dev_rawnand->init();
-	printf("%s\e[0m\n", res_str[res]);
-	
-	// only if nand init was successful
-	if(res)
-	{
-		printf(" Identifying NAND partitions... \n");
-		printf(" %s\e[0m\n", res_str[dev_decnand->init()]);
-	}
-	
+
 	printf(" Initializing Wifi flash... ");
-	flash_res = dev_flash->init();
-	printf("%s\e[0m\n", res_str[flash_res]);
-	res &= flash_res;
+	printf("%s\e[0m\n", res_str[(res = dev_flash->init())]);
 	
 	if(!res) sleep_wait(0x8000000); // mmc or wififlash init fail
 }

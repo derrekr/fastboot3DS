@@ -30,7 +30,7 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	return RES_OK;
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -41,7 +41,22 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive number to identify the drive */
 )
 {
-	return RES_OK;
+	switch(pdrv)
+	{
+		case FATFS_DEV_NUM_SD:
+			if(!dev_sdcard->init()) return STA_NOINIT | STA_NODISK;
+			break;
+		case FATFS_DEV_NUM_TWL_NAND:
+			if(!dev_decnand->init()) return STA_NOINIT | STA_NODISK;
+			break;
+		case FATFS_DEV_NUM_CTR_NAND:
+			if(!dev_decnand->init()) return STA_NOINIT | STA_NODISK;
+			break;
+		default:
+			return STA_NOINIT;
+	}
+
+	return 0;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -55,20 +70,22 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	if(pdrv == FATFS_DEV_NUM_SD)
+	switch(pdrv)
 	{
-		if(dev_sdcard->read_sector((u32)sector, (u32)count, buff)) return RES_OK;
-	}
-	else if(pdrv == FATFS_DEV_NUM_TWL_NAND)
-	{
-		if(dev_decnand->read_sector((u32)sector, (u32)count, buff)) return RES_OK;
-	}
-	else if(pdrv == FATFS_DEV_NUM_CTR_NAND)
-	{
-		if(dev_decnand->read_sector(ctr_nand_sector + (u32)sector, (u32)count, buff)) return RES_OK;
+		case FATFS_DEV_NUM_SD:
+			if(!dev_sdcard->read_sector((u32)sector, (u32)count, buff)) return RES_ERROR;
+			break;
+		case FATFS_DEV_NUM_TWL_NAND:
+			if(!dev_decnand->read_sector((u32)sector, (u32)count, buff)) return RES_ERROR;
+			break;
+		case FATFS_DEV_NUM_CTR_NAND:
+			if(!dev_decnand->read_sector(ctr_nand_sector + (u32)sector, (u32)count, buff)) return RES_ERROR;
+			break;
+		default:
+			return RES_PARERR;
 	}
 
-	return RES_ERROR;
+	return RES_OK;
 }
 
 
@@ -84,20 +101,22 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	if(pdrv == FATFS_DEV_NUM_SD)
+	switch(pdrv)
 	{
-		if(dev_sdcard->write_sector((u32)sector, (u32)count, buff)) return RES_OK;
-	}
-	else if(pdrv == FATFS_DEV_NUM_TWL_NAND)
-	{
-		if(dev_decnand->write_sector((u32)sector, (u32)count, buff)) return RES_OK;
-	}
-	else if(pdrv == FATFS_DEV_NUM_CTR_NAND)
-	{
-		if(dev_decnand->write_sector(ctr_nand_sector + (u32)sector, (u32)count, buff)) return RES_OK;
+		case FATFS_DEV_NUM_SD:
+			if(!dev_sdcard->write_sector((u32)sector, (u32)count, buff)) return RES_ERROR;
+			break;
+		case FATFS_DEV_NUM_TWL_NAND:
+			if(!dev_decnand->write_sector((u32)sector, (u32)count, buff)) return RES_ERROR;
+			break;
+		case FATFS_DEV_NUM_CTR_NAND:
+			if(!dev_decnand->write_sector(ctr_nand_sector + (u32)sector, (u32)count, buff)) return RES_ERROR;
+			break;
+		default:
+			return RES_PARERR;
 	}
 
-	return RES_ERROR;
+	return RES_OK;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -110,5 +129,43 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
+	dev_struct *dev;
+
+	switch(pdrv)
+	{
+		case FATFS_DEV_NUM_SD:
+			dev = dev_sdcard;
+			break;
+		case FATFS_DEV_NUM_TWL_NAND:
+			dev = dev_decnand;
+			break;
+		case FATFS_DEV_NUM_CTR_NAND:
+			dev = dev_decnand;
+			break;
+		default:
+			return RES_PARERR;
+	}
+
+	switch(cmd)
+	{
+		case GET_SECTOR_COUNT:
+			if(dev->get_sector_count)
+			{
+				*(DWORD*)buff = dev->get_sector_count();
+				break;
+			}
+			return RES_NOTRDY;
+		case GET_SECTOR_SIZE:
+			*(WORD*)buff = 512;
+			break;
+		case GET_BLOCK_SIZE:
+			*(DWORD*)buff = 0x800; // Default to 1 MB
+		case CTRL_TRIM:
+		case CTRL_SYNC:
+			break;
+		default:
+			return RES_PARERR;
+	}
+
 	return RES_OK;
 }
