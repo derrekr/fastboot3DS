@@ -1,2 +1,2 @@
-make 2> log.txt
+make
 pause
