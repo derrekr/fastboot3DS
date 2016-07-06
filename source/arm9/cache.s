@@ -16,6 +16,9 @@
 .type invalidateDCache STT_FUNC
 .type invalidateDCacheRange STT_FUNC
 
+.section ".text"
+
+
 #define ICACHE_SIZE	0x2000
 #define DCACHE_SIZE	0x1000
 #define CACHE_LINE_SIZE	32

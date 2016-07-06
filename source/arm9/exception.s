@@ -13,6 +13,8 @@
 
 .extern guruMeditation
 
+.section ".text"
+
 
 
 undefHandler:

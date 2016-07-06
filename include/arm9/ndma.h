@@ -7,6 +7,8 @@
 
 #include "types.h"
 
+
+
 #define REG_NDMA_GLOBAL_CNT           *((vu32*)0x10002000)
 
 #define REG_NDMA0_SRC_ADDR            *((vu32*)0x10002004)

@@ -1,12 +1,14 @@
 .arm
 .cpu mpcore
-.fpu vfpv2
+.fpu softvfp
 
 .global invalidateICache
 .global flushDCache
 
 .type invalidateICache STT_FUNC
 .type flushDCache STT_FUNC
+
+.section ".text"
 
 
 

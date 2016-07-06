@@ -18,7 +18,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	code11
 BUILD		:=	build11
-SOURCES		:=	source/arm11 source
+SOURCES		:=	source source/arm11
 INCLUDES	:=	include
 DATA		:=
 

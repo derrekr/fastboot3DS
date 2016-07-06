@@ -27,7 +27,7 @@ PARTITION VolToPart[] = {
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_status (
-	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+	UNUSED BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
 	return 0;
@@ -129,7 +129,7 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	dev_struct *dev;
+	const dev_struct *dev;
 
 	switch(pdrv)
 	{

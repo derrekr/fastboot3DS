@@ -87,6 +87,11 @@ static dev_dnand_struct dev_dnand = {
 		sdmmc_dnand_is_active,
 		NULL
 	},
+	{0},
+	{0},
+	{0},
+	{0},
+	{0}
 };
 const dev_struct *dev_decnand = &dev_dnand.dev;
 
@@ -325,7 +330,7 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	return true;
 }
 
-bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
+bool sdmmc_dnand_write_sector(UNUSED u32 sector, UNUSED u32 count, UNUSED const void *buf)
 {
 	if(!dev_dnand.dev.initialized) return false;
 

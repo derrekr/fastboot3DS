@@ -3,7 +3,7 @@
 #include <sys/iosupport.h>
 #include "types.h"
 #include "gfx.h"
-#include "console.h"
+#include "arm9/console.h"
 
 #include "default_font_bin.h"
 
@@ -120,6 +120,7 @@ static void consoleCls(char mode) {
 			currentConsole->cursorX  = 0;
 			break;
 		}
+	default: ;
 	}
 }
 //---------------------------------------------------------------------------------
@@ -172,24 +173,25 @@ static void consoleClearLine(char mode) {
 
 			break;
 		}
+	default: ;
 	}
 }
 
 // strchr() function with length check from WinterMute
 //---------------------------------------------------------------------------------
-static char *strnchr(const char *p, char c, size_t n) {
+static const char *strnchr(const char *p, char c, size_t n) {
 //---------------------------------------------------------------------------------
 	if (!p) return 0;
 
 	while (n-- > 0) {
-		if (*p == c) return ((char *)p);
+		if (*p == c) return p;
 		p++;
 	}
 	return 0;
 }
 
 //---------------------------------------------------------------------------------
-ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
+ssize_t con_write(UNUSED struct _reent *r,UNUSED int fd,const char *ptr, size_t len) {
 //---------------------------------------------------------------------------------
 
 	char chr;
@@ -208,7 +210,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 
 		if ( chr == 0x1b && *tmp == '[' ) {
 			bool escaping = true;
-			char *escapeseq	= tmp++;
+			const char *escapeseq = tmp++;
 			int escapelen = 1;
 			i++; count++;
 
@@ -448,6 +450,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							case 49: // reset background color
 								currentConsole->fg = 0;
 								break;
+							default: ;
 							}
 						} while (escapelen > 0);
 

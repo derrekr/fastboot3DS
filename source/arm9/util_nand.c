@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include "types.h"
 #include "mem_map.h"
-#include "console.h"
-#include "dev.h"
-#include "fatfs/ff.h"
+#include "arm9/console.h"
+#include "arm9/dev.h"
+#include "arm9/fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
-#include "util_nand.h"
+#include "arm9/util_nand.h"
 
 
 

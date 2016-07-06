@@ -1,6 +1,6 @@
 .arm
-
 .cpu mpcore
+.fpu softvfp
 
 .global gpio_set_bit
 .global gpio_clear_bit
@@ -8,7 +8,9 @@
 .type gpio_set_bit STT_FUNC
 .type gpio_clear_bit STT_FUNC
 
-.section .text
+.section ".text"
+
+
 
 gpio_set_bit:
 	ldrh r2, [r0]
@@ -17,7 +19,8 @@ gpio_set_bit:
 	orrs r2, r1
 	strh r2, [r0]
 	bx lr
-	
+
+
 gpio_clear_bit:
 	ldrh r2, [r0]
 	movs r3, #1
@@ -25,6 +28,3 @@ gpio_clear_bit:
 	bics r2, r1
 	strh r2, [r0]
 	bx lr
-	
-.pool
-

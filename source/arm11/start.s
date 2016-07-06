@@ -2,7 +2,7 @@
 
 .arm
 .cpu mpcore
-.fpu vfpv2
+.fpu softvfp
 
 .global _start
 .global _init
@@ -16,13 +16,12 @@
 .extern __bss_start__
 .extern __bss_end__
 
-.section ".init"
+.section ".crt0"
 
 
 
 _start:
 	cpsid aif, #0x1F           @ Disable all interrupts, system mode
-	ldr sp, =A11_STUB_ENTRY
 
 	ldr r0, =0x54078           @ Everything disabled
 	mcr p15, 0, r0, c1, c0, 0  @ Write control register
@@ -43,6 +42,9 @@ _start:
 	mcr p15, 0, r1, c7, c6, 0  @ Invalidate Entire Data Cache
 	mcr p15, 0, r1, c7, c10, 4 @ Data Synchronization Barrier
 
+	// Set sp
+	ldr sp, =A11_STUB_ENTRY
+
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
@@ -59,10 +61,12 @@ _start:
 disableCaches:
 	mov r2, lr
 	bl flushDCache
+
 	ldr r0, =0x54078           @ Everything disabled
 	mcr p15, 0, r0, c1, c0, 0  @ Write control register
 	mov r0, #0                 @ Everything disabled
 	mcr p15, 0, r0, c1, c0, 1  @ Write Auxiliary Control Register
+
 	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
 	mcr p15, 0, r0, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c6, 0  @ Invalidate Entire Data Cache

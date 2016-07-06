@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "integer.h"
+#include "arm9/fatfs/integer.h"
 
 
 /* Status of Disk Functions */

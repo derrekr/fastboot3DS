@@ -1,11 +1,9 @@
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
 #include "types.h"
 #include "IO.h"
 #include "mem_map.h"
 #include "util.h"
+
+
 
 struct i2c_dev_table_entry {
 	u32 bus_id;
@@ -24,6 +22,7 @@ static const struct i2c_dev_table_entry i2c_dev_table[] =
 	{1,	0x40},
 	{1,	0x44}
 };
+
 
 // i2c mcu defines
 bool i2cmcu_reg0_upper_read;
@@ -48,6 +47,7 @@ u8 i2c_get_byte(u32 dev_id);
 u8 i2c_get_byte_stop(u32 dev_id);
 u32 i2c_readregdata(u32 dev_id, u32 regaddr, u8 *out, u32 size);
 u32 i2cmcu_readregdata(u32 regaddr, u8 *outbuf, u32 size);
+
 
 void i2c_wait(u32 bus_id)
 {

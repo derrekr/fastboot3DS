@@ -2,8 +2,8 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "console.h"
-#include "mpu.h"
+#include "arm9/console.h"
+#include "arm9/mpu.h"
 
 
 
@@ -26,7 +26,7 @@ void hashCodeRoData()
 
 void NORETURN panic()
 {
-	volatile register lr;
+	vu32 register lr;
 
 	disableMpu();
 	consoleInit(0, NULL);

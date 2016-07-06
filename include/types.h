@@ -9,6 +9,7 @@
 
 #define NORETURN __attribute__((noreturn))
 #define PACKED   __attribute__((packed))
+#define UNUSED   __attribute__((unused))
 #define ALIGN(n) __attribute__((aligned(n)))
 
 

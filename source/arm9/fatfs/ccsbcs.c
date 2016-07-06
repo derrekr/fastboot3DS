@@ -21,7 +21,7 @@
 /   869   Greek 2
 */
 
-#include "ff.h"
+#include "arm9/fatfs/ff.h"
 
 
 #if _CODE_PAGE == 437

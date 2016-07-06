@@ -1,14 +1,11 @@
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
 #include "types.h"
 #include "IO.h"
 #include "mem_map.h"
 #include "util.h"
 #include "arm11/i2c.h"
 #include "gfx.h"
-//#include "test2_ppm_bin.h"
+
+
 
 extern void gpio_set_bit(vu16 *reg, u8 bit_num);
 extern void gpio_clear_bit(vu16 *reg, u8 bit_num);
@@ -46,11 +43,11 @@ void gfx_setup_framebuf_top()
 	*((vu32 *)(0x10400400+0x78)) = 0x70100; // gets set to 0x0 later on
 	*((vu32 *)(0x10400400+0x80)) = 0x0;
 
-	for(int i=0; i<0x100; i++)
+	for(u32 i = 0; i < 0x100; i++)
 	{
 		u32 val = 0x10101;
 		val *= i;
-		*((vu32 *)(0x10400400+0x84)) = val;
+		*((vu32*)(0x10400400+0x84)) = val;
 	}
 }
 
@@ -87,11 +84,11 @@ void gfx_setup_framebuf_low()
 	*((vu32 *)(0x10400500+0x78)) = 0x70100; // gets set to 0x0 later on
 	*((vu32 *)(0x10400500+0x80)) = 0x0;
 	
-	for(int i=0; i<0x100; i++)
+	for(u32 i = 0; i < 0x100; i++)
 	{
 		u32 val = 0x10101;
 		val *= i;
-		*((vu32 *)(0x10400500+0x84)) = val;
+		*((vu32*)(0x10400500+0x84)) = val;
 	}
 }
 

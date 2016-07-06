@@ -1,6 +1,8 @@
 #include "types.h"
 #include "IO.h"
-#include "spiflash.h"
+#include "arm9/spiflash.h"
+
+
 
 void spi_busy_wait()
 {

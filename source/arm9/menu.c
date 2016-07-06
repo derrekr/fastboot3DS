@@ -4,14 +4,14 @@
 #include "mem_map.h"
 #include "IO.h"
 #include "util.h"
-#include "console.h"
-#include "dev.h"
-#include "fatfs/ff.h"
-#include "fatfs/diskio.h"
+#include "arm9/console.h"
+#include "arm9/dev.h"
+#include "arm9/fatfs/ff.h"
+#include "arm9/fatfs/diskio.h"
 #include "hid.h"
-#include "main.h"
-#include "util_nand.h"
-#include "menu.h"
+#include "arm9/main.h"
+#include "arm9/util_nand.h"
+#include "arm9/menu.h"
 
 u8 color;
 enum menu_state_type menu_state;
