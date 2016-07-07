@@ -186,6 +186,10 @@
 #define REG_PDN_MPCORE_CLKCNT    *((vu16*)(PDN_REGS_BASE + 0x1300))
 
 
+#define HID_REG_BASE             (IO_MEM_ARM9_ARM11 + 0x00046000)
+#define REG_HID_PAD              ~(*((vu32*)(HID_REG_BASE)))
+
+
 /* SPI */
 #define SPI_REGS_BUS2_BASE       (IO_MEM_ARM9_ARM11 + 0x60000)
 #define REG_SPI_BUS2_CNT         *((vu16*)(SPI_REGS_BUS2_BASE + 0x00))

@@ -1,11 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "mem_map.h"
-
-#define HID_REG_BASE (IO_MEM_ARM9_ARM11 + 0x00046000)
-
-#define REG_HID_PAD  (~(*((vu32*)HID_REG_BASE)))
+#include "io.h"
 
 
 
