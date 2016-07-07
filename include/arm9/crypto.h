@@ -8,6 +8,8 @@
 #pragma once
 
 #include "types.h"
+#include "io.h"
+
 
 
 //////////////////////////////////
@@ -16,38 +18,10 @@
 
 #define AES_MAX_BUF_SIZE           (0xFFFF0)
 
-#define REG_AESCNT                 (*(vu32*)0x10009000)
-#define REG_AESBLKCNT              (*(vu32*)0x10009004)
-#define REG_AESBLKCNTH1            (*(vu16*)0x10009004)
-#define REG_AESBLKCNTH2            (*(vu16*)0x10009006)
-#define REG_AESWRFIFO              (*(vu32*)0x10009008)
-#define REG_AESRDFIFO              (*(vu32*)0x1000900C)
-#define REG_AESKEYSEL              (*(vu8*) 0x10009010)
-#define REG_AESKEYCNT              (*(vu8*) 0x10009011)
-#define REG_AESCTR                 ( (vu32*)0x10009020) //16
-#define REG_AESMAC                 ( (vu32*)0x10009030) //16
-
-#define REG_AESKEY0                ( (vu32*)0x10009040)
-#define REG_AESKEYX0               ( (vu32*)0x10009050)
-#define REG_AESKEYY0               ( (vu32*)0x10009060)
-#define REG_AESKEY1                ( (vu32*)0x10009070)
-#define REG_AESKEYX1               ( (vu32*)0x10009080)
-#define REG_AESKEYY1               ( (vu32*)0x10009090)
-#define REG_AESKEY2                ( (vu32*)0x100090A0)
-#define REG_AESKEYX2               ( (vu32*)0x100090B0)
-#define REG_AESKEYY2               ( (vu32*)0x100090C0)
-#define REG_AESKEY3                ( (vu32*)0x100090D0)
-#define REG_AESKEYX3               ( (vu32*)0x100090E0)
-#define REG_AESKEYY3               ( (vu32*)0x100090F0)
-
-#define REG_AESKEYFIFO             ( (vu32*)0x10009100)
-#define REG_AESKEYXFIFO            ( (vu32*)0x10009104)
-#define REG_AESKEYYFIFO            ( (vu32*)0x10009108)
-
 #define AES_WRITE_FIFO_COUNT       ((REG_AESCNT>>0) & 0x1F)
 #define AES_READ_FIFO_COUNT        ((REG_AESCNT>>5) & 0x1F)
-#define AES_BUSY                   (1u<<31)
 
+#define AES_BUSY                   (1u<<31)
 #define AES_FLUSH_READ_FIFO        (1u<<10)
 #define AES_FLUSH_WRITE_FIFO       (1u<<11)
 #define AES_BIT12                  (1u<<12)
@@ -170,11 +144,6 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val);
 //////////////////////////////////
 //             SHA              //
 //////////////////////////////////
-
-#define REG_SHA_CNT        (*((vu32*)0x1000A000))
-#define REG_SHA_BLKCNT     (*((vu32*)0x1000A004))
-#define REG_SHA_HASH       ( ((u32*) 0x1000A040))
-#define REG_SHA_INFIFO     (         0x1000A080)
 
 #define SHA_ENABLE         (1u) // Also used as busy flag
 #define SHA_PAD_INPUT      (1u<<1)

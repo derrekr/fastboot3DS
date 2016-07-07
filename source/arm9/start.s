@@ -15,12 +15,14 @@
 .type clearMem STT_FUNC
 .type _init STT_FUNC
 
-.extern setupSystem
+.extern initSystem
+.extern finiSystem
 .extern __libc_init_array
 .extern main
 .extern firm_launch
 .extern __bss_start__
 .extern __bss_end__
+.extern __end__
 .extern fake_heap_start
 .extern fake_heap_end
 
@@ -41,10 +43,9 @@ firmLaunchEntry11:
 
 skip_pool:
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	bl setupSystem
+	ldr sp, =A9_STACK_END
 
-	@ Set sp
-	ldr sp, =A9_STUB_ENTRY
+	bl initSystem
 
 	@ Clear bss section
 	ldr r0, =__bss_start__
@@ -52,18 +53,19 @@ skip_pool:
 	bl clearMem
 
 	@ Setup newlib heap
-	ldr r0, =A9_HEAP_START
+	ldr r0, =__end__
 	ldr r1, =fake_heap_start
 	str r0, [r1]
-	add r0, r0, #(A9_HEAP_END - A9_HEAP_START)
+	add r0, r0, #A9_HEAP_SIZE
 	ldr r1, =fake_heap_end
 	str r0, [r1]
 
 	blx __libc_init_array       @ Initialize ctors and dtors
 	blx main
 	cmp r0, #0
-	beq firm_launch
-	b .
+	bne .
+	bl finiSystem
+	b firm_launch
 
 
 @ void clearMem(u32 *start, u32 *end)

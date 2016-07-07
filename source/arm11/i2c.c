@@ -54,27 +54,27 @@ void i2c_wait(u32 bus_id)
 	u8 result;
 	do {
 		if(bus_id == 0)
-			result = I2C_REGS_BUS0_CNT;
+			result = REG_I2C_BUS0_CNT;
 		else
-			result = I2C_REGS_BUS1_CNT;
+			result = REG_I2C_BUS1_CNT;
 	} while((result>>7) & 1);
 }
 
 void i2c_put_byte(u32 bus_id, u8 data_byte)
 {
 	if(bus_id == 0)
-		I2C_REGS_BUS0_DATA = data_byte;
+		REG_I2C_BUS0_DATA = data_byte;
 	else
-		I2C_REGS_BUS1_DATA = data_byte;
+		REG_I2C_BUS1_DATA = data_byte;
 }
 
 void i2c_start(u32 bus_id)
 {
 	sleep_wait(0x100);
 	if(bus_id == 0)
-		I2C_REGS_BUS0_CNT = 0xC2;
+		REG_I2C_BUS0_CNT = 0xC2;
 	else
-		I2C_REGS_BUS1_CNT = 0xC2;
+		REG_I2C_BUS1_CNT = 0xC2;
 }
 
 void i2c_set_rw(u32 bus_id, u32 read_enable)
@@ -83,9 +83,9 @@ void i2c_set_rw(u32 bus_id, u32 read_enable)
 	cnt |= read_enable << 5;
 	cnt |= read_enable << 4;
 	if(bus_id == 0)
-		I2C_REGS_BUS0_CNT = cnt;
+		REG_I2C_BUS0_CNT = cnt;
 	else
-		I2C_REGS_BUS1_CNT = cnt;
+		REG_I2C_BUS1_CNT = cnt;
 }
 
 bool i2c_test_ack(u32 bus_id)
@@ -94,9 +94,9 @@ bool i2c_test_ack(u32 bus_id)
 	sleep_wait(0x80);
 	u8 result;
 	if(bus_id == 0)
-		result = I2C_REGS_BUS0_CNT;
+		result = REG_I2C_BUS0_CNT;
 	else
-		result = I2C_REGS_BUS1_CNT;
+		result = REG_I2C_BUS1_CNT;
 	return ((result << 0x1B) >> 0x1F);	// 	return Ack Flag
 }
 
@@ -105,9 +105,9 @@ u8 i2c_receive_byte(u32 bus_id)
 	i2c_wait(bus_id);
 	sleep_wait(0x100);
 	if(bus_id == 0)
-		return I2C_REGS_BUS0_DATA;
+		return REG_I2C_BUS0_DATA;
 	else
-		return I2C_REGS_BUS1_DATA;
+		return REG_I2C_BUS1_DATA;
 }
 
 void i2c_stop(u32 bus_id, u32 read_enable)
@@ -115,18 +115,18 @@ void i2c_stop(u32 bus_id, u32 read_enable)
 	u8 cnt = 0xC1;
 	cnt |= read_enable << 5;
 	if(bus_id == 0)
-		I2C_REGS_BUS0_CNT = cnt;
+		REG_I2C_BUS0_CNT = cnt;
 	else
-		I2C_REGS_BUS1_CNT = cnt;
+		REG_I2C_BUS1_CNT = cnt;
 }
 
 void i2c_stop_err(u32 dev_id)
 {
 	u32 bus_id = i2c_dev_table[dev_id].bus_id;
 	if(bus_id == 0)
-		I2C_REGS_BUS0_CNT = 0xC5;
+		REG_I2C_BUS0_CNT = 0xC5;
 	else
-		I2C_REGS_BUS1_CNT = 0xC5;
+		REG_I2C_BUS1_CNT = 0xC5;
 	i2c_wait(bus_id);
 	sleep_wait(0x200);
 }

@@ -21,7 +21,7 @@ void turn_off(void)
 	}
 }
 
-void firmLaunchStub(void)
+void NAKED firmLaunchStub(void)
 {
 	// Answer ARM0
 	REG_PXI_SYNC11 = 0; // Disable all IRQs

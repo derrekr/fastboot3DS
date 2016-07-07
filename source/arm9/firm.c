@@ -7,17 +7,17 @@
 #include "arm9/crypto.h"
 #include "cache.h"
 #include "arm9/ndma.h"
-#include "arm9/mpu.h"
 #include "pxi.h"
 
 
 
-void NORETURN firmLaunchStub(void)
+void NAKED firmLaunchStub(void)
 {	
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	void (*entry9)(void) = firmLaunchEntry9;
+	register void (*entry9)(void) = firmLaunchEntry9;
 	if(firmLaunchEntry9 == NULL) entry9 = (void (*)(void))firm_hdr->entrypointarm9;
-	void (*entry11)(void) = firmLaunchEntry11;
+	register u32 ret = firm_hdr->entrypointarm9;
+	register void (*entry11)(void) = firmLaunchEntry11;
 	if(firmLaunchEntry11 == NULL) entry11 = (void (*)(void))firm_hdr->entrypointarm11;
 
 
@@ -47,9 +47,7 @@ void NORETURN firmLaunchStub(void)
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
-	__asm__ __volatile__("mov lr, %[in]\n" : : [in] "r" (firm_hdr->entrypointarm9));
-	entry9();
-	while(1);
+	__asm__("mov lr, %[in]\nbx %[in2]\n" : : [in] "r" (ret), [in2] "r" (entry9));
 }
 
 bool firm_load_verify(void)
@@ -91,12 +89,10 @@ void NORETURN firm_launch(void)
 	while(PXI_recvWord() != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
-	flushDCacheRange((void*)A9_STUB_ENTRY, 0x200);
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, 0x200>>2);
 
 	//printf("Starting firm launch...\n");
 	void (*stub)(void) = (void (*)(void))A9_STUB_ENTRY;
-	disableMpu();
 	stub();
 	while(1);
 }

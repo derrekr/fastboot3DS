@@ -120,7 +120,6 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 	// Align to 16 bytes.
 	size = (size + 0xf) & (u32)~0xf;
 
-	u32 blockSize;
 	u32 offset = 0;
 	u32 mode;
 	int ctrIvNonceSize;
@@ -132,7 +131,7 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 
 	while(offset < size)
 	{
-		blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
+		u32 blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
 
 		REG_AESBLKCNT = (blockSize>>4)<<16;
 		REG_AESCNT = AES_ENABLE | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO | ctx->aesParams;

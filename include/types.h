@@ -4,13 +4,14 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdalign.h> // alignas(alignment_in_bytes)
 
 
 
 #define NORETURN __attribute__((noreturn))
 #define PACKED   __attribute__((packed))
 #define UNUSED   __attribute__((unused))
-#define ALIGN(n) __attribute__((aligned(n)))
+#define NAKED    __attribute__((naked))
 
 
 typedef uint8_t  u8;

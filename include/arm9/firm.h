@@ -29,8 +29,8 @@ typedef struct
 } firm_header;
 
 
-extern void (*firmLaunchEntry9)(void);
-extern void (*firmLaunchEntry11)(void);
+extern void NORETURN (*firmLaunchEntry9)(void);
+extern void NORETURN (*firmLaunchEntry11)(void);
 
 
 bool firm_load_verify(void);

@@ -2,7 +2,7 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "IO.h"
+#include "io.h"
 #include "util.h"
 #include "arm9/console.h"
 #include "arm9/dev.h"

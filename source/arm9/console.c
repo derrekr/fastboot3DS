@@ -620,7 +620,7 @@ void consoleDrawChar(int c) {
 	c -= currentConsole->font.asciiOffset;
 	if ( c < 0 || c > currentConsole->font.numChars ) return;
 
-	u8 *fontdata = currentConsole->font.gfx + (8 * c);
+	const u8 *fontdata = currentConsole->font.gfx + (8 * c);
 
 	int writingColor = currentConsole->fg;
 	int screenColor = currentConsole->bg;

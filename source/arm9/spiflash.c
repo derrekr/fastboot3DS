@@ -1,33 +1,33 @@
 #include "types.h"
-#include "IO.h"
+#include "io.h"
 #include "arm9/spiflash.h"
 
 
 
 void spi_busy_wait()
 {
-    while(SPI_REGS_BUS2_CNT & 0x80);
+    while(REG_SPI_BUS2_CNT & 0x80);
 }
 
 void spi_put_byte(u8 data)
 {
-    SPI_REGS_BUS2_DATA = data;
+    REG_SPI_BUS2_DATA = data;
     spi_busy_wait();
 }
 
 u8 spi_receive_byte()
 {
     // clock out a dummy byte
-    SPI_REGS_BUS2_DATA = 0x00;
+    REG_SPI_BUS2_DATA = 0x00;
     spi_busy_wait();
-    return SPI_REGS_BUS2_DATA;
+    return REG_SPI_BUS2_DATA;
 }
 
 // select spiflash if select=true, deselect otherwise 
 void spiflash_select(bool select)
 {
     // select device 1, enable SPI bus
-    SPI_REGS_BUS2_CNT = 0x8100 | (select << 11);
+    REG_SPI_BUS2_CNT = 0x8100 | (select << 11);
 }
 
 bool spiflash_get_status()

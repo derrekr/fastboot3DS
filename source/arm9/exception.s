@@ -11,6 +11,7 @@
 .type dataAbortHandler STT_FUNC
 .type exceptionHandler STT_FUNC
 
+.extern finiSystem
 .extern guruMeditation
 
 .section ".text"
@@ -28,11 +29,14 @@ dataAbortHandler:
 exceptionHandler:
 	ldr sp, =0x02000000
 	stmfd sp!, {r0-r14}^        @ Save all user/system mode regs except pc
-	mrs r0, cpsr
-	lsr r0, r0, #29             @ Get back the exception type from cpsr
+	mrs r4, cpsr
+	lsr r4, r4, #29             @ Get back the exception type from cpsr
 	mrs r1, spsr                @ Get saved cpsr
 	stmfd sp!, {r1, lr}         @ Save spsr and lr (pc) on exception stack
-	mov r1, sp
+	mov r5, sp
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	mov sp, r1
-	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {cpsr, pc + X, r0-r14}
+	bl finiSystem
+	mov r0, r4
+	mov sp, r5
+	mov r1, r5
+	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {cpsr, pc (unmodified), r0-r14}

@@ -43,7 +43,7 @@ _start:
 	mcr p15, 0, r1, c7, c10, 4 @ Data Synchronization Barrier
 
 	// Set sp
-	ldr sp, =A11_STUB_ENTRY
+	ldr sp, =A11_STACK_END
 
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__

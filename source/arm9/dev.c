@@ -76,6 +76,8 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf);
 bool sdmmc_dnand_close(void);
 bool sdmmc_dnand_is_active(void);
 
+// gcc throws a bullshit warning about missing braces here.
+// Seems to be https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53119
 static dev_dnand_struct dev_dnand = {
 	{
 		"dnand",
@@ -204,11 +206,8 @@ u32 sdmmc_rnand_get_sector_count(void)
 bool sdmmc_dnand_init(void)
 {
 	NCSD_header header;
-	u32 hash[8];
-	u32 twlKeyX[4]; // TWL keys
-	u32 twlKeyY[4];
-	extern bool unit_is_new3ds;
 	extern u32 ctr_nand_sector;
+	extern bool unit_is_new3ds;
 
 
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
@@ -259,12 +258,14 @@ bool sdmmc_dnand_init(void)
 		}
 
 		// Hash NAND CID to create the CTRs for crypto
+		u32 hash[8];
 		sha((u32*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
 		memcpy(dev_dnand.twlCounter, hash, 16);
 		sha((u32*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
 		memcpy(dev_dnand.ctrCounter, hash, 16);
 
 		// TWL keyslot 0x03 keyX
+		u32 twlKeyX[4];
 		twlKeyX[0] = (*((u32*)0x01FFB808) ^ 0xB358A6AF) | 0x80000000;
 		twlKeyX[1] = 0x544E494E; // "NINT"
 		twlKeyX[2] = 0x4F444E45; // "ENDO"
@@ -272,6 +273,7 @@ bool sdmmc_dnand_init(void)
 		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, AES_KEY_TYPE_X, twlKeyX, false, false);
 
 		// TWL keyslot 0x03 keyY
+		u32 twlKeyY[4];
 		for(int i = 0; i < 3; i++) twlKeyY[i] = ((u32*)0x01FFD3C8)[i];
 		twlKeyY[3] = 0xE1A00005;
 		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, AES_KEY_TYPE_Y, twlKeyY, false, true);

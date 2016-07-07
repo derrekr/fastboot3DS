@@ -94,14 +94,14 @@ void gfx_setup_framebuf_low()
 
 void gfx_init_framebufsetup()
 {
-	PDN_REG_GPU_CNT2_8BIT |= 1;	// turn on GPU
-	PDN_REG_GPU_CNT |= 1<<0x10;	// turn on LCD backlight
+	REG_PDN_GPU_CNT2_8BIT |= 1;	// turn on GPU
+	REG_PDN_GPU_CNT |= 1<<0x10;	// turn on LCD backlight
 	sleep_wait(0x1000);
 	
-	PDN_REG_GPU_CNT |= 0x1007F;
-	PDN_REG_GPU_CNT4 |= 1;
+	REG_PDN_GPU_CNT |= 0x1007F;
+	REG_PDN_GPU_CNT4 |= 1;
 	
-	GPU_EXT_REG_CNT |= 0x300;
+	REG_GPU_EXT_CNT |= 0x300;
 	
 	//memset(VRAM_BASE, 0xFF, VRAM_SIZE);
 	gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
@@ -184,8 +184,8 @@ void gfx_init_step2()
 	}
 	
 	// enable color fill regs for both screens
-	LCD_REG_LCDCOLORFILLMAIN |= 1<<24;
-	LCD_REG_LCDCOLORFILLSUB |= 1<<24;
+	REG_LCD_COLORFILL_MAIN |= 1<<24;
+	REG_LCD_COLORFILL_SUB |= 1<<24;
 	
 	*((vu32 *) 0x1020200C) &= 0xFFFEFFFE;
 	
@@ -206,8 +206,8 @@ u32 gfx_i2c_lcd_finish()
 
 void gfx_init_step3()
 {
-	LCD_REG_BACKLIGHTMAIN = 0x0F; // Equals home menu brightness level 1
-	LCD_REG_BACKLIGHTSUB = 0x0F;
+	REG_LCD_BACKLIGHT_MAIN = 0x0F; // Equals home menu brightness level 1
+	REG_LCD_BACKLIGHT_SUB = 0x0F;
 	
 	int i;
 	for(i=0; i<10; i++)
@@ -217,8 +217,8 @@ void gfx_init_step3()
 		//else break;
 	}
 	
-	LCD_REG_LCDCOLORFILLMAIN = 0;
-	LCD_REG_LCDCOLORFILLSUB = 0;
+	REG_LCD_COLORFILL_MAIN = 0;
+	REG_LCD_COLORFILL_SUB = 0;
 	
 	*((vu32 *) 0x10202244) = *((vu32 *) 0x10202244) | 0x10000;
 	*((vu32 *) 0x10202A44) = *((vu32 *) 0x10202A44) | 0x10000;
@@ -257,7 +257,7 @@ void gfx_set_framebufs(u8 r, u8 g, u8 b, u8 a)
 
 void gfx_set_black_sub()
 {
-	LCD_REG_LCDCOLORFILLSUB |= 1<<24;
+	REG_LCD_COLORFILL_SUB |= 1<<24;
 }
 
 void gfx_draw_ppm()

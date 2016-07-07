@@ -2,7 +2,7 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "IO.h"
+#include "io.h"
 #include "util.h"
 #include "arm9/console.h"
 #include "arm9/dev.h"
@@ -117,7 +117,7 @@ void unit_detect()
 {
 	printf("Detecting unit... ");
 	
-	if(PDN_MPCORE_CLKCNT != 0)
+	if(REG_PDN_MPCORE_CLKCNT != 0)
 		unit_is_new3ds = true;
 		
 	bool is_panda = CFG_UNITINFO != 0;

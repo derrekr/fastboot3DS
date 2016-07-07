@@ -1,18 +1,9 @@
 #pragma once
 
 #include "types.h"
+#include "io.h"
 
 
-
-#define REG_PXI_SYNC9               *((vu32*)0x10008000)
-#define REG_PXI_CNT9                *((vu32*)0x10008004)
-#define REG_PXI_SEND9               *((vu32*)0x10008008)
-#define REG_PXI_RECV9               *((vu32*)0x1000800C)
-
-#define REG_PXI_SYNC11              *((vu32*)0x10163000)
-#define REG_PXI_CNT11               *((vu32*)0x10163004)
-#define REG_PXI_SEND11              *((vu32*)0x10163008)
-#define REG_PXI_RECV11              *((vu32*)0x1016300C)
 
 // Defines for PX_SYNC regs
 #define PXI_DATA_RECEIVED(reg)      (reg & 0xFF)

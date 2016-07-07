@@ -36,14 +36,14 @@ DBGWARM	:=	-Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
 			-Wshadow -Wsign-conversion -fstrict-overflow -Wstrict-overflow=5 \
 			-Wswitch-default -Wundef
 
-CFLAGS	:=	-Wall $(DBGWARM) -fstrict-aliasing -Wstrict-aliasing -std=c11 -O2 -flto \
+CFLAGS	:=	-Wall $(DBGWARM) -fstrict-aliasing -Wstrict-aliasing -std=c11 -g -O2 -flto \
 			-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS $(DEFINES)
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
 ASFLAGS	:=	-g $(INCLUDE) $(ARCH) -DARM11 -D_3DS $(DEFINES)
-LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections,--emit-relocs
+LDFLAGS	=	-nostartfiles -T../$(LDNAME) $(CFLAGS) -Wl,-Map,$(notdir $*.map),--use-blx,--gc-sections
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project (order is important)
