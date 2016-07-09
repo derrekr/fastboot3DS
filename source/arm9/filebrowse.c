@@ -32,12 +32,13 @@ static u32 *indexStackPtr = indexStack;
 
 /*	This scans the current directory for entries.
 	Only MAX_NEW_ENTRIES will be added at maximum.
-	This also updates the curEntriesCount. */
-static void scanDirectory()
+	This also updates the curEntriesCount. 
+	Returns true if new entries were added. */
+static bool scanDirectory()
 {
 	FRESULT res;
 	static FILINFO fno;
-	u8 i = 0;
+	unsigned i = 0;
 	
 	for(i=0; i<MAX_NEW_ENTRIES; i++)
 	{
@@ -56,6 +57,8 @@ static void scanDirectory()
 	}
 	
 	curEntriesCount += i;
+	
+	return i != 0;
 }
 
 static u32 ascendPath()
@@ -162,7 +165,8 @@ const char *browseForFile(const char *basePath)
 	res = f_opendir(&curDirectory, curPath);
 	if (res != FR_OK)
 	{
-		printf("Failed to open directory!\n");
+		free(dirEntries);
+		return NULL;
 	}
 	
 	// do an initial scan
@@ -220,8 +224,10 @@ const char *browseForFile(const char *basePath)
 				}
 				else	// we got our file!
 				{
-					strncat(curPath, dirEntries[cursor_pos].name,
-						sizeof(curPath) - strlen(curPath) + 1);
+					if(strlen(dirEntries[cursor_pos].name) + strlen(curPath) + 2 > sizeof(curPath))
+						goto fail;	// TODO? Path too long.
+					strcat(curPath, "\\");
+					strcat(curPath, dirEntries[cursor_pos].name);
 					break;
 				}
 			}
@@ -230,20 +236,22 @@ const char *browseForFile(const char *basePath)
 		{
 			if(indexStackPtr != indexStack)
 			{
-				clearConsoles();
-				consoleSelect(&con_bottom);
 				cursor_pos = ascendPath();
-				printf("curPath: %s\ncursor: %i\n", curPath, cursor_pos);
 				f_closedir(&curDirectory);
-				f_opendir(&curDirectory, curPath);
+				
+				res = f_opendir(&curDirectory, curPath);
+				if (res != FR_OK)
+					goto fail;
 				curEntriesCount = 0;
-				printf("scanning dir...\n");
+				
 				do {
-					scanDirectory();
+					if(!scanDirectory())
+						goto fail;
 				} while(curEntriesCount <= cursor_pos);
 				
 				updateScreen(cursor_pos);
 			}
+			else goto fail;
 		}
 				
 	}
@@ -252,4 +260,9 @@ const char *browseForFile(const char *basePath)
 	free(dirEntries);
 	
 	return curPath;
+	
+fail:
+	f_closedir(&curDirectory);
+	free(dirEntries);
+	return NULL;
 }
