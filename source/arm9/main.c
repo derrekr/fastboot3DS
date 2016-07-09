@@ -169,3 +169,11 @@ static bool loadFirmSd(const char *filePath)
 
 	return res;
 }
+
+void clearConsoles()
+{
+	consoleSelect(&con_bottom);
+	consoleClear();
+	consoleSelect(&con_top);
+	consoleClear();
+}

@@ -60,14 +60,6 @@ void rewindConsole()
 	printf("\033[0;0H\n\n\n\n");
 }
 
-void clearConsoles()
-{
-	consoleSelect(&con_bottom);
-	consoleClear();
-	consoleSelect(&con_top);
-	consoleClear();
-}
-
 int enter_menu(void)
 {
 	u32 keys;
@@ -166,6 +158,18 @@ int enter_menu(void)
 					menu_state = STATE_MAIN;
 				}
 				else goto exitAndLaunchFirm;
+				break;
+				
+				// test
+			case STATE_TEST_MENU:
+				consoleClear();
+				consoleSelect(&con_top);
+				consoleClear();
+				const char* path = browseForFile("sdmc:");
+				consoleClear();
+				printf("selected file:\n%s\n", path);
+				sleep_wait(0x8000000);
+				menu_state = STATE_MAIN;
 				break;
 			
 			default: printf("OOPS!\n"); break;

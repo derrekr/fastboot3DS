@@ -24,3 +24,4 @@ void mount_fs();
 void unmount_fs();
 void unit_detect();
 u8 rng_get_byte();
+void clearConsoles();
