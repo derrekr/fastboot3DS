@@ -1,10 +1,21 @@
 #pragma once
 
-// Shut up gcc warning
-/*typedef struct config_format {
-	u8 dev_id;
+#include "arm9/fatfs/ff.h"
+#include "arm9/console.h"
 
-};*/
+typedef struct {
+	char	model[0x10];
+	bool	unit_is_new3ds;
+	char	boot_env[0x20];
+	char	mode[7];
+	char	fw_ver1[10];
+	char	fw_ver2[10];
+	bool	wififlash_status;
+	bool	nand_status;
+	bool	sd_status;
+} bootInfoStruct;
+
+bootInfoStruct bootInfo;
 
 // PrintConsole for each screen
 extern PrintConsole con_top, con_bottom;
@@ -13,15 +24,7 @@ extern FATFS sd_fs;
 // same for all NAND filesystems
 extern FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 
-extern bool	unit_is_new3ds;
-extern u8	boot_env;
-
-
-void heap_init();
-void devs_init();
 void devs_close();
-void mount_fs();
 void unmount_fs();
-void unit_detect();
 u8 rng_get_byte();
 void clearConsoles();

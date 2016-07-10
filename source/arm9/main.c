@@ -4,9 +4,7 @@
 #include "mem_map.h"
 #include "io.h"
 #include "util.h"
-#include "arm9/console.h"
 #include "arm9/dev.h"
-#include "arm9/fatfs/ff.h"
 #include "arm9/fatfs/diskio.h"
 #include "arm9/firm.h"
 #include "hid.h"
@@ -22,8 +20,11 @@ FATFS sd_fs;
 // same for all NAND fss
 FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 
-bool	unit_is_new3ds;
-u8		boot_env;
+static void devs_init();
+static void mount_fs();
+static void unit_detect();
+static void boot_env_detect();
+static void fw_detect();
 
 int main(void)
 {
@@ -40,7 +41,13 @@ int main(void)
 	
 	printf("\x1B[32mGood morning, hello!\e[0m\n\n");
 	
+	printf("Detecting unit...\n");
+	
 	unit_detect();
+	
+	printf("Detecting boot environment...\n");
+	
+	boot_env_detect();
 	
 	printf("Initializing devices...\n");
 	
@@ -50,22 +57,32 @@ int main(void)
 	
 	mount_fs();
 	
+	printf("Detecting firmware...\n");
+	
+	fw_detect();
+
 	consoleClear();
 	
 	enter_menu();
 
 	unmount_fs();
+	
+	devs_close();
 
 	return 0;
 }
 
-void devs_init()
+static void devs_init()
 {
 	bool res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
 
 	printf(" Initializing Wifi flash... ");
 	printf("%s\e[0m\n", res_str[(res = dev_flash->init())]);
+	
+	bootInfo.sd_status = dev_sdcard->is_active();
+	bootInfo.nand_status = dev_rawnand->is_active();
+	bootInfo.wififlash_status = dev_flash->is_active();
 	
 	if(!res) sleep_wait(0x8000000); // mmc or wififlash init fail
 }
@@ -78,7 +95,7 @@ void devs_close()
 	dev_flash->close();
 }
 
-void mount_fs()
+static void mount_fs()
 {
 	FRESULT res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
@@ -113,23 +130,44 @@ void unmount_fs()
 	f_mount(NULL, "nand:", 1);
 }
 
-void unit_detect()
+static void unit_detect()
 {
-	printf("Detecting unit... ");
-	
-	if(REG_PDN_MPCORE_CLKCNT != 0)
-		unit_is_new3ds = true;
+	bootInfo.unit_is_new3ds = REG_PDN_MPCORE_CLKCNT != 0;
+
+	sprintf(bootInfo.model, "%s 3DS", bootInfo.unit_is_new3ds ? "New" : "Original");
 		
-	bool is_panda = CFG_UNITINFO != 0;
-		
-	printf("%s%s 3DS detected!\n", is_panda ? "Dev " : "",
-									unit_is_new3ds ? "New" : "Original");
+	printf("%s detected!\n", bootInfo.model);
 }
 
-void boot_env_detect()
+static void boot_env_detect()
 {
-	boot_env = CFG_BOOTENV;
+	static const char *boot_environment [4]	=	{	"Cold boot",				// 0
+													"Booted from Native FIRM",	// 1
+													"Booted from <Unknown>",	// 2, etc
+													"Booted from Legacy FIRM"	// 3
+												};
+
+	u32 boot_env = CFG_BOOTENV;
 	if(boot_env > 3) boot_env = 2;
+	
+	sprintf(bootInfo.mode, "%s", CFG_UNITINFO != 0 ? "Dev" : "Retail");
+	
+	strcpy(bootInfo.boot_env, boot_environment[boot_env]);
+}
+
+static void fw_detect()
+{
+	u8 nand_sector[0x200];
+	
+	if(!bootInfo.nand_status)
+		printf("\x1B[31mFailed!\e[0m\n");
+	else
+	{
+		dev_decnand->read_sector(0x0B130000 >> 9, 1, nand_sector);
+		// TODO: lookup...
+		strcpy(bootInfo.fw_ver1, "Unknown");
+		strcpy(bootInfo.fw_ver2, "Unknown");
+	}
 }
 
 u8 rng_get_byte()
@@ -148,7 +186,7 @@ static void loadFirmNand(void)
 	dev_decnand->read_sector(0x0005A980, 0x00002000, (u8*)FCRAM_BASE);
 }
 
-static bool loadFirmSd(const char *filePath)
+bool loadFirmSd(const char *filePath)
 {
 	FIL file;
 	UINT bytesRead = 0;

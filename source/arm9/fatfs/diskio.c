@@ -47,9 +47,11 @@ DSTATUS disk_initialize (
 			if(!dev_sdcard->init()) return STA_NOINIT | STA_NODISK;
 			break;
 		case FATFS_DEV_NUM_TWL_NAND:
+			if(!dev_rawnand->init()) return STA_NOINIT | STA_NODISK;
 			if(!dev_decnand->init()) return STA_NOINIT | STA_NODISK;
 			break;
 		case FATFS_DEV_NUM_CTR_NAND:
+			if(!dev_rawnand->init()) return STA_NOINIT | STA_NODISK;
 			if(!dev_decnand->init()) return STA_NOINIT | STA_NODISK;
 			break;
 		default:

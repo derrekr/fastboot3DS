@@ -28,6 +28,18 @@ typedef struct
 	u8 signature[0x100];
 } firm_header;
 
+// TODO
+/*
+// <first word from signaure>, <version #>
+const u32 firmVersionTable[] = {
+	0, 0
+};
+
+// <version #><
+const u32 firmVersionStringTable[] = {
+	0, 0
+};
+*/
 
 extern void NORETURN (*firmLaunchEntry9)(void);
 extern void NORETURN (*firmLaunchEntry11)(void);

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
+#include "arm9/main.h"
 #include "arm9/ncsd.h"
 #include "arm9/sdmmc.h"
 #include "arm9/spiflash.h"
@@ -207,8 +208,6 @@ bool sdmmc_dnand_init(void)
 {
 	NCSD_header header;
 	extern u32 ctr_nand_sector;
-	extern bool unit_is_new3ds;
-
 
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
 		sdmmc_init();
@@ -240,7 +239,7 @@ bool sdmmc_dnand_init(void)
 					if(i == 0) dev_dnand.partitions[i].keyslot = 0x03; // TWL NAND partition
 					if(i == 4)                                         // CTR NAND partition
 					{
-						if(unit_is_new3ds) dev_dnand.partitions[i].keyslot = 0x05; // TODO: Load N3DS keyY
+						if(bootInfo.unit_is_new3ds) dev_dnand.partitions[i].keyslot = 0x05; // TODO: Load N3DS keyY
 						else dev_dnand.partitions[i].keyslot = 0x04;
 						// Set CTR NAND partition offset for diskio.c
 						ctr_nand_sector = header.partitions[i].mediaOffset;

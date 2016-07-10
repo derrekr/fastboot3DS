@@ -19,36 +19,27 @@ enum menu_state_type menu_state;
 enum menu_state_type menu_previous_states[8];
 int previous_states_count;
 
-bool unit_is_new3ds;
-
 void heap_init();
 
 static void menu_main_draw_top()
 {
 	const char *sd_res[2]	= {"\x1B[31mNo ", "\x1B[32mYes"};
 	const char *nand_res[2]	= {"\x1B[31mError ", "\x1B[32mOK   "};
-	const char *unit[2]		= {"Original 3DS", "New 3DS"};
-	const char *boot_environment [2]	=	{	"Cold boot",				// 0
-												"Booted from Native FIRM",	// 1
-												"Booted from <Unknown>",	// 2, etc
-												"Booted from Legacy FIRM"	// 3
-											};
 	
-	bool sd_status, nand_status, wififlash_status;
+	bool sd_status;
 	
 	sd_status = dev_sdcard->is_active();
-	nand_status = dev_rawnand->is_active();
-	wififlash_status = dev_flash->is_active();
 	
 	consoleSelect(&con_top);
 	drawConsoleWindow(&con_top, 2, color);
 	printf("\n\t\t\t\t\t3DS Bootloader v0.1\n\n\n\n");
 	
-	printf(" Model: %s\n", unit[unit_is_new3ds]);
-	printf(" \x1B[33m%s\e[0m\n\n", boot_environment[boot_env]);
+	printf(" Model: %s\n", bootInfo.model);
+	printf(" \x1B[33m%s\e[0m\n", bootInfo.boot_env);
+	printf(" \x1B[32m(%s Mode)\e[0m\n\n", bootInfo.mode);
 	printf(" SD card inserted: %s\e[0m\n", sd_res[sd_status]);
-	printf(" NAND status: %s\e[0m\n", nand_res[nand_status]);
-	printf(" Wifi flash status: %s\e[0m", nand_res[wififlash_status]);
+	printf(" NAND status: %s\e[0m\n", nand_res[bootInfo.nand_status]);
+	printf(" Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
 void rewindConsole()
@@ -169,6 +160,10 @@ int enter_menu(void)
 				consoleClear();
 				printf("selected file:\n%s\n", path);
 				sleep_wait(0x8000000);
+				printf("loading firm...\n");
+				loadFirmSd(path);
+				if(!firm_load_verify()) printf("bad firm\n");
+				else goto exitAndLaunchFirm;
 				menu_state = STATE_MAIN;
 				break;
 			
@@ -182,3 +177,4 @@ exitAndLaunchFirm:
 
 	return 0;
 }
+
