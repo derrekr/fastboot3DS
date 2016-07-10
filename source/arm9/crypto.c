@@ -68,7 +68,7 @@ void AES_setKey(u32 params, u8 keyslot, AesKeyType type, const u32 *restrict key
 	}
 	else // TWL keyslot
 	{
-		REG_AESKEYCNT = keyslot | 0xC0;
+		REG_AESKEYCNT = keyslot | 0x80;
 		for(u32 i = 0; i < 4; i++) REG_AESKEY0[(u32)12 * keyslot + ((u32)type * 4) + i] = key[i];
 	}
 
