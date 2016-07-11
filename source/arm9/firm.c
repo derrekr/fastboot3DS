@@ -2,14 +2,52 @@
 #include <stdio.h>
 #include <string.h>
 #include "types.h"
-#include "arm9/firm.h"
+// we need the arm11 mem map information
+#define ARM11
 #include "mem_map.h"
+#undef ARM11
+#include "arm9/firm.h"
 #include "arm9/crypto.h"
 #include "cache.h"
 #include "arm9/ndma.h"
 #include "pxi.h"
 
 
+
+/* We don't want the FIRM to do hacky stuff with out loader */
+
+typedef struct
+{
+	u32 addr;
+	u32 size;
+} firmProtectedArea;
+
+static const firmProtectedArea firmProtectedAreas[] = {
+	{	// FIRM buffer
+		FIRM_LOAD_ADDR, FIRM_MAX_SIZE
+	},
+	{	// io regs
+		IO_MEM_BASE, VRAM_BASE - IO_MEM_BASE
+	},
+	{	// arm9 exception vector table
+		A9_VECTORS_START, A9_VECTORS_SIZE
+	},
+	{	// arm9 stack
+		A9_STACK_START, A9_STACK_END - A9_STACK_START
+	},
+	{	// arm9 relocated firm launch stub
+		A9_STUB_ENTRY, A9_STUB_SIZE
+	},
+	{	// arm11 exception vector table
+		A11_VECTORS_START, A11_VECTORS_SIZE
+	},
+	{	// arm11 stack
+		A11_STACK_START, A11_STACK_END - A11_STACK_START
+	},
+	{	// arm11 relocated firm launch stub
+		A11_STUB_ENTRY, A11_STUB_SIZE
+	}	
+};
 
 void NAKED firmLaunchStub(void)
 {	
@@ -50,14 +88,18 @@ void NAKED firmLaunchStub(void)
 	__asm__("mov lr, %[in]\nbx %[in2]\n" : : [in] "r" (ret), [in2] "r" (entry9));
 }
 
-bool firm_load_verify(void)
+// TODO: Add more safety checks.
+bool firm_load_verify(u32 fwSize)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	const char *res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
 	bool isValid;
 	bool retval = true;
 	u32 hash[8];
-
+	
+	if(strncmp((char *)firm_hdr->magic, "FIRM", 4))
+		return false;
+	
 	printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
 	printf("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
 
@@ -70,6 +112,27 @@ bool firm_load_verify(void)
 
 		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size 0x%"PRIX32"\n",
 				i, section->offset, section->address, section->size);
+				
+		if(section->offset >= fwSize) 
+		{
+			printf("\x1B[31mBad section offset!\e[0m\n");
+			return false;
+		}
+		
+		// check for bad sections
+		const u32 numEntries = sizeof(firmProtectedAreas)/sizeof(firmProtectedArea);
+		for(i=0; i<numEntries; i++)
+		{
+			u32 addr = firmProtectedAreas[i].addr;
+			u32 size = firmProtectedAreas[i].size;
+			if((section->address + section->size < section->address) ||
+				((section->address >= addr) && (section->size >= size) &&
+				(section->address + section->size <= addr + size)))
+				{
+					printf("\x1B[31mUnallowed section! %x %x\e[0m\n", addr, size);
+					return false;
+				}
+		}
 
 		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 		isValid = memcmp(hash, section->hash, 32) == 0;
@@ -89,7 +152,7 @@ void NORETURN firm_launch(void)
 	while(PXI_recvWord() != 0x4F4B4F4B);
 	
 	//printf("Relocating FIRM launch stub...\n");
-	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, 0x200>>2);
+	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE>>2);
 
 	//printf("Starting firm launch...\n");
 	void (*stub)(void) = (void (*)(void))A9_STUB_ENTRY;

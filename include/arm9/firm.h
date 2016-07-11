@@ -45,5 +45,5 @@ extern void NORETURN (*firmLaunchEntry9)(void);
 extern void NORETURN (*firmLaunchEntry11)(void);
 
 
-bool firm_load_verify(void);
+bool firm_load_verify(u32 firmSize);
 void NORETURN firm_launch(void);

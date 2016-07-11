@@ -138,7 +138,7 @@ int enter_menu(void)
 				consoleClear();
 				consoleSelect(&con_top);
 				consoleClear();
-				if(!firm_load_verify())
+				if(!firm_load_verify(0x400000))
 				{
 					consoleSelect(&con_bottom);
 					printf("Press B to return to Main Menu");
@@ -162,7 +162,7 @@ int enter_menu(void)
 				sleep_wait(0x8000000);
 				printf("loading firm...\n");
 				loadFirmSd(path);
-				if(!firm_load_verify()) printf("bad firm\n");
+				if(!firm_load_verify(0x400000)) printf("bad firm\n");
 				else goto exitAndLaunchFirm;
 				menu_state = STATE_MAIN;
 				break;

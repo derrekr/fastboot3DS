@@ -92,7 +92,10 @@
 
 /* Custom mappings */
 #ifdef ARM9
+#define	A9_VECTORS_START	 A9_RAM_BASE
+#define	A9_VECTORS_SIZE		 0x40
 #define	A9_STUB_ENTRY        (A9_RAM_BASE + A9_RAM_SIZE - 0x200)
+#define	A9_STUB_SIZE         0x200
 #define A9_HEAP_SIZE         (0x96000) // 600 KB
 #define A9_STACK_START       (DTCM_BASE)
 #define A9_STACK_END         (DTCM_BASE + DTCM_SIZE)
@@ -100,7 +103,10 @@
 
 
 #ifdef ARM11
+#define	A11_VECTORS_START	 0x1FFFFFA0
+#define	A11_VECTORS_SIZE	 AXIWRAM_BASE + AXIWRAM_SIZE - A11_VECTORS_START
 #define A11_STUB_ENTRY       (AXIWRAM_BASE + AXIWRAM_SIZE - 0x200)
-#define A11_STACK_START      (A11_STUB_ENTRY - 0x3FE00) // Half of AXIWRAM
+#define	A11_STUB_SIZE        0x200
+#define A11_STACK_START      (A11_STUB_ENTRY - 0xE00)
 #define A11_STACK_END        (A11_STUB_ENTRY)
 #endif
