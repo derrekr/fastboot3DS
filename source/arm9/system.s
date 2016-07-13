@@ -61,15 +61,15 @@ resetCriticalHardware:
 	ldr r1, =(IO_MEM_ARM9_ONLY + 0x3000) @ Timer regs
 	ldr r0, =(IO_MEM_ARM9_ONLY + 0x1000) @ IRQ regs
 	stmia r0, {r3, r12}                  @ Disable and aknowledge all interrupts
+
 	str r3, [r2]                         @ REG_NDMA_GLOBAL_CNT
-	str r3, [r2, #0x1C]                  @ REG_NDMA0_CNT
-	str r3, [r2, #0x38]                  @ REG_NDMA1_CNT
-	str r3, [r2, #0x54]                  @ REG_NDMA2_CNT
-	str r3, [r2, #0x70]                  @ REG_NDMA3_CNT
-	str r3, [r2, #0x8C]                  @ REG_NDMA4_CNT
-	str r3, [r2, #0xA8]                  @ REG_NDMA5_CNT
-	str r3, [r2, #0xC4]                  @ REG_NDMA6_CNT
-	str r3, [r2, #0xE0]                  @ REG_NDMA7_CNT
+	add r2, r2, #0x1C                    @ REG_NDMA0_CNT
+	mov r12, #8
+	loop_disable:
+		str r3, [r2], #0x1C              @ REG_NDMA_CNT(n) = 0
+		subs r12, r12, #1
+		bne loop_disable
+
 	strh r3, [r1, #2]                    @ REG_TIMER0_CNT
 	strh r3, [r1, #6]                    @ REG_TIMER1_CNT
 	strh r3, [r1, #0xA]                  @ REG_TIMER2_CNT

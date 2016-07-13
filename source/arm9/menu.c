@@ -182,6 +182,7 @@ int enter_menu(void)
 	}
 
 exitAndLaunchFirm:
+	stopTimer(TIMER_0);
 
 	return 0;
 }
