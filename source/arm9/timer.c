@@ -22,7 +22,7 @@ void stopTimer(Timer timer)
 
 void timerSleep(u32 ms)
 {
-	u32 tmp = 0xFFFFFFFFu - (u32)((((double)TIMER_BASE_FREQ / 1024.0f) / 1000.0f) * ms);
+	u32 tmp = 0xFFFFFFFFu - (u32)((TIMER_BASE_FREQ / 1024.0l / 1000.0l) * ms);
 
 	REG_TIMER2_VAL = (u16)tmp;
 	REG_TIMER3_VAL = (u16)(tmp>>16);

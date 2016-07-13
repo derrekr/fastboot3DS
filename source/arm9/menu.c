@@ -65,7 +65,7 @@ int enter_menu(void)
 	
 	cursor_pos = 0;
 
-	startTimer(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+	startTimer(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0l), true);
 
 	// Menu main loop
 	for(;;)
