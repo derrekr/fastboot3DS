@@ -1,12 +1,13 @@
 #include "types.h"
 #include "pxi.h"
-//#include "interrupt.h"
+#include "arm9/interrupt.h"
 
 
 
 void PXI_init(void)
 {
-	REG_PXI_SYNC9 = 0;
+	REG_IRQ_IE |= INTERRUPT_PXI_SYNC;
+	REG_PXI_SYNC9 = PXI_INTERRUPT_ENABLE;
 	REG_PXI_CNT9 = PXI_FLUSH_SEND_FIFO | PXI_ENABLE_SEND_RECV_FIFO;
 }
 

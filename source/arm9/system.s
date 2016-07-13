@@ -8,6 +8,7 @@
 .global finiSystem
 
 .type initSystem STT_FUNC
+.type resetCriticalHardware STT_FUNC
 .type setupExceptionVectors STT_FUNC
 .type setupTcms STT_FUNC
 .type setupMpu STT_FUNC
@@ -45,10 +46,35 @@ initSystem:
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
 	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 
+	bl resetCriticalHardware
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 	bl setupMpu
 	bx r10
+
+
+// Based on code compiled with gcc
+resetCriticalHardware:
+	mov r3, #0
+	mov r12, #0xFFFFFFFF
+	ldr r2, =(IO_MEM_ARM9_ONLY + 0x2000) @ NDMA regs
+	ldr r1, =(IO_MEM_ARM9_ONLY + 0x3000) @ Timer regs
+	ldr r0, =(IO_MEM_ARM9_ONLY + 0x1000) @ IRQ regs
+	stmia r0, {r3, r12}                  @ Disable and aknowledge all interrupts
+	str r3, [r2]                         @ REG_NDMA_GLOBAL_CNT
+	str r3, [r2, #0x1C]                  @ REG_NDMA0_CNT
+	str r3, [r2, #0x38]                  @ REG_NDMA1_CNT
+	str r3, [r2, #0x54]                  @ REG_NDMA2_CNT
+	str r3, [r2, #0x70]                  @ REG_NDMA3_CNT
+	str r3, [r2, #0x8C]                  @ REG_NDMA4_CNT
+	str r3, [r2, #0xA8]                  @ REG_NDMA5_CNT
+	str r3, [r2, #0xC4]                  @ REG_NDMA6_CNT
+	str r3, [r2, #0xE0]                  @ REG_NDMA7_CNT
+	strh r3, [r1, #2]                    @ REG_TIMER0_CNT
+	strh r3, [r1, #6]                    @ REG_TIMER1_CNT
+	strh r3, [r1, #0xA]                  @ REG_TIMER2_CNT
+	strh r3, [r1, #0xE]                  @ REG_TIMER3_CNT
+	bx lr
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
@@ -223,7 +249,8 @@ setupMpu:
 
 
 finiSystem:
-	mov r3, lr
+	mov r4, lr
+	bl resetCriticalHardware
 
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
@@ -235,13 +262,11 @@ finiSystem:
 		bne loop_stub
 
 	bl flushDCache
-
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-
 	mov r0, #0
 	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
-	bx r3
+	bx r4
