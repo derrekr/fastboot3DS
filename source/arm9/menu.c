@@ -12,6 +12,8 @@
 #include "arm9/main.h"
 #include "arm9/util_nand.h"
 #include "arm9/menu.h"
+#include "arm9/timer.h"
+#include "arm9/interrupt.h"
 
 u8 color;
 enum menu_state_type menu_state;
@@ -62,7 +64,9 @@ int enter_menu(void)
 	previous_states_count = 0;
 	
 	cursor_pos = 0;
-	
+
+	startTimer(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+
 	// Menu main loop
 	for(;;)
 	{
@@ -169,8 +173,12 @@ int enter_menu(void)
 			
 			default: printf("OOPS!\n"); break;
 		}
-		
-		
+
+		// Later if PXI interrupts are implemented we need an
+		// interrupt handler here which can tell the timer and
+		// PXI interrupts apart.
+		__asm__("mcr p15, 0, %[in], c7, c0, 4\n" : : [in] "r" (0));
+		REG_IRQ_IF = (u32)INTERRUPT_TIMER_0;
 	}
 
 exitAndLaunchFirm:
