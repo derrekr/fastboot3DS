@@ -18,6 +18,7 @@
 .extern initSystem
 .extern finiSystem
 .extern __libc_init_array
+.extern initHardware
 .extern main
 .extern firm_launch
 .extern __bss_start__
@@ -61,6 +62,9 @@ skip_pool:
 	str r0, [r1]
 
 	blx __libc_init_array       @ Initialize ctors and dtors
+	blx initHardware
+	mov r0, #0
+	mov r1, #0
 	blx main
 	cmp r0, #0
 	bne .
