@@ -6,7 +6,7 @@
 
 typedef enum
 {
-	INTERRUPT_DMAC_1_0      = (1u<<0),
+	INTERRUPT_DMAC_1_0      = (1u<<0), // DMAC = NDMA
 	INTERRUPT_DMAC_1_1      = (1u<<1),
 	INTERRUPT_DMAC_1_2      = (1u<<2),
 	INTERRUPT_DMAC_1_3      = (1u<<3),

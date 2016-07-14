@@ -20,18 +20,18 @@
 
 typedef enum
 {
-	TIMER_0 = 0u,
-	TIMER_1 = 1u,
-	TIMER_2 = 2u,
-	TIMER_3 = 3u
+	TIMER_0 = 0,
+	TIMER_1 = 1,
+	TIMER_2 = 2,
+	TIMER_3 = 3
 } Timer;
 
 typedef enum
 {
-	TIMER_PRESCALER_1    = 0u,
-	TIMER_PRESCALER_64   = 1u,
-	TIMER_PRESCALER_256  = 2u,
-	TIMER_PRESCALER_1024 = 3u
+	TIMER_PRESCALER_1    = 0,
+	TIMER_PRESCALER_64   = 1,
+	TIMER_PRESCALER_256  = 2,
+	TIMER_PRESCALER_1024 = 3
 } TimerPrescaler;
 
 

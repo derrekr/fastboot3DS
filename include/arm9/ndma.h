@@ -24,6 +24,7 @@
 #define NDMA_SRC_UPDATE_FIXED         (2u<<13)
 #define NDMA_SRC_UPDATE_FILL          (3u<<13)
 #define NDMA_SRC_ADDR_RELOAD          (1u<<15)
+#define NDMA_STARTUP_MODE(n)          (n<<24)
 
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
 #define NDMA_BLK_TRANS_WORD_COUNT(n)  (n<<16)
@@ -31,6 +32,27 @@
 #define NDMA_REPEATING_MODE           (1u<<29)
 #define NDMA_INTERRUPT_ENABLE         (1u<<30)
 #define NDMA_ENABLE                   (1u<<31)
+
+
+ enum
+ {
+ 	NDMA_STARTUP_UNK_0   = (0 <<24),
+ 	NDMA_STARTUP_UNK_1   = (1 <<24),
+ 	NDMA_STARTUP_UNK_2   = (2 <<24),
+ 	NDMA_STARTUP_UNK_3   = (3 <<24),
+ 	NDMA_STARTUP_UNK_4   = (4 <<24),
+ 	NDMA_STARTUP_UNK_5   = (5 <<24),
+ 	NDMA_STARTUP_UNK_6   = (6 <<24),
+ 	NDMA_STARTUP_UNK_7   = (7 <<24),
+ 	NDMA_STARTUP_AES_IN  = (8 <<24), // AES write fifo
+ 	NDMA_STARTUP_AES_OUT = (9 <<24), // AES read fifo
+ 	NDMA_STARTUP_UNK_10  = (10<<24),
+ 	NDMA_STARTUP_UNK_11  = (11<<24),
+ 	NDMA_STARTUP_UNK_12  = (12<<24),
+ 	NDMA_STARTUP_UNK_13  = (13<<24),
+ 	NDMA_STARTUP_UNK_14  = (14<<24),
+ 	NDMA_STARTUP_UNK_15  = (15<<24)
+ };
 
 
 
