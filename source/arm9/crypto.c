@@ -118,37 +118,71 @@ void AES_setCryptParams(AES_ctx *restrict ctx, u32 params)
 	ctx->aesParams = params;
 }
 
+static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, u32 burstSize)
+{
+	REG_NDMA0_CNT = 0;
+	REG_NDMA0_SRC_ADDR = (u32)in;
+	REG_NDMA0_DST_ADDR = (u32)REG_AESWRFIFO;
+	REG_NDMA0_WRITE_CNT = wordCount;
+	REG_NDMA0_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
+	REG_NDMA0_CNT = NDMA_ENABLE | NDMA_REPEATING_MODE | burstSize | NDMA_STARTUP_AES_IN |
+					NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
+
+	REG_NDMA1_CNT = 0;
+	REG_NDMA1_SRC_ADDR = (u32)REG_AESRDFIFO;
+	REG_NDMA1_DST_ADDR = (u32)out;
+	REG_NDMA1_WRITE_CNT = wordCount;
+	REG_NDMA1_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
+	REG_NDMA1_CNT = NDMA_ENABLE | NDMA_REPEATING_MODE | burstSize | NDMA_STARTUP_AES_OUT |
+					NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
+}
+
 void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
 {
 	// Align to 16 bytes.
-	size = (size + 0xfu) & ~0xfu;
-
-
-	flushDCacheRange(in, size);
+	size = (size + 0xf) & (u32)~0xf;
 
 	// Size is 4 words except for CCM mode.
 	u32 mode, ctrIvNonceSize;
 	if(((mode = ((ctx->aesParams>>27) & 7))) > 1) ctrIvNonceSize = 4;
 	else ctrIvNonceSize = 3;
 
-	REG_NDMA0_SRC_ADDR = (u32)in;
-	REG_NDMA1_DST_ADDR = (u32)out;
-	REG_NDMA0_CNT |= NDMA_ENABLE;
-	REG_NDMA1_CNT |= NDMA_ENABLE;
+	flushDCacheRange(in, size);
 
 	u32 offset = 0;
+	u32 aesParams = AES_ENABLE | AES_INTERRUPT_ENABLE | ctx->aesParams | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
 	while(offset < size)
 	{
 		u32 blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
 
+		u32 aesDmaFifoSize, ndmaBurstSize;
+		if(!(blockSize & 63))
+		{
+			aesDmaFifoSize = 3;
+			ndmaBurstSize = NDMA_BURST_SIZE(16);
+		}
+		else if(!(blockSize & 31))
+		{
+			aesDmaFifoSize = 1;
+			ndmaBurstSize = NDMA_BURST_SIZE(8);
+		}
+		else
+		{
+			aesDmaFifoSize = 0;
+			ndmaBurstSize = NDMA_BURST_SIZE(4);
+		}
+		setupNdma(in, out, (aesDmaFifoSize * 4 + 4), ndmaBurstSize);
+
 		REG_AESBLKCNT = (blockSize>>4)<<16;
-		REG_AESCNT = AES_ENABLE | AES_INTERRUPT_ENABLE | ctx->aesParams | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
+		REG_AESCNT = aesParams | (aesDmaFifoSize<<14) | ((3 - aesDmaFifoSize)<<12);
 		while(!(REG_IRQ_IF & (u32)INTERRUPT_AES))
 		{
 			__asm__("mcr p15, 0, %[in], c7, c0, 4\n" : : [in] "r" (0));
 		}
 		REG_IRQ_IF = (u32)INTERRUPT_AES;
 
+		in += blockSize>>2;
+		out += blockSize>>2;
 		offset += blockSize;
 
 		if(mode == 2) // AES_MODE_CTR
@@ -161,9 +195,8 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 		}
 	}
 
-	REG_NDMA0_CNT &= ~NDMA_ENABLE;
-	REG_NDMA1_CNT &= ~NDMA_ENABLE;
-
+	REG_NDMA0_CNT = 0;
+	REG_NDMA1_CNT = 0;
 	invalidateDCacheRange(out, size);
 }
 

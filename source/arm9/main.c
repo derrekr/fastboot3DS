@@ -10,7 +10,6 @@
 #include "hid.h"
 #include "arm9/main.h"
 #include "arm9/spiflash.h"
-#include "pxi.h"
 
 // PrintConsole for each screen
 PrintConsole con_top, con_bottom;
@@ -29,8 +28,6 @@ static void fw_detect();
 int main(void)
 {
 	hashCodeRoData();	// TODO: remove after debugging
-
-	PXI_init();
 
 	//Initialize console for both screen using the two different PrintConsole we have defined
 	consoleInit(SCREEN_TOP, &con_top);

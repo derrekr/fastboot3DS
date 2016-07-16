@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <tgmath.h>
 #include "types.h"
 #include "io.h"
 
@@ -27,7 +28,7 @@
 #define NDMA_STARTUP_MODE(n)          (n<<24)
 
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
-#define NDMA_BLK_TRANS_WORD_COUNT(n)  (n<<16)
+#define NDMA_BURST_SIZE(n)            ((u32)log2(n)<<16)
 #define NDMA_IMMEDIATE_MODE           (1u<<28)
 #define NDMA_REPEATING_MODE           (1u<<29)
 #define NDMA_INTERRUPT_ENABLE         (1u<<30)

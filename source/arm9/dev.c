@@ -278,9 +278,9 @@ bool sdmmc_dnand_init(void)
 		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, AES_KEY_TYPE_Y, twlKeyY, false, true);
 
 		// Crypt settings
-		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_BIT12 | AES_BIT13 | AES_OUTPUT_LITTLE | AES_INPUT_LITTLE |
+		AES_setCryptParams(&dev_dnand.twlAesCtx, /*AES_BIT12 | AES_BIT13 |*/ AES_OUTPUT_LITTLE | AES_INPUT_LITTLE |
 							AES_OUTPUT_REVERSED_ORDER | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR);
-		AES_setCryptParams(&dev_dnand.ctrAesCtx, AES_BIT12 | AES_BIT13 | AES_OUTPUT_BIG | AES_INPUT_BIG |
+		AES_setCryptParams(&dev_dnand.ctrAesCtx, /*AES_BIT12 | AES_BIT13 |*/ AES_OUTPUT_BIG | AES_INPUT_BIG |
 							AES_OUTPUT_NORMAL_ORDER | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR);
 
 		dev_dnand.dev.initialized = true;

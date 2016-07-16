@@ -16,7 +16,7 @@
 //             AES              //
 //////////////////////////////////
 
-#define AES_MAX_BUF_SIZE           (0xFFFF0)
+#define AES_MAX_BUF_SIZE           (0xFFFC0)
 
 #define AES_WRITE_FIFO_COUNT       ((REG_AESCNT>>0) & 0x1F)
 #define AES_READ_FIFO_COUNT        ((REG_AESCNT>>5) & 0x1F)
@@ -24,11 +24,9 @@
 #define AES_BUSY                   (1u<<31)
 #define AES_FLUSH_READ_FIFO        (1u<<10)
 #define AES_FLUSH_WRITE_FIFO       (1u<<11)
-#define AES_BIT12                  (1u<<12)
-#define AES_BIT13                  (1u<<13)
 #define AES_MAC_SIZE(n)            (((n - 2) / 2)<<16)
 #define AES_MAC_REGISTER_SOURCE    (1u<<20)
-#define AES_MAC_STATUS             (1u<<21) // AES_UNKNOWN_21
+#define AES_MAC_STATUS             (1u<<21)
 #define AES_OUTPUT_BIG             (1u<<22)
 #define AES_OUTPUT_LITTLE          (0u)
 #define AES_INPUT_BIG              (1u<<23)
@@ -37,7 +35,7 @@
 #define AES_OUTPUT_REVERSED_ORDER  (0u)
 #define AES_INPUT_NORMAL_ORDER     (1u<<25)
 #define AES_INPUT_REVERSED_ORDER   (0u)
-#define AES_UPDATE_KEYSLOT         (1u<<26) // AES_UNKNOWN_26
+#define AES_UPDATE_KEYSLOT         (1u<<26)
 #define AES_INTERRUPT_ENABLE       (1u<<30)
 #define AES_ENABLE                 (1u<<31)
 
