@@ -1,3 +1,5 @@
+#include "mem_map.h"
+
 .arm
 .arch armv5te
 .fpu softvfp
@@ -27,7 +29,7 @@ prefetchAbortHandler:
 dataAbortHandler:
 	msr cpsr_f, #(2<<29)
 exceptionHandler:
-	ldr sp, =0x02000000
+	mov sp, #A9_EXC_STACK_END
 	stmfd sp!, {r0-r14}^        @ Save all user/system mode regs except pc
 	mrs r5, cpsr
 	lsr r5, r5, #29             @ Get back the exception type from cpsr

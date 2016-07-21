@@ -269,19 +269,19 @@ bool sdmmc_dnand_init(void)
 		twlKeyX[1] = 0x544E494E; // "NINT"
 		twlKeyX[2] = 0x4F444E45; // "ENDO"
 		twlKeyX[3] = *((u32*)0x01FFB80C) ^ 0x08C267B7;
-		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, AES_KEY_TYPE_X, twlKeyX, false, false);
+		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED, 3, AES_KEY_TYPE_X, twlKeyX, false, false);
 
 		// TWL keyslot 0x03 keyY
 		u32 twlKeyY[4];
 		for(int i = 0; i < 3; i++) twlKeyY[i] = ((u32*)0x01FFD3C8)[i];
 		twlKeyY[3] = 0xE1A00005;
-		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER, 3, AES_KEY_TYPE_Y, twlKeyY, false, true);
+		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED, 3, AES_KEY_TYPE_Y, twlKeyY, false, true);
 
 		// Crypt settings
-		AES_setCryptParams(&dev_dnand.twlAesCtx, /*AES_BIT12 | AES_BIT13 |*/ AES_OUTPUT_LITTLE | AES_INPUT_LITTLE |
-							AES_OUTPUT_REVERSED_ORDER | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR);
-		AES_setCryptParams(&dev_dnand.ctrAesCtx, /*AES_BIT12 | AES_BIT13 |*/ AES_OUTPUT_BIG | AES_INPUT_BIG |
-							AES_OUTPUT_NORMAL_ORDER | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR);
+		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_OUTPUT_LITTLE | AES_INPUT_LITTLE | AES_OUTPUT_REVERSED |
+							AES_INPUT_REVERSED | AES_MODE_CTR);
+		AES_setCryptParams(&dev_dnand.ctrAesCtx, AES_OUTPUT_BIG | AES_INPUT_BIG | AES_OUTPUT_NORMAL |
+							AES_INPUT_NORMAL | AES_MODE_CTR);
 
 		dev_dnand.dev.initialized = true;
 	}
@@ -317,12 +317,12 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	if(partition->keyslot == 0x03)
 	{
 		ctx = &dev_dnand.twlAesCtx;
-		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED_ORDER | AES_MODE_CTR, sector<<9);
+		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED | AES_MODE_CTR, sector<<9);
 	}
 	else
 	{
 		ctx = &dev_dnand.ctrAesCtx;
-		AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL_ORDER | AES_MODE_CTR, sector<<9);
+		AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL | AES_MODE_CTR, sector<<9);
 	}
 	
 	if(sdmmc_nand_readsectors(sector, count, buf)) return false;

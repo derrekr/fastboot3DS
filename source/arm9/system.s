@@ -142,8 +142,8 @@ setupTcms:
 #define PER_PRIV_RW_USR_RW     (0b0011)
 #define PER_PRIV_RO_USR_NO_ACC (0b0101)
 #define PER_PRIV_RO_USR_RO     (0b0110)
-#define MAKE_PERMISSIONS(_0, _1, _2, _3, _4, _5, _6, _7) \
-	((_0) | (_1<<4) | (_2<<8) | (_3<<12) | (_4<<16) | (_5<<20) | (_6<<24) | (_7<<28))
+#define MAKE_PERMISSIONS(r0, r1, r2, r3, r4, r5, r6, r7) \
+	((r0) | (r1<<4) | (r2<<8) | (r3<<12) | (r4<<16) | (r5<<20) | (r6<<24) | (r7<<28))
 
 setupMpu:
 	@ Region 0: ITCM kernel mirror 32 KB
@@ -229,12 +229,12 @@ setupMpu:
 	@ Region 0 = no
 	@ Region 1 = yes
 	@ Region 2 = no  <-- Never buffer IO reg writes
-	@ Region 3 = no
+	@ Region 3 = yes
 	@ Region 4 = yes
 	@ Region 5 = yes
 	@ Region 6 = no
 	@ Region 7 = no
-	mov r0, #0b00110010
+	mov r0, #0b00111010
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register

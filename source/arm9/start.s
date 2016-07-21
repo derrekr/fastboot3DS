@@ -32,6 +32,7 @@
 
 
 _start:
+	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
 	b skip_pool
 
 	.string "3DS BOOTLOADER "
@@ -43,7 +44,6 @@ firmLaunchEntry11:
 	.word   0
 
 skip_pool:
-	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
 	ldr sp, =A9_STACK_END
 
 	bl initSystem
@@ -55,6 +55,7 @@ skip_pool:
 
 	@ Setup newlib heap
 	ldr r0, =__end__
+	add r0, r0, #4              @ Do not overwrite the value at symbol __end__
 	ldr r1, =fake_heap_start
 	str r0, [r1]
 	add r0, r0, #A9_HEAP_SIZE

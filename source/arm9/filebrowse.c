@@ -255,8 +255,8 @@ const char *browseForFile(const char *basePath)
 			else goto fail;
 		}
 
-		__asm__("mcr p15, 0, %[in], c7, c0, 4\n" : : [in] "r" (0));
-		REG_IRQ_IF = (u32)INTERRUPT_TIMER_0;
+		waitForIrq();
+		REG_IRQ_IF = (u32)IRQ_TIMER_0;
 	}
 	
 	f_closedir(&curDirectory);

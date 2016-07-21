@@ -67,7 +67,7 @@ void AES_setKey(u32 params, u8 keyslot, AesKeyType type, const u32 *restrict key
 	if(keyslot > 3) // CTR keyslot
 	{
 		REG_AESKEYCNT = keyslot | (useTwlScrambler<<6) | 0x80;
-		for(u32 i = 0; i < 4; i++) REG_AESKEYFIFO[type] = key[i];
+		for(u32 i = 0; i < 4; i++) REG_AESKEYFIFO[(u32)type] = key[i];
 	}
 	else // TWL keyslot
 	{
@@ -87,25 +87,19 @@ void AES_selectKeyslot(u8 keyslot, bool updateKeyslot)
 
 void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u32 params, u32 initialCtr)
 {
-	u32 ctrIvNonceSize;
-
-
-	if(((params>>27) & 7) > 1) ctrIvNonceSize = 4;
+	u32 ctrIvNonceSize, mode;
+	if((mode = (params>>27 & 7)) > 1) ctrIvNonceSize = 4;
 	else ctrIvNonceSize = 3;
 
-	if(params & AES_INPUT_NORMAL_ORDER)
+	if(params & AES_INPUT_NORMAL)
 	{
 		for(u32 i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[ctrIvNonceSize - 1 - i];
 	}
 	else for(u32 i = 0; i < ctrIvNonceSize; i++) ctx->ctrIvNonce[i] = ctrIvNonce[i];
-	ctx->ctrIvNonceEndianess = params;
+	ctx->ctrIvNonceParams = params;
 
 	// If cipher mode is CTR add the initial value to it. Can be 0.
-	if(((params>>27) & 7) == 2) addCounter(ctx->ctrIvNonce, initialCtr);
-
-	// Set CTR/IV/nonce.
-	REG_AESCNT = ctx->ctrIvNonceEndianess;
-	for(u32 i = 0; i < ctrIvNonceSize; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
+	if(mode == 2) addCounter(ctx->ctrIvNonce, initialCtr);
 }
 
 u32* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx)
@@ -140,21 +134,23 @@ static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, 
 void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
 {
 	// Align to 16 bytes.
-	size = (size + 0xf) & (u32)~0xf;
+	size = (size + 0xF) & ~0xFu;
 
 	// Size is 4 words except for CCM mode.
 	u32 mode, ctrIvNonceSize;
-	if(((mode = ((ctx->aesParams>>27) & 7))) > 1) ctrIvNonceSize = 4;
+	if((mode = (ctx->aesParams>>27 & 7)) > 1) ctrIvNonceSize = 4;
 	else ctrIvNonceSize = 3;
 
+	// All writes must finish before using DMA
 	flushDCacheRange(in, size);
 
 	u32 offset = 0;
-	u32 aesParams = AES_ENABLE | AES_INTERRUPT_ENABLE | ctx->aesParams | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
+	u32 aesParams = AES_ENABLE | AES_IRQ_ENABLE | ctx->aesParams | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
 	while(offset < size)
 	{
 		u32 blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
 
+		// Check 
 		u32 aesDmaFifoSize, ndmaBurstSize;
 		if(!(blockSize & 63))
 		{
@@ -171,32 +167,56 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 			aesDmaFifoSize = 0;
 			ndmaBurstSize = NDMA_BURST_SIZE(4);
 		}
-		setupNdma(in, out, (aesDmaFifoSize * 4 + 4), ndmaBurstSize);
+		setupNdma(in, out, aesDmaFifoSize * 4 + 4, ndmaBurstSize);
 
+		// Set CTR/IV/nonce
+		REG_AESCNT = ctx->ctrIvNonceParams;
+		for(u32 i = 0; i < ctrIvNonceSize; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
+		if(mode == 4) // AES_MODE_CBC_DECRYPT
+		{
+			// Save last 16 bytes of current input block as next IV for CBC decrypt
+			if(ctx->ctrIvNonceParams & AES_INPUT_NORMAL)
+			{
+				for(u32 i = 0; i < 4; i++) ctx->ctrIvNonce[i] = in[(blockSize>>2) - 4 + 3 - i];
+			}
+			else for(u32 i = 0; i < 4; i++) ctx->ctrIvNonce[i] = in[(blockSize>>2) - 4 + i];
+		}
+
+		// Setup the AES engine and wait for it to finish
 		REG_AESBLKCNT = (blockSize>>4)<<16;
 		REG_AESCNT = aesParams | (aesDmaFifoSize<<14) | ((3 - aesDmaFifoSize)<<12);
-		while(!(REG_IRQ_IF & (u32)INTERRUPT_AES))
+		while(!(REG_IRQ_IF & (u32)IRQ_AES))
 		{
-			__asm__("mcr p15, 0, %[in], c7, c0, 4\n" : : [in] "r" (0));
+			waitForIrq();
 		}
-		REG_IRQ_IF = (u32)INTERRUPT_AES;
+		REG_IRQ_IF = (u32)IRQ_AES; // Aknowledge interrupt
 
-		in += blockSize>>2;
-		out += blockSize>>2;
-		offset += blockSize;
 
 		if(mode == 2) // AES_MODE_CTR
 		{
 			// Increase counter.
 			addCounter(ctx->ctrIvNonce, blockSize);
-
-			REG_AESCNT = ctx->ctrIvNonceEndianess; // CTR/IV/NONCE endianess
-			for(u32 i = 0; i < ctrIvNonceSize; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
 		}
+		else if(mode == 5) // AES_MODE_CBC_ENCRYPT
+		{
+			// Save last 16 bytes of current output block as next IV for CBC encrypt
+			if(ctx->ctrIvNonceParams & AES_INPUT_NORMAL)
+			{
+				for(u32 i = 0; i < 4; i++) ctx->ctrIvNonce[i] = out[(blockSize>>2) - 4 + 3 - i];
+			}
+			else for(u32 i = 0; i < 4; i++) ctx->ctrIvNonce[i] = out[(blockSize>>2) - 4 + i];
+		}
+
+		in += blockSize>>2;
+		out += blockSize>>2;
+		offset += blockSize;
 	}
 
+	// Disable the NDMA channels
 	REG_NDMA0_CNT = 0;
 	REG_NDMA1_CNT = 0;
+
+	// Throw possibly cached lines out of the window
 	invalidateDCacheRange(out, size);
 }
 

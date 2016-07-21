@@ -169,7 +169,7 @@ static void fw_detect()
 
 u8 rng_get_byte()
 {
-	u32 tmp = *((u32*)0x10011000); // PRNG reg
+	u32 tmp = REG_PRNG[0];
 	for(u32 i = 8; i < 32; i += 8)
 	{
 		tmp ^= (u8)(tmp >> i);
@@ -179,8 +179,7 @@ u8 rng_get_byte()
 
 static void loadFirmNand(void)
 {
-	memset((u8*)FCRAM_BASE, 0x00, 0x200);
-	dev_decnand->read_sector(0x0005A980, 0x00002000, (u8*)FCRAM_BASE);
+	dev_decnand->read_sector(0x0005A980, 0x00002000, (u8*)FIRM_LOAD_ADDR);
 }
 
 bool loadFirmSd(const char *filePath)

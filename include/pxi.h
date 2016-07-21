@@ -7,10 +7,10 @@
 
 // Defines for PX_SYNC regs
 #define PXI_DATA_RECEIVED(reg)      (reg & 0xFF)
-#define PXI_DATA_SENT(reg)          ((reg>>8) & 0xFF)
+#define PXI_DATA_SENT(reg)          (reg>>8 & 0xFF)
 #define PXI_NOTIFY_11               (1u<<29)
 #define PXI_NOTIFY_9                (1u<<30)
-#define PXI_INTERRUPT_ENABLE        (1u<<31)
+#define PXI_IRQ_ENABLE              (1u<<31)
 
 // Defines for PX_CNT regs
 #define PXI_SEND_FIFO_EMPTY         (1u<<0)
