@@ -134,7 +134,7 @@ static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, 
 void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
 {
 	// Align to 16 bytes.
-	size = (size + 0xF) & ~0xFu;
+	size = (size + 0xFu) & ~0xFu;
 
 	// Size is 4 words except for CCM mode.
 	u32 mode, ctrIvNonceSize;
@@ -150,7 +150,7 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 	{
 		u32 blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
 
-		// Check 
+		// Check block alignment
 		u32 aesDmaFifoSize, ndmaBurstSize;
 		if(!(blockSize & 63))
 		{
