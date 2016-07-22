@@ -5,8 +5,10 @@
  *  profi200
  */
 
+#include <assert.h>
 #include <string.h>
 #include "types.h"
+#include "mem_map.h"
 #include "arm9/crypto.h"
 #include "arm9/interrupt.h"
 #include "arm9/ndma.h"
@@ -133,6 +135,10 @@ static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, 
 
 void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
 {
+	// DMA can't reach TCMs
+	assert(((u32)in >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)in < DTCM_BASE) || ((u32)in >= DTCM_BASE + DTCM_SIZE)));
+	assert(((u32)out >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)out < DTCM_BASE) || ((u32)out >= DTCM_BASE + DTCM_SIZE)));
+
 	// Align to 16 bytes.
 	size = (size + 0xFu) & ~0xFu;
 

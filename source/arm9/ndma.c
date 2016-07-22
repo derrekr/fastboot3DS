@@ -3,7 +3,9 @@
  * profi200
  */
 
+#include <assert.h>
 #include "types.h"
+#include "mem_map.h"
 #include "arm9/ndma.h"
 #include "arm9/interrupt.h"
 
@@ -11,6 +13,9 @@
 
 void NDMA_copy(u32 *dest, const u32 *source, u32 num)
 {
+	assert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));
+	assert(((u32)source >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)source < DTCM_BASE) || ((u32)source >= DTCM_BASE + DTCM_SIZE)));
+
 	REG_NDMA7_SRC_ADDR = (u32)source;
 	REG_NDMA7_DST_ADDR = (u32)dest;
 	REG_NDMA7_WRITE_CNT = num;
@@ -26,6 +31,8 @@ void NDMA_copy(u32 *dest, const u32 *source, u32 num)
 
 void NDMA_fill(u32 *dest, u32 value, u32 num)
 {
+	assert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));
+
 	REG_NDMA7_DST_ADDR = (u32)dest;
 	REG_NDMA7_WRITE_CNT = num;
 	REG_NDMA7_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
