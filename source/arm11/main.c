@@ -17,7 +17,7 @@ void turn_off(void)
 	for(;;)
 	{
 		i2c_writeregdata(3, 0x20, 0xff);
-		sleep_wait(0x200000);
+		wait(0x200000);
 	}
 }
 
@@ -66,7 +66,7 @@ int main(void)
 		}
 		if(hidstate & MCU_HID_HOME_BUTTON_PRESSED)
 			i2cmcu_lcd_backlight_poweroff();
-		sleep_wait(0x8000);
+		wait(0x8000);
 	}
 
 	// Turn off LCDs and backlight before FIRM launch.

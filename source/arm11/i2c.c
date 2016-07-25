@@ -70,7 +70,7 @@ void i2c_put_byte(u32 bus_id, u8 data_byte)
 
 void i2c_start(u32 bus_id)
 {
-	sleep_wait(0x100);
+	wait(0x100);
 	if(bus_id == 0)
 		REG_I2C_BUS0_CNT = 0xC2;
 	else
@@ -91,7 +91,7 @@ void i2c_set_rw(u32 bus_id, u32 read_enable)
 bool i2c_test_ack(u32 bus_id)
 {
 	i2c_wait(bus_id);
-	sleep_wait(0x80);
+	wait(0x80);
 	u8 result;
 	if(bus_id == 0)
 		result = REG_I2C_BUS0_CNT;
@@ -103,7 +103,7 @@ bool i2c_test_ack(u32 bus_id)
 u8 i2c_receive_byte(u32 bus_id)
 {
 	i2c_wait(bus_id);
-	sleep_wait(0x100);
+	wait(0x100);
 	if(bus_id == 0)
 		return REG_I2C_BUS0_DATA;
 	else
@@ -128,7 +128,7 @@ void i2c_stop_err(u32 dev_id)
 	else
 		REG_I2C_BUS1_CNT = 0xC5;
 	i2c_wait(bus_id);
-	sleep_wait(0x200);
+	wait(0x200);
 }
 
 bool i2c_start_put_devaddr(u32 dev_id)

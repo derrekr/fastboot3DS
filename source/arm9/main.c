@@ -9,14 +9,6 @@
 #include "arm9/dev.h"
 #include "arm9/firm.h"
 
-// PrintConsole for each screen
-PrintConsole con_top, con_bottom;
-u8 color;
-// SD card FAT fs instance
-FATFS sd_fs;
-// same for all NAND fss
-FATFS nand_twlnfs, nand_twlpfs, nand_fs;
-
 static void devs_init();
 static void mount_fs();
 static void unit_detect();
@@ -81,7 +73,7 @@ static void devs_init()
 	bootInfo.nand_status = dev_rawnand->is_active();
 	bootInfo.wififlash_status = dev_flash->is_active();
 
-	if(!res) sleep_wait(0x8000000); // mmc or wififlash init fail
+	if(!res) wait(0x8000000); // mmc or wififlash init fail
 }
 
 void devs_close()
@@ -116,7 +108,7 @@ static void mount_fs()
 	res = f_mount(&nand_fs, "nand:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
-	sleep_wait(0x8000000);
+	wait(0x8000000);
 }
 
 void unmount_fs()

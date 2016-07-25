@@ -186,7 +186,7 @@ const char *browseForFile(const char *basePath)
 			{
 				if(cursor_pos != 0) cursor_pos--;
 				updateScreen(cursor_pos);
-				sleep_wait(0x1000);
+				wait(0x1000);
 			}
 			else if(keys & KEY_DDOWN)
 			{
@@ -200,7 +200,7 @@ const char *browseForFile(const char *basePath)
 				}
 				else cursor_pos++;
 				updateScreen(cursor_pos);
-				sleep_wait(0x1000);
+				wait(0x1000);
 			}
 			
 			else if(keys & KEY_A)	// select entry

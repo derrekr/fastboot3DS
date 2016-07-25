@@ -416,7 +416,7 @@ void sdmmc_init()
 int Nand_Init()
 {
 	set_target(&handleNAND);
-	sleep_wait(0xF000);
+	wait(0xF000);
 
 	sdmmc_send_command(&handleNAND,0,0);
 
@@ -472,7 +472,7 @@ int SD_Init()
 
 	set_target(&handleSD);
 
-	sleep_wait(0x10000);
+	wait(0x10000);
 
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);
@@ -532,7 +532,7 @@ int SD_Init()
 	tries = 0;
 	for(;;)
 	{
-		sleep_wait(0x1000);
+		wait(0x1000);
 		if(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE) break;
 		if(tries == 0x10000) return -1;
 		tries++;

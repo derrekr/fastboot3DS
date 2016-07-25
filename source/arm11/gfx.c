@@ -96,7 +96,7 @@ void gfx_init_framebufsetup()
 {
 	REG_PDN_GPU_CNT2_8BIT |= 1;	// turn on GPU
 	REG_PDN_GPU_CNT |= 1<<0x10;	// turn on LCD backlight
-	sleep_wait(0x1000);
+	wait(0x1000);
 	
 	REG_PDN_GPU_CNT |= 0x1007F;
 	REG_PDN_GPU_CNT4 |= 1;
@@ -113,7 +113,7 @@ void gfx_init_framebufsetup()
 	*((vu32 *)(0x1040054C)) = 0xFF;
 
 	
-	sleep_wait(0x8000);
+	wait(0x8000);
 	*((vu32 *)(0x10400578)) = 0x0;
 	*((vu32 *)(0x10400478)) = 0x0;
 	*((vu32 *)(0x10400574)) = 0x10501;
@@ -174,7 +174,7 @@ u32 gfx_i2c_lcd_init()
 
 void gfx_init_step2()
 {
-	sleep_wait(0x1000);
+	wait(0x1000);
 	// gpio_stuff
 	*((vu32 *) 0x10202014) = 1;
 	if(((*((vu16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
@@ -189,7 +189,7 @@ void gfx_init_step2()
 	
 	*((vu32 *) 0x1020200C) &= 0xFFFEFFFE;
 	
-	sleep_wait(0x1000);
+	wait(0x1000);
 	//gfx_i2c_lcd_init();
 	i2cmcu_lcd_poweron();
 }
@@ -213,7 +213,7 @@ void gfx_init_step3()
 	for(i=0; i<10; i++)
 	{
 		//if(!gfx_i2c_lcd_finish())
-			sleep_wait(0x20000);
+			wait(0x20000);
 		//else break;
 	}
 	

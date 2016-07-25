@@ -96,7 +96,7 @@ bool dumpNand(const char *filePath)
 
 fail:
 	free(buf);
-	sleep_wait(0x8000000);
+	wait(0x8000000);
 	return false;
 }
 
@@ -175,6 +175,6 @@ bool restoreNand(const char *filePath)
 
 fail:
 	free(buf);
-	sleep_wait(0x8000000);
+	wait(0x8000000);
 	return false;
 }

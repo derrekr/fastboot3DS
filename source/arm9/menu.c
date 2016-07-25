@@ -163,7 +163,7 @@ int enter_menu(void)
 				const char* path = browseForFile("sdmc:");
 				consoleClear();
 				printf("selected file:\n%s\n", path);
-				sleep_wait(0x8000000);
+				wait(0x8000000);
 				printf("loading firm...\n");
 				loadFirmSd(path);
 				if(!firm_load_verify(0x400000)) printf("bad firm\n");
