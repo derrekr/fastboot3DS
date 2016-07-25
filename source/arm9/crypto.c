@@ -149,9 +149,11 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 
 	// All writes must finish before using DMA
 	flushDCacheRange(in, size);
+	// Save the original out pointer for later invalidation
+	const u32 *savedOut = out;
 
 	u32 offset = 0;
-	u32 aesParams = AES_ENABLE | AES_IRQ_ENABLE | ctx->aesParams | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
+	const u32 aesParams = AES_ENABLE | AES_IRQ_ENABLE | ctx->aesParams | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
 	while(offset < size)
 	{
 		u32 blockSize = ((size - offset > AES_MAX_BUF_SIZE) ? AES_MAX_BUF_SIZE : size - offset);
@@ -219,11 +221,10 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 	}
 
 	// Disable the NDMA channels
-	REG_NDMA0_CNT = 0;
-	REG_NDMA1_CNT = 0;
+	REG_NDMA0_CNT = REG_NDMA1_CNT = 0;
 
 	// Throw possibly cached lines out of the window
-	invalidateDCacheRange(out, size);
+	invalidateDCacheRange(savedOut, size);
 }
 
 void AES_addCounter(AES_ctx *restrict ctx, u32 val)

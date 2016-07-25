@@ -44,18 +44,16 @@ DSTATUS disk_initialize (
 	switch(pdrv)
 	{
 		case FATFS_DEV_NUM_SD:
-			if(!dev_sdcard->init()) return STA_NOINIT | STA_NODISK;
+			if(!dev_sdcard->init()) return STA_NOINIT;
 			break;
 		case FATFS_DEV_NUM_TWL_NAND:
-			if(!dev_rawnand->init()) return STA_NOINIT | STA_NODISK;
-			if(!dev_decnand->init()) return STA_NOINIT | STA_NODISK;
+			if(!dev_decnand->init()) return STA_NOINIT;
 			break;
 		case FATFS_DEV_NUM_CTR_NAND:
-			if(!dev_rawnand->init()) return STA_NOINIT | STA_NODISK;
-			if(!dev_decnand->init()) return STA_NOINIT | STA_NODISK;
+			if(!dev_decnand->init()) return STA_NOINIT;
 			break;
 		default:
-			return STA_NOINIT;
+			return STA_NOINIT | STA_NODISK;
 	}
 
 	return 0;

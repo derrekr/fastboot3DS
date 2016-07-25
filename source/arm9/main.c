@@ -1,15 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "types.h"
-#include "mem_map.h"
-#include "io.h"
-#include "util.h"
-#include "arm9/dev.h"
-#include "arm9/fatfs/diskio.h"
-#include "arm9/firm.h"
-#include "hid.h"
 #include "arm9/main.h"
-#include "arm9/spiflash.h"
+#include "util.h"
+#include "io.h"
+#include "arm9/fatfs/ff.h"
+#include "arm9/dev.h"
+#include "arm9/firm.h"
 
 // PrintConsole for each screen
 PrintConsole con_top, con_bottom;
@@ -74,13 +72,15 @@ static void devs_init()
 	bool res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
 
+	printf(" Initializing raw NAND... ");
+	printf("%s\e[0m\n", res_str[dev_rawnand->init()]);
 	printf(" Initializing Wifi flash... ");
 	printf("%s\e[0m\n", res_str[(res = dev_flash->init())]);
-	
+
 	bootInfo.sd_status = dev_sdcard->is_active();
 	bootInfo.nand_status = dev_rawnand->is_active();
 	bootInfo.wififlash_status = dev_flash->is_active();
-	
+
 	if(!res) sleep_wait(0x8000000); // mmc or wififlash init fail
 }
 
@@ -154,8 +154,8 @@ static void boot_env_detect()
 
 static void fw_detect()
 {
-	u8 nand_sector[0x200];
-	
+	u8 *nand_sector = (u8*)malloc(0x200);
+
 	if(!bootInfo.nand_status)
 		printf("\x1B[31mFailed!\e[0m\n");
 	else
@@ -165,6 +165,8 @@ static void fw_detect()
 		strcpy(bootInfo.fw_ver1, "Unknown");
 		strcpy(bootInfo.fw_ver2, "Unknown");
 	}
+
+	free(nand_sector);
 }
 
 u8 rng_get_byte()

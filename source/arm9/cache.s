@@ -19,9 +19,9 @@
 .section ".text"
 
 
-#define ICACHE_SIZE	0x2000
-#define DCACHE_SIZE	0x1000
-#define CACHE_LINE_SIZE	32
+#define ICACHE_SIZE     (0x2000)
+#define DCACHE_SIZE     (0x1000)
+#define CACHE_LINE_SIZE	(32)
 
 
 
@@ -33,7 +33,7 @@ invalidateICache:
 
 invalidateICacheRange:
 	add	r1, r1, r0
-	bic	r0, r0, #CACHE_LINE_SIZE - 1
+	bic	r0, r0, #(CACHE_LINE_SIZE - 1)
 invalidateI:
 	mcr	p15, 0, r0, c7, c5, 1
 	add	r0, r0, #CACHE_LINE_SIZE
@@ -50,7 +50,7 @@ inner_loop:
 	orr	r2, r1, r0              @ Generate segment and line address
 	mcr	p15, 0, r2, c7, c14, 2  @ Clean and flush the line
 	add	r0, r0, #CACHE_LINE_SIZE
-	cmp	r0, #DCACHE_SIZE/4
+	cmp	r0, #(DCACHE_SIZE / 4)
 	bne	inner_loop
 	add	r1, r1, #0x40000000
 	cmp	r1, #0
@@ -81,11 +81,11 @@ invalidateDCache:
 
 invalidateDCacheRange:
 	add	r1, r1, r0
-	tst	r0, #CACHE_LINE_SIZE - 1
+	tst	r0, #(CACHE_LINE_SIZE - 1)
 	mcrne   p15, 0, r0, c7, c10, 1  @ Clean D entry
-	tst	r1, #CACHE_LINE_SIZE - 1
+	tst	r1, #(CACHE_LINE_SIZE - 1)
 	mcrne   p15, 0, r1, c7, c10, 1  @ Clean D entry
-	bic	r0, r0, #CACHE_LINE_SIZE - 1
+	bic	r0, r0, #(CACHE_LINE_SIZE - 1)
 invalidateD:
 	mcr	p15, 0, r0, c7, c6, 1
 	add	r0, r0, #CACHE_LINE_SIZE
