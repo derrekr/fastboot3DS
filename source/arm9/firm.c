@@ -69,10 +69,12 @@ void NAKED firmLaunchStub(void)
 		REG_NDMA_DST_ADDR(i) = section->address;
 		REG_NDMA_WRITE_CNT(i) = section->size>>2;
 		REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
-		REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC | NDMA_IMMEDIATE_MODE | NDMA_ENABLE;
+		REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC
+							| NDMA_IMMEDIATE_MODE | NDMA_ENABLE;
 	}
 
-	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE || REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
+	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE
+			|| REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
 	REG_PXI_SYNC9 = 0; // Disable all IRQs
@@ -88,7 +90,6 @@ void NAKED firmLaunchStub(void)
 	__asm__("mov lr, %[in]\nbx %[in2]\n" : : [in] "r" (ret), [in2] "r" (entry9));
 }
 
-// TODO: Add more safety checks.
 bool firm_load_verify(u32 fwSize)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
@@ -122,19 +123,32 @@ bool firm_load_verify(u32 fwSize)
 		// check for bad sections
 		const u32 numEntries = sizeof(firmProtectedAreas)/sizeof(firmProtectedArea);
 		for(i=0; i<numEntries; i++)
-		{
+		{ 
+			// protected region dimensions
 			u32 addr = firmProtectedAreas[i].addr;
 			u32 size = firmProtectedAreas[i].size;
-			if((section->address + section->size < section->address) ||
-				((section->address >= addr) && (section->size >= size) &&
-				(section->address + section->size <= addr + size)))
-				{
-					printf("\x1B[31mUnallowed section! %x %x\e[0m\n", addr, size);
-					return false;
-				}
+			
+			// firmware section dimensions
+			u32 start = section->address;
+			u32 end = start + section->size;
+			
+			isValid = true;
+			
+			if(start >= addr && start < addr + size) isValid = false;
+			
+			else if(end > addr && end <= addr + size) isValid = false;
+			
+			else if(start < addr && end > addr + size) isValid = false;
+			
+			if(!isValid)
+			{
+				printf("\x1B[31mUnallowed section:\n0x%"PRIX32" - 0x%"PRIX32"\e[0m\n", start, end);
+				retval = false;
+			}
 		}
 
-		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
+		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
+						SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 		isValid = memcmp(hash, section->hash, 32) == 0;
 		printf("Hash: %s\e[0m\n", res[isValid]);
 
