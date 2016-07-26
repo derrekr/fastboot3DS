@@ -23,7 +23,7 @@ void hashCodeRoData()
 		debugHash += *ptr;
 }
 
-void NORETURN panic()
+noreturn void panic()
 {
 	register u32 lr __asm__("lr");
 
@@ -39,7 +39,7 @@ void NORETURN panic()
 
 // Expects the registers in the exception stack to be in the following order:
 // cpsr, pc (unmodified), r0-r14
-void NORETURN guruMeditation(u8 type, u32 *excStack)
+noreturn void guruMeditation(u8 type, u32 *excStack)
 {
 	const char *typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
 	u32 realPc, instSize = 4;

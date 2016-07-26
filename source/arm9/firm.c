@@ -52,11 +52,9 @@ static const firmProtectedArea firmProtectedAreas[] = {
 void NAKED firmLaunchStub(void)
 {	
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	register void (*entry9)(void) = firmLaunchEntry9;
-	if(firmLaunchEntry9 == NULL) entry9 = (void (*)(void))firm_hdr->entrypointarm9;
+	register u32 entry9 = firm_hdr->entrypointarm9;
 	register u32 ret = firm_hdr->entrypointarm9;
-	register void (*entry11)(void) = firmLaunchEntry11;
-	if(firmLaunchEntry11 == NULL) entry11 = (void (*)(void))firm_hdr->entrypointarm11;
+	register u32 entry11 = firm_hdr->entrypointarm11;
 
 
 	for(int i = 0; i < 4; i++)
@@ -158,7 +156,7 @@ bool firm_load_verify(u32 fwSize)
 	return retval;
 }
 
-void NORETURN firm_launch(void)
+noreturn void firm_launch(void)
 {
 	PXI_sendWord(0x544F4F42);
 

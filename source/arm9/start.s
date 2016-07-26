@@ -8,8 +8,6 @@
 .global _start
 .global clearMem
 .global _init
-.global firmLaunchEntry9
-.global firmLaunchEntry11
 
 .type _start STT_FUNC
 .type clearMem STT_FUNC
@@ -37,11 +35,6 @@ _start:
 
 	.string "3DS BOOTLOADER "
 	.word   BOOTLOADER_VERSION
-	.word   0                   @ Flags
-firmLaunchEntry9:
-	.word   0                   @ Entrypoint override field
-firmLaunchEntry11:
-	.word   0
 
 skip_pool:
 	ldr sp, =A9_STACK_END

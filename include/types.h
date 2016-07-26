@@ -4,11 +4,11 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdalign.h> // alignas(alignment_in_bytes)
+#include <stdalign.h>    // alignas(alignment_in_bytes)
+#include <stdnoreturn.h> // noreturn keyword
 
 
 
-#define NORETURN __attribute__((noreturn))
 #define PACKED   __attribute__((packed))
 #define UNUSED   __attribute__((unused))
 #define NAKED    __attribute__((naked))
