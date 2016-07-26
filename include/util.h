@@ -15,7 +15,7 @@ static void wait(u32 cycles)
 }
 
 // custom safe strncpy, string is always 0-terminated for buflen > 0
-static void strncpy_s(char *dest, char *src, u32 nchars, u32 buflen)
+static void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen)
 {
 	char c;
 
