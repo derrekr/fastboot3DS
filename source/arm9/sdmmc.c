@@ -305,7 +305,6 @@ int sdmmc_nand_readsectors(uint32_t sector_no, uint32_t numsectors, uint8_t *out
 	handleNAND.rData = out;
 	handleNAND.size = numsectors << 9;
 	sdmmc_send_command(&handleNAND,0x33C12,sector_no);
-	set_target(&handleSD);
 	return get_error(&handleNAND);
 }
 
@@ -322,7 +321,6 @@ int sdmmc_nand_writesectors(uint32_t sector_no, uint32_t numsectors, const uint8
 	handleNAND.tData = in;
 	handleNAND.size = numsectors << 9;
 	sdmmc_send_command(&handleNAND,0x52C19,sector_no);
-	set_target(&handleSD);
 	return get_error(&handleNAND);
 }
 
@@ -409,8 +407,6 @@ void sdmmc_init()
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; ////SDPORTSEL
 	*(volatile uint16_t*)0x10006026 = 512; //SDBLKLEN
 	*(volatile uint16_t*)0x10006008 = 0; //SDSTOP
-
-	set_target(&handleSD);
 }
 
 int Nand_Init()
@@ -460,8 +456,6 @@ int Nand_Init()
 	if((handleNAND.error & 0x4))return -1;
 
 	handleNAND.clk |= 0x200;
-
-	set_target(&handleSD);
 
 	return 0;
 }
