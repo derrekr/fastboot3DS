@@ -523,14 +523,14 @@ int SD_Init()
 	handleSD.clk |= 0x200;
 	
 	// we need a bit of time to detect an sd card has been inserted...
-	tries = 0;
+	/*tries = 0;
 	for(;;)
 	{
 		wait(0x1000);
 		if(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE) break;
 		if(tries == 0x10000) return -1;
 		tries++;
-	}
+	}*/
 
 	return 0;
 }

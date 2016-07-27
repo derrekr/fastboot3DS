@@ -64,6 +64,8 @@ static void devs_init()
 	bool res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
 
+	printf(" Initializing SD card... ");
+	printf("%s\e[0m\n", res_str[dev_sdcard->init()]);
 	printf(" Initializing raw NAND... ");
 	printf("%s\e[0m\n", res_str[dev_rawnand->init()]);
 	printf(" Initializing Wifi flash... ");
