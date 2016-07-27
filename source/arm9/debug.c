@@ -3,7 +3,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm9/console.h"
-
+#include "arm9/fatfs/ff.h"
 
 
 static u32 debugHash = 0;
@@ -96,4 +96,17 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 	devs_close();
 
 	while(1);
+}
+
+void dumpMem(u8 *mem, u32 size, char *filepath)
+{
+	FIL file;
+	UINT bytesWritten;
+
+	if(f_open(&file, filepath, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
+		return;
+		
+	f_write(&file, mem, size, &bytesWritten);
+
+	f_close(&file);
 }

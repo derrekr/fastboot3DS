@@ -54,7 +54,7 @@ static bool scanDirectory()
 		if(fno.fattrib & AM_DIR)	// directory
 			snprintf(dirEntries[curEntriesCount + i].name, _MAX_LFN + 1, "\\%s", fno.fname);
 		else	// file
-			strncpy(dirEntries[curEntriesCount + i].name, fno.fname, _MAX_LFN + 1);
+			strncpy_s(dirEntries[curEntriesCount + i].name, fno.fname, _MAX_LFN + 1, _MAX_LFN + 2);
 	}
 	
 	curEntriesCount += i;
@@ -159,9 +159,9 @@ const char *browseForFile(const char *basePath)
 	if(!dirEntries) return NULL;
 	
 	if(basePath)
-		strncpy(curPath, basePath, sizeof(curPath));
+		strncpy_s(curPath, basePath, sizeof(curPath) - 1, sizeof(curPath));
 	else
-		strncpy(curPath, "sdmc:", sizeof(curPath));
+		strncpy_s(curPath, "sdmc:", sizeof(curPath) - 1, sizeof(curPath));
 	
 	res = f_opendir(&curDirectory, curPath);
 	if (res != FR_OK)
