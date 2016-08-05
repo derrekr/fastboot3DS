@@ -1,4 +1,61 @@
-#include "types.h"
+#include "util.h"
+
+void wait(u32 cycles)
+{
+	cycles >>= 2;
+	while(cycles)
+	{
+		__asm("nop");
+		cycles--;
+	}
+}
+
+// case insensitive string compare function
+int strnicmp(const char *str1, const char *str2, u32 len)
+{
+	int diff;
+	
+	if(len == 0)
+		return 0;
+	
+	for(;; str1++, str2++)
+	{	
+		if(len != 0) len --;
+		else return 0;
+		diff = tolower(*str1) - tolower(*str2);
+		if(diff != 0 || *str1 == '\0')
+			return diff;
+	}
+	
+	return 0;
+}
+
+// custom safe strncpy, string is always 0-terminated for buflen > 0
+void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen)
+{
+	char c;
+
+	if(!buflen)
+		return;
+		
+	if(buflen > 1)
+	{
+		if(nchars >= buflen)
+			nchars = buflen - 1;
+		
+		while(nchars--)
+		{
+			c = *src++;
+			
+			if(c == '\0')
+				break;
+			
+			*dest++ = c;
+		}
+	}
+	
+	*dest = '\0';
+}
 
 u32 getleu32(const void* ptr)
 {

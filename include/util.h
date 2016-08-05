@@ -1,45 +1,23 @@
 #pragma once
 
+#include <ctype.h>
 #include "types.h"
 
 #define min(a,b)	(u32) a < (u32) b ? (u32) a : (u32) b
 
-static void wait(u32 cycles)
-{
-	cycles >>= 2;
-	while(cycles)
-	{
-		__asm("nop");
-		cycles--;
-	}
-}
+#define arrayEntries(array)	sizeof(array)/sizeof(*array)
+
+
+void wait(u32 cycles);
+
+
+// case insensitive string compare function
+int stricmp(const char *str1, const char *str2);
 
 // custom safe strncpy, string is always 0-terminated for buflen > 0
-static void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen)
-{
-	char c;
+void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen);
 
-	if(!buflen)
-		return;
-		
-	if(buflen > 1)
-	{
-		if(nchars >= buflen)
-			nchars = buflen - 1;
-		
-		while(nchars--)
-		{
-			c = *src++;
-			
-			if(c == '\0')
-				break;
-			
-			*dest++ = c;
-		}
-	}
-	
-	*dest = '\0';
-}
 
 u32 getleu32(const void* ptr);
+
 u32 swap32(u32 val);
