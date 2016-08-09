@@ -118,6 +118,12 @@ bool firm_load_verify(u32 fwSize)
 			return false;
 		}
 		
+		if((section->size >> 31) || (section->size + section->offset > fwSize))
+		{
+			printf("\x1B[31mBad section size!\e[0m\n");
+			return false;
+		}
+		
 		// check for bad sections
 		const u32 numEntries = sizeof(firmProtectedAreas)/sizeof(firmProtectedArea);
 		for(i=0; i<numEntries; i++)
