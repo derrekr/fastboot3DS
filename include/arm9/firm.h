@@ -3,8 +3,8 @@
 #include "types.h"
 #include "mem_map.h"
 
-#define FIRM_LOAD_ADDR  (FCRAM_BASE + 0x400000)
-#define FIRM_MAX_SIZE   0x00400000
+#define FIRM_LOAD_ADDR  (VRAM_BASE + 0x200000)
+#define FIRM_MAX_SIZE   (0x00400000)
 
 
 

@@ -149,7 +149,7 @@ setupMpu:
 	@ Region 0: ITCM kernel mirror 32 KB
 	@ Region 1: ARM9 internal mem 2 MB covers N3DS extension if we want to load code there
 	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
-	@ Region 3: VRAM 4 MB
+	@ Region 3: VRAM 8 MB (the last 2 MB are not usable)
 	@ Region 4: AXIWRAM 512 KB
 	@ Region 5: FCRAM 128 MB
 	@ Region 6: DTCM 16 KB
@@ -160,7 +160,7 @@ setupMpu:
 	mcr p15, 0, r0, c6, c1, 0
 	ldr r0, =MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
 	mcr p15, 0, r0, c6, c2, 0
-	ldr r0, =MAKE_REGION(VRAM_BASE,          REGION_4MB)
+	ldr r0, =MAKE_REGION(VRAM_BASE,          REGION_8MB)
 	mcr p15, 0, r0, c6, c3, 0
 	ldr r0, =MAKE_REGION(AXIWRAM_BASE,       REGION_512KB)
 	mcr p15, 0, r0, c6, c4, 0
