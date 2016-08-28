@@ -13,6 +13,7 @@
 #include "arm9/interrupt.h"
 #include "util.h"
 #include "hid.h"
+#include "arm9/config.h"
 
 #define MAX_FILE_SIZE	0x4000 - 1
 
@@ -22,7 +23,7 @@ static FIL file;
 
 typedef struct {
 	char *textData;	// ptr to the first char of an attribute's data inside filebuf
-	u32 textLength;		
+	u32 textLength;	// length of the above data, without '\0' ofc
 	void *data;		// used to store the final native data
 } AttributeEntryType;
 
@@ -38,18 +39,6 @@ static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
 static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool parseBootMode(AttributeEntryType *attr);
-
-enum Keys {
-	KBootOption1 = 0,
-	KBootOption2,
-	KBootOption3,
-	KBootOption1Buttons,
-	KBootOption2Buttons,
-	KBootOption3Buttons,
-	KBootMode
-};
-
-#define numKeys  7
 
 static const char *keyStrings[] = {
 	"BOOT_OPTION1",
@@ -75,7 +64,7 @@ static AttributeEntryType attributes[numKeys];
 
 static char *filebuf = NULL;
 
-/*	 */
+/* This loads the config file from SD card and parses it */
 bool loadConfigFile()
 {
 	FILINFO fileStat;
@@ -138,13 +127,19 @@ static char *findDefinition(const char *attrName)
 	
 	if(start)
 	{
-		// verify definition char
+		/* verify definition char */
 		start = start + strlen(attrName);
+		
+		while(*start == ' ') start++;
+		
 		c = *start;
 		if(c != '=')
 			start = NULL;
 		else
+		{
 			start ++;
+			while(*start == ' ') start++;
+		}
 	}
 	
 	return start;
@@ -206,7 +201,9 @@ static bool parseConfigFile()
 		}
 		else
 		{	// TODO: what to do if ret == false ?
+			//printf("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
 			ret = keyFunctions[i].parse(curAttr);
+			//if(ret) printf("success!\n");
 		}
 	}
 	
@@ -248,11 +245,19 @@ static bool parseBootOption(AttributeEntryType *attr)
 {
 	attr->data = NULL;
 	
-	if(!isValidPath(attr->textData))
+	char *buf = (char *) malloc(attr->textLength + 1);
+	if(!buf) return false;
+	
+	memcpy(buf, attr->textData, attr->textLength);
+	buf[attr->textLength] = '\0';
+	
+	if(!isValidPath(buf))
+	{
+		free(buf);
 		return false;
-		
-	attr->data = strdup(attr->textData);
-	if(!attr->data) return false;
+	}
+	
+	attr->data = buf;
 	
 	return true;
 }
@@ -262,21 +267,26 @@ static bool parseBootOptionPad(AttributeEntryType *attr)
 	char c;
 	char *textData = attr->textData;
 	u32 padValue = 0;
-	u32 i = 0;
+	u32 i;
 	
 	static const char * convTable[] = {
 		"A", "B", "SELECT", "START", "RIGHT", "LEFT",
 		"UP", "DOWN", "R", "L", "X", "Y"
 	};
 	
-	for(; (c = *textData) != '\0'; textData ++)
+	for(; (c = *textData) != '\0' && textData < attr->textData + attr->textLength;)
 	{
-		if(strnicmp(textData, convTable[i], strlen(convTable[i])) == 0)
+		for(i=0; i<arrayEntries(convTable); i++)
 		{
-			padValue |= 1 << i;
-			i ++;
-			textData += strlen(convTable[i]);
+			if(strnicmp(textData, convTable[i], strlen(convTable[i])) == 0)
+			{
+				padValue |= 1 << i;
+				break;
+			}
 		}
+		if(i == arrayEntries(convTable))
+			textData ++;
+		else textData += strlen(convTable[i]);
 	}
 	
 	attr->data = (u32 *) malloc(sizeof(u32));
@@ -293,3 +303,39 @@ static bool parseBootMode(AttributeEntryType *attr)
 	attr->data = NULL;
 	return true;
 }
+
+void *configCopyText(int key)
+{
+	if(key < 0 || key >= KLast)
+		return NULL;
+	
+	if(!attributes[key].textData)
+		return NULL;
+	
+	char *buf = (char *) malloc(attributes[key].textLength + 1);
+	if(!buf)
+		return NULL;
+	
+	memcpy(buf, attributes[key].textData, attributes[key].textLength);
+	buf[attributes[key].textLength] = '\0';
+	
+	return buf;
+}
+
+const void *configGetData(int key)
+{
+	if(key < 0 || key >= KLast)
+		return NULL;
+	
+	return attributes[key].data;
+}
+
+const char *configGetKeyText(int key)
+{
+	if(key < 0 || key >= KLast)
+		return NULL;
+	
+	return keyStrings[key];
+}
+
+

@@ -8,12 +8,14 @@
 #include "arm9/fatfs/ff.h"
 #include "arm9/dev.h"
 #include "arm9/firm.h"
+#include "arm9/config.h"
 
 static void devs_init();
 static void mount_fs();
 static void unit_detect();
 static void boot_env_detect();
 static void fw_detect();
+static void loadSettings();
 
 int main(void)
 {
@@ -47,6 +49,12 @@ int main(void)
 	printf("Detecting firmware...\n");
 	
 	fw_detect();
+	
+	printf("Loading settings...\n");
+	
+	loadSettings();
+	
+	wait(0x8000000);
 
 	consoleClear();
 	
@@ -110,7 +118,6 @@ static void mount_fs()
 	res = f_mount(&nand_fs, "nand:", 1);
 	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
 	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
-	wait(0x8000000);
 }
 
 void unmount_fs()
@@ -161,6 +168,14 @@ static void fw_detect()
 	}
 
 	free(nand_sector);
+}
+
+static void loadSettings()
+{
+	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
+	
+	bool success = loadConfigFile();
+	printf(res_str[success]);
 }
 
 u8 rng_get_byte()

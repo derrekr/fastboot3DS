@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
@@ -14,6 +15,7 @@
 #include "arm9/menu.h"
 #include "arm9/timer.h"
 #include "arm9/interrupt.h"
+#include "arm9/config.h"
 
 u8 color;
 enum menu_state_type menu_state;
@@ -169,6 +171,37 @@ int enter_menu(void)
 				if(!firm_load_verify(0x400000)) printf("bad firm\n");
 				else goto exitAndLaunchFirm;
 				menu_state = STATE_MAIN;
+				break;
+			
+			case STATE_TEST_CONFIG:
+				consoleClear();
+				consoleSelect(&con_top);
+				consoleClear();
+				printf("Key Text Data:\n");
+				for(int i=0; i<KLast; i++)
+				{
+					char *text = (char*) configCopyText(i);
+					printf("\n%s: ", configGetKeyText(i));
+					if(text) {
+						printf("%s", text);
+						free(text);
+					}
+					else printf("<invalid>");
+				}
+				printf("\n\nKey Raw Data:\n");
+				for(int i=0; i<KLast; i++)
+				{
+					u8 *data = (u8*) configGetData(i);
+					printf("\n%s: ", configGetKeyText(i));
+					if(data) {
+						if(i < KBootOption1Buttons)
+							printf("filepath: %s", (char*)data);
+						else if(i < KBootMode)
+							printf("pad val: 0x%lX", *(u32*)data);
+					}
+					else printf("<invalid>");
+				}
+				for(;;);
 				break;
 			
 			default: printf("OOPS!\n"); break;

@@ -12,7 +12,7 @@ void wait(u32 cycles);
 
 
 // case insensitive string compare function
-int stricmp(const char *str1, const char *str2);
+int strnicmp(const char *str1, const char *str2, u32 len);
 
 // custom safe strncpy, string is always 0-terminated for buflen > 0
 void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen);

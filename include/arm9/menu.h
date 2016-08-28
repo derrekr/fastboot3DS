@@ -7,7 +7,8 @@ enum menu_state_type {
 	STATE_NAND_RESTORE,
 	STATE_OPTIONS_MENU,
 	STATE_FIRM_LAUNCH,
-	STATE_TEST_MENU
+	STATE_TEST_MENU,
+	STATE_TEST_CONFIG
 };
 
 typedef struct {
@@ -21,12 +22,13 @@ typedef struct {
 } menu_state_options;
 
 const menu_state_options menu_main = {
-	4,
+	5,
 	{
 		{"Launch FIRM", STATE_FIRM_LAUNCH},
 		{"NAND tools...", STATE_NAND_MENU},
 		{"Options...", STATE_OPTIONS_MENU},
-		{"DEBUG TEST", STATE_TEST_MENU}
+		{"DEBUG TEST", STATE_TEST_MENU},
+		{"CONFIG TEST", STATE_TEST_CONFIG}
 	}
 };
 
