@@ -149,9 +149,9 @@ setupMpu:
 	@ Region 0: ITCM kernel mirror 32 KB
 	@ Region 1: ARM9 internal mem 2 MB covers N3DS extension if we want to load code there
 	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
-	@ Region 3: VRAM 8 MB (the last 2 MB are not usable)
-	@ Region 4: AXIWRAM 512 KB
-	@ Region 5: FCRAM 128 MB
+	@ Region 3: VRAM, DSP mem and AXIWRAM 128 MB
+	@ Region 4: - (reserved)
+	@ Region 5: FCRAM 256 MB
 	@ Region 6: DTCM 16 KB
 	@ Region 7: Exception vectors + ARM9 bootrom 32 KB
 	ldr r0, =MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
@@ -160,11 +160,11 @@ setupMpu:
 	mcr p15, 0, r0, c6, c1, 0
 	ldr r0, =MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
 	mcr p15, 0, r0, c6, c2, 0
-	ldr r0, =MAKE_REGION(VRAM_BASE,          REGION_8MB)
+	ldr r0, =MAKE_REGION(VRAM_BASE,          REGION_128MB)
 	mcr p15, 0, r0, c6, c3, 0
-	ldr r0, =MAKE_REGION(AXIWRAM_BASE,       REGION_512KB)
+	ldr r0, =MAKE_REGION(0x00000000,         0x00)
 	mcr p15, 0, r0, c6, c4, 0
-	ldr r0, =MAKE_REGION(FCRAM_BASE,         REGION_128MB)
+	ldr r0, =MAKE_REGION(FCRAM_BASE,         REGION_256MB)
 	mcr p15, 0, r0, c6, c5, 0
 	ldr r0, =MAKE_REGION(DTCM_BASE,          REGION_16KB)
 	mcr p15, 0, r0, c6, c6, 0
@@ -173,32 +173,32 @@ setupMpu:
 
 	@ Data access permissions:
 	@ Region 0: User = --, Privileged = RW
-	@ Region 1: User = RW, Privileged = RW
-	@ Region 2: User = RW, Privileged = RW
-	@ Region 3: User = RW, Privileged = RW
-	@ Region 4: User = RO, Privileged = RW
-	@ Region 5: User = RW, Privileged = RW
+	@ Region 1: User = --, Privileged = RW
+	@ Region 2: User = --, Privileged = RW
+	@ Region 3: User = --, Privileged = RW
+	@ Region 4: User = --, Privileged = --
+	@ Region 5: User = --, Privileged = RW
 	@ Region 6: User = --, Privileged = RW
-	@ Region 7: User = RO, Privileged = RO
-	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_RW,
-                              PER_PRIV_RW_USR_RW,     PER_PRIV_RW_USR_RW,
-                              PER_PRIV_RW_USR_RO,     PER_PRIV_RW_USR_RW,
-                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RO_USR_RO)
+	@ Region 7: User = --, Privileged = RO
+	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
+                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
+                              PER_NO_ACC,             PER_PRIV_RW_USR_NO_ACC,
+                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC)
 	mcr p15, 0, r0, c5, c0, 2   @ Data access permissions
 
 	@ Instruction access permissions:
 	@ Region 0: User = --, Privileged = RO
-	@ Region 1: User = RO, Privileged = RO
+	@ Region 1: User = --, Privileged = RO
 	@ Region 2: User = --, Privileged = --
 	@ Region 3: User = --, Privileged = --
-	@ Region 4: User = --, Privileged = RO
-	@ Region 5: User = RO, Privileged = RO
+	@ Region 4: User = --, Privileged = --
+	@ Region 5: User = --, Privileged = RO
 	@ Region 6: User = --, Privileged = --
-	@ Region 7: User = RO, Privileged = RO
-	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_RO,
+	@ Region 7: User = --, Privileged = RO
+	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
                               PER_NO_ACC,             PER_NO_ACC,
-                              PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_RO,
-                              PER_NO_ACC,             PER_PRIV_RO_USR_RO)
+                              PER_NO_ACC,             PER_PRIV_RO_USR_NO_ACC,
+                              PER_NO_ACC,             PER_PRIV_RO_USR_NO_ACC)
 	mcr p15, 0, r0, c5, c0, 3   @ Instruction access permissions
 
 	@ Data cachable bits:
@@ -206,11 +206,11 @@ setupMpu:
 	@ Region 1 = yes
 	@ Region 2 = no  <-- Never cache IO regs
 	@ Region 3 = yes
-	@ Region 4 = yes
+	@ Region 4 = no
 	@ Region 5 = yes
 	@ Region 6 = no
 	@ Region 7 = no
-	mov r0, #0b00111010
+	mov r0, #0b00101010
 	mcr p15, 0, r0, c2, c0, 0   @ Data cachable bits
 
 	@ Instruction cachable bits:
@@ -218,11 +218,11 @@ setupMpu:
 	@ Region 1 = yes
 	@ Region 2 = no
 	@ Region 3 = no
-	@ Region 4 = yes
+	@ Region 4 = no
 	@ Region 5 = yes
 	@ Region 6 = no
 	@ Region 7 = yes
-	mov r0, #0b10110010
+	mov r0, #0b10100010
 	mcr p15, 0, r0, c2, c0, 1   @ Instruction cachable bits
 
 	@ Write bufferable bits:
@@ -230,11 +230,11 @@ setupMpu:
 	@ Region 1 = yes
 	@ Region 2 = no  <-- Never buffer IO reg writes
 	@ Region 3 = yes
-	@ Region 4 = yes
+	@ Region 4 = no
 	@ Region 5 = yes
 	@ Region 6 = no
 	@ Region 7 = no
-	mov r0, #0b00111010
+	mov r0, #0b00101010
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
