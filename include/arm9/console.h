@@ -165,6 +165,9 @@ PrintConsole* consoleInit(int screen, PrintConsole* console);
 /// Clears the screan by using iprintf("\x1b[2J");
 void consoleClear(void);
 
+void consoleSetCursor(PrintConsole* console, int x, int y);
+
+
 #ifdef __cplusplus
 }
 #endif

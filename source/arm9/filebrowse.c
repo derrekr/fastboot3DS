@@ -112,11 +112,34 @@ static void formatEntry(char *out, const char* in, const u32 bufSize, bool short
 	}
 }
 
-static void updateScreen(u32 cursor_pos)
+static void updateCursor(u32 cursor_pos, u32 old_cursor_pos, u32 maxEntries)
+{
+	// clear old '*' char
+	consoleSelect(&con_bottom);
+	consoleSetCursor(&con_bottom, 0, (old_cursor_pos % (maxEntries + 1)) + 1);
+	printf(" ");
+	
+	consoleSetCursor(&con_bottom, 0, (cursor_pos % (maxEntries + 1)) + 1);
+	printf("*");
+}
+
+static void updateScreen(u32 cursor_pos, bool dirChange)
 {
 	// we don't want ugly line breaks in our list
 	const int maxLen = con_bottom.windowWidth - 1;
 	const int maxEntries = con_bottom.windowHeight - 1;
+	
+	static u32 old_cursor_pos;
+	
+	if((cursor_pos == 0 || (cursor_pos % maxEntries)) && !dirChange && (cursor_pos <= maxEntries))
+	{
+		updateCursor(cursor_pos, old_cursor_pos, maxEntries);
+		old_cursor_pos = cursor_pos;
+		return;
+	}
+	
+	if(cursor_pos <= maxEntries)
+		old_cursor_pos = cursor_pos;
 	
 	char entry [maxLen];	// should be safe
 	unsigned start, end;
@@ -173,7 +196,7 @@ const char *browseForFile(const char *basePath)
 	// do an initial scan
 	scanDirectory();
 	
-	updateScreen(cursor_pos);
+	updateScreen(cursor_pos, true);
 	
 	for(;;)
 	{
@@ -184,9 +207,11 @@ const char *browseForFile(const char *basePath)
 		{
 			if(keys & KEY_DUP)
 			{
-				if(cursor_pos != 0) cursor_pos--;
-				updateScreen(cursor_pos);
-				wait(0x1000);
+				if(cursor_pos != 0)
+				{
+					cursor_pos--;
+					updateScreen(cursor_pos, false);
+				}
 			}
 			else if(keys & KEY_DDOWN)
 			{
@@ -196,11 +221,16 @@ const char *browseForFile(const char *basePath)
 					scanDirectory();
 					// we got more entries?
 					if(cursor_pos < curEntriesCount - 1)
+					{
 						cursor_pos++;
+						updateScreen(cursor_pos, false);
+					}
 				}
-				else cursor_pos++;
-				updateScreen(cursor_pos);
-				wait(0x1000);
+				else
+				{
+					cursor_pos++;
+					updateScreen(cursor_pos, false);
+				}
 			}
 			
 			else if(keys & KEY_A)	// select entry
@@ -219,7 +249,7 @@ const char *browseForFile(const char *basePath)
 							curEntriesCount = 0;
 							scanDirectory();
 							cursor_pos = 0;
-							updateScreen(cursor_pos);
+							updateScreen(cursor_pos, true);
 						}
 					}
 				}
@@ -250,7 +280,7 @@ const char *browseForFile(const char *basePath)
 						goto fail;
 				} while(curEntriesCount <= cursor_pos);
 				
-				updateScreen(cursor_pos);
+				updateScreen(cursor_pos, true);
 			}
 			else goto fail;
 		}

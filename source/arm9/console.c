@@ -804,3 +804,8 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
 		}
 	}
 }
+
+void consoleSetCursor(PrintConsole* console, int x, int y) {
+	console->cursorX = x;
+	console->cursorY = y;
+}
