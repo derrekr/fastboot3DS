@@ -208,7 +208,18 @@ int enter_menu(void)
 			default: printf("OOPS!\n"); break;
 		}
 
-		menuUpdateGlobalState();
+		switch(menuUpdateGlobalState())
+		{
+		case MENU_EVENT_HOME_PRESSED:
+			menu_state = STATE_MAIN;
+			previous_states_count = 0;
+			consoleClear();
+			cursor_pos = 0;
+			break;
+
+		default:
+			break;
+		}
 
 		// Later if PXI interrupts are implemented we need an
 		// interrupt handler here which can tell the timer and
@@ -223,8 +234,10 @@ exitAndLaunchFirm:
 	return 0;
 }
 
-void menuUpdateGlobalState(void)
+int menuUpdateGlobalState(void)
 {
+	int retcode = MENU_EVENT_NONE;
+
 	/* Check PXI Response register */
 	bool successFlag;
 	u32 replyCode = PXI_tryRecvWord(&successFlag);
@@ -234,6 +247,7 @@ void menuUpdateGlobalState(void)
 		switch(replyCode)
 		{
 			case PXI_RPL_HOME_PRESSED:
+				retcode = MENU_EVENT_HOME_PRESSED;
 				break;
 			default:
 				panic();
@@ -241,4 +255,6 @@ void menuUpdateGlobalState(void)
 		// maybe there's more..?
 		replyCode = PXI_tryRecvWord(&successFlag);
 	}
+
+	return retcode;
 }

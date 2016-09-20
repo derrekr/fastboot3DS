@@ -46,11 +46,16 @@ const menu_state_options *options_lookup[] = {
 	&menu_nand // STATE_NAND_MENU
 };
 
+enum menu_events {
+	MENU_EVENT_NONE = 0,
+	MENU_EVENT_HOME_PRESSED
+};
+
 
 // PrintConsole for each screen
 extern PrintConsole con_top, con_bottom;
 
 int enter_menu(void);
 
-void menuUpdateGlobalState(void);
+int menuUpdateGlobalState(void);
 

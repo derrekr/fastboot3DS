@@ -139,8 +139,7 @@ static void updateScreen(u32 cursor_pos, bool dirChange)
 		return;
 	}
 	
-	if(cursor_pos <= maxEntries)
-		old_cursor_pos = cursor_pos;
+	old_cursor_pos = cursor_pos;
 	
 	char entry [maxLen];	// should be safe
 	unsigned start, end;
@@ -205,30 +204,33 @@ const char *browseForFile(const char *basePath)
 		
 		if(curEntriesCount != 0)
 		{
-			if(keys & KEY_DUP)
+			if(keys & KEY_DUP || keys & KEY_DLEFT)
 			{
 				if(cursor_pos != 0)
 				{
-					cursor_pos--;
+					cursor_pos -= keys & KEY_DLEFT ? min(cursor_pos, 8) : 1;
 					updateScreen(cursor_pos, false);
 				}
 			}
-			else if(keys & KEY_DDOWN)
+			
+			else if(keys & KEY_DDOWN || keys & KEY_DRIGHT)
 			{
 				// we reached the end of our entries list?
-				if(cursor_pos == curEntriesCount - 1)
+				u32 old_pos = cursor_pos;
+				cursor_pos += keys & KEY_DRIGHT ? 8 : 1;
+				if(cursor_pos >= curEntriesCount)
 				{
 					scanDirectory();
 					// we got more entries?
-					if(cursor_pos < curEntriesCount - 1)
-					{
-						cursor_pos++;
+					if(curEntriesCount > cursor_pos)
+						cursor_pos = min(cursor_pos, curEntriesCount - 1);
+					else
+						cursor_pos = curEntriesCount - 1;
+					if(cursor_pos != old_pos)
 						updateScreen(cursor_pos, false);
-					}
 				}
 				else
 				{
-					cursor_pos++;
 					updateScreen(cursor_pos, false);
 				}
 			}
