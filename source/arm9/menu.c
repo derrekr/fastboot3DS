@@ -199,6 +199,8 @@ int enter_menu(void)
 							printf("filepath: %s", (char*)data);
 						else if(i < KBootMode)
 							printf("pad val: 0x%lX", *(u32*)data);
+						else
+							printf("boot mode val: 0x%lX", *(u32*)data);
 					}
 					else printf("<invalid>");
 				}

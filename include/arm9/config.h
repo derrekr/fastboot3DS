@@ -15,6 +15,12 @@ enum Keys {
 	KLast
 };
 
+enum BootModes {
+	BootModeNormal = 0,
+	BootModeQuick,
+	BootModeQuiet
+};
+
 #define numKeys  KLast
 
 void *configCopyText(int key);

@@ -309,8 +309,31 @@ static bool parseBootOptionPad(AttributeEntryType *attr)
 
 static bool parseBootMode(AttributeEntryType *attr)
 {
-	// TODO
-	attr->data = NULL;
+	char c;
+	char *textData = attr->textData;
+	u32 i;
+
+	static const char * table[] = {
+		"Normal", "Quick", "Quiet"
+	};
+
+	for(i=0; i<3; i++)
+	{
+		if(strnicmp(textData, table[i], strlen(table[i])) == 0)
+			break;
+	}
+
+	if(i >= 3)
+	{
+		attr->data = NULL;
+		return false;
+	}
+
+	attr->data = (u32 *) malloc(sizeof(u32));
+	if(!attr->data)
+		return false;
+
+	*(u32 *)attr->data = i;
 	return true;
 }
 
