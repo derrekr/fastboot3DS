@@ -3,8 +3,6 @@
 #include "types.h"
 #include "io.h"
 
-
-
 // Defines for PX_SYNC regs
 #define PXI_DATA_RECEIVED(reg)      (reg & 0xFF)
 #define PXI_DATA_SENT(reg)          (reg>>8 & 0xFF)
@@ -23,7 +21,15 @@
 #define PXI_EMPTY_FULL_ERROR        (1u<<14)
 #define PXI_ENABLE_SEND_RECV_FIFO   (1u<<15)
 
+// Custom PXI Command/Reply Definitions
+#define PXI_CMD_FIRM_LAUNCH			0x544F4F42
+#define PXI_RPL_FIRM_LAUNCH_READY	0x4F4B6666
+#define PXI_RPL_OK					0x4F4B4F4B
+#define PXI_RPL_HOME_PRESSED		0x4F4B4F4B
+
 
 void PXI_init(void);
 void PXI_sendWord(u32 val);
+bool PXI_trySendWord(u32 val);
 u32  PXI_recvWord(void);
+u32 PXI_tryRecvWord(bool *success);

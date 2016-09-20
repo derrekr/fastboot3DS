@@ -17,10 +17,29 @@ void PXI_sendWord(u32 val)
 	REG_PXI_SYNC11 |= PXI_NOTIFY_9;
 }
 
+bool PXI_trySendWord(u32 val)
+{
+	if(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL)
+		return false;
+	REG_PXI_SEND11 = val;
+	REG_PXI_SYNC11 |= PXI_NOTIFY_9;
+	return true;
+}
+
 u32 PXI_recvWord(void)
 {
-	// Returns 0 for now if there is no data.
-	// Will be fixed after implementing interrupts
-	if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY) return 0;
+	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
+	return REG_PXI_RECV11;
+}
+
+u32 PXI_tryRecvWord(bool *success)
+{
+	if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
+	{
+		*success = false;
+		return 0;
+	}
+
+	*success = true;
 	return REG_PXI_RECV11;
 }
