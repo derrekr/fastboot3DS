@@ -33,7 +33,8 @@ void NAKED firmLaunchStub(void)
 	void (*entry11)(void) = (void (*)(void))REG_PXI_RECV11;
 
 	// Tell ARM9 we got the entry
-	PXI_sendWord(PXI_RPL_FIRM_LAUNCH_READY);
+	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
+	REG_PXI_SEND11 = PXI_RPL_FIRM_LAUNCH_READY;
 	REG_PXI_CNT11 = 0; // Disable PXI
 
 	entry11();
