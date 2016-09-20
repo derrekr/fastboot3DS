@@ -26,15 +26,14 @@ void NAKED firmLaunchStub(void)
 	// Answer ARM0
 	REG_PXI_SYNC11 = 0; // Disable all IRQs
 	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = 0x4F4B4F4B;
+	REG_PXI_SEND11 = PXI_RPL_OK;
 
 	// Wait for entry address
 	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
 	void (*entry11)(void) = (void (*)(void))REG_PXI_RECV11;
 
 	// Tell ARM9 we got the entry
-	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = 0x544F4F42;
+	PXI_sendWord(PXI_RPL_FIRM_LAUNCH_READY);
 	REG_PXI_CNT11 = 0; // Disable PXI
 
 	entry11();
@@ -51,8 +50,35 @@ int main(void)
 	PXI_init();
 	gfx_init();
 
-	while(PXI_recvWord() != 0x544F4F42)
+	for(;;)
 	{
+		// THIS DOESN'T WORK, WTF!
+		bool successFlag;
+		u32 cmdCode = PXI_tryRecvWord(&successFlag);
+
+		// process cmd
+		if(successFlag)	// gets never executed, wtf.
+		{
+			switch(cmdCode)
+			{
+				case PXI_CMD_FIRM_LAUNCH:
+					goto start_firmlaunch; break;
+				default:
+					break;
+			}
+		}
+
+		// THIS WORKS!
+		/*
+		u32 cmdCode;
+		if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
+		else
+			cmdCode = REG_PXI_RECV11;
+		if(cmdCode == PXI_CMD_FIRM_LAUNCH)
+			goto start_firmlaunch;
+		 */
+
+		/* Update state, check for changes */
 		u8 hidstate = i2cmcu_readreg_hid();
 
 		if(hidstate & MCU_HID_POWER_BUTTON_PRESSED)
@@ -65,9 +91,11 @@ int main(void)
 			i2cmcu_lcd_backlight_poweron();
 		}
 		if(hidstate & MCU_HID_HOME_BUTTON_PRESSED)
-			i2cmcu_lcd_backlight_poweroff();
+			PXI_trySendWord(PXI_RPL_HOME_PRESSED);
 		wait(0x8000);
 	}
+
+start_firmlaunch:
 
 	// Turn off LCDs and backlight before FIRM launch.
 	i2cmcu_lcd_poweroff();

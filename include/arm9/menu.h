@@ -51,3 +51,6 @@ const menu_state_options *options_lookup[] = {
 extern PrintConsole con_top, con_bottom;
 
 int enter_menu(void);
+
+void menuUpdateGlobalState(void);
+

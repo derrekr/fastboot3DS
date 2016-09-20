@@ -5,6 +5,7 @@
 #include "mem_map.h"
 #include "io.h"
 #include "util.h"
+#include "pxi.h"
 #include "arm9/console.h"
 #include "arm9/dev.h"
 #include "arm9/fatfs/ff.h"
@@ -207,6 +208,8 @@ int enter_menu(void)
 			default: printf("OOPS!\n"); break;
 		}
 
+		menuUpdateGlobalState();
+
 		// Later if PXI interrupts are implemented we need an
 		// interrupt handler here which can tell the timer and
 		// PXI interrupts apart.
@@ -220,3 +223,22 @@ exitAndLaunchFirm:
 	return 0;
 }
 
+void menuUpdateGlobalState(void)
+{
+	/* Check PXI Response register */
+	bool successFlag;
+	u32 replyCode = PXI_tryRecvWord(&successFlag);
+
+	while(successFlag)
+	{
+		switch(replyCode)
+		{
+			case PXI_RPL_HOME_PRESSED:
+				break;
+			default:
+				panic();
+		}
+		// maybe there's more..?
+		replyCode = PXI_tryRecvWord(&successFlag);
+	}
+}

@@ -81,7 +81,7 @@ void NAKED firmLaunchStub(void)
 
 	// Wait for ARM11...
 	while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
-	if(REG_PXI_RECV9 != 0x544F4F42) while(1);
+	if(REG_PXI_RECV9 != PXI_RPL_FIRM_LAUNCH_READY) while(1);
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
@@ -164,10 +164,12 @@ bool firm_load_verify(u32 fwSize)
 
 noreturn void firm_launch(void)
 {
-	PXI_sendWord(0x544F4F42);
+	PXI_init();
+	printf("Sending PXI_CMD_FIRM_LAUNCH\n");
+	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
 
-	//printf("Waiting for ARM11...\n");
-	while(PXI_recvWord() != 0x4F4B4F4B);
+	printf("Waiting for ARM11...\n");
+	while(PXI_recvWord() != PXI_RPL_OK);
 	
 	//printf("Relocating FIRM launch stub...\n");
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE>>2);
