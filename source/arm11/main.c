@@ -52,31 +52,21 @@ int main(void)
 
 	for(;;)
 	{
-		// THIS DOESN'T WORK, WTF!
 		bool successFlag;
 		u32 cmdCode = PXI_tryRecvWord(&successFlag);
 
 		// process cmd
-		if(successFlag)	// gets never executed, wtf.
+		if(successFlag)
 		{
+
 			switch(cmdCode)
 			{
 				case PXI_CMD_FIRM_LAUNCH:
-					goto start_firmlaunch; break;
+					goto start_firmlaunch;
 				default:
 					break;
 			}
 		}
-
-		// THIS WORKS!
-		/*
-		u32 cmdCode;
-		if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
-		else
-			cmdCode = REG_PXI_RECV11;
-		if(cmdCode == PXI_CMD_FIRM_LAUNCH)
-			goto start_firmlaunch;
-		 */
 
 		/* Update state, check for changes */
 		u8 hidstate = i2cmcu_readreg_hid();

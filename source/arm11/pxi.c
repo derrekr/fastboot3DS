@@ -34,7 +34,7 @@ u32 PXI_recvWord(void)
 
 u32 PXI_tryRecvWord(bool *success)
 {
-	if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
+	if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY)
 	{
 		*success = false;
 		return 0;
