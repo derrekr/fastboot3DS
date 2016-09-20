@@ -80,8 +80,7 @@ void NAKED firmLaunchStub(void)
 	REG_PXI_SEND9 = (u32)entry11;
 
 	// Wait for ARM11...
-	while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
-	if(REG_PXI_RECV9 != PXI_RPL_FIRM_LAUNCH_READY) while(1);
+	while(PXI_recvWord() != PXI_RPL_FIRM_LAUNCH_READY);
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
@@ -164,7 +163,6 @@ bool firm_load_verify(u32 fwSize)
 
 noreturn void firm_launch(void)
 {
-	PXI_init();
 	printf("Sending PXI_CMD_FIRM_LAUNCH\n");
 	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
 
