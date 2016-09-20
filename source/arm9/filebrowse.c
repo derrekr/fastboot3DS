@@ -115,11 +115,10 @@ static void formatEntry(char *out, const char* in, const u32 bufSize, bool short
 static void updateCursor(u32 cursor_pos, u32 old_cursor_pos, u32 maxEntries)
 {
 	// clear old '*' char
-	consoleSelect(&con_bottom);
-	consoleSetCursor(&con_bottom, 0, (old_cursor_pos % (maxEntries + 1)) + 1);
+	consoleSetCursor(&con_bottom, 0, (old_cursor_pos % (maxEntries)) + 1);
 	printf(" ");
 	
-	consoleSetCursor(&con_bottom, 0, (cursor_pos % (maxEntries + 1)) + 1);
+	consoleSetCursor(&con_bottom, 0, (cursor_pos % (maxEntries)) + 1);
 	printf("*");
 }
 
@@ -131,7 +130,9 @@ static void updateScreen(u32 cursor_pos, bool dirChange)
 	
 	static u32 old_cursor_pos;
 	
-	if((cursor_pos == 0 || (cursor_pos % maxEntries)) && !dirChange && (cursor_pos <= maxEntries))
+	consoleSelect(&con_bottom);
+	
+	if(!dirChange && (cursor_pos < maxEntries) && (old_cursor_pos < maxEntries))
 	{
 		updateCursor(cursor_pos, old_cursor_pos, maxEntries);
 		old_cursor_pos = cursor_pos;
@@ -144,8 +145,7 @@ static void updateScreen(u32 cursor_pos, bool dirChange)
 	char entry [maxLen];	// should be safe
 	unsigned start, end;
 	
-	clearConsoles();
-	consoleSelect(&con_bottom);
+	consoleClear();
 	
 	// print the current path in the first line
 	formatEntry(entry, curPath, (u32) maxLen - 3, false);

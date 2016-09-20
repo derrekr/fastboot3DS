@@ -44,6 +44,9 @@ static const char *keyStrings[] = {
 	"BOOT_OPTION1",
 	"BOOT_OPTION2",
 	"BOOT_OPTION3",
+	"BOOT_OPTION1_NAND_IMAGE",
+	"BOOT_OPTION2_NAND_IMAGE",
+	"BOOT_OPTION3_NAND_IMAGE",
 	"BOOT_OPTION1_BUTTONS",
 	"BOOT_OPTION2_BUTTONS",
 	"BOOT_OPTION3_BUTTONS",
@@ -51,6 +54,9 @@ static const char *keyStrings[] = {
 };
 
 static FunctionsEntryType keyFunctions[] = {
+	{ parseBootOption,		NULL },
+	{ parseBootOption,		NULL },
+	{ parseBootOption,		NULL },
 	{ parseBootOption,		NULL },
 	{ parseBootOption,		NULL },
 	{ parseBootOption,		NULL },
@@ -228,6 +234,10 @@ static bool isValidPath(char *path)
 		
 		// no dir-return
 		if(c == '.' && path[1] == '.')
+			return false;
+
+		// no space after dir slash
+		if((c == '\\' || c == '/') && path[1] == ' ')
 			return false;
 			
 		// no non ASCII chars
