@@ -104,7 +104,7 @@ void gfx_init_framebufsetup()
 	REG_GPU_EXT_CNT |= 0x300;
 	
 	//memset(VRAM_BASE, 0xFF, VRAM_SIZE);
-	gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
+	//gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
 	
 	gfx_setup_framebuf_top();
 	gfx_setup_framebuf_low();
@@ -229,6 +229,13 @@ void gfx_init_step3()
 
 void gfx_init()
 {
+	static bool gfxInitDone;
+
+	if(gfxInitDone)
+		return;
+
+	gfxInitDone = true;
+
 	gfx_init_step1();
 	gfx_init_step2();
 	gfx_init_step3();
@@ -260,21 +267,8 @@ void gfx_set_black_sub()
 	REG_LCD_COLORFILL_SUB |= 1<<24;
 }
 
-void gfx_draw_ppm()
+void gfx_clear_framebufs()
 {
-	/*
-	u8 *framebuf = (u8 *) FRAMEBUF_TOP_A_1;
-	u8 *imagedata = (u8 *) (test2_ppm_bin+0x26);	// skip ppm header
-	for(u32 x=0; x<400; x++)
-	{
-		for(u32 y=240; y>=1; y--)
-		{
-			
-			*framebuf++ = 0;
-			*framebuf++ = imagedata[(400*(y-1)+x)*3+2];
-			*framebuf++ = imagedata[(400*(y-1)+x)*3+1];
-			*framebuf++ = imagedata[(400*(y-1)+x)*3+0];
-		}
-	}
-	*/
+	gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
 }
+

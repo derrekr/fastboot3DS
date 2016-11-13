@@ -7,8 +7,8 @@
 #include "arm9/fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
+#include "arm9/menu.h"
 #include "arm9/util_nand.h"
-
 
 
 u64 getFreeSpace(const char *drive)
@@ -39,10 +39,7 @@ bool dumpNand(const char *filePath)
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
-	{
-		printf("Not enough memory!\n");
-		return false;
-	}
+		panic();	// this should never happen.
 
 	if(getFreeSpace("sdmc:") < sectorCount<<9)
 	{
@@ -56,6 +53,9 @@ bool dumpNand(const char *filePath)
 		f_close(&file);
 		goto fail;
 	}
+
+
+	/* Main loop */
 
 	u32 curSector = 0;
 	u32 curSectorBlkSize;
@@ -86,8 +86,25 @@ bool dumpNand(const char *filePath)
 		}
 
 		curSector += curSectorBlkSize;
+
+		// print current progress information
 		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
+
+
+		switch(menuUpdateGlobalState())
+		{
+			case MENU_EVENT_HOME_PRESSED:
+			case MENU_EVENT_POWER_PRESSED:
+				f_close(&file);
+			case MENU_EVENT_SD_CARD_REMOVED:
+				menuActState();
+				goto fail;
+			default:
+				break;
+		}
+
+		menuActState();
 	}
 
 	f_close(&file);
@@ -106,17 +123,13 @@ bool restoreNand(const char *filePath)
 	FIL file;
 	UINT bytesRead;
 
-
 	consoleSelect(&con_bottom);
 	printf("\n\t\tPress B to cancel");
 	consoleSelect(&con_top);
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
-	{
-		printf("Not enough memory!\n");
-		goto fail;
-	}
+		panic();	// this should never happen.
 
 	FILINFO fileStat;
 	if(f_stat(filePath, &fileStat) != FR_OK)
@@ -143,6 +156,10 @@ bool restoreNand(const char *filePath)
 	}
 
 
+	unmount_nand_fs();
+
+	/* Main loop */
+
 	const u32 sectorCount = fileStat.fsize>>9;
 	u32 curSector = 0;
 	u32 curSectorBlkSize;
@@ -167,14 +184,30 @@ bool restoreNand(const char *filePath)
 		curSector += curSectorBlkSize;
 		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
+
+		switch(menuUpdateGlobalState())
+		{
+			case MENU_EVENT_HOME_PRESSED:
+			case MENU_EVENT_POWER_PRESSED:
+				f_close(&file);
+			case MENU_EVENT_SD_CARD_REMOVED:
+				menuActState();
+				goto fail;
+			default:
+				break;
+		}
+
+		menuActState();
 	}
 
 	f_close(&file);
 	free(buf);
+	remount_nand_fs();
 	return true;
 
 fail:
 	free(buf);
+	remount_nand_fs();
 	wait(0x8000000);
 	return false;
 }

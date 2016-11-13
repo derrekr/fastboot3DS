@@ -42,5 +42,5 @@ const u32 firmVersionStringTable[] = {
 */
 
 
-bool firm_load_verify(u32 firmSize);
+bool firm_verify(u32 firmSize);
 noreturn void firm_launch(void);

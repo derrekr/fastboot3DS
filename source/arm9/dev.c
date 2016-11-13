@@ -11,6 +11,7 @@
 #include "arm9/dev.h"
 
 
+extern void panic();
 
 // SD card device
 bool sdmmc_sd_init(void);
@@ -122,8 +123,10 @@ const dev_struct *dev_flash = &dev_wififlash;
 // -------------------------------- sd card glue functions --------------------------------
 bool sdmmc_sd_init(void)
 {
-	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
-		sdmmc_init();
+	//printf("sdmmc_sd_init\n");
+	//if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
+	sdmmc_init();
+	dev_rnand.initialized = dev_sd.initialized = dev_dnand.dev.initialized = false;
 	
 	if(!dev_sd.initialized)
 	{
@@ -132,17 +135,23 @@ bool sdmmc_sd_init(void)
 		*((u16*)0x10000020) &= ~0x1; //If set while bitmask 0x200 is set, a sdbus command timeout error will occur during sdbus init.
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
+		//printf("sd init: success!\n");
 	}
+	//else printf("sd init: nothing to do!\n");
 	return true;
 }
 
 bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf)
 {
+	if(!dev_sd.initialized)
+		return false;
 	return !sdmmc_sdcard_readsectors(sector, count, buf);
 }
 
 bool sdmmc_sd_write_sector(u32 sector, u32 count, const void *buf)
 {
+	if(!dev_sd.initialized)
+			return false;
 	return !sdmmc_sdcard_writesectors(sector, count, buf);
 }
 
@@ -178,11 +187,15 @@ bool sdmmc_rnand_init(void)
 
 bool sdmmc_rnand_read_sector(u32 sector, u32 count, void *buf)
 {
+	if(!dev_rnand.initialized && !sdmmc_rnand_init())
+		return false;
 	return !sdmmc_nand_readsectors(sector, count, buf);
 }
 
 bool sdmmc_rnand_write_sector(u32 sector, u32 count, const void *buf)
 {
+	if(!dev_rnand.initialized && !sdmmc_rnand_init())
+		return false;
 	return !sdmmc_nand_writesectors(sector, count, buf);
 }
 
@@ -304,7 +317,8 @@ static nand_partition_struct *find_partition(u32 sector, u32 count)
 
 bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 {
-	if(!dev_dnand.dev.initialized) return false;
+	if(!dev_dnand.dev.initialized && !sdmmc_dnand_init())
+		return false;
 
 	nand_partition_struct *partition = find_partition(sector, count);
 
@@ -333,10 +347,12 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 
 bool sdmmc_dnand_write_sector(UNUSED u32 sector, UNUSED u32 count, UNUSED const void *buf)
 {
-	if(!dev_dnand.dev.initialized) return false;
+	if(!dev_dnand.dev.initialized && !sdmmc_dnand_init())
+		return false;
 
 	//return !sdmmc_nand_writesectors(sector, count, buf);
 	printf("Decnand write not implemented!\n");
+	panic();
 
 	return false;
 }

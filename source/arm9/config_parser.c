@@ -179,7 +179,6 @@ static bool parseConfigFile()
 	AttributeEntryType *curAttr;
 	u32 len;
 	char *text;
-	bool ret;
 	
 	// pass #1: look for definitions and populate our lookup table.
 	for(u32 i=0; i<numKeys; i++)
@@ -208,8 +207,7 @@ static bool parseConfigFile()
 		else
 		{	// TODO: what to do if ret == false ?
 			//printf("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
-			ret = keyFunctions[i].parse(curAttr);
-			//if(ret) printf("success!\n");
+			keyFunctions[i].parse(curAttr);
 		}
 	}
 	
@@ -290,7 +288,7 @@ static bool parseBootOptionPad(AttributeEntryType *attr)
 		{
 			if(strnicmp(textData, convTable[i], strlen(convTable[i])) == 0)
 			{
-				padValue |= 1 << i;
+				padValue |= (u32) 1 << i;
 				break;
 			}
 		}
@@ -309,7 +307,6 @@ static bool parseBootOptionPad(AttributeEntryType *attr)
 
 static bool parseBootMode(AttributeEntryType *attr)
 {
-	char c;
 	char *textData = attr->textData;
 	u32 i;
 

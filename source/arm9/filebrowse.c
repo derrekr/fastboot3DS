@@ -6,6 +6,7 @@
 #include "arm9/fatfs/ff.h"
 #include "arm9/console.h"
 #include "arm9/main.h"
+#include "arm9/menu.h"
 #include "arm9/interrupt.h"
 #include "util.h"
 #include "hid.h"
@@ -112,7 +113,7 @@ static void formatEntry(char *out, const char* in, const u32 bufSize, bool short
 	}
 }
 
-static void updateCursor(u32 cursor_pos, u32 old_cursor_pos, u32 maxEntries)
+static void updateCursor(int cursor_pos, int old_cursor_pos, int maxEntries)
 {
 	// clear old '*' char
 	consoleSetCursor(&con_bottom, 0, (old_cursor_pos % (maxEntries)) + 1);
@@ -122,13 +123,13 @@ static void updateCursor(u32 cursor_pos, u32 old_cursor_pos, u32 maxEntries)
 	printf("*");
 }
 
-static void updateScreen(u32 cursor_pos, bool dirChange)
+static void updateScreen(int cursor_pos, bool dirChange)
 {
 	// we don't want ugly line breaks in our list
 	const int maxLen = con_bottom.windowWidth - 1;
 	const int maxEntries = con_bottom.windowHeight - 1;
 	
-	static u32 old_cursor_pos;
+	static int old_cursor_pos;
 	
 	consoleSelect(&con_bottom);
 	
@@ -157,14 +158,14 @@ static void updateScreen(u32 cursor_pos, bool dirChange)
 	}
 	else
 	{
-		start = cursor_pos - (u32) maxEntries + 1;
+		start = cursor_pos - maxEntries + 1;
 		end = min(cursor_pos + 1, curEntriesCount);
 	}
 	
 	for(unsigned i = start; i < end; i++)
 	{
 		formatEntry(entry, dirEntries[i].name, (u32) maxLen - 2, true);
-		printf("\n%s %s", i == cursor_pos ? "*" : " ", entry);
+		printf("\n%s %s", i == (unsigned) cursor_pos ? "*" : " ", entry);
 	}
 }
 
@@ -173,12 +174,19 @@ const char *browseForFile(const char *basePath)
 	FRESULT res;
 	u32 keys;
 	u32 cursor_pos = 0;
+	bool fileSelected = false;
 	
 	curEntriesCount = 0;
 	indexStackPtr = indexStack;
 	
 	dirEntries = (EntryType *) malloc(MAX_CACHED_ENTRIES);
-	if(!dirEntries) return NULL;
+	if(!dirEntries)
+	{
+		menuSetReturnToState(STATE_PREVIOUS);
+		menuUpdateGlobalState();
+		menuActState();
+		return NULL;
+	}
 	
 	if(basePath)
 		strncpy_s(curPath, basePath, sizeof(curPath) - 1, sizeof(curPath));
@@ -189,13 +197,16 @@ const char *browseForFile(const char *basePath)
 	if (res != FR_OK)
 	{
 		free(dirEntries);
+		menuSetReturnToState(STATE_PREVIOUS);
+		menuUpdateGlobalState();
+		menuActState();
 		return NULL;
 	}
 	
 	// do an initial scan
 	scanDirectory();
 	
-	updateScreen(cursor_pos, true);
+	updateScreen((int)cursor_pos, true);
 	
 	for(;;)
 	{
@@ -209,7 +220,7 @@ const char *browseForFile(const char *basePath)
 				if(cursor_pos != 0)
 				{
 					cursor_pos -= keys & KEY_DLEFT ? min(cursor_pos, 8) : 1;
-					updateScreen(cursor_pos, false);
+					updateScreen((int)cursor_pos, false);
 				}
 			}
 			
@@ -227,11 +238,11 @@ const char *browseForFile(const char *basePath)
 					else
 						cursor_pos = curEntriesCount - 1;
 					if(cursor_pos != old_pos)
-						updateScreen(cursor_pos, false);
+						updateScreen((int)cursor_pos, false);
 				}
 				else
 				{
-					updateScreen(cursor_pos, false);
+					updateScreen((int)cursor_pos, false);
 				}
 			}
 			
@@ -251,7 +262,7 @@ const char *browseForFile(const char *basePath)
 							curEntriesCount = 0;
 							scanDirectory();
 							cursor_pos = 0;
-							updateScreen(cursor_pos, true);
+							updateScreen((int)cursor_pos, true);
 						}
 					}
 				}
@@ -261,7 +272,8 @@ const char *browseForFile(const char *basePath)
 						goto fail;	// TODO? Path too long.
 					strcat(curPath, "\\");
 					strcat(curPath, dirEntries[cursor_pos].name);
-					break;
+					fileSelected = true;
+					menuSetReturnToState(STATE_PREVIOUS);
 				}
 			}
 		}
@@ -282,22 +294,44 @@ const char *browseForFile(const char *basePath)
 						goto fail;
 				} while(curEntriesCount <= cursor_pos);
 				
-				updateScreen(cursor_pos, true);
+				updateScreen((int)cursor_pos, true);
 			}
-			else goto fail;
+			else
+				menuSetReturnToState(STATE_PREVIOUS);
 		}
 
-		waitForIrq();
-		REG_IRQ_IF = (u32)IRQ_TIMER_0;
+		switch(menuUpdateGlobalState())
+		{
+			case MENU_EVENT_HOME_PRESSED:
+			case MENU_EVENT_POWER_PRESSED:
+			case MENU_EVENT_SD_CARD_REMOVED:
+				goto fail;
+			case MENU_EVENT_STATE_CHANGE:
+				if(!fileSelected) goto fail;
+				else goto done;
+			default:
+				break;
+		}
+
+		menuActState();
+
 	}
 	
+done:
+
 	f_closedir(&curDirectory);
 	free(dirEntries);
-	
+
+	menuActState();
+
 	return curPath;
 	
 fail:
+
 	f_closedir(&curDirectory);
 	free(dirEntries);
+
+	menuActState();
+
 	return NULL;
 }

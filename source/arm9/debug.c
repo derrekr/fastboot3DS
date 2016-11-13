@@ -2,9 +2,11 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
+#include "pxi.h"
 #include "arm9/console.h"
 #include "arm9/fatfs/ff.h"
-
+#include "arm9/main.h"
+#include "arm9/interrupt.h"
 
 static u32 debugHash = 0;
 
@@ -29,12 +31,14 @@ noreturn void panic()
 
 	consoleInit(0, NULL);
 
-	printf("\x1b[41m\x1b[0J\x1b[9CGPANIC!!!\n\nlr = 0x%08"PRIX32"\n", lr);
+	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08"PRIX32"\n", lr);
 	
 	unmount_fs();
 	devs_close();
 	
-	while(1);
+	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
+
+	for(;;) waitForIrq();
 }
 
 // Expects the registers in the exception stack to be in the following order:
@@ -95,7 +99,9 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 	unmount_fs();
 	devs_close();
 
-	while(1);
+	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
+
+	for(;;) waitForIrq();
 }
 
 void dumpMem(u8 *mem, u32 size, char *filepath)

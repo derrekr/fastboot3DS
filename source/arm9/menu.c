@@ -18,22 +18,49 @@
 #include "arm9/interrupt.h"
 #include "arm9/config.h"
 
-u8 color;
+// PrintConsole for each screen
+extern PrintConsole con_top, con_bottom;
+
+const menu_state_options menu_main = {
+	5,
+	{
+		{"Launch FIRM", MENU_STATE_FIRM_LAUNCH},
+		{"NAND tools...", MENU_STATE_NAND_MENU},
+		{"Options...", MENU_STATE_OPTIONS_MENU},
+		{"Browse FIRM...", MENU_STATE_BROWSER},
+		{"CONFIG TEST", MENU_STATE_TEST_CONFIG}
+	}
+};
+
+const menu_state_options menu_nand = {
+	2,
+	{
+		{"Backup NAND", MENU_STATE_NAND_BACKUP},
+		{"Restore NAND", MENU_STATE_NAND_RESTORE}
+	}
+};
+
+// menu_state_type -> menu_state_options instance
+const menu_state_options *options_lookup[] = {
+	&menu_main, // STATE_MAIN
+	&menu_nand // STATE_NAND_MENU
+};
+
 enum menu_state_type menu_state;
+enum menu_state_type menu_next_state;
 
 enum menu_state_type menu_previous_states[8];
-int previous_states_count;
+int menu_previous_states_count;
 
-void heap_init();
+int menu_event_state;
+
+
+u8 color;
 
 static void menu_main_draw_top()
 {
 	const char *sd_res[2]	= {"\x1B[31mNo ", "\x1B[32mYes"};
 	const char *nand_res[2]	= {"\x1B[31mError ", "\x1B[32mOK   "};
-	
-	bool sd_status;
-	
-	sd_status = dev_sdcard->is_active();
 	
 	consoleSelect(&con_top);
 	drawConsoleWindow(&con_top, 2, color);
@@ -42,7 +69,7 @@ static void menu_main_draw_top()
 	printf(" Model: %s\n", bootInfo.model);
 	printf(" \x1B[33m%s\e[0m\n", bootInfo.boot_env);
 	printf(" \x1B[32m(%s Mode)\e[0m\n\n", bootInfo.mode);
-	printf(" SD card inserted: %s\e[0m\n", sd_res[sd_status]);
+	printf(" SD card inserted: %s\e[0m\n", sd_res[bootInfo.sd_status]);
 	printf(" NAND status: %s\e[0m\n", nand_res[bootInfo.nand_status]);
 	printf(" Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
@@ -56,19 +83,27 @@ void rewindConsole()
 	printf("\033[0;0H\n\n\n\n");
 }
 
-int enter_menu(void)
+int enter_menu(int initial_state)
 {
 	u32 keys;
 	int cursor_pos;
 	
+	menu_event_state = MENU_EVENT_NONE;
+
 	// randomize color
 	color = (rng_get_byte() % 6) + 1;
-	
-	previous_states_count = 0;
 	
 	cursor_pos = 0;
 
 	startTimer(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+
+	// caller requested to enter a submenu?
+	if(initial_state != MENU_STATE_MAIN)
+	{
+		menuSetEnterNextState(initial_state);
+		menuUpdateGlobalState();
+		menuActState();
+	}
 
 	// Menu main loop
 	for(;;)
@@ -83,8 +118,8 @@ int enter_menu(void)
 		switch(menu_state)
 		{
 		
-			case STATE_MAIN:
-			case STATE_NAND_MENU:
+			case MENU_STATE_MAIN:
+			case MENU_STATE_NAND_MENU:
 			
 				menu_main_draw_top();
 			
@@ -105,61 +140,39 @@ int enter_menu(void)
 				}
 				else if(keys & KEY_A)	// select option
 				{
-					menu_previous_states[previous_states_count] = menu_state;
-					previous_states_count++;
-					menu_state = cur_options->options[cursor_pos].state;
-					consoleClear();
+					menuSetEnterNextState(cur_options->options[cursor_pos].state);
 					cursor_pos = 0;
 				}
 				else if(keys & KEY_B)	// go back
 				{
-					if(previous_states_count != 0)
-					{
-						menu_state = menu_previous_states[previous_states_count-1];
-						previous_states_count--;
-						consoleClear();
-						cursor_pos = 0;
-					}
+					menuSetReturnToState(STATE_PREVIOUS);
+					cursor_pos = 0;
 				}
 				break;
 				
-			case STATE_NAND_BACKUP:
+			case MENU_STATE_NAND_BACKUP:
 				consoleSelect(&con_top);
 				consoleClear();
 				dumpNand("sdmc:/nand.bin");
-				clearConsoles();
-				menu_state = menu_previous_states[previous_states_count-1];
-				previous_states_count--;
+				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 				
-			case STATE_NAND_RESTORE:
+			case MENU_STATE_NAND_RESTORE:
 				consoleSelect(&con_top);
 				consoleClear();
 				restoreNand("sdmc:/nand.bin");
-				clearConsoles();
-				menu_state = menu_previous_states[previous_states_count-1];
-				previous_states_count--;
+				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 			
-			case STATE_FIRM_LAUNCH:
+			case MENU_STATE_FIRM_LAUNCH:
 				consoleClear();
 				consoleSelect(&con_top);
 				consoleClear();
-				if(!firm_load_verify(0x400000))
-				{
-					consoleSelect(&con_bottom);
-					printf("Press B to return to Main Menu");
-					do {
-						hidScanInput();
-						keys = hidKeysDown();
-					} while(!(keys & KEY_B));
-					menu_state = STATE_MAIN;
-				}
-				else goto exitAndLaunchFirm;
+				printf("OOPS!\n");
+				for(;;);
 				break;
 				
-				// test
-			case STATE_TEST_MENU:
+			case MENU_STATE_BROWSER:
 				consoleClear();
 				consoleSelect(&con_top);
 				consoleClear();
@@ -167,14 +180,11 @@ int enter_menu(void)
 				consoleClear();
 				printf("selected file:\n%s\n", path);
 				wait(0x8000000);
-				printf("loading firm...\n");
-				loadFirmSd(path);
-				if(!firm_load_verify(0x400000)) printf("bad firm\n");
+				if(!tryLoadFirmware(path)) printf("bad firm\n");
 				else goto exitAndLaunchFirm;
-				menu_state = STATE_MAIN;
 				break;
 			
-			case STATE_TEST_CONFIG:
+			case MENU_STATE_TEST_CONFIG:
 				consoleClear();
 				consoleSelect(&con_top);
 				consoleClear();
@@ -204,7 +214,8 @@ int enter_menu(void)
 					}
 					else printf("<invalid>");
 				}
-				for(;;);
+				timerSleep(6000);
+				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 			
 			default: printf("OOPS!\n"); break;
@@ -213,21 +224,13 @@ int enter_menu(void)
 		switch(menuUpdateGlobalState())
 		{
 		case MENU_EVENT_HOME_PRESSED:
-			menu_state = STATE_MAIN;
-			previous_states_count = 0;
-			consoleClear();
-			cursor_pos = 0;
 			break;
 
 		default:
 			break;
 		}
 
-		// Later if PXI interrupts are implemented we need an
-		// interrupt handler here which can tell the timer and
-		// PXI interrupts apart.
-		waitForIrq();
-		REG_IRQ_IF = (u32)IRQ_TIMER_0;
+		menuActState();
 	}
 
 exitAndLaunchFirm:
@@ -236,11 +239,62 @@ exitAndLaunchFirm:
 	return 0;
 }
 
+void menuSetReturnToState(int state)
+{
+	int i;
+
+	if(state == STATE_PREVIOUS)
+	{
+		if(menu_previous_states_count == 0)
+			return;
+		state = menu_previous_states[menu_previous_states_count - 1];
+		menu_previous_states_count--;
+	}
+	else
+	{
+		for(i=menu_previous_states_count; i>0; i--)
+		{
+			if(menu_previous_states[i] == state)
+			{
+				menu_previous_states_count = i;
+			}
+		}
+
+		if(i == 0)
+			menu_previous_states_count = 0;
+	}
+
+	menu_next_state = state;
+	// emit event
+	menu_event_state = MENU_EVENT_STATE_CHANGE;
+}
+
+void menuSetEnterNextState(int state)
+{
+	if(menu_previous_states_count >= 8)
+		panic();
+
+	menu_previous_states[menu_previous_states_count] = menu_state;
+	menu_previous_states_count++;
+
+	menu_next_state = state;
+	// emit event
+	menu_event_state = MENU_EVENT_STATE_CHANGE;
+}
+
 int menuUpdateGlobalState(void)
 {
 	int retcode = MENU_EVENT_NONE;
 
+	// Later if PXI interrupts are implemented we need an
+	// interrupt handler here which can tell the timer and
+	// PXI interrupts apart.
+	waitForIrq();
+	REG_IRQ_IF = (u32)IRQ_TIMER_0;
+
+
 	/* Check PXI Response register */
+
 	bool successFlag;
 	u32 replyCode = PXI_tryRecvWord(&successFlag);
 
@@ -251,6 +305,9 @@ int menuUpdateGlobalState(void)
 			case PXI_RPL_HOME_PRESSED:
 				retcode = MENU_EVENT_HOME_PRESSED;
 				break;
+			case PXI_RPL_POWER_PRESSED:
+				retcode = MENU_EVENT_POWER_PRESSED;
+				break;
 			default:
 				panic();
 		}
@@ -258,5 +315,59 @@ int menuUpdateGlobalState(void)
 		replyCode = PXI_tryRecvWord(&successFlag);
 	}
 
+
+	/* Check for HW changes */
+
+	bool sd_status;
+
+	sd_status = dev_sdcard->is_active();
+	if(sd_status != bootInfo.sd_status)
+	{
+		retcode = sd_status ? MENU_EVENT_SD_CARD_INSERTED :
+				MENU_EVENT_SD_CARD_REMOVED;
+		bootInfo.sd_status = sd_status;	// update bootInfo status
+	}
+
+
+	// Submenu wants to call a new menu?
+	if(menu_state != menu_next_state)
+		retcode = MENU_EVENT_STATE_CHANGE;
+
+	// did anything happen?
+	if(retcode != MENU_EVENT_NONE)
+		menu_event_state = retcode;
+
 	return retcode;
+}
+
+void menuActState(void)
+{
+	switch(menu_event_state)
+	{
+		case MENU_EVENT_NONE:
+			break;	// nothing to do, boring.
+		case MENU_EVENT_POWER_PRESSED:
+			power_off_safe();
+			break;
+		case MENU_EVENT_HOME_PRESSED:
+			menuSetReturnToState(MENU_STATE_MAIN);
+			break;
+		case MENU_EVENT_STATE_CHANGE:
+			clearConsoles();
+			menu_state = menu_next_state;
+			break;
+		case MENU_EVENT_SD_CARD_INSERTED:
+			dev_sdcard->init();	// try to initialize sd card
+			f_mount(&sd_fs, "sdmc:", 1);
+			break;
+		case MENU_EVENT_SD_CARD_REMOVED:
+			// what else to do here?
+			dev_sdcard->close();
+			f_mount(NULL, "sdmc:", 1);
+			break;
+		default:
+			break;
+	}
+
+	menu_event_state = MENU_EVENT_NONE;
 }

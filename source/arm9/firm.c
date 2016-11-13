@@ -49,6 +49,7 @@ static const firmProtectedArea firmProtectedAreas[] = {
 	}	
 };
 
+// NOTE: Do not call any functions here!
 void NAKED firmLaunchStub(void)
 {	
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
@@ -93,7 +94,7 @@ void NAKED firmLaunchStub(void)
 	__asm__("mov lr, %[in]\nbx %[in2]\n" : : [in] "r" (ret), [in2] "r" (entry9));
 }
 
-bool firm_load_verify(u32 fwSize)
+bool firm_verify(u32 fwSize)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	const char *res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
@@ -107,7 +108,7 @@ bool firm_load_verify(u32 fwSize)
 	printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
 	printf("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
 
-	for(int i=0; i<4; i++)
+	for(u32 i=0; i<4; i++)
 	{
 		firm_sectionheader *section = &firm_hdr->section[i];
 
@@ -131,11 +132,11 @@ bool firm_load_verify(u32 fwSize)
 		
 		// check for bad sections
 		const u32 numEntries = sizeof(firmProtectedAreas)/sizeof(firmProtectedArea);
-		for(i=0; i<numEntries; i++)
+		for(u32 j=0; j<numEntries; j++)
 		{ 
 			// protected region dimensions
-			u32 addr = firmProtectedAreas[i].addr;
-			u32 size = firmProtectedAreas[i].size;
+			u32 addr = firmProtectedAreas[j].addr;
+			u32 size = firmProtectedAreas[j].size;
 			
 			// firmware section dimensions
 			u32 start = section->address;
@@ -169,16 +170,16 @@ bool firm_load_verify(u32 fwSize)
 
 noreturn void firm_launch(void)
 {
-	printf("Sending PXI_CMD_FIRM_LAUNCH\n");
+	//printf("Sending PXI_CMD_FIRM_LAUNCH\n");
 	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
 
-	printf("Waiting for ARM11...\n");
+	//printf("Waiting for ARM11...\n");
 	while(PXI_recvWord() != PXI_RPL_OK);
 	
 	//printf("Relocating FIRM launch stub...\n");
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE>>2);
 
-	//printf("Starting firm launch...\n");
+	printf("Starting firm launch...\n");
 	void (*stub)(void) = (void (*)(void))A9_STUB_ENTRY;
 	stub();
 	while(1);

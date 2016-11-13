@@ -1,14 +1,16 @@
 #pragma once
 
 enum menu_state_type {
-	STATE_MAIN = 0,
-	STATE_NAND_MENU,
-	STATE_NAND_BACKUP,
-	STATE_NAND_RESTORE,
-	STATE_OPTIONS_MENU,
-	STATE_FIRM_LAUNCH,
-	STATE_TEST_MENU,
-	STATE_TEST_CONFIG
+	MENU_STATE_MAIN = 0,
+	MENU_STATE_NAND_MENU,
+	MENU_STATE_NAND_BACKUP,
+	MENU_STATE_NAND_RESTORE,
+	MENU_STATE_OPTIONS_MENU,
+	MENU_STATE_FIRM_LAUNCH,
+	MENU_STATE_BROWSER,
+	MENU_STATE_TEST_CONFIG,
+
+	STATE_PREVIOUS	// pseudo state for menuSetReturnToState()
 };
 
 typedef struct {
@@ -21,41 +23,34 @@ typedef struct {
 	const named_state options[];
 } menu_state_options;
 
-const menu_state_options menu_main = {
-	5,
-	{
-		{"Launch FIRM", STATE_FIRM_LAUNCH},
-		{"NAND tools...", STATE_NAND_MENU},
-		{"Options...", STATE_OPTIONS_MENU},
-		{"DEBUG TEST", STATE_TEST_MENU},
-		{"CONFIG TEST", STATE_TEST_CONFIG}
-	}
-};
-
-const menu_state_options menu_nand = {	
-	2,
-	{
-		{"Backup NAND", STATE_NAND_BACKUP},
-		{"Restore NAND", STATE_NAND_RESTORE}
-	}
-};
-
-// menu_state_type -> menu_state_options instance
-const menu_state_options *options_lookup[] = {
-	&menu_main, // STATE_MAIN
-	&menu_nand // STATE_NAND_MENU
-};
-
 enum menu_events {
 	MENU_EVENT_NONE = 0,
-	MENU_EVENT_HOME_PRESSED
+	MENU_EVENT_HOME_PRESSED,
+	MENU_EVENT_POWER_PRESSED,
+	MENU_EVENT_SD_CARD_INSERTED,
+	MENU_EVENT_SD_CARD_REMOVED,
+	MENU_EVENT_STATE_CHANGE
 };
 
+extern enum menu_state_type menu_state;
+extern enum menu_state_type menu_next_state;
 
-// PrintConsole for each screen
-extern PrintConsole con_top, con_bottom;
+extern enum menu_state_type menu_previous_states[8];
+extern int menu_previous_states_count;
 
-int enter_menu(void);
+extern int menu_event_state;
 
+int enter_menu(int initial_state);
+
+// Use this to change to another sub-menu.
+// Call menuUpdateGlobalState and menuActState afterwards.
+void menuSetReturnToState(int state);
+// Use this to change back to a previous sub-menu.
+// Call menuUpdateGlobalState and menuActState afterwards.
+void menuSetEnterNextState(int state);
+// This must be called once in each (sub-) menu iteration.
+// Returns an event code.
 int menuUpdateGlobalState(void);
-
+// This must be called once in each (sub-) menu iteration,
+// after menuUpdateGlobalState has been called.
+void menuActState(void);

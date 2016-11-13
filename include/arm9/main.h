@@ -17,22 +17,20 @@ typedef struct {
 
 bootInfoStruct bootInfo;
 
-/*
-typedef struct {
-	
-} configFileStruct;
-
-configFileStruct configFile;
-*/
-
 // PrintConsole for each screen
 PrintConsole con_top, con_bottom;
+
 // SD card FAT fs instance
 FATFS sd_fs;
+
 // same for all NAND filesystems
 FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 
 void devs_close();
+bool remount_nand_fs();
 void unmount_fs();
+void unmount_nand_fs();
 u8 rng_get_byte();
 void clearConsoles();
+bool tryLoadFirmware(const char *filepath);
+void power_off_safe();

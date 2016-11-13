@@ -1,6 +1,5 @@
 #pragma once
 
-extern PrintConsole con_top;
-extern PrintConsole con_bottom;
+#include "main.h"
 
 bool dumpNand(const char *filepath);

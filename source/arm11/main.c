@@ -11,7 +11,6 @@ extern void disableCaches(void);
 
 void turn_off(void)
 {
-	//printf("Attempting to turn off...\n");
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
 	for(;;)
@@ -42,6 +41,9 @@ void NAKED firmLaunchStub(void)
 
 int main(void)
 {
+	void (*stub)(void) = (void (*)(void))A11_STUB_ENTRY;
+	bool poweroff_allowed = false;
+
 	// Relocate ARM11 stub
 	for(u32 i = 0; i < 0x200>>2; i++)
 	{
@@ -49,7 +51,8 @@ int main(void)
 	}
 
 	PXI_init();
-	gfx_init();
+
+	gfx_clear_framebufs();
 
 	for(;;)
 	{
@@ -62,6 +65,19 @@ int main(void)
 
 			switch(cmdCode)
 			{
+				case PXI_CMD_ENABLE_LCDS:
+					gfx_init();
+					PXI_sendWord(PXI_RPL_OK);
+					break;
+				case PXI_CMD_ALLOW_POWER_OFF:
+					poweroff_allowed = true;
+					break;
+				case PXI_CMD_FORBID_POWER_OFF:
+					poweroff_allowed = false;
+					break;
+				case PXI_CMD_POWER_OFF:
+					turn_off();
+					break;
 				case PXI_CMD_FIRM_LAUNCH:
 					goto start_firmlaunch;
 				default:
@@ -73,7 +89,16 @@ int main(void)
 		u8 hidstate = i2cmcu_readreg_hid();
 
 		if(hidstate & MCU_HID_POWER_BUTTON_PRESSED)
-			turn_off();
+		{
+			if(poweroff_allowed)	// direct power off allowed?
+				turn_off();
+			PXI_trySendWord(PXI_RPL_POWER_PRESSED);
+		}
+
+		if(hidstate & MCU_HID_HOME_BUTTON_PRESSED)
+			PXI_trySendWord(PXI_RPL_HOME_PRESSED);
+
+		// handle shell state
 		if(hidstate & MCU_HID_SHELL_GOT_CLOSED)
 			i2cmcu_lcd_poweroff();
 		else if(hidstate & MCU_HID_SHELL_GOT_OPENED)
@@ -81,18 +106,19 @@ int main(void)
 			i2cmcu_lcd_poweron();
 			i2cmcu_lcd_backlight_poweron();
 		}
-		if(hidstate & MCU_HID_HOME_BUTTON_PRESSED)
-			PXI_trySendWord(PXI_RPL_HOME_PRESSED);
+
+		// wait a bit, don't spam the i2c bus
 		wait(0x8000);
 	}
 
 start_firmlaunch:
 
+/*
 	// Turn off LCDs and backlight before FIRM launch.
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
+*/
 
-	void (*stub)(void) = (void (*)(void))A11_STUB_ENTRY;
 	disableCaches();
 	stub();
 

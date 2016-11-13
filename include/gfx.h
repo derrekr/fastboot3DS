@@ -21,7 +21,7 @@
 void gfx_init();
 void gfx_set_framebufs(u8 r, u8 g, u8 b, u8 a);
 void gfx_set_black_sub();
-void gfx_draw_ppm();
+void gfx_clear_framebufs();
 
 inline u32 *gfx_get_framebuf_ptr(int top_screen, u16 x, u16 y)
 {

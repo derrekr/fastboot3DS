@@ -23,6 +23,7 @@ enum BootModes {
 
 #define numKeys  KLast
 
+bool loadConfigFile();
 void *configCopyText(int key);
 const void *configGetData(int key);
 const char *configGetKeyText(int key);

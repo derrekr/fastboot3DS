@@ -1,89 +1,135 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "types.h"
-#include "arm9/main.h"
 #include "util.h"
-#include "io.h"
+#include "pxi.h"
+#include "hid.h"
 #include "arm9/fatfs/ff.h"
 #include "arm9/dev.h"
 #include "arm9/firm.h"
 #include "arm9/config.h"
+#include "arm9/timer.h"
+#include "arm9/menu.h"
+#include "arm9/main.h"
 
-static void devs_init();
-static void mount_fs();
+static bool devs_init();
+static bool mount_fs();
+static void screen_init();
 static void unit_detect();
 static void boot_env_detect();
 static void fw_detect();
-static void loadSettings();
+static bool loadSettings(int *mode);
+bool tryLoadFirmwareFromSettings();
+u32 loadFirmSd(const char *filePath);
+
+// TODO: remove after debugging
+extern void panic(void);
+extern void hashCodeRoData(void);
 
 int main(void)
 {
+	int mode;
+	bool firmLoaded = false;
+
 	hashCodeRoData();	// TODO: remove after debugging
 
-	//Initialize console for both screen using the two different PrintConsole we have defined
+	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
+
+	//Initialize console for both screens using the two different PrintConsole we have defined
 	consoleInit(SCREEN_TOP, &con_top);
 	consoleSetWindow(&con_top, 1, 1, con_top.windowWidth - 2, con_top.windowHeight - 2);
 	consoleInit(SCREEN_LOW, &con_bottom);
 	
 	consoleSelect(&con_top);
 	
-	printf("\x1B[32mGood morning, hello!\e[0m\n\n");
-	
-	printf("Detecting unit...\n");
-	
-	unit_detect();
-	
-	printf("Detecting boot environment...\n");
-	
-	boot_env_detect();
+	printf("\x1B[32mGood morning\nHello !\e[0m\n\n");
 	
 	printf("Initializing devices...\n");
-	
-	devs_init();
-	
-	printf("Mounting filesystems...\n");
-	
-	mount_fs();
-	
-	printf("Detecting firmware...\n");
-	
-	fw_detect();
-	
-	printf("Loading settings...\n");
-	
-	loadSettings();
-	
-	wait(0x8000000);
 
-	consoleClear();
+	if(!devs_init()) screen_init();
+
+	printf("Mounting filesystems...\n");
+
+	if(!mount_fs()) screen_init();
+
+	printf("Loading settings...\n");
+
+	if(!loadSettings(&mode)) screen_init();
+
+	switch(mode)
+	{
+		case BootModeQuick:
+			screen_init();
+		case BootModeQuiet:
+			firmLoaded = tryLoadFirmwareFromSettings();
+			if(firmLoaded)
+				break;
+		case BootModeNormal:
+			screen_init();
+			break;
+		default:
+			panic();
+	}
+
+	if(!firmLoaded)
+	{
+		printf("Detecting unit...\n");
+
+		unit_detect();
+
+		printf("Detecting boot environment...\n");
+
+		boot_env_detect();
+
+		printf("Detecting firmware...\n");
+
+		fw_detect();
+
+		printf("Entering menu...\n");
+
+		timerSleep(2000);
+
+		consoleClear();
+
+		enter_menu(MENU_STATE_MAIN);
+	}
 	
-	enter_menu();
+	printf("Unmounting FS...\n");
 
 	unmount_fs();
 	
+	printf("Closing devices...\n");
+
 	devs_close();
 
 	return 0;
 }
 
-static void devs_init()
+static bool devs_init()
 {
-	bool res;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
+	bool sdRes, nandRes, wifiRes;
 
 	printf(" Initializing SD card... ");
-	printf("%s\e[0m\n", res_str[dev_sdcard->init()]);
+	printf("%s\e[0m\n", res_str[sdRes = dev_sdcard->init()]);
 	printf(" Initializing raw NAND... ");
-	printf("%s\e[0m\n", res_str[dev_rawnand->init()]);
+	printf("%s\e[0m\n", res_str[nandRes = dev_rawnand->init()]);
 	printf(" Initializing Wifi flash... ");
-	printf("%s\e[0m\n", res_str[(res = dev_flash->init())]);
+	printf("%s\e[0m\n", res_str[wifiRes = dev_flash->init()]);
 
-	bootInfo.sd_status = dev_sdcard->is_active();
-	bootInfo.nand_status = dev_rawnand->is_active();
-	bootInfo.wififlash_status = dev_flash->is_active();
+	bootInfo.sd_status = sdRes;
+	bootInfo.nand_status = nandRes;
+	bootInfo.wififlash_status = wifiRes;
 
-	if(!res) wait(0x8000000); // mmc or wififlash init fail
+	// TODO: avoid this somehow...
+	if(sdRes)
+	{
+		while(!dev_sdcard->is_active());
+	}
+
+	// atm only those boot options are possible, so if the init
+	// for both failed, this is a fatal error.
+	return sdRes && nandRes;
 }
 
 void devs_close()
@@ -94,30 +140,65 @@ void devs_close()
 	dev_flash->close();
 }
 
-static void mount_fs()
+bool remount_nand_fs()
 {
-	FRESULT res;
+	bool res = true;
+
+	res &= f_mount(&nand_twlnfs, "twln:", 1);
+	res &= f_mount(&nand_twlpfs, "twlp:", 1);
+	res &= f_mount(&nand_fs, "nand:", 1);
+
+	return res;
+}
+
+void unmount_nand_fs()
+{
+	f_mount(NULL, "twln:", 1);
+	f_mount(NULL, "twlp:", 1);
+	f_mount(NULL, "nand:", 1);
+}
+
+static bool mount_fs()
+{
+	FRESULT res[4];
+	bool finalRes = true;
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
 
-	printf("Mounting SD card FAT FS... ");
-	res = f_mount(&sd_fs, "sdmc:", 1);
-	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
+	if(bootInfo.sd_status)
+	{
+		printf("Mounting SD card FAT FS... ");
+		res[0] = f_mount(&sd_fs, "sdmc:", 1);
+		if(res[0] == FR_OK) printf("%s\e[0m\n", res_str[1]);
+		else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res[0]);
+		finalRes &= res[0] == FR_OK;
+	}
+	else finalRes = false;
 
-	printf("Mounting twln FS... ");
-	res = f_mount(&nand_twlnfs, "twln:", 1);
-	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
+	if(bootInfo.nand_status)
+	{
+		printf("Mounting twln FS... ");
+		res[1] = f_mount(&nand_twlnfs, "twln:", 1);
+		if(res[1] == FR_OK) printf("%s\e[0m\n", res_str[1]);
+		else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res[1]);
 
-	printf("Mounting twlp FS... ");
-	res = f_mount(&nand_twlpfs, "twlp:", 1);
-	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
+		printf("Mounting twlp FS... ");
+		res[2] = f_mount(&nand_twlpfs, "twlp:", 1);
+		if(res[2] == FR_OK) printf("%s\e[0m\n", res_str[1]);
+		else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res[2]);
 
-	printf("Mounting CTR NAND FAT FS... ");
-	res = f_mount(&nand_fs, "nand:", 1);
-	if(res == FR_OK) printf("%s\e[0m\n", res_str[1]);
-	else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res);
+		printf("Mounting CTR NAND FAT FS... ");
+		res[3] = f_mount(&nand_fs, "nand:", 1);
+		if(res[3] == FR_OK) printf("%s\e[0m\n", res_str[1]);
+		else printf("%s ERROR 0x%d\e[0m\n", res_str[0], res[3]);
+
+		finalRes &= res[3] == res[2] == res[1] == FR_OK;
+	}
+	else finalRes = false;
+
+	if(!finalRes)
+		timerSleep(2000);
+
+	return finalRes;
 }
 
 void unmount_fs()
@@ -126,6 +207,17 @@ void unmount_fs()
 	f_mount(NULL, "twln:", 1);
 	f_mount(NULL, "twlp:", 1);
 	f_mount(NULL, "nand:", 1);
+}
+
+static void screen_init()
+{
+	static bool screenInitDone;
+	if(!screenInitDone)
+	{
+		screenInitDone = true;
+		PXI_sendWord(PXI_CMD_ENABLE_LCDS);
+		while(PXI_recvWord() != PXI_RPL_OK);
+	}
 }
 
 static void unit_detect()
@@ -170,12 +262,25 @@ static void fw_detect()
 	free(nand_sector);
 }
 
-static void loadSettings()
+static bool loadSettings(int *mode)
 {
 	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
 	
 	bool success = loadConfigFile();
-	printf(res_str[success]);
+	printf("%s\e[0m\n", res_str[success]);
+
+	if(success)
+	{
+		const int *mode_ptr = (const int *)configGetData(KBootMode);
+		if(mode_ptr != NULL)
+			 *mode = *mode_ptr;
+		else *mode = BootModeNormal;
+		return true;
+	}
+
+	*mode = BootModeNormal;
+
+	return false;
 }
 
 u8 rng_get_byte()
@@ -188,31 +293,119 @@ u8 rng_get_byte()
 	return (u8)tmp;
 }
 
+bool tryLoadFirmwareFromSettings(void)
+{
+	const char *path;
+	int keyBootOption, keyPad;
+	int i;
+	u32 padValue, expectedPadValue;
+
+	consoleSelect(&con_top);
+
+	printf("\n\nAttempting to load FIRM from settings...\n");
+
+	keyBootOption = KBootOption1;
+	keyPad = KBootOption1Buttons;
+
+	for(i=0; i<3; i++, keyBootOption++, keyPad++)
+	{
+		path = (const char *)configGetData(keyBootOption);
+		if(path)
+		{
+			printf("Boot Option #%i:\n", i + 1);
+			// check pad value
+			const u32 *temp;
+			temp = (const u32 *)configGetData(keyPad);
+			if(temp)
+			{
+				expectedPadValue = *temp;
+				hidScanInput();
+				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
+				if(padValue != expectedPadValue)
+				{
+					printf("Skipping, right buttons are not pressed.\n");
+					printf("%x %x\n", padValue, expectedPadValue);
+					continue;
+				}
+			}
+
+			if(tryLoadFirmware(path))
+				break;
+		}
+
+		// ... we failed, try next one
+	}
+
+	if(i >= 3)
+		return false;
+
+	return true;
+}
+
+bool tryLoadFirmware(const char *filepath)
+{
+	u32 fw_size;
+
+	if(!filepath)
+		return false;
+
+	printf("Loading firmware:\n%s\n", filepath);
+
+	if(strncmp(filepath, "sdmc:", 5) == 0)
+		fw_size = loadFirmSd(filepath);
+	else
+		return false;	// TODO: Support more devices
+
+	if(fw_size == 0)
+		return false;
+
+	return firm_verify(fw_size);
+}
+
 static void loadFirmNand(void)
 {
 	dev_decnand->read_sector(0x0005A980, 0x00002000, (u8*)FIRM_LOAD_ADDR);
 }
 
-bool loadFirmSd(const char *filePath)
+u32 loadFirmSd(const char *filePath)
 {
 	FIL file;
+	u32 fileSize;
 	UINT bytesRead = 0;
-	bool res = true;
+	FILINFO fileStat;
 
+	if(f_stat(filePath, &fileStat) != FR_OK)
+	{
+		printf("Failed to get file status!\n");
+		return 0;
+	}
+
+	fileSize = fileStat.fsize;
 
 	if(f_open(&file, filePath, FA_READ) != FR_OK)
 	{
 		printf("Failed to open '%s'!\n", filePath);
-		return false;
+		return 0;
 	}
-	if(f_read(&file, (u8*)FIRM_LOAD_ADDR, FIRM_MAX_SIZE, &bytesRead) != FR_OK)
+
+	if(fileSize > FIRM_MAX_SIZE)
+	{
+		f_close(&file);
+		return 0;
+	}
+
+	if(f_read(&file, (u8*)FIRM_LOAD_ADDR, fileSize, &bytesRead) != FR_OK)
 	{
 		printf("Failed to read from file!\n");
-		res = false;
+		fileSize = 0;
 	}
+
+	if(bytesRead != fileSize)
+		fileSize = 0;
+
 	f_close(&file);
 
-	return res;
+	return fileSize;
 }
 
 void clearConsoles()
@@ -221,4 +414,18 @@ void clearConsoles()
 	consoleClear();
 	consoleSelect(&con_top);
 	consoleClear();
+}
+
+void power_off_safe()
+{
+	clearConsoles();
+
+	printf("Attempting to turn off...\n");
+
+	unmount_fs();
+	devs_close();
+	// tell the arm11 we're done
+	PXI_sendWord(PXI_CMD_POWER_OFF);
+
+	for(;;);
 }
