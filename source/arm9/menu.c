@@ -95,7 +95,7 @@ int enter_menu(int initial_state)
 	
 	cursor_pos = 0;
 
-	startTimer(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
 
 	// caller requested to enter a submenu?
 	if(initial_state != MENU_STATE_MAIN)
@@ -214,7 +214,7 @@ int enter_menu(int initial_state)
 					}
 					else printf("<invalid>");
 				}
-				timerSleep(6000);
+				TIMER_sleep(6000);
 				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 			
@@ -234,7 +234,7 @@ int enter_menu(int initial_state)
 	}
 
 exitAndLaunchFirm:
-	stopTimer(TIMER_0);
+	TIMER_stop(TIMER_0);
 
 	return 0;
 }

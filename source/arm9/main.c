@@ -4,6 +4,7 @@
 #include "util.h"
 #include "pxi.h"
 #include "hid.h"
+#include "arm9/loader_init.h"
 #include "arm9/fatfs/ff.h"
 #include "arm9/dev.h"
 #include "arm9/firm.h"
@@ -30,6 +31,8 @@ int main(void)
 {
 	int mode;
 	bool firmLoaded = false;
+
+	hardwareInit();
 
 	hashCodeRoData();	// TODO: remove after debugging
 
@@ -87,7 +90,7 @@ int main(void)
 
 		printf("Entering menu...\n");
 
-		timerSleep(2000);
+		TIMER_sleep(2000);
 
 		consoleClear();
 
@@ -196,7 +199,7 @@ static bool mount_fs()
 	else finalRes = false;
 
 	if(!finalRes)
-		timerSleep(2000);
+		TIMER_sleep(2000);
 
 	return finalRes;
 }

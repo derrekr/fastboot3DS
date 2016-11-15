@@ -35,8 +35,9 @@ typedef enum
 } TimerPrescaler;
 
 
-void startTimer(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq);
-void stopTimer(Timer timer);
+void TIMER_init(void);
+void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq);
+void TIMER_stop(Timer timer);
 void _timerSleep(u32 ticks); // Use the macro instead
 
-#define timerSleep(ms)      _timerSleep(0xFFFFFFFFu - (u32)((TIMER_BASE_FREQ / 1024.0l / 1000.0l) * ms))
+#define TIMER_sleep(ms)      _timerSleep(0xFFFFFFFFu - (u32)((TIMER_BASE_FREQ / 1024.0l / 1000.0l) * ms))

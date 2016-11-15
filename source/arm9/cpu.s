@@ -4,17 +4,16 @@
 .arch armv5te
 .fpu softvfp
 
-.global initSystem
-.global finiSystem
+.global initCpu
+.global deinitCpu
 
-.type initSystem STT_FUNC
-.type resetCriticalHardware STT_FUNC
+.type initCpu STT_FUNC
 .type setupExceptionVectors STT_FUNC
 .type setupTcms STT_FUNC
 .type setupMpu STT_FUNC
-.type finiSystem STT_FUNC
+.type deinitCpu STT_FUNC
 
-.extern undefHandler
+.extern undefInstrHandler
 .extern prefetchAbortHandler
 .extern dataAbortHandler
 .extern flushDCache
@@ -23,7 +22,7 @@
 
 
 
-initSystem:
+initCpu:
 	mov r10, lr
 
 	@ Control register:
@@ -46,55 +45,32 @@ initSystem:
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
 	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 
-	bl resetCriticalHardware
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 	bl setupMpu
 	bx r10
-
-
-// Based on code compiled with gcc
-resetCriticalHardware:
-	mov r3, #0
-	mov r12, #0xFFFFFFFF
-	ldr r2, =(IO_MEM_ARM9_ONLY + 0x2000) @ NDMA regs
-	ldr r1, =(IO_MEM_ARM9_ONLY + 0x3000) @ Timer regs
-	ldr r0, =(IO_MEM_ARM9_ONLY + 0x1000) @ IRQ regs
-	stmia r0, {r3, r12}                  @ Disable and aknowledge all interrupts
-
-	str r3, [r2], #0x1C                  @ REG_NDMA_GLOBAL_CNT
-	mov r12, #8
-	loop_disable:
-		str r3, [r2], #0x1C              @ REG_NDMA_CNT(n) = 0
-		subs r12, r12, #1
-		bne loop_disable
-
-	strh r3, [r1, #2]                    @ REG_TIMER0_CNT
-	strh r3, [r1, #6]                    @ REG_TIMER1_CNT
-	strh r3, [r1, #0xA]                  @ REG_TIMER2_CNT
-	strh r3, [r1, #0xE]                  @ REG_TIMER3_CNT
-	bx lr
+.pool
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
 setupExceptionVectors:
-	ldr r0, =_vectorStubs_
+	ldr r0, =__vectorStubs
 	mov r1, #A9_RAM_BASE
 	ldmia r0!, {r2-r9}
 	stmia r1!, {r2-r9}
 	ldmia r0, {r2-r5}
 	stmia r1, {r2-r5}
 	bx lr
-_vectorStubs_:
+__vectorStubs:
 	.word MAKE_BRANCH(A9_RAM_BASE + 0x00, A9_RAM_BASE + 0x00) // IRQ
 	.word 0
 	.word MAKE_BRANCH(A9_RAM_BASE + 0x08, A9_RAM_BASE + 0x08) // FIQ
 	.word 0
 	.word MAKE_BRANCH(A9_RAM_BASE + 0x10, A9_RAM_BASE + 0x10) // SVC
 	.word 0
-	ldr pc, undefHandlerPtr
-	undefHandlerPtr:                .word undefHandler
+	ldr pc, undefInstrHandlerPtr
+	undefInstrHandlerPtr:           .word undefInstrHandler
 	ldr pc, prefetchAbortHandlerPtr
 	prefetchAbortHandlerPtr:        .word prefetchAbortHandler
 	ldr pc, dataAbortHandlerPtr
@@ -111,6 +87,7 @@ setupTcms:
 	orr r0, r0, #0x50000        @ Enable DTCM and ITCM
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	bx lr
+.pool
 
 
 #define REGION_4KB   (0b01011)
@@ -147,26 +124,26 @@ setupTcms:
 
 setupMpu:
 	@ Region 0: ITCM kernel mirror 32 KB
-	@ Region 1: ARM9 internal mem 2 MB covers N3DS extension if we want to load code there
+	@ Region 1: ARM9 internal mem 1 MB
 	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
-	@ Region 3: VRAM, DSP mem and AXIWRAM 128 MB
-	@ Region 4: - (reserved)
-	@ Region 5: FCRAM 256 MB
-	@ Region 6: DTCM 16 KB
+	@ Region 3: VRAM 8MB
+	@ Region 4: DTCM 16 KB
+	@ Region 5: - (reserved)
+	@ Region 6: - (reserved)
 	@ Region 7: Exception vectors + ARM9 bootrom 32 KB
 	ldr r0, =MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
 	mcr p15, 0, r0, c6, c0, 0
-	ldr r0, =MAKE_REGION(A9_RAM_BASE,        REGION_2MB)
+	ldr r0, =MAKE_REGION(A9_RAM_BASE,        REGION_1MB)
 	mcr p15, 0, r0, c6, c1, 0
 	ldr r0, =MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
 	mcr p15, 0, r0, c6, c2, 0
-	ldr r0, =MAKE_REGION(VRAM_BASE,          REGION_128MB)
+	ldr r0, =MAKE_REGION(VRAM_BASE,          REGION_8MB)
 	mcr p15, 0, r0, c6, c3, 0
-	ldr r0, =MAKE_REGION(0x00000000,         0x00)
-	mcr p15, 0, r0, c6, c4, 0
-	ldr r0, =MAKE_REGION(FCRAM_BASE,         REGION_256MB)
-	mcr p15, 0, r0, c6, c5, 0
 	ldr r0, =MAKE_REGION(DTCM_BASE,          REGION_16KB)
+	mcr p15, 0, r0, c6, c4, 0
+	mov r0, #0
+	mcr p15, 0, r0, c6, c5, 0
+	//mov r0, #0
 	mcr p15, 0, r0, c6, c6, 0
 	ldr r0, =MAKE_REGION(BOOT9_BASE,         REGION_32KB)
 	mcr p15, 0, r0, c6, c7, 0
@@ -176,14 +153,14 @@ setupMpu:
 	@ Region 1: User = --, Privileged = RW
 	@ Region 2: User = --, Privileged = RW
 	@ Region 3: User = --, Privileged = RW
-	@ Region 4: User = --, Privileged = --
-	@ Region 5: User = --, Privileged = RW
-	@ Region 6: User = --, Privileged = RW
+	@ Region 4: User = --, Privileged = RW
+	@ Region 5: User = --, Privileged = --
+	@ Region 6: User = --, Privileged = --
 	@ Region 7: User = --, Privileged = RO
 	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
                               PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-                              PER_NO_ACC,             PER_PRIV_RW_USR_NO_ACC,
-                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC)
+                              PER_PRIV_RW_USR_NO_ACC, PER_NO_ACC,
+                              PER_NO_ACC            , PER_PRIV_RO_USR_NO_ACC)
 	mcr p15, 0, r0, c5, c0, 2   @ Data access permissions
 
 	@ Instruction access permissions:
@@ -192,12 +169,12 @@ setupMpu:
 	@ Region 2: User = --, Privileged = --
 	@ Region 3: User = --, Privileged = --
 	@ Region 4: User = --, Privileged = --
-	@ Region 5: User = --, Privileged = RO
+	@ Region 5: User = --, Privileged = --
 	@ Region 6: User = --, Privileged = --
 	@ Region 7: User = --, Privileged = RO
 	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
                               PER_NO_ACC,             PER_NO_ACC,
-                              PER_NO_ACC,             PER_PRIV_RO_USR_NO_ACC,
+                              PER_NO_ACC,             PER_NO_ACC,
                               PER_NO_ACC,             PER_PRIV_RO_USR_NO_ACC)
 	mcr p15, 0, r0, c5, c0, 3   @ Instruction access permissions
 
@@ -207,10 +184,10 @@ setupMpu:
 	@ Region 2 = no  <-- Never cache IO regs
 	@ Region 3 = yes
 	@ Region 4 = no
-	@ Region 5 = yes
+	@ Region 5 = no
 	@ Region 6 = no
-	@ Region 7 = no
-	mov r0, #0b00101010
+	@ Region 7 = yes
+	mov r0, #0b10001010
 	mcr p15, 0, r0, c2, c0, 0   @ Data cachable bits
 
 	@ Instruction cachable bits:
@@ -219,10 +196,10 @@ setupMpu:
 	@ Region 2 = no
 	@ Region 3 = no
 	@ Region 4 = no
-	@ Region 5 = yes
+	@ Region 5 = no
 	@ Region 6 = no
 	@ Region 7 = yes
-	mov r0, #0b10100010
+	mov r0, #0b10000010
 	mcr p15, 0, r0, c2, c0, 1   @ Instruction cachable bits
 
 	@ Write bufferable bits:
@@ -231,34 +208,32 @@ setupMpu:
 	@ Region 2 = no  <-- Never buffer IO reg writes
 	@ Region 3 = yes
 	@ Region 4 = no
-	@ Region 5 = yes
+	@ Region 5 = no
 	@ Region 6 = no
 	@ Region 7 = no
-	mov r0, #0b00101010
+	mov r0, #0b00001010
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	orr r0, r0, r1              @ Enable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	mov r0, #0
-	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
-	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
 	bx lr
+.pool
 
 
-finiSystem:
+deinitCpu:
 	mov r4, lr
-	bl resetCriticalHardware
+	//bl resetCriticalHardware
 
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
 	mov r1, #6
 	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
-	loop_stub:
+	deinitCpu_lp:
 		str r2, [r0], #8
 		subs r1, r1, #1
-		bne loop_stub
+		bne deinitCpu_lp
 
 	bl flushDCache
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
@@ -269,3 +244,4 @@ finiSystem:
 	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
 	bx r4
+.pool

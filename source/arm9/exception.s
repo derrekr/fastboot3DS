@@ -4,23 +4,23 @@
 .arch armv5te
 .fpu softvfp
 
-.global undefHandler
+.global undefInstrHandler
 .global prefetchAbortHandler
 .global dataAbortHandler
 
-.type undefHandler STT_FUNC
+.type undefInstrHandler STT_FUNC
 .type prefetchAbortHandler STT_FUNC
 .type dataAbortHandler STT_FUNC
 .type exceptionHandler STT_FUNC
 
-.extern finiSystem
+.extern deinitCpu
 .extern guruMeditation
 
 .section ".text"
 
 
 
-undefHandler:
+undefInstrHandler:
 	msr cpsr_f, #(0<<29)        @ Abuse conditional flags in cpsr for temporary exception type storage
 	b exceptionHandler
 prefetchAbortHandler:
@@ -37,7 +37,7 @@ exceptionHandler:
 	stmfd sp!, {r1, lr}         @ Save spsr and lr (pc) on exception stack
 	mov r6, sp
 	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
-	bl finiSystem
+	bl deinitCpu
 	mov r0, r5
 	mov sp, r6
 	mov r1, r6

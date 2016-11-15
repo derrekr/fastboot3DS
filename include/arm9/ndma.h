@@ -58,6 +58,11 @@
 
 
 /**
+ * @brief      Initializes all NDMA channels.
+ */
+void NDMA_init(void);
+
+/**
  * @brief      Copies data using the NDMA engine.
  *
  * @param      dest    Pointer to destination memory. Must be 4 bytes aligned.

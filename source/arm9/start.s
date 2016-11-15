@@ -13,10 +13,9 @@
 .type clearMem STT_FUNC
 .type _init STT_FUNC
 
-.extern initSystem
-.extern finiSystem
+.extern initCpu
+.extern deinitCpu
 .extern __libc_init_array
-.extern initHardware
 .extern main
 .extern firm_launch
 .extern __bss_start__
@@ -30,16 +29,16 @@
 
 
 _start:
-	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
+	msr cpsr_cxsf, #0xDF           @ Disable all interrupts, system mode
 	b skip_pool
 
 	.string "3DS BOOTLOADER "
 	.word   BOOTLOADER_VERSION
 
 skip_pool:
-	ldr sp, =A9_STACK_END
+	bl initCpu
 
-	bl initSystem
+	ldr sp, =A9_STACK_END
 
 	@ Clear bss section
 	ldr r0, =__bss_start__
@@ -56,27 +55,28 @@ skip_pool:
 	str r0, [r1]
 
 	blx __libc_init_array       @ Initialize ctors and dtors
-	blx initHardware
-	mov r0, #0
-	mov r1, #0
+
+	mov r0, #0                  @ argc
+	mov r1, #0                  @ argv
 	blx main
 	cmp r0, #0
 	bne .
-	bl finiSystem
+	bl deinitCpu
 	b firm_launch
+.pool
 
 
 @ void clearMem(u32 *start, u32 *end)
 clearMem:
 	sub r1, r1, r0
 	mov r2, #0
-	loop_clear:
+	clearMem_lp:
 		str r2, [r0], #4
 		subs r1, r1, #4
-		bne loop_clear
+		bne clearMem_lp
 	bx lr
 
 
-@ needed by libc
+@ Needed by libc
 _init:
 	bx lr

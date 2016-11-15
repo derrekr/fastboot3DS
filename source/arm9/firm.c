@@ -91,7 +91,7 @@ void NAKED firmLaunchStub(void)
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
-	__asm__("mov lr, %[in]\nbx %[in2]\n" : : [in] "r" (ret), [in2] "r" (entry9));
+	__asm__ __volatile__("mov lr, %0\n\tbx %1\n\t" : : "r" (ret), "r" (entry9) : "lr", "pc");
 }
 
 bool firm_verify(u32 fwSize)

@@ -11,6 +11,19 @@
 
 
 
+void NDMA_init(void)
+{
+	REG_NDMA_GLOBAL_CNT = 0;
+
+	for(u32 i = 0; i < 8; i++)
+	{
+		REG_NDMA_CNT(i) = 0;
+	}
+
+	REG_IRQ_IE |= (IRQ_DMAC_1_0 | IRQ_DMAC_1_1 | IRQ_DMAC_1_2 | IRQ_DMAC_1_3 |
+					IRQ_DMAC_1_4 | IRQ_DMAC_1_5 | IRQ_DMAC_1_6 | IRQ_DMAC_1_7);
+}
+
 void NDMA_copy(u32 *dest, const u32 *source, u32 num)
 {
 	assert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));

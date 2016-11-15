@@ -4,13 +4,23 @@
 
 
 
-void startTimer(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)
+void TIMER_init(void)
+{
+	for(u32 i = 0; i < 4; i++)
+	{
+		REG_TIMER_CNT(i) = 0;
+	}
+
+	REG_IRQ_IE |= (IRQ_TIMER_0 | IRQ_TIMER_1 | IRQ_TIMER_2 | IRQ_TIMER_3);
+}
+
+void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)
 {
 	REG_TIMER_VAL(timer) = ticks;
 	REG_TIMER_CNT(timer) = TIMER_ENABLE | ((u32)enableIrq<<6) | prescaler;
 }
 
-void stopTimer(Timer timer)
+void TIMER_stop(Timer timer)
 {
 	REG_TIMER_CNT(timer) = 0;
 	REG_IRQ_IF = ((u32)IRQ_TIMER_0<<timer);
@@ -29,7 +39,7 @@ void _timerSleep(u32 ticks)
 		waitForIrq();
 	}
 
-	REG_TIMER2_CNT = REG_TIMER3_CNT = 0;
+	REG_TIMER3_CNT = REG_TIMER2_CNT = 0;
 	REG_IRQ_IF = (u32)IRQ_TIMER_3;
 }
 

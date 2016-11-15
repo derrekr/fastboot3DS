@@ -4,7 +4,7 @@
 
 
 
-#define waitForIrq()      __asm__("mcr p15, 0, %[in], c7, c0, 4\n" : : [in] "r" (0))
+#define waitForIrq()      __asm__("mcr p15, 0, %0, c7, c0, 4\n\t" : : "r" (0))
 
 
 typedef enum

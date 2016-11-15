@@ -56,6 +56,7 @@ _start:
 
 	blx main
 	b .                        @ If main ever returns loop forever
+.pool
 
 
 disableCaches:
@@ -72,6 +73,7 @@ disableCaches:
 	mcr p15, 0, r0, c7, c6, 0  @ Invalidate Entire Data Cache
 	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
 	bx r2
+.pool
 
 
 _init:

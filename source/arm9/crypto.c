@@ -160,12 +160,12 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 
 		// Check block alignment
 		u32 aesDmaFifoSize, ndmaBurstSize;
-		if(!(blockSize & 63))
+		/*if(!(blockSize & 63)) // This burst size seems to be buggy and causes mem corruption
 		{
 			aesDmaFifoSize = 3;
 			ndmaBurstSize = NDMA_BURST_SIZE(16);
 		}
-		else if(!(blockSize & 31))
+		else*/ if(!(blockSize & 31))
 		{
 			aesDmaFifoSize = 1;
 			ndmaBurstSize = NDMA_BURST_SIZE(8);
@@ -221,7 +221,7 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 	}
 
 	// Disable the NDMA channels
-	REG_NDMA0_CNT = REG_NDMA1_CNT = 0;
+	REG_NDMA1_CNT = REG_NDMA0_CNT = 0;
 
 	// Throw possibly cached lines out of the window
 	invalidateDCacheRange(savedOut, size);
