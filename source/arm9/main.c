@@ -124,12 +124,6 @@ static bool devs_init()
 	bootInfo.nand_status = nandRes;
 	bootInfo.wififlash_status = wifiRes;
 
-	// TODO: avoid this somehow...
-	if(sdRes)
-	{
-		while(!dev_sdcard->is_active());
-	}
-
 	// atm only those boot options are possible, so if the init
 	// for both failed, this is a fatal error.
 	return sdRes && nandRes;

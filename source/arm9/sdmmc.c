@@ -462,29 +462,26 @@ int Nand_Init()
 
 int SD_Init()
 {
-	u32 tries;
-
 	set_target(&handleSD);
 
-	wait(0x10000);
+	wait(0xF000);
 
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);
 	uint32_t temp = (handleSD.error & 0x1) << 0x1E;
 
 	uint32_t temp2 = 0;
-	
-	for(tries=0; tries<100; tries++)
+
+	do
 	{
-		for(int j=0; j<20; j++)
+		do
 		{
 			sdmmc_send_command(&handleSD,0x10437,handleSD.initarg << 0x10);
 			sdmmc_send_command(&handleSD,0x10769,0x00FF8000 | temp);
 			temp2 = 1;
-			if(handleSD.error & 1) break;
-		}
-		if((handleSD.ret[0] & 0x80000000) != 0) break;
+		} while ( !(handleSD.error & 1) );
 	}
+	while((handleSD.ret[0] & 0x80000000) == 0);
 
 	if(!((handleSD.ret[0] >> 30) & 1) || !temp)
 		temp2 = 0;
@@ -521,16 +518,6 @@ int SD_Init()
 	sdmmc_send_command(&handleSD,0x10410,0x200);
 	if((handleSD.error & 0x4)) return -8;
 	handleSD.clk |= 0x200;
-	
-	// we need a bit of time to detect an sd card has been inserted...
-	/*tries = 0;
-	for(;;)
-	{
-		wait(0x1000);
-		if(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE) break;
-		if(tries == 0x10000) return -1;
-		tries++;
-	}*/
 
 	return 0;
 }
