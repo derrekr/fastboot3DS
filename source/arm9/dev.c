@@ -131,12 +131,11 @@ bool sdmmc_sd_init(void)
 	if(!dev_sd.initialized)
 	{
 		// thanks yellows8
-		*((vu16*)0x10000020) |= 0x200; //If not set, the hardware will not detect any inserted card on the sdbus.
-		*((vu16*)0x10000020) &= ~0x1; //If set while bitmask 0x200 is set, a sdbus command timeout error will occur during sdbus init.
+		*((vu16*)0x10000020) = *((vu16*)0x10000020) & ~0x1u | 0x200u;
 
-		u32 tries = 2000000;
-		while(!sdmmc_sd_is_active() && tries) --tries;
-		if(!tries) return false;
+		u32 timeout = 1526000;
+		while(!sdmmc_sd_is_active() && timeout) --timeout;
+		if(!timeout) return false;
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
 		//printf("sd init: success!\n");
