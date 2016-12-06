@@ -3,7 +3,7 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "arm9/fatfs/ff.h"
+#include "fatfs/ff.h"
 #include "arm9/console.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"

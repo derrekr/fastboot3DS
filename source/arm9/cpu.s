@@ -1,7 +1,7 @@
 #include "mem_map.h"
 
 .arm
-.arch armv5te
+.cpu arm946e-s
 .fpu softvfp
 
 .global initCpu
@@ -47,6 +47,7 @@ initCpu:
 
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
+	ldr sp, =A9_STACK_END
 	bl setupMpu
 	bx r10
 .pool
@@ -55,19 +56,20 @@ initCpu:
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
 setupExceptionVectors:
-	ldr r0, =__vectorStubs
-	mov r1, #A9_RAM_BASE
+	adr r0, __vectorStubs
+	mov r1, #A9_VECTORS_START
 	ldmia r0!, {r2-r9}
 	stmia r1!, {r2-r9}
 	ldmia r0, {r2-r5}
 	stmia r1, {r2-r5}
 	bx lr
+.pool
 __vectorStubs:
-	.word MAKE_BRANCH(A9_RAM_BASE + 0x00, A9_RAM_BASE + 0x00) // IRQ
+	.word MAKE_BRANCH(A9_VECTORS_START + 0x00, A9_VECTORS_START + 0x00) // IRQ
 	.word 0
-	.word MAKE_BRANCH(A9_RAM_BASE + 0x08, A9_RAM_BASE + 0x08) // FIQ
+	.word MAKE_BRANCH(A9_VECTORS_START + 0x08, A9_VECTORS_START + 0x08) // FIQ
 	.word 0
-	.word MAKE_BRANCH(A9_RAM_BASE + 0x10, A9_RAM_BASE + 0x10) // SVC
+	.word MAKE_BRANCH(A9_VECTORS_START + 0x10, A9_VECTORS_START + 0x10) // SVC
 	.word 0
 	ldr pc, undefInstrHandlerPtr
 	undefInstrHandlerPtr:           .word undefInstrHandler
@@ -205,7 +207,7 @@ setupMpu:
 	@ Write bufferable bits:
 	@ Region 0 = no
 	@ Region 1 = yes
-	@ Region 2 = no  <-- Never buffer IO reg writes
+	@ Region 2 = no  <-- Never buffer IO regs
 	@ Region 3 = yes
 	@ Region 4 = no
 	@ Region 5 = no
@@ -224,7 +226,6 @@ setupMpu:
 
 deinitCpu:
 	mov r4, lr
-	//bl resetCriticalHardware
 
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
@@ -240,6 +241,7 @@ deinitCpu:
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
+
 	mov r0, #0
 	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache

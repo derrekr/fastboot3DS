@@ -131,7 +131,7 @@ bool sdmmc_sd_init(void)
 	if(!dev_sd.initialized)
 	{
 		// thanks yellows8
-		*((vu16*)0x10000020) = *((vu16*)0x10000020) & ~0x1u | 0x200u;
+		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
 		u32 timeout = 1526000;
 		while(!sdmmc_sd_is_active() && timeout) --timeout;

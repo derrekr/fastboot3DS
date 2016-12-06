@@ -4,7 +4,7 @@
 #include "mem_map.h"
 #include "pxi.h"
 #include "arm9/console.h"
-#include "arm9/fatfs/ff.h"
+#include "fatfs/ff.h"
 #include "arm9/main.h"
 #include "arm9/interrupt.h"
 

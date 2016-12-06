@@ -1,20 +1,22 @@
-#include "mem_map.h"
-
 .arm
 .cpu mpcore
 .fpu softvfp
 
 .global _start
+.global clearMem
 .global _init
-.global disableCaches
 
 .type _start STT_FUNC
+.type clearMem STT_FUNC
 .type _init STT_FUNC
-.type disableCaches STT_FUNC
 
-.extern main
+.extern initCpu
 .extern __bss_start__
 .extern __bss_end__
+.extern __libc_init_array
+.extern main
+.extern deinitCpu
+.extern firm_launch
 
 .section ".crt0"
 
@@ -23,56 +25,53 @@
 _start:
 	cpsid aif, #0x1F           @ Disable all interrupts, system mode
 
-	ldr r0, =0x54078           @ Everything disabled
-	mcr p15, 0, r0, c1, c0, 0  @ Write control register
-	mov r1, #0                 @ Everything disabled
-	mcr p15, 0, r1, c1, c0, 1  @ Write Auxiliary Control Register
-	mcr p15, 0, r1, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r1, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r1, c7, c6, 0  @ Invalidate Entire Data Cache
-	mcr p15, 0, r1, c7, c10, 4 @ Data Synchronization Barrier
+	bl initCpu
 
-	mov r0, #0x2F              @ Enable Return stack, Dynamic branch prediction, Static branch prediction,
-                               @ Instruction folding, SMP mode, the CPU is taking part in coherency
-	mcr p15, 0, r0, c1, c0, 1  @ Write Auxiliary Control Register
-	ldr r0, =0x5587C           @ Enable D-Cache, program flow prediction and I-Cache
-	mcr p15, 0, r0, c1, c0, 0  @ Write control register
-	mcr p15, 0, r1, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r1, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r1, c7, c6, 0  @ Invalidate Entire Data Cache
-	mcr p15, 0, r1, c7, c10, 4 @ Data Synchronization Barrier
-
-	// Set sp
-	ldr sp, =A11_STACK_END
-
+	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
-	mov r2, #0
-	loop_bss_clear:
-		str r2, [r0], #4
-		subs r1, r1, #4
-		bne loop_bss_clear
+	bl clearMem
 
+	blx __libc_init_array      @ Initialize ctors and dtors
+
+	mov r0, #0                 @ argc
+	mov r1, #0                 @ argv
 	blx main
-	b .                        @ If main ever returns loop forever
+	cmp r0, #0
+	bne .
+	bl deinitCpu
+	b firm_launch
 .pool
 
 
-disableCaches:
-	mov r2, lr
-	bl flushDCache
-
-	ldr r0, =0x54078           @ Everything disabled
-	mcr p15, 0, r0, c1, c0, 0  @ Write control register
-	mov r0, #0                 @ Everything disabled
-	mcr p15, 0, r0, c1, c0, 1  @ Write Auxiliary Control Register
-
-	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r0, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c6, 0  @ Invalidate Entire Data Cache
-	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
-	bx r2
+@ void clearMem(u32 *adr, u32 size)
+clearMem:
+	mov r2, #0
+	bics r12, r1, #31
+	sub r1, r1, r12
+	beq clearMem_check_zero
+	stmfd sp!, {r4-r9}
+	mov r3, #0
+	mov r4, #0
+	mov r5, #0
+	mov r6, #0
+	mov r7, #0
+	mov r8, #0
+	mov r9, #0
+	clearMem_block_lp:
+		stmia r0!, {r2-r9}
+		subs r12, r12, #32
+		bne clearMem_block_lp
+	ldmfd sp!, {r4-r9}
+clearMem_check_zero:
+	cmp r1, #0
+	bxeq lr
+	clearMem_remaining_lp:
+		str r2, [r0], #4
+		subs r1, r1, #4
+		bne clearMem_remaining_lp
+	bx lr
 .pool
 
 

@@ -1,13 +1,11 @@
 #include "types.h"
-#include "mem_map.h"
 #include "util.h"
+#include "arm11/loader_init.h"
 #include "arm11/i2c.h"
 #include "gfx.h"
 #include "pxi.h"
 
 
-
-extern void disableCaches(void);
 
 void turn_off(void)
 {
@@ -20,37 +18,11 @@ void turn_off(void)
 	}
 }
 
-void NAKED firmLaunchStub(void)
-{
-	// Answer ARM0
-	REG_PXI_SYNC11 = 0; // Disable all IRQs
-	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = PXI_RPL_OK;
-
-	// Wait for entry address
-	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
-	void (*entry11)(void) = (void (*)(void))REG_PXI_RECV11;
-
-	// Tell ARM9 we got the entry
-	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = PXI_RPL_FIRM_LAUNCH_READY;
-	REG_PXI_CNT11 = 0; // Disable PXI
-
-	entry11();
-}
-
 int main(void)
 {
-	void (*stub)(void) = (void (*)(void))A11_STUB_ENTRY;
 	bool poweroff_allowed = false;
 
-	// Relocate ARM11 stub
-	for(u32 i = 0; i < 0x200>>2; i++)
-	{
-		((u32*)A11_STUB_ENTRY)[i] = ((u32*)firmLaunchStub)[i];
-	}
-
-	PXI_init();
+	hardwareInit();
 
 	gfx_clear_framebufs();
 
@@ -118,9 +90,6 @@ start_firmlaunch:
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
 */
-
-	disableCaches();
-	stub();
 
 	return 0;
 }

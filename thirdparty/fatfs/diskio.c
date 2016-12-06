@@ -5,8 +5,8 @@
 /* attached to the FatFs via a glue function rather than modifying it.   */
 /*-----------------------------------------------------------------------*/
 
-#include "arm9/fatfs/ff.h"
-#include "arm9/fatfs/diskio.h"		/* FatFs lower layer API */
+#include "ff.h"
+#include "diskio.h"		/* FatFs lower layer API */
 #include "types.h"
 #include "arm9/dev.h"
 

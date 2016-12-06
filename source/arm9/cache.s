@@ -1,5 +1,5 @@
 .arm
-.arch armv5te
+.cpu arm946e-s
 .fpu softvfp
 
 .global invalidateICache

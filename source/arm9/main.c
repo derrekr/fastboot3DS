@@ -5,7 +5,7 @@
 #include "pxi.h"
 #include "hid.h"
 #include "arm9/loader_init.h"
-#include "arm9/fatfs/ff.h"
+#include "fatfs/ff.h"
 #include "arm9/dev.h"
 #include "arm9/firm.h"
 #include "arm9/config.h"

@@ -17,6 +17,7 @@ invalidateICache:
 	@ also flushes the branch target cache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c5, 0
+	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
 	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
 	bx lr
 

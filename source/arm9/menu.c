@@ -8,9 +8,10 @@
 #include "pxi.h"
 #include "arm9/console.h"
 #include "arm9/dev.h"
-#include "arm9/fatfs/ff.h"
-#include "arm9/fatfs/diskio.h"
+#include "fatfs/ff.h"
+#include "fatfs/diskio.h"
 #include "hid.h"
+#include "version.h"
 #include "arm9/main.h"
 #include "arm9/util_nand.h"
 #include "arm9/menu.h"
@@ -64,7 +65,7 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	drawConsoleWindow(&con_top, 2, color);
-	printf("\n\t\t\t\t\t3DS Bootloader v0.1\n\n\n\n");
+	printf("\n\t\t\t\t\t3DS Bootloader v%" PRIu16 ".%" PRIu16 "\n\n\n\n", BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
 	
 	printf(" Model: %s\n", bootInfo.model);
 	printf(" \x1B[33m%s\e[0m\n", bootInfo.boot_env);

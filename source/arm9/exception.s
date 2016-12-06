@@ -1,7 +1,7 @@
 #include "mem_map.h"
 
 .arm
-.arch armv5te
+.cpu arm946e-s
 .fpu softvfp
 
 .global undefInstrHandler

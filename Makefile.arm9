@@ -18,8 +18,8 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	code9
 BUILD		:=	build9
-SOURCES		:=	source source/arm9 source/arm9/fatfs
-INCLUDES	:=	include
+SOURCES		:=	source source/arm9 thirdparty/fatfs thirdparty/fatfs/option
+INCLUDES	:=	include thirdparty
 DATA		:=	data
 
 #---------------------------------------------------------------------------------

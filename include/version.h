@@ -1,3 +1,3 @@
 #pragma once
 
-#define BOOTLOADER_VERSION		0
+#define BOOTLOADER_VERSION  (0x00000001)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "arm9/fatfs/ff.h"
+#include "fatfs/ff.h"
 #include "arm9/console.h"
 
 typedef struct {
