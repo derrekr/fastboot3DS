@@ -179,7 +179,7 @@ const char *browseForFile(const char *basePath)
 	curEntriesCount = 0;
 	indexStackPtr = indexStack;
 	
-	dirEntries = (EntryType *) malloc(MAX_CACHED_ENTRIES);
+	dirEntries = (EntryType *) malloc(MAX_CACHED_ENTRIES * sizeof(EntryType));
 	if(!dirEntries)
 	{
 		menuSetReturnToState(STATE_PREVIOUS);
