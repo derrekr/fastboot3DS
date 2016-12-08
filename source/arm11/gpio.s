@@ -1,6 +1,6 @@
 .arm
 .cpu mpcore
-.fpu softvfp
+.fpu vfpv2
 
 .global gpio_set_bit
 .global gpio_clear_bit

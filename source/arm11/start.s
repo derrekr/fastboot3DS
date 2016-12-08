@@ -1,6 +1,6 @@
 .arm
 .cpu mpcore
-.fpu softvfp
+.fpu vfpv2
 
 .global _start
 .global clearMem

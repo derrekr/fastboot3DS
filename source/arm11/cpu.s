@@ -2,13 +2,14 @@
 
 .arm
 .cpu mpcore
-.fpu softvfp
+.fpu vfpv2
 
 .global initCpu
 .global deinitCpu
 
 .type initCpu STT_FUNC
 .type setupExceptionVectors STT_FUNC
+.type setupVfp STT_FUNC
 .type deinitCpu STT_FUNC
 
 .extern setupMmu
@@ -49,6 +50,7 @@ initCpu:
 	ldr sp, =A11_STACK_END
 
 	bl setupExceptionVectors    @ Setup the vectors in AXIWRAM bootrom vectors jump to
+	bl setupVfp
 	blx setupMmu
 	bx r10
 .pool
@@ -80,6 +82,19 @@ __vectorStubs:
 	.word 0
 
 
+setupVfp:
+	mov r0, #0
+	mov r1, #0x00F00000         @ Give full access to cp10/11 in user and privileged mode
+	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
+	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
+	mov r1, #0x40000000         @ Clear exception bits and enable VFP11
+	mov r2, #0x03C00000         @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
+	fmxr fpexc, r1              @ Write Floating-point exception register
+	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
+	bx lr
+.pool
+
+
 deinitCpu:
 	mov r4, lr
 
@@ -93,6 +108,7 @@ deinitCpu:
 		bne deinitCpu_vector_lp
 
 	bl flushDCache
+	mov r2, #0
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x803805           @ MMU, D-Cache, Program flow prediction, I-Cache,
                                 @ high exception vectors, subpage AP bits disabled
@@ -104,10 +120,12 @@ deinitCpu:
                                 @ SMP mode: the CPU is taking part in coherency and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
-	mov r0, #0
-	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
-	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
+	mcr p15, 0, r2, c7, c5, 4   @ Flush Prefetch Buffer
+	mcr p15, 0, r2, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
+	mcr p15, 0, r2, c7, c10, 4  @ Data Synchronization Barrier
 	clrex
+	@ Disable VFP11
+	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
+	fmxr fpexc, r2              @ Write Floating-point exception register
 	bx r4
 .pool

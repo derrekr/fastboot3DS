@@ -29,7 +29,7 @@ DEFINES	:=
 
 LDNAME	:=	arm11.ld
 
-ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=soft -marm -mthumb-interwork
+ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -marm -mthumb-interwork
 
 DBGWARM	:=	-Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
 			-Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls \

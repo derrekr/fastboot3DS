@@ -84,18 +84,14 @@ static void mmuMapPages(const u32 va, const u32 pa, const u32 num, u32 *l2Table,
 
 void setupMmu(void)
 {
-	// Give full access to all non-cp15 coprocessors
-	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 2\n\t" : : "r" (0xF00000u));
-	// Base AXIWRAM, Nonshared page table walk and outer cachable write-back cached, write allocate
-	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 0\n\t" : : "r" (A11_MMU_TABLES_BASE | 8u));
+	// TTBR0 address shared page table walk and outer cachable write-through, no allocate on write
+	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 0\n\t" : : "r" (A11_MMU_TABLES_BASE | 0x12u));
 	// Use the 16 KB L1 table only
 	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 2\n\t" : : "r" (0u));
 	// Domain 1 = client, remaining domains all = no access
 	__asm__ __volatile__("mcr p15, 0, %0, c3, c0, 0\n\t" : : "r" (4u));
 	// Context ID Register (ASID = 0, PROCID = 0)
 	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 1\n\t" : : "r" (0u));
-	// Thread ID Register (user and privileged read/write access) (Thread ID = 0)
-	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 2\n\t" : : "r" (0u));
 
 
 	// Clear L1 and L2 tables
@@ -150,7 +146,11 @@ void setupMmu(void)
 
 	// Modify Control Register
 	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 0\n\t" : "=r" (tmp) : );
-	tmp |= 0x803805u; // Enable MMU, D-Cache, Program flow prediction, I-Cache,
-	                  // high exception vectors, subpage AP bits disabled
+	tmp |= 0x803807u; // Enable MMU, Strict data address alignment fault, D-Cache,
+	                  // Program flow prediction, I-Cache, high exception vectors,
+	                  // subpage AP bits disabled
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0\n\t" : : "r" (tmp));
+
+	// Flush Prefetch Buffer
+	__asm__ __volatile__("mcr p15, 0, %0, c7, c5, 4\n\t" : : "r" (0u));
 }
