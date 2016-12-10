@@ -5,10 +5,8 @@
 
 
 void invalidateICache(void);
+void invalidateICacheRange(void *base, u32 size);
 void flushDCache(void);
-#ifdef ARM9
-void invalidateICacheRange(const void *base, u32 size);
-void flushDCacheRange(const void *base, u32 size);
+void flushDCacheRange(void *base, u32 size);
 void invalidateDCache(void);
-void invalidateDCacheRange(const void *base, u32 size);
-#endif
+void invalidateDCacheRange(void *base, u32 size);
