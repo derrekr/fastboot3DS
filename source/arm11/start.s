@@ -6,6 +6,7 @@
 .global clearMem
 .global _init
 
+.type vectors STT_FUNC
 .type _start STT_FUNC
 .type clearMem STT_FUNC
 .type _init STT_FUNC
@@ -20,6 +21,18 @@
 
 .section ".crt0"
 
+
+
+_vectors:
+	ldr pc, =_start            @ Reset vector
+	ldr pc, =(_vectors + 0x04) @ Undefined instruction vector
+	ldr pc, =(_vectors + 0x08) @ Software interrupt (SVC) vector
+	ldr pc, =(_vectors + 0x0C) @ Prefetch abort vector
+	ldr pc, =(_vectors + 0x10) @ Data abort vector
+	ldr pc, =(_vectors + 0x14) @ Reserved (unused) vector
+	ldr pc, =(_vectors + 0x18) @ Interrupt (IRQ) vector
+	ldr pc, =(_vectors + 0x1C) @ Fast interrupt (FIQ) vector
+.pool
 
 
 _start:

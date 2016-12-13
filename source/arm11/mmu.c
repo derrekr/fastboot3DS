@@ -59,6 +59,7 @@ static void mmuMapSections(const u32 va, const u32 pa, const u32 num, const bool
 
 /**
  * @brief      Maps up to 128 4 KB pages of memory.
+ * @brief      The mapped range must not cross the next section.
  *
  * @param[in]  va       The virtual address base. Must be aligned to 4 KB.
  * @param[in]  pa       The physical address base. Must be aligned to 4 KB.
@@ -118,8 +119,8 @@ void setupMmu(void)
 				(u32*)(A11_MMU_TABLES_BASE + 0x4400u), true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
 				L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
-	// boot11 mirror mapping (exception vectors)
-	mmuMapPages(BOOT11_MIRROR2, BOOT11_MIRROR2, 8, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
+	// Map boot11 mirror to loader executable start (exception vectors)
+	mmuMapPages(BOOT11_MIRROR2, AXIWRAM_BASE + 0x5000u, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
 				PERM_PRIV_RO_USR_NO_ACC, 1, false,
 				L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
@@ -150,7 +151,4 @@ void setupMmu(void)
 	                  // Program flow prediction, I-Cache, high exception vectors,
 	                  // subpage AP bits disabled
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0\n\t" : : "r" (tmp));
-
-	// Flush Prefetch Buffer
-	__asm__ __volatile__("mcr p15, 0, %0, c7, c5, 4\n\t" : : "r" (0u));
 }

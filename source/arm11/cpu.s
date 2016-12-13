@@ -8,7 +8,7 @@
 .global deinitCpu
 
 .type initCpu STT_FUNC
-.type setupExceptionVectors STT_FUNC
+.type stubExceptionVectors STT_FUNC
 .type setupVfp STT_FUNC
 .type deinitCpu STT_FUNC
 
@@ -49,37 +49,25 @@ initCpu:
 
 	ldr sp, =A11_STACK_END
 
-	bl setupExceptionVectors    @ Setup the vectors in AXIWRAM bootrom vectors jump to
-	bl setupVfp
+	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
 	blx setupMmu
+	bl setupVfp
+	cpsie a
 	bx r10
 .pool
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
-setupExceptionVectors:
-	adr r0, __vectorStubs
-	ldr r1, =A11_VECTORS_START
-	ldmia r0!, {r2-r9}
-	stmia r1!, {r2-r9}
-	ldmia r0, {r2-r5}
-	stmia r1, {r2-r5}
+stubExceptionVectors:
+	ldr r0, =A11_VECTORS_START
+	mov r1, #6
+	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
+	stubExceptionVectors_lp:
+		str r2, [r0], #8
+		subs r1, r1, #1
+		bne stubExceptionVectors_lp
 	bx lr
-.pool
-__vectorStubs:
-	.word MAKE_BRANCH(A11_VECTORS_START + 0x00, A11_VECTORS_START + 0x00) // IRQ
-	.word 0
-	.word MAKE_BRANCH(A11_VECTORS_START + 0x08, A11_VECTORS_START + 0x08) // FIQ
-	.word 0
-	.word MAKE_BRANCH(A11_VECTORS_START + 0x10, A11_VECTORS_START + 0x10) // SVC
-	.word 0
-	.word MAKE_BRANCH(A11_VECTORS_START + 0x18, A11_VECTORS_START + 0x18) // Undefined instruction
-	.word 0
-	.word MAKE_BRANCH(A11_VECTORS_START + 0x20, A11_VECTORS_START + 0x20) // Prefetch abort
-	.word 0
-	.word MAKE_BRANCH(A11_VECTORS_START + 0x28, A11_VECTORS_START + 0x28) // Data abort
-	.word 0
 
 
 setupVfp:
@@ -96,17 +84,10 @@ setupVfp:
 
 
 deinitCpu:
-	mov r4, lr
+	cpsid aif, #0x1F
+	mov r3, lr
 
-	@ Stub vectors to endless loops
-	ldr r0, =A11_VECTORS_START
-	mov r1, #6
-	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
-	deinitCpu_vector_lp:
-		str r2, [r0], #8
-		subs r1, r1, #1
-		bne deinitCpu_vector_lp
-
+	bl stubExceptionVectors
 	bl flushDCache
 	mov r2, #0
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
@@ -125,8 +106,9 @@ deinitCpu:
 	mcr p15, 0, r2, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r2, c7, c10, 4  @ Data Synchronization Barrier
 	clrex
+
 	@ Disable VFP11
 	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
 	fmxr fpexc, r2              @ Write Floating-point exception register
-	bx r4
+	bx r3
 .pool
