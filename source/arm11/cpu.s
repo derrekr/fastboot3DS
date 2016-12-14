@@ -72,11 +72,11 @@ stubExceptionVectors:
 
 setupVfp:
 	mov r0, #0
-	mov r1, #0x00F00000         @ Give full access to cp10/11 in user and privileged mode
+	mov r1, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
 	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
 	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
 	mov r1, #0x40000000         @ Clear exception bits and enable VFP11
-	mov r2, #0x03C00000         @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
+	mov r2, #0x3C00000          @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
 	fmxr fpexc, r1              @ Write Floating-point exception register
 	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
 	bx lr
@@ -97,9 +97,9 @@ deinitCpu:
 	bic r0, r0, r1
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	mrc p15, 0, r0, c1, c0, 1   @ Read Auxiliary Control Register
-	bic r0, r0, #0x7F           @ Return stack, Dynamic branch prediction, Static branch prediction,
-                                @ Instruction folding, L1 and L2 caches are exclusive,
-                                @ SMP mode: the CPU is taking part in coherency and L1 parity checking
+	bic r0, r0, #0x6F           @ Return stack, Dynamic branch prediction, Static branch prediction,
+                                @ Instruction folding, SMP mode: the CPU is taking part in coherency
+                                @ and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
 	mcr p15, 0, r2, c7, c5, 4   @ Flush Prefetch Buffer

@@ -34,6 +34,7 @@
 
 
 extern void clearMem(u32 *adr, u32 size);
+extern u32 __start__;
 
 /**
  * @brief      Maps up to 4096 1 MB sections of memory.
@@ -120,7 +121,7 @@ void setupMmu(void)
 				L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 	// Map boot11 mirror to loader executable start (exception vectors)
-	mmuMapPages(BOOT11_MIRROR2, AXIWRAM_BASE + 0x5000u, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
+	mmuMapPages(BOOT11_MIRROR2, (u32)&__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
 				PERM_PRIV_RO_USR_NO_ACC, 1, false,
 				L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
@@ -140,9 +141,9 @@ void setupMmu(void)
 	u32 tmp;
 	// Modify Auxiliary Control Register
 	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 1\n\t" : "=r" (tmp) : );
-	tmp |= 0x7Fu;     // Enable Return stack, Dynamic branch prediction, Static branch prediction,
-	                  // Instruction folding, L1 and L2 caches are exclusive,
-	                  // SMP mode: the CPU is taking part in coherency and L1 parity checking
+	tmp |= 0x6Fu;     // Enable Return stack, Dynamic branch prediction, Static branch prediction,
+	                  // Instruction folding, SMP mode: the CPU is taking part in coherency
+	                  // and L1 parity checking
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 1\n\t" : : "r" (tmp));
 
 	// Modify Control Register
