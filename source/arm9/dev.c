@@ -8,6 +8,7 @@
 #include "arm9/spiflash.h"
 #include "arm9/crypto.h"
 #include "arm9/ndma.h"
+#include "arm9/timer.h"
 #include "arm9/dev.h"
 
 
@@ -133,9 +134,12 @@ bool sdmmc_sd_init(void)
 		// thanks yellows8
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
-		u32 timeout = 1526000;
-		while(!sdmmc_sd_is_active() && timeout) --timeout;
-		if(!timeout) return false;
+		if(!sdmmc_sd_is_active())
+		{
+			TIMER_sleep(250.5f); // Wait until the SD bus times out
+			if(!sdmmc_sd_is_active()) return false; // Check again if a SD card is inserted
+		}
+
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
 		//printf("sd init: success!\n");
