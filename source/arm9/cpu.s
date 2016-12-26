@@ -16,6 +16,7 @@
 .extern undefInstrHandler
 .extern prefetchAbortHandler
 .extern dataAbortHandler
+.extern irqHandler
 .extern flushDCache
 
 .section ".init"
@@ -48,7 +49,12 @@ initCpu:
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupMpu
 	bl setupTcms                @ Setup and enable DTCM and ITCM
+
+	msr cpsr_cxsf, #0xD2        @ IRQ mode
+	ldr sp, =(A9_STACK_END - 0x3000)
+	msr cpsr_cxsf, #0xDF
 	ldr sp, =A9_STACK_END
+
 	bx r10
 .pool
 
@@ -63,20 +69,20 @@ setupExceptionVectors:
 	ldmia r0, {r2-r5}
 	stmia r1, {r2-r5}
 	bx lr
-.pool
 __vectorStubs:
-	.word MAKE_BRANCH(A9_VECTORS_START + 0x00, A9_VECTORS_START + 0x00) // IRQ
-	.word 0
-	.word MAKE_BRANCH(A9_VECTORS_START + 0x08, A9_VECTORS_START + 0x08) // FIQ
-	.word 0
-	.word MAKE_BRANCH(A9_VECTORS_START + 0x10, A9_VECTORS_START + 0x10) // SVC
-	.word 0
+	ldr pc, irqHandlerPtr
+	irqHandlerPtr:                  .word irqHandler
+	ldr pc, fiqHandlerPtr
+	fiqHandlerPtr:                  .word (A9_VECTORS_START + 0x08)
+	ldr pc, svcHandlerPtr
+	svcHandlerPtr:                  .word (A9_VECTORS_START + 0x10)
 	ldr pc, undefInstrHandlerPtr
 	undefInstrHandlerPtr:           .word undefInstrHandler
 	ldr pc, prefetchAbortHandlerPtr
 	prefetchAbortHandlerPtr:        .word prefetchAbortHandler
 	ldr pc, dataAbortHandlerPtr
 	dataAbortHandlerPtr:            .word dataAbortHandler
+.pool
 
 
 setupTcms:

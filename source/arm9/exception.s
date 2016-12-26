@@ -7,14 +7,17 @@
 .global undefInstrHandler
 .global prefetchAbortHandler
 .global dataAbortHandler
+.global irqHandler
 
 .type undefInstrHandler STT_FUNC
 .type prefetchAbortHandler STT_FUNC
 .type dataAbortHandler STT_FUNC
 .type exceptionHandler STT_FUNC
+.type irqHandler STT_FUNC
 
 .extern deinitCpu
 .extern guruMeditation
+.extern irqHandlerTable
 
 .section ".text"
 
@@ -42,3 +45,26 @@ exceptionHandler:
 	mov sp, r6
 	mov r1, r6
 	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {cpsr, pc (unmodified), r0-r14}
+.pool
+
+
+irqHandler:
+	stmfd sp!, {r0-r3, r12, lr}
+	ldr r12, =0x10001000        //REG_IRQ_IE
+	ldmia r12, {r1, r2}
+	and r1, r1, r2
+	mov r3, #0x80000000
+irqHandler_find_first_lp:
+	clz r0, r1
+	bics r1, r1, r3, lsr r0
+	bne irqHandler_find_first_lp
+	mov r1, r3, lsr r0
+	str r1, [r12, #4]           @ REG_IRQ_IF
+	rsb r2, r0, #31             @ r2 = 31 - r0
+	ldr r1, =irqHandlerTable
+	ldr r0, [r1, r2, lsl #2]
+	cmp r0, #0
+	blxne r0
+	ldmfd sp!, {r0-r3, r12, lr}
+	subs pc, lr, #4
+.pool

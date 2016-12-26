@@ -12,7 +12,7 @@ void PXI_init(void)
 	REG_PXI_SYNC9 |= 9u<<8;
 	while((REG_PXI_SYNC9 & 0xFFu) != 11u);
 
-	REG_IRQ_IE |= (IRQ_PXI_SYNC | IRQ_PXI_NOT_FULL | IRQ_PXI_NOT_EMPTY);
+	REG_IRQ_IE |= ((1u<<IRQ_PXI_SYNC) | (1u<<IRQ_PXI_NOT_FULL) | (1u<<IRQ_PXI_NOT_EMPTY));
 }
 
 void PXI_sendWord(u32 val)

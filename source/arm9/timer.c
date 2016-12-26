@@ -11,7 +11,7 @@ void TIMER_init(void)
 		REG_TIMER_CNT(i) = 0;
 	}
 
-	REG_IRQ_IE |= (IRQ_TIMER_0 | IRQ_TIMER_1 | IRQ_TIMER_2 | IRQ_TIMER_3);
+	REG_IRQ_IE |= ((1u<<IRQ_TIMER_0) | (1u<<IRQ_TIMER_1) | (1u<<IRQ_TIMER_2) | (1u<<IRQ_TIMER_3));
 }
 
 void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)
@@ -23,7 +23,12 @@ void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIr
 void TIMER_stop(Timer timer)
 {
 	REG_TIMER_CNT(timer) = 0;
-	REG_IRQ_IF = ((u32)IRQ_TIMER_0<<timer);
+}
+
+static void timerSleepHandler(void)
+{
+	REG_TIMER3_CNT = REG_TIMER2_CNT = 0;
+	IRQ_unregisterHandler(IRQ_TIMER_3);
 }
 
 void _timerSleep(u32 ticks)
@@ -31,15 +36,14 @@ void _timerSleep(u32 ticks)
 	REG_TIMER2_VAL = (u16)ticks;
 	REG_TIMER3_VAL = (u16)(ticks>>16);
 
+	IRQ_registerHandler(IRQ_TIMER_3, timerSleepHandler);
+
 	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_COUNT_UP;
 	REG_TIMER2_CNT = TIMER_ENABLE | TIMER_PRESCALER_1024;
 
-	while(!(REG_IRQ_IF & (u32)IRQ_TIMER_3))
+	while(REG_TIMER3_CNT & TIMER_ENABLE)
 	{
 		waitForIrq();
 	}
-
-	REG_TIMER3_CNT = REG_TIMER2_CNT = 0;
-	REG_IRQ_IF = (u32)IRQ_TIMER_3;
 }
 

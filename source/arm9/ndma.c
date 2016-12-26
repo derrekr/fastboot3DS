@@ -20,8 +20,8 @@ void NDMA_init(void)
 		REG_NDMA_CNT(i) = 0;
 	}
 
-	REG_IRQ_IE |= (IRQ_DMAC_1_0 | IRQ_DMAC_1_1 | IRQ_DMAC_1_2 | IRQ_DMAC_1_3 |
-					IRQ_DMAC_1_4 | IRQ_DMAC_1_5 | IRQ_DMAC_1_6 | IRQ_DMAC_1_7);
+	REG_IRQ_IE |= ((1u<<IRQ_DMAC_1_0) | (1u<<IRQ_DMAC_1_1) | (1u<<IRQ_DMAC_1_2) | (1u<<IRQ_DMAC_1_3) |
+					(1u<<IRQ_DMAC_1_4) | (1u<<IRQ_DMAC_1_5) | (1u<<IRQ_DMAC_1_6) | (1u<<IRQ_DMAC_1_7));
 }
 
 void NDMA_copy(u32 *dest, const u32 *source, u32 num)
@@ -35,11 +35,10 @@ void NDMA_copy(u32 *dest, const u32 *source, u32 num)
 	REG_NDMA7_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
 	REG_NDMA7_CNT = NDMA_ENABLE | NDMA_IRQ_ENABLE | NDMA_IMMEDIATE_MODE | NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_INC;
 
-	while(!(REG_IRQ_IF & (u32)IRQ_DMAC_1_7))
+	while(REG_NDMA7_CNT & NDMA_ENABLE)
 	{
 		waitForIrq();
 	}
-	REG_IRQ_IF = (u32)IRQ_DMAC_1_7;
 }
 
 void NDMA_fill(u32 *dest, u32 value, u32 num)
@@ -52,9 +51,8 @@ void NDMA_fill(u32 *dest, u32 value, u32 num)
 	REG_NDMA7_FILL_DATA = value;
 	REG_NDMA7_CNT = NDMA_ENABLE | NDMA_IRQ_ENABLE | NDMA_IMMEDIATE_MODE | NDMA_SRC_UPDATE_FILL | NDMA_DST_UPDATE_INC;
 
-	while(!(REG_IRQ_IF & (u32)IRQ_DMAC_1_7))
+	while(REG_NDMA7_CNT & NDMA_ENABLE)
 	{
 		waitForIrq();
 	}
-	REG_IRQ_IF = (u32)IRQ_DMAC_1_7;
 }

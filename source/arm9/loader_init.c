@@ -8,8 +8,7 @@
 
 void hardwareInit(void)
 {
-	// Atomic IRQ disable and aknowledge
-	__asm__ __volatile__("stmia %0, {%1, %2}" : : "r" (&REG_IRQ_IE), "r" (0u), "r" (0xFFFFFFFFu) : "memory");
+	IRQ_init();
 	NDMA_init();
 	TIMER_init();
 	PXI_init();

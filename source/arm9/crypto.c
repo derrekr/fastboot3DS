@@ -193,11 +193,10 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 		// Setup the AES engine and wait for it to finish
 		REG_AESBLKCNT = (blockSize>>4)<<16;
 		REG_AESCNT = aesParams | (aesDmaFifoSize<<14) | ((3 - aesDmaFifoSize)<<12);
-		while(!(REG_IRQ_IF & (u32)IRQ_AES))
+		while(REG_AESCNT & AES_ENABLE)
 		{
 			waitForIrq();
 		}
-		REG_IRQ_IF = (u32)IRQ_AES; // Aknowledge interrupt
 
 
 		if(mode == 2) // AES_MODE_CTR
