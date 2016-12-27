@@ -50,7 +50,7 @@ exceptionHandler:
 
 irqHandler:
 	stmfd sp!, {r0-r3, r12, lr}
-	ldr r12, =0x10001000        //REG_IRQ_IE
+	ldr r12, =(IO_MEM_ARM9_ONLY + 0x1000) @ REG_IRQ_IE
 	ldmia r12, {r1, r2}
 	and r1, r1, r2
 	mov r3, #0x80000000
