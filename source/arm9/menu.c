@@ -96,7 +96,7 @@ int enter_menu(int initial_state)
 	
 	cursor_pos = 0;
 
-	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), menuActState);
 
 	// caller requested to enter a submenu?
 	if(initial_state != MENU_STATE_MAIN)
@@ -231,7 +231,7 @@ int enter_menu(int initial_state)
 			break;
 		}
 
-		menuActState();
+		//menuActState();
 	}
 
 exitAndLaunchFirm:
@@ -291,7 +291,6 @@ int menuUpdateGlobalState(void)
 	// interrupt handler here which can tell the timer and
 	// PXI interrupts apart.
 	waitForIrq();
-	REG_IRQ_IF = (u32)IRQ_TIMER_0;
 
 
 	/* Check PXI Response register */

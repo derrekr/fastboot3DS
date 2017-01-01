@@ -14,15 +14,24 @@ void TIMER_init(void)
 	REG_IRQ_IE |= ((1u<<IRQ_TIMER_0) | (1u<<IRQ_TIMER_1) | (1u<<IRQ_TIMER_2) | (1u<<IRQ_TIMER_3));
 }
 
-void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)
+void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, void (*irqHandler)(void))
 {
+	u16 irq = 0;
+
+	if(irqHandler)
+	{
+		IRQ_registerHandler(IRQ_TIMER_0 + timer, irqHandler);
+		irq = TIMER_IRQ_ENABLE;
+	}
+
 	REG_TIMER_VAL(timer) = ticks;
-	REG_TIMER_CNT(timer) = TIMER_ENABLE | ((u32)enableIrq<<6) | prescaler;
+	REG_TIMER_CNT(timer) = TIMER_ENABLE | irq | prescaler;
 }
 
 void TIMER_stop(Timer timer)
 {
 	REG_TIMER_CNT(timer) = 0;
+	IRQ_unregisterHandler(IRQ_TIMER_0 + timer);
 }
 
 static void timerSleepHandler(void)

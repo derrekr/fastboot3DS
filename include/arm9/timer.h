@@ -44,12 +44,13 @@ void TIMER_init(void);
 /**
  * @brief      Starts a timer.
  *
- * @param[in]  timer      The timer to start.
- * @param[in]  prescaler  The prescaler to use.
- * @param[in]  ticks      The initial number of ticks. This is also the reload value on overflow.
- * @param[in]  enableIrq  true if this timer should fire an interrupt on overflow.
+ * @param[in]  timer       The timer to start.
+ * @param[in]  prescaler   The prescaler to use.
+ * @param[in]  ticks       The initial number of ticks. This is also the reload
+ *                         value on overflow.
+ * @param[in]  irqHandler  The IRQ handler function for this timer. NULL to disable IRQ.
  */
-void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq);
+void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, void (*irqHandler)(void));
 
 /**
  * @brief      Stops a timer.
