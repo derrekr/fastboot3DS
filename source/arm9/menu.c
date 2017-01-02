@@ -96,7 +96,7 @@ int enter_menu(int initial_state)
 	
 	cursor_pos = 0;
 
-	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), menuActState);
+	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), NULL);
 
 	// caller requested to enter a submenu?
 	if(initial_state != MENU_STATE_MAIN)
@@ -180,9 +180,8 @@ int enter_menu(int initial_state)
 				const char* path = browseForFile("sdmc:");
 				consoleClear();
 				printf("selected file:\n%s\n", path);
-				wait(0x8000000);
-				if(!tryLoadFirmware(path)) printf("bad firm\n");
-				else goto exitAndLaunchFirm;
+				if(!menuLaunchFirm(path))
+					clearConsoles();
 				break;
 			
 			case MENU_STATE_TEST_CONFIG:
@@ -226,12 +225,14 @@ int enter_menu(int initial_state)
 		{
 		case MENU_EVENT_HOME_PRESSED:
 			break;
-
+		case MENU_EVENT_STATE_CHANGE:
+			if(menu_next_state == MENU_STATE_EXIT)
+				goto exitAndLaunchFirm;
 		default:
 			break;
 		}
 
-		//menuActState();
+		menuActState();
 	}
 
 exitAndLaunchFirm:
@@ -250,6 +251,10 @@ void menuSetReturnToState(int state)
 			return;
 		state = menu_previous_states[menu_previous_states_count - 1];
 		menu_previous_states_count--;
+	}
+	else if(state == MENU_STATE_EXIT)
+	{
+		menu_previous_states_count = 0;
 	}
 	else
 	{
@@ -290,7 +295,7 @@ int menuUpdateGlobalState(void)
 	// Later if PXI interrupts are implemented we need an
 	// interrupt handler here which can tell the timer and
 	// PXI interrupts apart.
-	waitForIrq();
+	//waitForIrq();
 
 
 	/* Check PXI Response register */

@@ -313,7 +313,7 @@ const char *browseForFile(const char *basePath)
 				break;
 		}
 
-		//menuActState();
+		menuActState();
 
 	}
 	
@@ -322,7 +322,7 @@ done:
 	f_closedir(&curDirectory);
 	free(dirEntries);
 
-	//menuActState();
+	menuActState();
 
 	return curPath;
 	
@@ -331,7 +331,7 @@ fail:
 	f_closedir(&curDirectory);
 	free(dirEntries);
 
-	//menuActState();
+	menuActState();
 
 	return NULL;
 }

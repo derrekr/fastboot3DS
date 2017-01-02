@@ -21,7 +21,6 @@ static void boot_env_detect();
 static void fw_detect();
 static bool loadSettings(int *mode);
 bool tryLoadFirmwareFromSettings();
-u32 loadFirmSd(const char *filePath);
 
 // TODO: remove after debugging
 extern void panic(void);
@@ -326,7 +325,7 @@ bool tryLoadFirmwareFromSettings(void)
 				}
 			}
 
-			if(tryLoadFirmware(path))
+			if(menuLaunchFirm(path))
 				break;
 		}
 
@@ -337,72 +336,6 @@ bool tryLoadFirmwareFromSettings(void)
 		return false;
 
 	return true;
-}
-
-bool tryLoadFirmware(const char *filepath)
-{
-	u32 fw_size;
-
-	if(!filepath)
-		return false;
-
-	printf("Loading firmware:\n%s\n", filepath);
-
-	if(strncmp(filepath, "sdmc:", 5) == 0)
-		fw_size = loadFirmSd(filepath);
-	else
-		return false;	// TODO: Support more devices
-
-	if(fw_size == 0)
-		return false;
-
-	return firm_verify(fw_size);
-}
-
-static void loadFirmNand(void)
-{
-	dev_decnand->read_sector(0x0005A980, 0x00002000, (u8*)FIRM_LOAD_ADDR);
-}
-
-u32 loadFirmSd(const char *filePath)
-{
-	FIL file;
-	u32 fileSize;
-	UINT bytesRead = 0;
-	FILINFO fileStat;
-
-	if(f_stat(filePath, &fileStat) != FR_OK)
-	{
-		printf("Failed to get file status!\n");
-		return 0;
-	}
-
-	fileSize = fileStat.fsize;
-
-	if(f_open(&file, filePath, FA_READ) != FR_OK)
-	{
-		printf("Failed to open '%s'!\n", filePath);
-		return 0;
-	}
-
-	if(fileSize > FIRM_MAX_SIZE)
-	{
-		f_close(&file);
-		return 0;
-	}
-
-	if(f_read(&file, (u8*)FIRM_LOAD_ADDR, fileSize, &bytesRead) != FR_OK)
-	{
-		printf("Failed to read from file!\n");
-		fileSize = 0;
-	}
-
-	if(bytesRead != fileSize)
-		fileSize = 0;
-
-	f_close(&file);
-
-	return fileSize;
 }
 
 void clearConsoles()

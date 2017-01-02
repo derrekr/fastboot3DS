@@ -9,6 +9,7 @@ enum menu_state_type {
 	MENU_STATE_FIRM_LAUNCH,
 	MENU_STATE_BROWSER,
 	MENU_STATE_TEST_CONFIG,
+	MENU_STATE_EXIT,
 
 	STATE_PREVIOUS	// pseudo state for menuSetReturnToState()
 };

@@ -32,5 +32,4 @@ void unmount_fs();
 void unmount_nand_fs();
 u8 rng_get_byte();
 void clearConsoles();
-bool tryLoadFirmware(const char *filepath);
 void power_off_safe();

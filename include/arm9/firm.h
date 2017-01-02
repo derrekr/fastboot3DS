@@ -6,7 +6,9 @@
 #define FIRM_LOAD_ADDR  (VRAM_BASE + 0x200000)
 #define FIRM_MAX_SIZE   (0x00400000)
 
-
+#define FIRM_SECTION_CORRUPTED	0xBAD5EC
+#define FIRM_FATAL_ERROR		0xBADBAD
+#define FIRM_GOOD				0x900D
 
 typedef struct
 {
