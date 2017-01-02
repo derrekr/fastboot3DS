@@ -31,7 +31,7 @@ typedef struct {
 	// function to convert the textData to arbitrary native data
 	bool (*parse)(AttributeEntryType *attr);
 	// opposite of parse(), used to update/create an entry in the file
-	bool (*write)(AttributeEntryType *attr);
+	bool (*write)(AttributeEntryType *attr, void *newData, int key);
 } FunctionsEntryType;
 
 
@@ -39,6 +39,7 @@ static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
 static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool parseBootMode(AttributeEntryType *attr);
+static bool writeBootMode(AttributeEntryType *attr, void *newData, int key);
 
 static const char *keyStrings[] = {
 	"BOOT_OPTION1",
@@ -91,7 +92,7 @@ bool loadConfigFile()
 		goto fail;
 	}
 	
-	filebuf = (char *) malloc(fileSize + 1);
+	filebuf = (char *) malloc(MAX_FILE_SIZE);
 	
 	if(!filebuf)
 	{
@@ -214,6 +215,63 @@ static bool parseConfigFile()
 	return true;
 }
 
+// Add a new definition in our file
+static char *writeAddDefinitionText(const char *keyName, const char *textData)
+{
+	const char *def = " = ";
+	u32 curLen = strlen(filebuf);
+	u32 remainingLen = MAX_FILE_SIZE - curLen - 1;
+	u32 totalLen = strlen(textData);
+	u32 defLen = strlen(def);
+	totalLen += strlen(keyName);
+	totalLen += defLen;
+	totalLen += 2;	// new line encoding
+	
+	if(totalLen > remainingLen)
+		return NULL;
+	
+	filebuf[curLen++] = 0x0d;
+	filebuf[curLen++] = 0x0a;
+	sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
+	
+	return &filebuf[curLen + defLen];
+}
+
+static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char *newText)
+{
+	u32 diff;
+	u32 newLen = strlen(newText);
+	u32 curLen = strlen(filebuf);
+	u32 remainingLen = MAX_FILE_SIZE - curLen - 1;
+	
+	if(newLen > remainingLen)
+		return 0;
+	
+	diff = newLen - curTextLen;
+	
+	if(diff)
+	{
+		if(curTextLen < newLen)
+			memcpy(textData + newLen - curTextLen, textData + curTextLen,
+						curLen - (filebuf - textData + newLen - curTextLen));
+		else
+			memcpy(textData + newLen, textData + curTextLen,
+						curLen - (filebuf - textData + curTextLen));
+	
+		for(u32 key=0; key<numKeys; key++)
+		{
+			if(attributes[key].textData > textData)
+			{
+				attributes[key].textData += diff;
+			}
+		}
+	}
+	
+	memcpy(textData, newText, newLen);
+	
+	return newLen;
+}
+
 static bool isValidPath(char *path)
 {
 	char c;
@@ -305,18 +363,18 @@ static bool parseBootOptionPad(AttributeEntryType *attr)
 	return true;
 }
 
+static const char * modeTable[] = {
+	"Normal", "Quick", "Quiet"
+};
+
 static bool parseBootMode(AttributeEntryType *attr)
 {
 	char *textData = attr->textData;
 	u32 i;
 
-	static const char * table[] = {
-		"Normal", "Quick", "Quiet"
-	};
-
 	for(i=0; i<3; i++)
 	{
-		if(strnicmp(textData, table[i], strlen(table[i])) == 0)
+		if(strnicmp(textData, modeTable[i], strlen(modeTable[i])) == 0)
 			break;
 	}
 
@@ -331,6 +389,40 @@ static bool parseBootMode(AttributeEntryType *attr)
 		return false;
 
 	*(u32 *)attr->data = i;
+	return true;
+}
+
+static bool writeBootMode(AttributeEntryType *attr, void *newData, int key)
+{
+	u32 mode;
+	
+	if(!newData)
+		return false;
+	
+	mode = *(u32 *)newData;
+	
+	if(mode > BootModeQuiet)
+		return false;
+	
+	if(!attr->data)
+		attr->data = (u32 *) malloc(sizeof(u32));
+	if(!attr->data)
+		return false;
+	
+	*(u32 *)attr->data = mode;
+	
+	const char *data = modeTable[mode];
+	
+	if(!attr->textData)
+	{
+		attr->textData = writeAddDefinitionText(configGetKeyText(key), data);
+		attr->textLength = strlen(attr->textData);
+	}
+	else
+	{
+		attr->textLength = writeUpdateDefinitionText(attr->textData, attr->textLength, data);
+	}
+	
 	return true;
 }
 
@@ -368,4 +460,15 @@ const char *configGetKeyText(int key)
 	return keyStrings[key];
 }
 
+void configSetKeyData(int key, void *data)
+{
+	AttributeEntryType *attr;
+	
+	if(key < 0 || key >= KLast)
+		return NULL;
+	
+	attr = &attributes[key];
+	
+	keyFunctions[key].write(attr, data, key);
+}
 

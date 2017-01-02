@@ -19,6 +19,9 @@ bool menuLaunchFirm(const char *filePath)
 {
 	u32 keys;
 	
+	if(!filePath)
+		return false;
+	
 	consoleSelect(&con_bottom);
 	consoleClear();
 	consoleSelect(&con_top);
@@ -31,6 +34,14 @@ bool menuLaunchFirm(const char *filePath)
 	if(!tryLoadFirmware(filePath))
 	{
 		printf("\x1B[31mBad firmware.\e[0m\n");
+		printf("Press B to return.\n");
+		
+		do {
+			hidScanInput();
+			keys = hidKeysDown();
+		}
+		while(!(keys & KEY_B));
+		
 		goto fail;
 	}
 	

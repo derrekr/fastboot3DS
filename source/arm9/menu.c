@@ -41,10 +41,18 @@ const menu_state_options menu_nand = {
 	}
 };
 
+const menu_state_options menu_options = {
+	1,
+	{
+		{"Change Boot Mode...", MENU_STATE_OPTIONS_MODE}
+	}
+};
+
 // menu_state_type -> menu_state_options instance
 const menu_state_options *options_lookup[] = {
 	&menu_main, // STATE_MAIN
-	&menu_nand // STATE_NAND_MENU
+	&menu_nand, // STATE_NAND_MENU
+	&menu_options // MENU_STATE_OPTIONS_MENU
 };
 
 enum menu_state_type menu_state;
@@ -88,6 +96,8 @@ int enter_menu(int initial_state)
 {
 	u32 keys;
 	int cursor_pos;
+	const char* path;
+	const char *firmPath = NULL;
 	
 	menu_event_state = MENU_EVENT_NONE;
 
@@ -118,9 +128,9 @@ int enter_menu(int initial_state)
 		
 		switch(menu_state)
 		{
-		
 			case MENU_STATE_MAIN:
 			case MENU_STATE_NAND_MENU:
+			case MENU_STATE_OPTIONS_MENU:
 			
 				menu_main_draw_top();
 			
@@ -152,36 +162,27 @@ int enter_menu(int initial_state)
 				break;
 				
 			case MENU_STATE_NAND_BACKUP:
-				consoleSelect(&con_top);
-				consoleClear();
-				dumpNand("sdmc:/nand.bin");
-				menuSetReturnToState(STATE_PREVIOUS);
+				menuDumpNand("sdmc:/nand.bin");
+				clearConsoles();
 				break;
 				
 			case MENU_STATE_NAND_RESTORE:
-				consoleSelect(&con_top);
-				consoleClear();
-				restoreNand("sdmc:/nand.bin");
-				menuSetReturnToState(STATE_PREVIOUS);
+				menuRestoreNand("sdmc:/nand.bin");
+				clearConsoles();
 				break;
 			
 			case MENU_STATE_FIRM_LAUNCH:
-				consoleClear();
-				consoleSelect(&con_top);
-				consoleClear();
-				printf("OOPS!\n");
-				for(;;);
+				if(!menuLaunchFirm(firmPath))
+					clearConsoles();
 				break;
 				
 			case MENU_STATE_BROWSER:
-				consoleClear();
-				consoleSelect(&con_top);
-				consoleClear();
-				const char* path = browseForFile("sdmc:");
-				consoleClear();
-				printf("selected file:\n%s\n", path);
-				if(!menuLaunchFirm(path))
-					clearConsoles();
+				path = browseForFile("sdmc:");
+				clearConsoles();
+				firmPath = path;
+				if(!path)	// no file selected
+					break;
+				menuSetEnterNextState(MENU_STATE_FIRM_LAUNCH);
 				break;
 			
 			case MENU_STATE_TEST_CONFIG:
@@ -358,7 +359,6 @@ void menuActState(void)
 			menuSetReturnToState(MENU_STATE_MAIN);
 			break;
 		case MENU_EVENT_STATE_CHANGE:
-			clearConsoles();
 			menu_state = menu_next_state;
 			break;
 		case MENU_EVENT_SD_CARD_INSERTED:

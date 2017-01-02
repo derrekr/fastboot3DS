@@ -179,6 +179,8 @@ const char *browseForFile(const char *basePath)
 	curEntriesCount = 0;
 	indexStackPtr = indexStack;
 	
+	clearConsoles();
+	
 	dirEntries = (EntryType *) malloc(MAX_CACHED_ENTRIES * sizeof(EntryType));
 	if(!dirEntries)
 	{
@@ -323,7 +325,8 @@ done:
 	free(dirEntries);
 
 	menuActState();
-
+	menuSetReturnToState(STATE_PREVIOUS);
+	
 	return curPath;
 	
 fail:
@@ -332,6 +335,7 @@ fail:
 	free(dirEntries);
 
 	menuActState();
-
+	menuSetReturnToState(STATE_PREVIOUS);
+	
 	return NULL;
 }

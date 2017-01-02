@@ -24,7 +24,7 @@ u64 getFreeSpace(const char *drive)
 	return ((u64)(freeClusters * fs->csize)) * 512;
 }
 
-bool dumpNand(const char *filePath)
+bool menuDumpNand(const char *filePath)
 {
 	const u32 sectorCount = dev_rawnand->get_sector_count();
 	const u32 sectorBlkSize = 0x400; // 512 KB in sectors
@@ -32,6 +32,7 @@ bool dumpNand(const char *filePath)
 	FRESULT fres;
 	UINT bytesWritten;
 
+	clearConsoles();
 
 	consoleSelect(&con_bottom);
 	printf("\n\t\tPress B to cancel");
@@ -109,19 +110,27 @@ bool dumpNand(const char *filePath)
 
 	f_close(&file);
 	free(buf);
+	
+	menuSetReturnToState(STATE_PREVIOUS);
+	
 	return true;
 
 fail:
 	free(buf);
 	wait(0x8000000);
+	
+	menuSetReturnToState(STATE_PREVIOUS);
+	
 	return false;
 }
 
-bool restoreNand(const char *filePath)
+bool menuRestoreNand(const char *filePath)
 {
 	const u32 sectorBlkSize = 0x400; // 512 KB in sectors
 	FIL file;
 	UINT bytesRead;
+
+	clearConsoles();
 
 	consoleSelect(&con_bottom);
 	printf("\n\t\tPress B to cancel");
@@ -203,11 +212,17 @@ bool restoreNand(const char *filePath)
 	f_close(&file);
 	free(buf);
 	remount_nand_fs();
+	
+	menuSetReturnToState(STATE_PREVIOUS);
+	
 	return true;
 
 fail:
 	free(buf);
 	remount_nand_fs();
 	wait(0x8000000);
+	
+	menuSetReturnToState(STATE_PREVIOUS);
+	
 	return false;
 }
