@@ -46,16 +46,17 @@ void IRQ_init(void);
 void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void));
 void IRQ_unregisterHandler(Interrupt num);
 
-static void enableIrq(void)
-{
-	u32 tmp;
-	__asm__ __volatile__("mrs %0, cpsr\n\t" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0\n\t" : : "r" (tmp & ~(0x80u)));
-}
-
-static void disableIrq(void)
+static u32 enterCriticalSection(void)
 {
 	u32 tmp;
 	__asm__ __volatile__("mrs %0, cpsr\n\t" : "=r" (tmp) : );
 	__asm__ __volatile__("msr cpsr_c, %0\n\t" : : "r" (tmp | 0x80u));
+	return tmp & 0x80u;
+}
+
+static void leaveCriticalSection(u32 oldState)
+{
+	u32 tmp;
+	__asm__ __volatile__("mrs %0, cpsr\n\t" : "=r" (tmp) : );
+	__asm__ __volatile__("msr cpsr_c, %0\n\t" : : "r" (tmp | oldState));
 }

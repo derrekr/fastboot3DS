@@ -16,7 +16,7 @@ void IRQ_init(void)
 		irqHandlerTable[i] = (void (*)(void))NULL;
 	}
 
-	enableIrq();
+	leaveCriticalSection(0x80u); // Abuse it to enable IRQ
 }
 
 void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void))
