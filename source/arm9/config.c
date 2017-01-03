@@ -64,7 +64,7 @@ static FunctionsEntryType keyFunctions[] = {
 	{ parseBootOptionPad,	NULL },
 	{ parseBootOptionPad,	NULL },
 	{ parseBootOptionPad,	NULL },
-	{ parseBootMode,		NULL }
+	{ parseBootMode,		writeBootMode }
 };
 
 static AttributeEntryType attributes[numKeys];
@@ -92,7 +92,7 @@ bool loadConfigFile()
 		goto fail;
 	}
 	
-	filebuf = (char *) malloc(MAX_FILE_SIZE);
+	filebuf = (char *) malloc(MAX_FILE_SIZE + 1);
 	
 	if(!filebuf)
 	{
@@ -113,14 +113,43 @@ bool loadConfigFile()
 		goto fail;
 	}
 	
+	f_close(&file);
+	
 	// terminate string buf
 	filebuf[fileSize] = '\0';
-	
 	
 	return parseConfigFile();
 	
 fail:
 	
+	return false;
+}
+
+static bool writeConfigFile()
+{
+	const u32 fileSize = strlen(filebuf);
+	u32 bytesWritten;
+	
+	if(fileSize > MAX_FILE_SIZE)
+		panic();
+	
+	if(f_open(&file, filepath, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
+	{
+		goto fail;
+	}
+	
+	if((f_write(&file, filebuf, fileSize, &bytesWritten) != FR_OK) || (bytesWritten != fileSize))
+	{
+		f_close(&file);
+		goto fail;
+	}
+	
+	f_close(&file);
+	
+	return true;
+	
+fail:
+
 	return false;
 }
 
@@ -220,7 +249,7 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 {
 	const char *def = " = ";
 	u32 curLen = strlen(filebuf);
-	u32 remainingLen = MAX_FILE_SIZE - curLen - 1;
+	u32 remainingLen = MAX_FILE_SIZE - curLen;
 	u32 totalLen = strlen(textData);
 	u32 defLen = strlen(def);
 	totalLen += strlen(keyName);
@@ -242,7 +271,7 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 	u32 diff;
 	u32 newLen = strlen(newText);
 	u32 curLen = strlen(filebuf);
-	u32 remainingLen = MAX_FILE_SIZE - curLen - 1;
+	u32 remainingLen = MAX_FILE_SIZE - curLen;
 	
 	if(newLen > remainingLen)
 		return 0;
@@ -270,6 +299,20 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 	memcpy(textData, newText, newLen);
 	
 	return newLen;
+}
+
+static writeAttributeText(AttributeEntryType *attr, const char *newText, int key)
+{
+	// text data doesn't exist yet?
+	if(!attr->textData)
+	{
+		attr->textData = writeAddDefinitionText(configGetKeyText(key), newText);
+		attr->textLength = strlen(newText);
+	}
+	else	// update definition
+	{
+		attr->textLength = writeUpdateDefinitionText(attr->textData, attr->textLength, newText);
+	}
 }
 
 static bool isValidPath(char *path)
@@ -405,23 +448,17 @@ static bool writeBootMode(AttributeEntryType *attr, void *newData, int key)
 		return false;
 	
 	if(!attr->data)
+	{
 		attr->data = (u32 *) malloc(sizeof(u32));
-	if(!attr->data)
-		return false;
+		if(!attr->data)
+			return false;
+	}
 	
 	*(u32 *)attr->data = mode;
 	
 	const char *data = modeTable[mode];
 	
-	if(!attr->textData)
-	{
-		attr->textData = writeAddDefinitionText(configGetKeyText(key), data);
-		attr->textLength = strlen(attr->textData);
-	}
-	else
-	{
-		attr->textLength = writeUpdateDefinitionText(attr->textData, attr->textLength, data);
-	}
+	writeAttributeText(attr, data, key);
 	
 	return true;
 }
@@ -460,7 +497,7 @@ const char *configGetKeyText(int key)
 	return keyStrings[key];
 }
 
-void configSetKeyData(int key, void *data)
+bool configSetKeyData(int key, void *data)
 {
 	AttributeEntryType *attr;
 	
@@ -469,6 +506,9 @@ void configSetKeyData(int key, void *data)
 	
 	attr = &attributes[key];
 	
-	keyFunctions[key].write(attr, data, key);
+	if(!keyFunctions[key].write)
+		panic();
+	
+	return keyFunctions[key].write(attr, data, key);
 }
 

@@ -27,3 +27,4 @@ bool loadConfigFile();
 void *configCopyText(int key);
 const void *configGetData(int key);
 const char *configGetKeyText(int key);
+bool configSetKeyData(int key, void *data);

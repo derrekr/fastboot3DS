@@ -308,7 +308,15 @@ bool tryLoadFirmwareFromSettings(void)
 		path = (const char *)configGetData(keyBootOption);
 		if(path)
 		{
-			printf("Boot Option #%i:\n", i + 1);
+			printf("Boot Option #%i:\n%s\n", i + 1, path);
+			
+			// check if fw still exists
+			if(!statFirmware(path))
+			{
+				printf("Couldn't find firmware...\n");
+				continue;
+			}
+			
 			// check pad value
 			const u32 *temp;
 			temp = (const u32 *)configGetData(keyPad);
@@ -343,6 +351,16 @@ void clearConsoles()
 	consoleSelect(&con_bottom);
 	consoleClear();
 	consoleSelect(&con_top);
+	consoleClear();
+}
+
+void clearConsole(int which)
+{
+	if(which)
+		consoleSelect(&con_top);
+	else
+		consoleSelect(&con_bottom);
+		
 	consoleClear();
 }
 

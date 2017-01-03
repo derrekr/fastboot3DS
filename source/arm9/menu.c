@@ -229,6 +229,8 @@ int enter_menu(int initial_state)
 		case MENU_EVENT_STATE_CHANGE:
 			if(menu_next_state == MENU_STATE_EXIT)
 				goto exitAndLaunchFirm;
+			else
+				clearConsole(0);
 		default:
 			break;
 		}

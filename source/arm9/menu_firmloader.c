@@ -33,7 +33,7 @@ bool menuLaunchFirm(const char *filePath)
 	
 	if(!tryLoadFirmware(filePath))
 	{
-		printf("\x1B[31mBad firmware.\e[0m\n");
+		printf("\n\x1B[31mBad firmware.\e[0m\n\n");
 		printf("Press B to return.\n");
 		
 		do {
@@ -45,7 +45,7 @@ bool menuLaunchFirm(const char *filePath)
 		goto fail;
 	}
 	
-	printf("\x1B[32mFirmware verification SUCCESS!\e[0m\n\n");
+	printf("\n\x1B[32mFirmware verification SUCCESS!\e[0m\n\n");
 	
 	printf("Attempting to run firmware, press B to exit...\n");
 	
@@ -70,6 +70,29 @@ fail:
 	
 	menuSetReturnToState(STATE_PREVIOUS);
 	
+	return false;
+}
+
+// Does very basic checks whether the firmware actually exists.
+bool statFirmware(const char *filePath)
+{
+	FILINFO fileStat;
+	u32 fileSize;
+
+	if(strncmp(filePath, "sdmc:", 5) == 0)
+	{
+		if(f_stat(filePath, &fileStat) != FR_OK)
+			return false;
+		
+		fileSize = fileStat.fsize;
+		
+		if(fileSize == 0 || FIRM_MAX_SIZE > FIRM_MAX_SIZE)
+			return false;
+		
+		return true;
+	}
+	
+	// unknown mountpoint
 	return false;
 }
 

@@ -116,7 +116,7 @@ bool firm_verify(u32 fwSize)
 			continue;
 
 		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size 0x%"PRIX32"\n",
-				i, section->offset, section->address, section->size);
+				(int) i, section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize) 
 		{
