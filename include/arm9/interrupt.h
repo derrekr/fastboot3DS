@@ -58,5 +58,5 @@ static void leaveCriticalSection(u32 oldState)
 {
 	u32 tmp;
 	__asm__ __volatile__("mrs %0, cpsr\n\t" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0\n\t" : : "r" (tmp | oldState));
+	__asm__ __volatile__("msr cpsr_c, %0\n\t" : : "r" ((tmp & ~(0x80u)) | oldState));
 }
