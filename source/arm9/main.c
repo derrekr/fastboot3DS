@@ -14,6 +14,7 @@
 #include "arm9/main.h"
 
 static bool devs_init();
+static bool fs_early_init();
 static bool mount_fs();
 static void screen_init();
 static void unit_detect();
@@ -37,7 +38,7 @@ int main(void)
 
 	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
 
-	//Initialize console for both screens using the two different PrintConsole we have defined
+	// Initialize console for both screens using the two different PrintConsole we have defined
 	consoleInit(SCREEN_TOP, &con_top);
 	consoleSetWindow(&con_top, 1, 1, con_top.windowWidth - 2, con_top.windowHeight - 2);
 	consoleInit(SCREEN_LOW, &con_bottom);
@@ -45,6 +46,35 @@ int main(void)
 	consoleSelect(&con_top);
 	
 	printf("\x1B[32mGood morning\nHello !\e[0m\n\n");
+	
+	printf("Early filesystem init...\n");
+	
+	/* Try to read the settings file ASAP. */
+	if(fs_early_init())
+	{
+		printf("Loading settings...\n");
+	
+		if(loadSettings(&mode))
+		{
+			switch(mode)
+			{
+				case BootModeQuick:
+					screen_init();
+					/* fallthrough */
+				case BootModeQuiet:
+					enter_menu(MENU_STATE_FIRM_LAUNCH_SETTINGS);
+					if(isFirmLoaded())
+						goto finish_firmlaunch;
+					/* else fallthrough */
+				case BootModeNormal:
+					screen_init();
+					break;
+				default:
+					panic();
+			}
+		}
+		else screen_init();
+	}
 	
 	printf("Initializing devices...\n");
 
@@ -54,48 +84,29 @@ int main(void)
 
 	if(!mount_fs()) screen_init();
 
-	printf("Loading settings...\n");
+	printf("Detecting unit...\n");
 
-	if(!loadSettings(&mode)) screen_init();
+	unit_detect();
 
-	switch(mode)
-	{
-		case BootModeQuick:
-			screen_init();
-		case BootModeQuiet:
-			firmLoaded = tryLoadFirmwareFromSettings();
-			if(firmLoaded)
-				break;
-		case BootModeNormal:
-			screen_init();
-			break;
-		default:
-			panic();
-	}
+	printf("Detecting boot environment...\n");
 
-	if(!firmLoaded)
-	{
-		printf("Detecting unit...\n");
+	boot_env_detect();
 
-		unit_detect();
+	printf("Detecting firmware...\n");
 
-		printf("Detecting boot environment...\n");
+	fw_detect();
 
-		boot_env_detect();
+	printf("Entering menu...\n");
 
-		printf("Detecting firmware...\n");
+	TIMER_sleep(1000);
 
-		fw_detect();
+	consoleClear();
 
-		printf("Entering menu...\n");
+	enter_menu(MENU_STATE_MAIN);
 
-		TIMER_sleep(2000);
-
-		consoleClear();
-
-		enter_menu(MENU_STATE_MAIN);
-	}
 	
+finish_firmlaunch:	
+
 	printf("Unmounting FS...\n");
 
 	unmount_fs();
@@ -154,6 +165,19 @@ void unmount_nand_fs()
 	f_mount(NULL, "nand:", 1);
 }
 
+// This only initializes and mounts SD card fs.
+static bool fs_early_init()
+{
+	FRESULT res;
+	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
+	
+	res = f_mount(&sd_fs, "sdmc:", 1);
+	
+	printf("%s\e[0m\n", res_str[res == FR_OK]);
+	
+	return res == FR_OK;
+}
+
 static bool mount_fs()
 {
 	FRESULT res[4];
@@ -195,6 +219,26 @@ static bool mount_fs()
 		TIMER_sleep(2000);
 
 	return finalRes;
+}
+
+bool ensure_mounted(const char *path)
+{
+	if(strncmp(path, "sdmc:", 5) == 0)
+	{
+		//if(f_chdrive("sdmc:") != FR_OK)
+		{
+			return f_mount(&sd_fs, "sdmc:", 1) == FR_OK;
+		}
+	}
+	else if(strncmp(path, "nand:", 5) == 0)
+	{
+		//if(f_chdrive("nand:") != FR_OK)
+		{
+			return f_mount(&nand_fs, "nand:", 1) == FR_OK;
+		}
+	}
+	
+	return false;
 }
 
 void unmount_fs()
@@ -287,63 +331,6 @@ u8 rng_get_byte()
 		tmp ^= (u8)(tmp >> i);
 	}
 	return (u8)tmp;
-}
-
-bool tryLoadFirmwareFromSettings(void)
-{
-	const char *path;
-	int keyBootOption, keyPad;
-	int i;
-	u32 padValue, expectedPadValue;
-
-	consoleSelect(&con_top);
-
-	printf("\n\nAttempting to load FIRM from settings...\n");
-
-	keyBootOption = KBootOption1;
-	keyPad = KBootOption1Buttons;
-
-	for(i=0; i<3; i++, keyBootOption++, keyPad++)
-	{
-		path = (const char *)configGetData(keyBootOption);
-		if(path)
-		{
-			printf("Boot Option #%i:\n%s\n", i + 1, path);
-			
-			// check if fw still exists
-			if(!statFirmware(path))
-			{
-				printf("Couldn't find firmware...\n");
-				continue;
-			}
-			
-			// check pad value
-			const u32 *temp;
-			temp = (const u32 *)configGetData(keyPad);
-			if(temp)
-			{
-				expectedPadValue = *temp;
-				hidScanInput();
-				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
-				if(padValue != expectedPadValue)
-				{
-					printf("Skipping, right buttons are not pressed.\n");
-					printf("%x %x\n", padValue, expectedPadValue);
-					continue;
-				}
-			}
-
-			if(menuLaunchFirm(path))
-				break;
-		}
-
-		// ... we failed, try next one
-	}
-
-	if(i >= 3)
-		return false;
-
-	return true;
 }
 
 void clearConsoles()

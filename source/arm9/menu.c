@@ -25,7 +25,7 @@ extern PrintConsole con_top, con_bottom;
 const menu_state_options menu_main = {
 	5,
 	{
-		{"Launch FIRM", MENU_STATE_FIRM_LAUNCH},
+		{"Launch FIRM", MENU_STATE_FIRM_LAUNCH_SETTINGS},
 		{"NAND tools...", MENU_STATE_NAND_MENU},
 		{"Options...", MENU_STATE_OPTIONS_MENU},
 		{"Browse FIRM...", MENU_STATE_BROWSER},
@@ -73,7 +73,8 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	drawConsoleWindow(&con_top, 2, color);
-	printf("\n\t\t\t\t\t3DS Bootloader v%" PRIu16 ".%" PRIu16 "\n\n\n\n", BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
+	printf("\n\t\t\t\t\t3DS Bootloader v%" PRIu16 ".%" PRIu16 "\n\n\n\n",
+			BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
 	
 	printf(" Model: %s\n", bootInfo.model);
 	printf(" \x1B[33m%s\e[0m\n", bootInfo.boot_env);
@@ -111,19 +112,17 @@ int enter_menu(int initial_state)
 	// caller requested to enter a submenu?
 	if(initial_state != MENU_STATE_MAIN)
 	{
-		menuSetEnterNextState(initial_state);
-		menuUpdateGlobalState();
-		menuActState();
+		menuRunOnce(initial_state);
+		goto exitAndLaunchFirm;
 	}
+	
+	menuSetEnterNextState(MENU_STATE_MAIN);
+	menuActState();
+	
 
 	// Menu main loop
 	for(;;)
 	{
-		hidScanInput();
-		keys = hidKeysDown();
-		
-		rewindConsole();
-		
 		const menu_state_options *cur_options = options_lookup[menu_state];
 		
 		switch(menu_state)
@@ -131,13 +130,19 @@ int enter_menu(int initial_state)
 			case MENU_STATE_MAIN:
 			case MENU_STATE_NAND_MENU:
 			case MENU_STATE_OPTIONS_MENU:
-			
+				
+				hidScanInput();
+				keys = hidKeysDown();
+		
+				rewindConsole();
+				
 				menu_main_draw_top();
 			
 				// print all the options of the current state
 				consoleSelect(&con_bottom);
 				for(int i=0; i < cur_options->count; i++)
-					printf("\t\t\t%s\e[0m %s\n", cursor_pos == i ? "\x1B[33m*" : " ", cur_options->options[i].name);
+					printf("\t\t\t%s\e[0m %s\n", cursor_pos == i ? "\x1B[33m*" : " ",
+					cur_options->options[i].name);
 
 				if(keys & KEY_DUP)
 				{
@@ -176,6 +181,11 @@ int enter_menu(int initial_state)
 					clearConsoles();
 				break;
 				
+			case MENU_STATE_FIRM_LAUNCH_SETTINGS:
+				if(!menuTryLoadFirmwareFromSettings())
+					clearConsoles();
+				break;
+				
 			case MENU_STATE_BROWSER:
 				path = browseForFile("sdmc:");
 				clearConsoles();
@@ -186,9 +196,8 @@ int enter_menu(int initial_state)
 				break;
 			
 			case MENU_STATE_TEST_CONFIG:
-				consoleClear();
+				clearConsoles();
 				consoleSelect(&con_top);
-				consoleClear();
 				printf("Key Text Data:\n");
 				for(int i=0; i<KLast; i++)
 				{
@@ -216,7 +225,12 @@ int enter_menu(int initial_state)
 					else printf("<invalid>");
 				}
 				TIMER_sleep(6000);
+				clearConsoles();
 				menuSetReturnToState(STATE_PREVIOUS);
+				break;
+			
+			case MENU_STATE_EXIT:
+				goto exitAndLaunchFirm;
 				break;
 			
 			default: printf("OOPS!\n"); break;
@@ -224,15 +238,16 @@ int enter_menu(int initial_state)
 
 		switch(menuUpdateGlobalState())
 		{
-		case MENU_EVENT_HOME_PRESSED:
-			break;
-		case MENU_EVENT_STATE_CHANGE:
-			if(menu_next_state == MENU_STATE_EXIT)
-				goto exitAndLaunchFirm;
-			else
-				clearConsole(0);
-		default:
-			break;
+			case MENU_EVENT_HOME_PRESSED:
+				break;
+			case MENU_EVENT_STATE_CHANGE:
+				if(menu_next_state == MENU_STATE_EXIT)
+					goto exitAndLaunchFirm;
+				else
+					clearConsole(0);
+				break;
+			default:
+				break;
 		}
 
 		menuActState();
@@ -242,6 +257,20 @@ exitAndLaunchFirm:
 	TIMER_stop(TIMER_0);
 
 	return 0;
+}
+
+void menuRunOnce(int state)
+{
+	switch(state)
+	{
+		case MENU_STATE_FIRM_LAUNCH_SETTINGS:
+			if(!menuTryLoadFirmwareFromSettings())
+				clearConsoles();
+			break;
+		
+		default:
+			panic();
+	}
 }
 
 void menuSetReturnToState(int state)
@@ -268,9 +297,6 @@ void menuSetReturnToState(int state)
 				menu_previous_states_count = i;
 			}
 		}
-
-		if(i == 0)
-			menu_previous_states_count = 0;
 	}
 
 	menu_next_state = state;

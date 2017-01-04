@@ -37,6 +37,7 @@ typedef struct {
 
 static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
+static bool writeBootOption(AttributeEntryType *attr, void *newData, int key);
 static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool parseBootMode(AttributeEntryType *attr);
 static bool writeBootMode(AttributeEntryType *attr, void *newData, int key);
@@ -55,12 +56,13 @@ static const char *keyStrings[] = {
 };
 
 static FunctionsEntryType keyFunctions[] = {
-	{ parseBootOption,		NULL },
-	{ parseBootOption,		NULL },
-	{ parseBootOption,		NULL },
-	{ parseBootOption,		NULL },
-	{ parseBootOption,		NULL },
-	{ parseBootOption,		NULL },
+	{ parseBootOption,		writeBootOption },
+	{ parseBootOption,		writeBootOption },
+	{ parseBootOption,		writeBootOption },
+	/* use the same functions for nand image option */
+	{ parseBootOption,		writeBootOption },
+	{ parseBootOption,		writeBootOption },
+	{ parseBootOption,		writeBootOption },
 	{ parseBootOptionPad,	NULL },
 	{ parseBootOptionPad,	NULL },
 	{ parseBootOptionPad,	NULL },
@@ -151,6 +153,20 @@ static bool writeConfigFile()
 fail:
 
 	return false;
+}
+
+bool createConfigFile()
+{
+	filebuf = (char *) malloc(MAX_FILE_SIZE + 1);
+	
+	if(!filebuf)
+		return false;
+	
+	filebuf[0] = 0x0d;
+	filebuf[1] = 0x0a;
+	filebuf[2] = 0x00;
+	
+	return writeConfigFile();
 }
 
 /* returns the start of an attribute's data. */
@@ -281,11 +297,11 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 	if(diff)
 	{
 		if(curTextLen < newLen)
-			memcpy(textData + newLen - curTextLen, textData + curTextLen,
-						curLen - (filebuf - textData + newLen - curTextLen));
+			memcpy(textData + diff, textData + curTextLen,
+						curLen - (filebuf - textData + diff) + 1);
 		else
 			memcpy(textData + newLen, textData + curTextLen,
-						curLen - (filebuf - textData + curTextLen));
+						curLen - (filebuf - textData + curTextLen) + 1);
 	
 		for(u32 key=0; key<numKeys; key++)
 		{
@@ -301,7 +317,7 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 	return newLen;
 }
 
-static writeAttributeText(AttributeEntryType *attr, const char *newText, int key)
+static void writeAttributeText(AttributeEntryType *attr, const char *newText, int key)
 {
 	// text data doesn't exist yet?
 	if(!attr->textData)
@@ -367,6 +383,45 @@ static bool parseBootOption(AttributeEntryType *attr)
 	}
 	
 	attr->data = buf;
+	
+	return true;
+}
+
+static bool writeBootOption(AttributeEntryType *attr, void *newData, int key)
+{
+	u32 len;
+	char *buf;
+	const char *path = (const char *) newData;
+
+	if(!path)
+		return false;
+	
+	if(!isValidPath(path))
+		return false;
+	
+	len = strlen(path);
+	
+	if(!attr->data)
+	{
+		buf = (char *) malloc(len + 1);
+		if(!attr->data)
+			return false;
+	}
+	else if(len != attr->textLength)
+	{
+		free(attr->data);
+		buf = (char *) malloc(len + 1);
+		if(!attr->data)
+			return false;
+	}
+	
+	memcpy(buf, path, len);
+	buf[len] = '\0';
+	
+	attr->data = buf;
+	attr->textLength = len;
+	
+	writeAttributeText(attr, path, key);
 	
 	return true;
 }
@@ -512,3 +567,13 @@ bool configSetKeyData(int key, void *data)
 	return keyFunctions[key].write(attr, data, key);
 }
 
+void configRestoreDefaults()
+{
+	for(int key=0; key<numKeys; key++)
+	{
+		if(key == KBootMode)
+			configSetKeyData(KBootMode, "Normal");
+		else
+			configSetKeyData(key, "");
+	}
+}
