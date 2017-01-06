@@ -11,11 +11,14 @@
 
 
 
-// This bit has no effect it seems.
-#define NDMA_GLOBAL_ENABLE     (1u)
+// REG_NDMA_GLOBAL_CNT
+#define NDMA_ROUND_ROBIN(n)    (1u<<31 | ((u32)log2(n) + 1)<<16 | 1u) // n = number of CPU cycles
+#define NDMA_HIGHEST_PRIO      (1u)
 
+// REG_NDMA_BLOCK_CNT
 #define NDMA_BLOCK_SYS_FREQ    (0u)
 
+// REG_NDMA_CNT
 #define NDMA_DST_UPDATE_INC    (0u)
 #define NDMA_DST_UPDATE_DEC    (1u<<10)
 #define NDMA_DST_UPDATE_FIXED  (2u<<10)
@@ -26,10 +29,8 @@
 #define NDMA_SRC_UPDATE_FILL   (3u<<13)
 #define NDMA_SRC_ADDR_RELOAD   (1u<<15)
 #define NDMA_STARTUP_MODE(n)   (n<<24)
-
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
 #define NDMA_BURST_SIZE(n)     ((u32)log2(n)<<16)
-#define NDMA_IMMEDIATE_MODE    (1u<<28)
 #define NDMA_REPEATING_MODE    (1u<<29)
 #define NDMA_IRQ_ENABLE        (1u<<30)
 #define NDMA_ENABLE            (1u<<31)
@@ -37,22 +38,23 @@
 
  enum
  {
- 	NDMA_STARTUP_UNK_0   = (0 <<24),
- 	NDMA_STARTUP_UNK_1   = (1 <<24),
- 	NDMA_STARTUP_UNK_2   = (2 <<24),
- 	NDMA_STARTUP_UNK_3   = (3 <<24),
- 	NDMA_STARTUP_UNK_4   = (4 <<24),
- 	NDMA_STARTUP_UNK_5   = (5 <<24),
- 	NDMA_STARTUP_UNK_6   = (6 <<24),
- 	NDMA_STARTUP_UNK_7   = (7 <<24),
- 	NDMA_STARTUP_AES_IN  = (8 <<24), // AES write fifo
- 	NDMA_STARTUP_AES_OUT = (9 <<24), // AES read fifo
- 	NDMA_STARTUP_UNK_10  = (10<<24),
- 	NDMA_STARTUP_UNK_11  = (11<<24),
- 	NDMA_STARTUP_UNK_12  = (12<<24),
- 	NDMA_STARTUP_UNK_13  = (13<<24),
- 	NDMA_STARTUP_UNK_14  = (14<<24),
- 	NDMA_STARTUP_UNK_15  = (15<<24)
+ 	NDMA_STARTUP_UNK_0      = (0<<24),
+ 	NDMA_STARTUP_UNK_1      = (1<<24),
+ 	NDMA_STARTUP_UNK_2      = (2<<24),
+ 	NDMA_STARTUP_UNK_3      = (3<<24),
+ 	NDMA_STARTUP_UNK_4      = (4<<24),
+ 	NDMA_STARTUP_UNK_5      = (5<<24),
+ 	NDMA_STARTUP_UNK_6      = (6<<24),
+ 	NDMA_STARTUP_UNK_7      = (7<<24),
+ 	NDMA_STARTUP_AES_IN     = (8<<24),  // AES write fifo
+ 	NDMA_STARTUP_AES_OUT    = (9<<24),  // AES read fifo
+ 	NDMA_STARTUP_UNK_10     = (10<<24),
+ 	NDMA_STARTUP_UNK_11     = (11<<24),
+ 	NDMA_STARTUP_UNK_12     = (12<<24),
+ 	NDMA_STARTUP_UNK_13     = (13<<24),
+ 	NDMA_STARTUP_UNK_14     = (14<<24),
+ 	NDMA_STARTUP_UNK_15     = (15<<24),
+ 	NDMA_STARTUP_IMMEDIATE  = (16<<24)
  };
 
 
