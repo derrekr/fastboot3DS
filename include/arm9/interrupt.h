@@ -46,7 +46,7 @@ void IRQ_init(void);
 void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void));
 void IRQ_unregisterHandler(Interrupt num);
 
-static u32 enterCriticalSection(void)
+inline u32 enterCriticalSection(void)
 {
 	u32 tmp;
 	__asm__ __volatile__("mrs %0, cpsr\n\t" : "=r" (tmp) : );
@@ -54,7 +54,7 @@ static u32 enterCriticalSection(void)
 	return tmp & 0x80u;
 }
 
-static void leaveCriticalSection(u32 oldState)
+inline void leaveCriticalSection(u32 oldState)
 {
 	u32 tmp;
 	__asm__ __volatile__("mrs %0, cpsr\n\t" : "=r" (tmp) : );

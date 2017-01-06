@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "types.h"
 #include "mem_map.h"
@@ -145,7 +146,7 @@ bool tryLoadFirmwareFromSettings(void)
 				if(padValue != expectedPadValue)
 				{
 					printf("Skipping, right buttons are not pressed.\n");
-					printf("%x %x\n", padValue, expectedPadValue);
+					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
 					continue;
 				}
 			}
@@ -215,7 +216,7 @@ bool menuTryLoadFirmwareFromSettings(void)
 				if(padValue != expectedPadValue)
 				{
 					printf("Skipping, right buttons are not pressed.\n");
-					printf("%x %x\n", padValue, expectedPadValue);
+					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
 					continue;
 				}
 			}

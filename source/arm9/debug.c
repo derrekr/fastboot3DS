@@ -31,7 +31,7 @@ noreturn void panic()
 
 	consoleInit(0, NULL);
 
-	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08"PRIX32"\n", lr);
+	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	
 	unmount_fs();
 	devs_close();
@@ -63,15 +63,15 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 	else realPc = excStack[1] - instSize; // Other
 
 	printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
-	printf("CPSR: 0x%08"PRIX32"\n"
-			"r0 = 0x%08"PRIX32" r8  = 0x%08"PRIX32"\n"
-			"r1 = 0x%08"PRIX32" r9  = 0x%08"PRIX32"\n"
-			"r2 = 0x%08"PRIX32" r10 = 0x%08"PRIX32"\n"
-			"r3 = 0x%08"PRIX32" r11 = 0x%08"PRIX32"\n"
-			"r4 = 0x%08"PRIX32" r12 = 0x%08"PRIX32"\n"
-			"r5 = 0x%08"PRIX32" sp  = 0x%08"PRIX32"\n"
-			"r6 = 0x%08"PRIX32" lr  = 0x%08"PRIX32"\n"
-			"r7 = 0x%08"PRIX32" pc  = 0x%08"PRIX32"\n\n",
+	printf("CPSR: 0x%08" PRIX32 "\n"
+			"r0 = 0x%08" PRIX32 " r8  = 0x%08" PRIX32 "\n"
+			"r1 = 0x%08" PRIX32 " r9  = 0x%08" PRIX32 "\n"
+			"r2 = 0x%08" PRIX32 " r10 = 0x%08" PRIX32 "\n"
+			"r3 = 0x%08" PRIX32 " r11 = 0x%08" PRIX32 "\n"
+			"r4 = 0x%08" PRIX32 " r12 = 0x%08" PRIX32 "\n"
+			"r5 = 0x%08" PRIX32 " sp  = 0x%08" PRIX32 "\n"
+			"r6 = 0x%08" PRIX32 " lr  = 0x%08" PRIX32 "\n"
+			"r7 = 0x%08" PRIX32 " pc  = 0x%08" PRIX32 "\n\n",
 			excStack[0],
 			excStack[2], excStack[10],
 			excStack[3], excStack[11],
@@ -88,7 +88,8 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 		puts("Stack dump:");
 		for(u32 i = 0; i < 15; i++)
 		{
-			printf("0x%08"PRIX32": %08"PRIX32" %08"PRIX32"\n", excStack[15], ((u32*)excStack[15])[0], ((u32*)excStack[15])[1]);
+			printf("0x%08" PRIX32 ": %08" PRIX32 " %08" PRIX32 "\n", excStack[15],
+					((u32*)excStack[15])[0], ((u32*)excStack[15])[1]);
 			excStack[15] += 8;
 		}
 	}
