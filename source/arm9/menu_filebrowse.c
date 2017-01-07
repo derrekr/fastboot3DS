@@ -8,8 +8,10 @@
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/interrupt.h"
+#include "arm9/dev.h"
 #include "util.h"
 #include "hid.h"
+
 
 #define MAX_CACHED_ENTRIES	0x400
 #define MAX_ENTRY_SIZE		_MAX_LFN + 2
@@ -194,6 +196,33 @@ const char *browseForFile(const char *basePath)
 		strncpy_s(curPath, basePath, sizeof(curPath) - 1, sizeof(curPath));
 	else
 		strncpy_s(curPath, "sdmc:", sizeof(curPath) - 1, sizeof(curPath));
+	
+	/* check if we have to wait for the user */
+	if(!dev_sdcard->is_active())
+	{
+		menuPrintPrompt("Waiting for SD card to be inserted...\nPress B to exit.\n");
+		
+		do {
+			hidScanInput();
+			keys = hidKeysDown();
+			if(keys & KEY_B)
+				goto fail;
+			
+			switch(menuUpdateGlobalState())
+			{
+				case MENU_EVENT_HOME_PRESSED:
+				case MENU_EVENT_POWER_PRESSED:
+					goto fail;
+				default:
+					break;
+			}
+
+			menuActState();
+			
+		} while(!dev_sdcard->is_active());
+		
+		clearConsoles();
+	}
 	
 	res = f_opendir(&curDirectory, curPath);
 	if (res != FR_OK)

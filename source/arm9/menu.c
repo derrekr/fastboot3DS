@@ -41,18 +41,10 @@ const menu_state_options menu_nand = {
 	}
 };
 
-const menu_state_options menu_options = {
-	1,
-	{
-		{"Change Boot Mode...", MENU_STATE_OPTIONS_MODE}
-	}
-};
-
 // menu_state_type -> menu_state_options instance
 const menu_state_options *options_lookup[] = {
 	&menu_main, // STATE_MAIN
 	&menu_nand, // STATE_NAND_MENU
-	&menu_options // MENU_STATE_OPTIONS_MENU
 };
 
 enum menu_state_type menu_state;
@@ -84,7 +76,7 @@ static void menu_main_draw_top()
 	printf(" Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
-void rewindConsole()
+static void rewindConsole()
 {
 	// get ready to repaint
 	consoleSelect(&con_top);
@@ -129,7 +121,6 @@ int enter_menu(int initial_state)
 		{
 			case MENU_STATE_MAIN:
 			case MENU_STATE_NAND_MENU:
-			case MENU_STATE_OPTIONS_MENU:
 				
 				hidScanInput();
 				keys = hidKeysDown();
@@ -173,6 +164,11 @@ int enter_menu(int initial_state)
 				
 			case MENU_STATE_NAND_RESTORE:
 				menuRestoreNand("sdmc:/nand.bin");
+				clearConsoles();
+				break;
+				
+			case MENU_STATE_OPTIONS_MENU:
+				menuOptions();
 				clearConsoles();
 				break;
 			
@@ -403,4 +399,9 @@ void menuActState(void)
 	}
 
 	menu_event_state = MENU_EVENT_NONE;
+}
+
+void menuPrintPrompt(const char *text)
+{
+	printf(text);
 }

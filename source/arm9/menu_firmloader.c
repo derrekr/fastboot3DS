@@ -58,6 +58,7 @@ bool menuLaunchFirm(const char *filePath)
 	
 	printf("\n\x1B[32mFirmware verification SUCCESS!\e[0m\n\n");
 	
+	/*
 	printf("Attempting to run firmware, press B to exit...\n");
 	
 	for(int i=0; i<0x800000; i++)
@@ -68,6 +69,7 @@ bool menuLaunchFirm(const char *filePath)
 		if(keys & KEY_B)
 			goto fail;
 	}
+	*/
 	
 	menuSetReturnToState(MENU_STATE_EXIT);
 	

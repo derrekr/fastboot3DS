@@ -13,6 +13,7 @@
 #include "arm9/interrupt.h"
 #include "util.h"
 #include "hid.h"
+#include "arm9/debug.h"
 #include "arm9/config.h"
 
 #define MAX_FILE_SIZE	0x4000 - 1
@@ -130,7 +131,7 @@ fail:
 static bool writeConfigFile()
 {
 	const u32 fileSize = strlen(filebuf);
-	u32 bytesWritten;
+	unsigned int bytesWritten;
 	
 	if(fileSize > MAX_FILE_SIZE)
 		panic();
@@ -331,7 +332,7 @@ static void writeAttributeText(AttributeEntryType *attr, const char *newText, in
 	}
 }
 
-static bool isValidPath(char *path)
+static bool isValidPath(const char *path)
 {
 	char c;
 	bool gotMountpoint = false;
@@ -343,8 +344,7 @@ static bool isValidPath(char *path)
 		{
 			if(gotMountpoint)
 				return false;
-			else
-				gotMountpoint = true;
+			gotMountpoint = true;
 		}
 		
 		// no dir-return
@@ -404,21 +404,23 @@ static bool writeBootOption(AttributeEntryType *attr, void *newData, int key)
 	if(!attr->data)
 	{
 		buf = (char *) malloc(len + 1);
-		if(!attr->data)
+		if(!buf)
 			return false;
+		attr->data = buf;
 	}
 	else if(len != attr->textLength)
 	{
 		free(attr->data);
 		buf = (char *) malloc(len + 1);
-		if(!attr->data)
+		if(!buf)
 			return false;
+		attr->data = buf;
 	}
+	else buf = attr->data;
 	
 	memcpy(buf, path, len);
 	buf[len] = '\0';
 	
-	attr->data = buf;
 	attr->textLength = len;
 	
 	writeAttributeText(attr, path, key);

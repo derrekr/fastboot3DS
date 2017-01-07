@@ -4,18 +4,18 @@
 
 
 
-void spi_busy_wait()
+static void spi_busy_wait()
 {
     while(REG_SPI_BUS2_CNT & 0x80);
 }
 
-void spi_put_byte(u8 data)
+static void spi_put_byte(u8 data)
 {
     REG_SPI_BUS2_DATA = data;
     spi_busy_wait();
 }
 
-u8 spi_receive_byte()
+static u8 spi_receive_byte()
 {
     // clock out a dummy byte
     REG_SPI_BUS2_DATA = 0x00;
@@ -24,7 +24,7 @@ u8 spi_receive_byte()
 }
 
 // select spiflash if select=true, deselect otherwise 
-void spiflash_select(bool select)
+static void spiflash_select(bool select)
 {
     // select device 1, enable SPI bus
     REG_SPI_BUS2_CNT = 0x8100 | (select << 11);

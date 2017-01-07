@@ -30,13 +30,10 @@ extern void hashCodeRoData(void);
 int main(void)
 {
 	int mode;
-	bool firmLoaded = false;
 
 	hardwareInit();
 
 	hashCodeRoData();	// TODO: remove after debugging
-
-	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
 
 	// Initialize console for both screens using the two different PrintConsole we have defined
 	consoleInit(SCREEN_TOP, &con_top);
@@ -46,6 +43,8 @@ int main(void)
 	consoleSelect(&con_top);
 	
 	printf("\x1B[32mGood morning\nHello !\e[0m\n\n");
+	
+	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
 	
 	printf("Early filesystem init...\n");
 	
