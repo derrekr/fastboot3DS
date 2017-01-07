@@ -34,16 +34,16 @@ dataAbortHandler:
 exceptionHandler:
 	mov sp, #A9_EXC_STACK_END
 	stmfd sp!, {r0-r14}^        @ Save all user/system mode regs except pc
-	mrs r5, cpsr
-	lsr r5, r5, #29             @ Get back the exception type from cpsr
+	mrs r4, cpsr
+	lsr r4, r4, #29             @ Get back the exception type from cpsr
 	mrs r1, spsr                @ Get saved cpsr
 	stmfd sp!, {r1, lr}         @ Save spsr and lr (pc) on exception stack
-	mov r6, sp
-	msr cpsr_c, #0xDF           @ Disable all interrupts, system mode
+	mov r5, sp
+	msr cpsr_cxsf, #0xDF        @ Disable all interrupts, system mode
 	bl deinitCpu
-	mov r0, r5
-	mov sp, r6
-	mov r1, r6
+	mov r0, r4
+	mov sp, r5
+	mov r1, r5
 	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {cpsr, pc (unmodified), r0-r14}
 .pool
 

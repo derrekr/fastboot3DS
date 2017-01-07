@@ -64,12 +64,29 @@ void NAKED firmLaunchStub(void)
 		if(section->size == 0)
 			continue;
 
-		REG_NDMA_SRC_ADDR(i) = FIRM_LOAD_ADDR + section->offset;
-		REG_NDMA_DST_ADDR(i) = section->address;
-		REG_NDMA_WRITE_CNT(i) = section->size>>2;
-		REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
-		REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC
-							| NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
+		// If the section address is in ITCM use CPU copy
+		if(section->address < ITCM_BOOT9_MIRROR + ITCM_SIZE)
+		{
+			u32 *dst = (u32*)section->address;
+			u32 *src = (u32*)(FIRM_LOAD_ADDR + section->offset);
+
+			for(u32 n = 0; n < section->size / 4; n += 4)
+			{
+				dst[n + 0] = src[n + 0];
+				dst[n + 1] = src[n + 1];
+				dst[n + 2] = src[n + 2];
+				dst[n + 3] = src[n + 3];
+			}
+		}
+		else
+		{
+			REG_NDMA_SRC_ADDR(i) = FIRM_LOAD_ADDR + section->offset;
+			REG_NDMA_DST_ADDR(i) = section->address;
+			REG_NDMA_WRITE_CNT(i) = section->size / 4;
+			REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
+			REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC
+								| NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
+		}
 	}
 
 	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE
@@ -91,7 +108,7 @@ void NAKED firmLaunchStub(void)
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
-	__asm__ __volatile__("mov lr, %0\n\tbx %1\n\t" : : "r" (ret), "r" (entry9) : "lr", "pc");
+	__asm__ __volatile__("mov lr, %0\n\tbx %1" : : "r" (ret), "r" (entry9) : "lr", "pc");
 }
 
 bool firm_verify(u32 fwSize)

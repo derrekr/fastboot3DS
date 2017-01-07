@@ -232,7 +232,7 @@ setupMpu:
 
 deinitCpu:
 	msr cpsr_cxsf, #0xDF
-	mov r4, lr
+	mov r3, lr
 
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
@@ -244,13 +244,13 @@ deinitCpu:
 		bne deinitCpu_lp
 
 	bl flushDCache
+	mov r2, #0
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 
-	mov r0, #0
-	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
-	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
-	bx r4
+	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
+	bx r3
 .pool
