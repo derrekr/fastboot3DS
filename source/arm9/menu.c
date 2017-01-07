@@ -408,3 +408,28 @@ void menuPrintPrompt(const char *text)
 {
 	printf(text);
 }
+
+void menuWaitForAnyPadkey()
+{
+	int keys;
+	bool finished = false;
+	
+	do {
+		hidScanInput();
+		keys = hidKeysDown();
+		if(keys & HID_KEY_MASK_ALL)
+			finished = true;
+		
+		switch(menuUpdateGlobalState())
+		{
+			case MENU_EVENT_HOME_PRESSED:
+			case MENU_EVENT_POWER_PRESSED:
+				finished = true;
+			default:
+				break;
+		}
+		
+		menuActState();
+		
+	} while(!finished);
+}

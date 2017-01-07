@@ -189,6 +189,17 @@ bool menuTryLoadFirmwareFromSettings(void)
 	consoleSelect(&con_top);
 
 	printf("Loading FIRM from settings\n\n");
+	
+	// No Boot Option set up?
+	if(!configDataExist(KBootOption1) &&
+		!configDataExist(KBootOption2) &&
+		!!configDataExist(KBootOption3))
+	{
+		menuPrintPrompt("No Boot-Option set up yet.\nGo to 'Options' to choose a file.\n");
+		menuWaitForAnyPadkey();
+		menuSetReturnToState(STATE_PREVIOUS);
+		return false;
+	}
 
 	keyBootOption = KBootOption1;
 	keyPad = KBootOption1Buttons;

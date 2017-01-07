@@ -227,6 +227,8 @@ const char *browseForFile(const char *basePath)
 	res = f_opendir(&curDirectory, curPath);
 	if (res != FR_OK)
 	{
+		menuPrintPrompt("Failed to enter directory.\n");
+		menuWaitForAnyPadkey();
 		free(dirEntries);
 		menuSetReturnToState(STATE_PREVIOUS);
 		menuUpdateGlobalState();

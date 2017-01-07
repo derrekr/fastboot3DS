@@ -32,17 +32,17 @@ typedef struct {
 	// function to convert the textData to arbitrary native data
 	bool (*parse)(AttributeEntryType *attr);
 	// opposite of parse(), used to update/create an entry in the file
-	bool (*write)(AttributeEntryType *attr, void *newData, int key);
+	bool (*write)(AttributeEntryType *attr, const void *newData, int key);
 } FunctionsEntryType;
 
 bool createConfigFile();
 bool writeConfigFile();
 static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
-static bool writeBootOption(AttributeEntryType *attr, void *newData, int key);
+static bool writeBootOption(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool parseBootMode(AttributeEntryType *attr);
-static bool writeBootMode(AttributeEntryType *attr, void *newData, int key);
+static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key);
 
 static const char *keyStrings[] = {
 	"BOOT_OPTION1",
@@ -413,7 +413,7 @@ static bool parseBootOption(AttributeEntryType *attr)
 	return true;
 }
 
-static bool writeBootOption(AttributeEntryType *attr, void *newData, int key)
+static bool writeBootOption(AttributeEntryType *attr, const void *newData, int key)
 {
 	u32 len;
 	char *buf;
@@ -518,7 +518,7 @@ static bool parseBootMode(AttributeEntryType *attr)
 	return true;
 }
 
-static bool writeBootMode(AttributeEntryType *attr, void *newData, int key)
+static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key)
 {
 	u32 mode;
 	
@@ -572,6 +572,11 @@ const void *configGetData(int key)
 	return attributes[key].data;
 }
 
+bool configDataExist(int key)
+{
+	return configGetData(key) != NULL;
+}
+
 const char *configGetKeyText(int key)
 {
 	if(key < 0 || key >= KLast)
@@ -580,7 +585,7 @@ const char *configGetKeyText(int key)
 	return keyStrings[key];
 }
 
-bool configSetKeyData(int key, void *data)
+bool configSetKeyData(int key, const void *data)
 {
 	AttributeEntryType *attr;
 	

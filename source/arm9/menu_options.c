@@ -19,7 +19,7 @@
 
 static const char *optionStrings[] = {
 	"Change Boot Mode",
-	"Test 1234",
+	"Setup Boot Option",
 	"hi profi",
 	"dummy 3",
 	"dummy 42424242424242424242",
@@ -42,6 +42,7 @@ void calcConsoleMetrics(void);
 void rewindConsole(void);
 void rewindConsoleX(void);
 void handleBootMode(void);
+void handleBootOption(void);
 
 bool menuOptions(void)
 {
@@ -136,6 +137,10 @@ bool menuOptions(void)
 					handleBootMode();
 					break;
 				
+				case 1: // "Setup Boot Option"
+					handleBootOption();
+					break;
+					
 				default:
 					break;
 			}
@@ -152,6 +157,7 @@ bool menuOptions(void)
 			if(subOptionsActive)
 			{
 				subOptionsActive = false;
+				curSubOptionHighlighted = false;
 				curSubOptionCount = 0;
 			}
 			else
@@ -203,12 +209,12 @@ void calcConsoleMetrics(void)
 void rewindConsole(void)
 {
 	consoleSetCursor(&con_bottom, consoleX, consoleY);
+	consoleSelect(&con_bottom);
 }
 
 void rewindConsoleX(void)
 {
 	unsigned int len = con_bottom.windowWidth - con_bottom.cursorX;
-	if(len) len--;
 	while(len--) printf(" ");
 	
 	consoleSetCursor(&con_bottom, consoleX, con_bottom.cursorY + 1);
@@ -236,6 +242,32 @@ void handleBootMode(void)
 		strcpy(optionSubStrings[0], "Normal");
 		strcpy(optionSubStrings[1], "Quick Boot");
 		strcpy(optionSubStrings[2], "Quiet Boot");
+		curSubOptionCount = 3;
+	}
+}
+
+void handleBootOption(void)
+{
+	if(subOptionsActive)
+	{
+		int key = KBootOption1 + (int) curSubOptionIndex;
+		
+		const char *curPath = (const char *) configGetData(key);
+		
+		menuSetEnterNextState(MENU_STATE_BROWSER);
+		menuUpdateGlobalState();
+		menuActState();
+		const char *path = browseForFile("sdmc:");
+		clearConsoles();
+		
+		if(path)
+			configSetKeyData(key, path);
+	}
+	else
+	{
+		strcpy(optionSubStrings[0], "[Slot 1]");
+		strcpy(optionSubStrings[1], "[Slot 2]");
+		strcpy(optionSubStrings[2], "[Slot 3]");
 		curSubOptionCount = 3;
 	}
 }
