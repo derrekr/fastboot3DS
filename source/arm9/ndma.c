@@ -13,6 +13,8 @@
 
 void NDMA_init(void)
 {
+	u32 oldState = enterCriticalSection();
+
 	for(u32 i = 0; i < 8; i++)
 	{
 		REG_NDMA_CNT(i) = (REG_NDMA_CNT(i)<<1)>>1;
@@ -22,6 +24,8 @@ void NDMA_init(void)
 
 	REG_IRQ_IE |= ((1u<<IRQ_DMAC_1_0) | (1u<<IRQ_DMAC_1_1) | (1u<<IRQ_DMAC_1_2) | (1u<<IRQ_DMAC_1_3) |
 					(1u<<IRQ_DMAC_1_4) | (1u<<IRQ_DMAC_1_5) | (1u<<IRQ_DMAC_1_6) | (1u<<IRQ_DMAC_1_7));
+
+	leaveCriticalSection(oldState);
 }
 
 void NDMA_copy(u32 *dest, const u32 *source, u32 num)

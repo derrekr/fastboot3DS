@@ -6,12 +6,16 @@
 
 void TIMER_init(void)
 {
+	u32 oldState = enterCriticalSection();
+
 	for(u32 i = 0; i < 4; i++)
 	{
 		REG_TIMER_CNT(i) = 0;
 	}
 
 	REG_IRQ_IE |= ((1u<<IRQ_TIMER_0) | (1u<<IRQ_TIMER_1) | (1u<<IRQ_TIMER_2) | (1u<<IRQ_TIMER_3));
+
+	leaveCriticalSection(oldState);
 }
 
 void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, void (*irqHandler)(void))

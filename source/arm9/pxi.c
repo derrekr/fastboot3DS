@@ -6,6 +6,8 @@
 
 void PXI_init(void)
 {
+	u32 oldState = enterCriticalSection();
+
 	REG_PXI_SYNC9 = PXI_IRQ_ENABLE;
 	REG_PXI_CNT9 = PXI_FLUSH_SEND_FIFO | PXI_EMPTY_FULL_ERROR | PXI_ENABLE_SEND_RECV_FIFO;
 
@@ -13,6 +15,8 @@ void PXI_init(void)
 	while((REG_PXI_SYNC9 & 0xFFu) != 11u);
 
 	REG_IRQ_IE |= ((1u<<IRQ_PXI_SYNC) | (1u<<IRQ_PXI_NOT_FULL) | (1u<<IRQ_PXI_NOT_EMPTY));
+
+	leaveCriticalSection(oldState);
 }
 
 void PXI_sendWord(u32 val)
