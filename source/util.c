@@ -1,4 +1,5 @@
 #include "util.h"
+#include <string.h>
 
 void wait(u32 cycles)
 {
@@ -55,6 +56,25 @@ void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen)
 	}
 	
 	*dest = '\0';
+}
+
+// custom safe memcpy
+void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
+				void *srcBuf, size_t srcBufSize, size_t srcBufOffset)
+{
+	size_t dstRemaining, srcRemaining, actualSize;
+	
+	if(dstBufOffset >= dstBufSize)
+		return;
+	if(srcBufOffset >= srcBufSize)
+		return;
+	
+	dstRemaining = dstBufSize - dstBufOffset;
+	srcRemaining = srcBufSize - srcBufOffset;
+	
+	actualSize = min(dstRemaining, srcRemaining);
+	
+	memcpy(dstBuf+dstBufOffset, srcBuf+srcBufOffset, actualSize);
 }
 
 u32 getleu32(const void* ptr)

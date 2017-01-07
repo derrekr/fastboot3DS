@@ -175,6 +175,8 @@ bool menuOptions(void)
 	}
 
 done:
+	
+	writeConfigFile();
 
 	menuActState();
 	menuSetReturnToState(STATE_PREVIOUS);

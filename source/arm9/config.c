@@ -35,7 +35,8 @@ typedef struct {
 	bool (*write)(AttributeEntryType *attr, void *newData, int key);
 } FunctionsEntryType;
 
-
+bool createConfigFile();
+bool writeConfigFile();
 static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
 static bool writeBootOption(AttributeEntryType *attr, void *newData, int key);
@@ -81,15 +82,28 @@ bool loadConfigFile()
 	u32 fileSize;
 	unsigned bytesRead;
 	
+	// does the config file exist?
 	if(f_stat(filepath, &fileStat) != FR_OK)
 	{
-		printf("Failed to get config-file status!\n");
-		goto fail;
+		// try to create a file
+		if(!createConfigFile())
+			return false;
+		// does it work now?
+		if(f_stat(filepath, &fileStat) != FR_OK)
+			return false;
+	}
+	else	// file exists
+	{
+		if(filebuf)	// but we are reloading the settings, so free the old buffer
+		{
+			free(filebuf);
+			filebuf = NULL;
+		}
 	}
 	
 	fileSize = fileStat.fsize;
 	
-	if(fileSize > MAX_FILE_SIZE || fileSize == 0)
+	if(fileSize > MAX_FILE_SIZE)
 	{
 		printf("Invalid config-file size!\n");
 		goto fail;
@@ -128,23 +142,26 @@ fail:
 	return false;
 }
 
-static bool writeConfigFile()
+bool writeConfigFile()
 {
 	const u32 fileSize = strlen(filebuf);
 	unsigned int bytesWritten;
 	
 	if(fileSize > MAX_FILE_SIZE)
-		panic();
+		panicMsg("fileSize too large!");
 	
 	if(f_open(&file, filepath, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
 	{
 		goto fail;
 	}
 	
-	if((f_write(&file, filebuf, fileSize, &bytesWritten) != FR_OK) || (bytesWritten != fileSize))
+	if(fileSize)
 	{
-		f_close(&file);
-		goto fail;
+		if((f_write(&file, filebuf, fileSize, &bytesWritten) != FR_OK) || (bytesWritten != fileSize))
+		{
+			f_close(&file);
+			goto fail;
+		}
 	}
 	
 	f_close(&file);
@@ -158,14 +175,13 @@ fail:
 
 bool createConfigFile()
 {
-	filebuf = (char *) malloc(MAX_FILE_SIZE + 1);
+	if(!filebuf)
+		filebuf = (char *) malloc(MAX_FILE_SIZE + 1);
 	
 	if(!filebuf)
 		return false;
 	
-	filebuf[0] = 0x0d;
-	filebuf[1] = 0x0a;
-	filebuf[2] = 0x00;
+	filebuf[0] = '\0';
 	
 	return writeConfigFile();
 }
@@ -297,13 +313,23 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 	
 	if(diff)
 	{
-		if(curTextLen < newLen)
-			memcpy(textData + diff, textData + curTextLen,
-						curLen - (filebuf - textData + diff) + 1);
+		if(newLen > curTextLen)
+		{
+			size_t backupLen = curLen - (textData - filebuf) - curTextLen + 1;
+			char *tempBuf = (char *) malloc(backupLen);
+			if(!tempBuf)
+				return 0;
+			memcpy(tempBuf, textData + curTextLen, backupLen);
+			
+			memcpy_s(filebuf, MAX_FILE_SIZE + 1, textData - filebuf + newLen,
+						tempBuf, backupLen, 0);
+		}
 		else
-			memcpy(textData + newLen, textData + curTextLen,
-						curLen - (filebuf - textData + curTextLen) + 1);
-	
+		{
+			memcpy_s(filebuf, MAX_FILE_SIZE + 1, textData - filebuf + newLen,
+						filebuf, MAX_FILE_SIZE + 1, textData - filebuf + curTextLen);
+		}
+		
 		for(u32 key=0; key<numKeys; key++)
 		{
 			if(attributes[key].textData > textData)
@@ -564,7 +590,7 @@ bool configSetKeyData(int key, void *data)
 	attr = &attributes[key];
 	
 	if(!keyFunctions[key].write)
-		panic();
+		panicMsg("Unimplemented key function!");
 	
 	return keyFunctions[key].write(attr, data, key);
 }

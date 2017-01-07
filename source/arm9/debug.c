@@ -41,11 +41,29 @@ noreturn void panic()
 	for(;;) waitForIrq();
 }
 
+noreturn void panicMsg(const char *msg)
+{
+	register u32 lr __asm__("lr");
+
+	consoleInit(0, NULL);
+
+	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
+	printf("\nERROR MESSAGE:\n%s\n", msg);
+	
+	unmount_fs();
+	devs_close();
+	
+	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
+
+	for(;;) waitForIrq();
+}
+
 // Expects the registers in the exception stack to be in the following order:
 // cpsr, pc (unmodified), r0-r14
 noreturn void guruMeditation(u8 type, u32 *excStack)
 {
 	const char *typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
+	const size_t maxStackWords = 15 * 2;
 	u32 realPc, instSize = 4;
 	bool codeChanged = false;
 
@@ -83,10 +101,11 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 			excStack[9], realPc);
 
 	// make sure we can actually dump the stack without triggering another fault.
-	if((excStack[15] >= (u32)A9_STACK_START) && (excStack[15] < (u32)A9_STACK_END))
+	if((excStack[15] >= (u32)A9_STACK_START) && (excStack[15] < (u32)A9_STACK_END) &&
+		(excStack[15] + maxStackWords * 4 < (u32)A9_STACK_END))
 	{
 		puts("Stack dump:");
-		for(u32 i = 0; i < 15; i++)
+		for(u32 i = 0; i < maxStackWords / 2; i++)
 		{
 			printf("0x%08" PRIX32 ": %08" PRIX32 " %08" PRIX32 "\n", excStack[15],
 					((u32*)excStack[15])[0], ((u32*)excStack[15])[1]);
