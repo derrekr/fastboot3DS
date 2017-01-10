@@ -64,8 +64,17 @@ void NAKED firmLaunchStub(void)
 		if(section->size == 0)
 			continue;
 
-		// If the section address is in ITCM use CPU copy
-		if(section->address < ITCM_BOOT9_MIRROR + ITCM_SIZE)
+		// Use NDMA for everything but copy method 2
+		if(section->copyMethod < 2)
+		{
+			REG_NDMA_SRC_ADDR(i) = FIRM_LOAD_ADDR + section->offset;
+			REG_NDMA_DST_ADDR(i) = section->address;
+			REG_NDMA_WRITE_CNT(i) = section->size / 4;
+			REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
+			REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC
+								| NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
+		}
+		else
 		{
 			u32 *dst = (u32*)section->address;
 			u32 *src = (u32*)(FIRM_LOAD_ADDR + section->offset);
@@ -77,15 +86,6 @@ void NAKED firmLaunchStub(void)
 				dst[n + 2] = src[n + 2];
 				dst[n + 3] = src[n + 3];
 			}
-		}
-		else
-		{
-			REG_NDMA_SRC_ADDR(i) = FIRM_LOAD_ADDR + section->offset;
-			REG_NDMA_DST_ADDR(i) = section->address;
-			REG_NDMA_WRITE_CNT(i) = section->size / 4;
-			REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
-			REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC
-								| NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
 		}
 	}
 
@@ -119,7 +119,7 @@ bool firm_verify(u32 fwSize)
 	bool retval = true;
 	u32 hash[8];
 	
-	if(strncmp((char *)firm_hdr->magic, "FIRM", 4))
+	if(firm_hdr->magic != 0x4D524946u)
 		return false;
 	
 	printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
