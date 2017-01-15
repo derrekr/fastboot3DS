@@ -36,7 +36,7 @@ DBGWARM	:=	-Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
 			-Wshadow -Wsign-conversion -fstrict-overflow -Wstrict-overflow=5 \
 			-Wswitch-default -Wundef
 
-CFLAGS	:=	-Wall -fstrict-aliasing -Wstrict-aliasing -std=c11 -g -O2 \
+CFLAGS	:=	-Wall $(DBGWARM) -fstrict-aliasing -Wstrict-aliasing -std=c11 -g -O2 \
 			-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9 $(DEFINES)
