@@ -324,9 +324,16 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 	u32 remainingLen = MAX_FILE_SIZE - curLen;
 	u32 totalLen = strlen(textData);
 	u32 defLen = strlen(def);
-	totalLen += strlen(keyName);
+	u32 keyLen = strlen(keyName);
+	
+	if(totalLen > remainingLen)
+		return NULL;
+	
+	totalLen += keyLen;
 	totalLen += defLen;
-	totalLen += 2;	// new line encoding
+	
+	if(curLen != 0)
+		totalLen += 2;	// new line encoding
 	
 	if(totalLen > remainingLen)
 		return NULL;
@@ -337,9 +344,10 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 		filebuf[curLen++] = 0x0d;
 		filebuf[curLen++] = 0x0a;
 	}
+	
 	sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
 	
-	return &filebuf[curLen + defLen];
+	return &filebuf[curLen + keyLen + defLen];
 }
 
 static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char *newText)
@@ -489,8 +497,6 @@ static bool writeBootOption(AttributeEntryType *attr, const void *newData, int k
 	
 	memcpy(buf, path, len);
 	buf[len] = '\0';
-	
-	attr->textLength = len;
 	
 	writeAttributeText(attr, path, key);
 	

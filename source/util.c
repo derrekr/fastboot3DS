@@ -74,9 +74,6 @@ void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
 	
 	actualSize = min(dstRemaining, srcRemaining);
 	
-	if(actualSize == 0)
-		return;
-	
 	if(reverse)
 	{
 		u8 *src = srcBuf + srcBufOffset + actualSize - 1;
