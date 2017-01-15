@@ -12,6 +12,7 @@
 #include "arm9/main.h"
 #include "arm9/timer.h"
 #include "arm9/menu.h"
+#include "arm9/nandimage.h"
 #include "arm9/config.h"
 
 
@@ -20,11 +21,7 @@
 static const char *optionStrings[] = {
 	"Change Boot Mode",
 	"Setup Boot Option",
-	"hi profi",
-	"dummy 3",
-	"dummy 42424242424242424242",
-	"dummy 55",
-	"dummy 6",
+	"Setup NAND Image"
 };
 
 static char optionSubStrings[MAX_SUBOPTIONS][0x20];
@@ -43,6 +40,7 @@ void rewindConsole(void);
 void rewindConsoleX(void);
 void handleBootMode(void);
 void handleBootOption(void);
+void handleNandImage(void);
 
 bool menuOptions(void)
 {
@@ -140,7 +138,11 @@ bool menuOptions(void)
 				case 1: // "Setup Boot Option"
 					handleBootOption();
 					break;
-					
+				
+				case 2: // "Setup NAND Image"
+					handleNandImage();
+					break;
+				
 				default:
 					break;
 			}
@@ -252,7 +254,7 @@ void handleBootOption(void)
 	{
 		int key = KBootOption1 + (int) curSubOptionIndex;
 		
-		const char *curPath = (const char *) configGetData(key);
+		// const char *curPath = (const char *) configGetData(key);
 		
 		menuSetEnterNextState(MENU_STATE_BROWSER);
 		menuUpdateGlobalState();
@@ -268,6 +270,50 @@ void handleBootOption(void)
 		strcpy(optionSubStrings[0], "[Slot 1]");
 		strcpy(optionSubStrings[1], "[Slot 2]");
 		strcpy(optionSubStrings[2], "[Slot 3]");
+		curSubOptionCount = 3;
+	}
+}
+
+void handleNandImage(void)
+{
+	if(subOptionsActive)
+	{
+		int ret;
+		int key = KBootOption1NandImage + (int) curSubOptionIndex;
+		
+		// const char *curPath = (const char *) configGetData(key);
+		
+		menuSetEnterNextState(MENU_STATE_BROWSER);
+		menuUpdateGlobalState();
+		menuActState();
+		const char *path = browseForFile("sdmc:");
+		clearConsoles();
+		
+		if(path)
+		{
+			if(ret = validateNandImage(path))
+			{
+				switch(ret)
+				{
+					case NANDIMG_ERROR_BADPATH:
+						menuPrintPrompt("Unsupported device or filepath!\n");
+						break;
+					case NANDIMG_ERROR_NEXISTS:
+						menuPrintPrompt("NAND Image file corrupted!\n");
+						break;
+					case NANDIMG_ERROR_NCONTS:
+						menuPrintPrompt("NAND Image file is not continuous!\n");
+						break;
+				}
+			}
+			else configSetKeyData(key, path);
+		}
+	}
+	else
+	{
+		strcpy(optionSubStrings[0], "[Slot 1] Image");
+		strcpy(optionSubStrings[1], "[Slot 2] Image");
+		strcpy(optionSubStrings[2], "[Slot 3] Image");
 		curSubOptionCount = 3;
 	}
 }

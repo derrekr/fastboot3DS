@@ -1,5 +1,5 @@
 
-/* This is a parser for the loadercfg.txt file. It's not vulnerable, I swear. */ 
+/* This is a parser/writer for the loadercfg.txt file. It's not vulnerable, I swear. */ 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,10 @@
 
 #define MAX_FILE_SIZE	0x4000 - 1
 
-static const char *filepath = "sdmc:\\loadercfg.txt";
+static const char *SdmcFilepath = "sdmc:\\loadercfg.txt";
+static const char *NandFilepath = "nand:\\loader\\loadercfg.txt";
+
+static const char *filepath;
 
 static FIL file;
 
@@ -35,7 +38,8 @@ typedef struct {
 	bool (*write)(AttributeEntryType *attr, const void *newData, int key);
 } FunctionsEntryType;
 
-bool createConfigFile();
+static void unloadConfigFile();
+static bool createConfigFile();
 bool writeConfigFile();
 static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
@@ -75,12 +79,19 @@ static AttributeEntryType attributes[numKeys];
 
 static char *filebuf = NULL;
 
+static bool configLoaded = false;
+
 /* This loads the config file from SD card and parses it */
 bool loadConfigFile()
 {
 	FILINFO fileStat;
 	u32 fileSize;
 	unsigned bytesRead;
+	
+	if(configLoaded)
+		unloadConfigFile();
+	
+	filepath = SdmcFilepath;
 	
 	// does the config file exist?
 	if(f_stat(filepath, &fileStat) != FR_OK)
@@ -91,14 +102,6 @@ bool loadConfigFile()
 		// does it work now?
 		if(f_stat(filepath, &fileStat) != FR_OK)
 			return false;
-	}
-	else	// file exists
-	{
-		if(filebuf)	// but we are reloading the settings, so free the old buffer
-		{
-			free(filebuf);
-			filebuf = NULL;
-		}
 	}
 	
 	fileSize = fileStat.fsize;
@@ -139,7 +142,37 @@ bool loadConfigFile()
 	
 fail:
 	
+	// something didn't work, clean everything up
+	unloadConfigFile();
+	
 	return false;
+}
+
+static void unloadConfigFile()
+{
+	configLoaded = false;
+	AttributeEntryType *curAttr;
+	
+	/* Free all data */
+	for(u32 i=0; i<numKeys; i++)
+	{
+		curAttr = &attributes[i];
+		
+		curAttr->textData = NULL;
+		curAttr->textLength = 0;
+			
+		if(curAttr->data)
+		{
+			free(curAttr->data);
+			curAttr->data = NULL;
+		}
+	}
+	
+	if(filebuf)
+	{
+		free(filebuf);
+		filebuf = NULL;
+	}
 }
 
 bool writeConfigFile()
@@ -173,17 +206,21 @@ fail:
 	return false;
 }
 
-bool createConfigFile()
+static bool createConfigFile()
 {
-	if(!filebuf)
-		filebuf = (char *) malloc(MAX_FILE_SIZE + 1);
+	char temp = '\0';
+	bool ret;
 	
-	if(!filebuf)
-		return false;
+	if(filebuf)
+		panicMsg("config: internal error");
 	
-	filebuf[0] = '\0';
+	filebuf = &temp;
 	
-	return writeConfigFile();
+	ret = writeConfigFile();
+	
+	filebuf = NULL;
+	
+	return ret;
 }
 
 /* returns the start of an attribute's data. */
@@ -274,6 +311,8 @@ static bool parseConfigFile()
 		}
 	}
 	
+	configLoaded = true;
+	
 	return true;
 }
 
@@ -292,8 +331,12 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 	if(totalLen > remainingLen)
 		return NULL;
 	
-	filebuf[curLen++] = 0x0d;
-	filebuf[curLen++] = 0x0a;
+	// insert line break if we already have any content
+	if(curLen != 0)
+	{
+		filebuf[curLen++] = 0x0d;
+		filebuf[curLen++] = 0x0a;
+	}
 	sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
 	
 	return &filebuf[curLen + defLen];
@@ -322,12 +365,12 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 			memcpy(tempBuf, textData + curTextLen, backupLen);
 			
 			memcpy_s(filebuf, MAX_FILE_SIZE + 1, textData - filebuf + newLen,
-						tempBuf, backupLen, 0);
+						tempBuf, backupLen, 0, false);
 		}
 		else
 		{
 			memcpy_s(filebuf, MAX_FILE_SIZE + 1, textData - filebuf + newLen,
-						filebuf, MAX_FILE_SIZE + 1, textData - filebuf + curTextLen);
+						filebuf, MAX_FILE_SIZE + 1, textData - filebuf + curTextLen, false);
 		}
 		
 		for(u32 key=0; key<numKeys; key++)
@@ -548,6 +591,9 @@ static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key
 
 void *configCopyText(int key)
 {
+	if(!configLoaded)
+		return NULL;
+
 	if(key < 0 || key >= KLast)
 		return NULL;
 	
@@ -566,6 +612,9 @@ void *configCopyText(int key)
 
 const void *configGetData(int key)
 {
+	if(!configLoaded)
+		return NULL;
+	
 	if(key < 0 || key >= KLast)
 		return NULL;
 	
@@ -574,6 +623,9 @@ const void *configGetData(int key)
 
 bool configDataExist(int key)
 {
+	if(!configLoaded)
+		return false;
+	
 	return configGetData(key) != NULL;
 }
 
@@ -589,6 +641,9 @@ bool configSetKeyData(int key, const void *data)
 {
 	AttributeEntryType *attr;
 	
+	if(!configLoaded)
+		return false;
+	
 	if(key < 0 || key >= KLast)
 		return NULL;
 	
@@ -602,6 +657,9 @@ bool configSetKeyData(int key, const void *data)
 
 void configRestoreDefaults()
 {
+	if(!configLoaded)
+		return;
+
 	for(int key=0; key<numKeys; key++)
 	{
 		if(key == KBootMode)

@@ -8,23 +8,24 @@
 #include "fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
+#include "pxi.h"
 #include "arm9/main.h"
 #include "arm9/timer.h"
 #include "arm9/menu.h"
 #include "arm9/firm.h"
 #include "arm9/config.h"
 
-static bool firmLoaded = 0;
+static int firmLoaded = 0;
 
 static bool tryLoadFirmware(const char *filepath);
 static u32 loadFirmSd(const char *filePath);
 
 bool isFirmLoaded(void)
 {
-	return firmLoaded;
+	return firmLoaded != 0;
 }
 
-bool menuLaunchFirm(const char *filePath)
+bool menuLaunchFirm(const char *filePath, bool quick)
 {
 	u32 keys;
 	
@@ -42,15 +43,13 @@ bool menuLaunchFirm(const char *filePath)
 	
 	if(!tryLoadFirmware(filePath))
 	{
-		printf("\n\x1B[31mBad firmware.\e[0m\n\n");
-		printf("Press B to return.\n");
-		
-		do {
-			hidScanInput();
-			keys = hidKeysDown();
+		if(!quick)
+		{
+			printf("\n\x1B[31mBad firmware.\e[0m\n\n");
+			printf("Press any key...\n");
+			
+			menuWaitForAnyPadkey();
 		}
-		while(!(keys & KEY_B));
-		
 		goto fail;
 	}
 	
@@ -79,7 +78,7 @@ fail:
 	
 	printf("FIRM-Launch aborted.\n");
 	
-	TIMER_sleep(2000);
+	TIMER_sleep(500);
 	
 	firmLoaded = 0;
 	
@@ -111,71 +110,6 @@ bool statFirmware(const char *filePath)
 	
 	// unknown mountpoint
 	return false;
-}
-
-bool tryLoadFirmwareFromSettings(void)
-{
-	const char *path;
-	int keyBootOption, keyPad;
-	int i;
-	u32 padValue, expectedPadValue;
-
-	firmLoaded = 0;
-
-	clearConsoles();
-	consoleSelect(&con_top);
-
-	printf("Loading FIRM from settings\n\n");
-
-	keyBootOption = KBootOption1;
-	keyPad = KBootOption1Buttons;
-
-	for(i=0; i<3; i++, keyBootOption++, keyPad++)
-	{
-		path = (const char *)configGetData(keyBootOption);
-		if(path)
-		{
-			printf("\nBoot Option #%i:\n%s\n", i + 1, path);
-			
-			// check pad value
-			const u32 *temp;
-			temp = (const u32 *)configGetData(keyPad);
-			if(temp)
-			{
-				expectedPadValue = *temp;
-				hidScanInput();
-				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
-				if(padValue != expectedPadValue)
-				{
-					printf("Skipping, right buttons are not pressed.\n");
-					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
-					continue;
-				}
-			}
-			
-			// check if fw still exists
-			if(!statFirmware(path))
-			{
-				printf("Couldn't find firmware...\n");
-				continue;
-			}
-
-			if(menuLaunchFirm(path))
-				break;
-			else
-			{
-				clearConsoles();
-				consoleSelect(&con_top);
-			}
-		}
-
-		// ... we failed, try next one
-	}
-
-	if(i >= 3)
-		return false;
-
-	return true;
 }
 
 bool menuTryLoadFirmwareFromSettings(void)
@@ -234,7 +168,7 @@ bool menuTryLoadFirmwareFromSettings(void)
 				}
 			}
 
-			if(menuLaunchFirm(path))
+			if(menuLaunchFirm(path, false))
 				break;
 			else
 			{
@@ -253,6 +187,110 @@ bool menuTryLoadFirmwareFromSettings(void)
 	}
 	
 	menuSetReturnToState(MENU_STATE_EXIT);
+
+	return true;
+}
+
+static bool checkForHIDAbort()
+{
+	bool successFlag;
+	u32 replyCode = PXI_tryRecvWord(&successFlag);
+	
+	while(successFlag)
+	{
+		switch(replyCode)
+		{
+			case PXI_RPL_HOME_PRESSED:
+			case PXI_RPL_POWER_PRESSED:
+				return true;
+			default:
+				break;
+		}
+		
+		replyCode = PXI_tryRecvWord(&successFlag);
+	}
+	
+	return false;
+}
+
+bool TryLoadFirmwareFromSettings(void)
+{
+	const char *path;
+	int keyBootOption, keyPad;
+	int i;
+	u32 padValue, expectedPadValue;
+
+	consoleSelect(&con_top);
+	
+	firmLoaded = 0;
+
+	printf("Loading FIRM from settings\n\n");
+	
+	// No Boot Option set up?
+	if(!configDataExist(KBootOption1) &&
+		!configDataExist(KBootOption2) &&
+		!!configDataExist(KBootOption3))
+	{
+		return false;
+	}
+
+	keyBootOption = KBootOption1;
+	keyPad = KBootOption1Buttons;
+
+	for(i=0; i<3; i++, keyBootOption++, keyPad++)
+	{
+		if(checkForHIDAbort())
+			return false;
+		
+		path = (const char *)configGetData(keyBootOption);
+		if(path)
+		{
+			printf("\nBoot Option #%i:\n%s\n", i + 1, path);
+			
+			// check if fw still exists
+			if(!statFirmware(path))
+			{
+				printf("Couldn't find firmware...\n");
+				continue;
+			}
+			
+			// check pad value
+			const u32 *temp;
+			temp = (const u32 *)configGetData(keyPad);
+			if(temp)
+			{
+				expectedPadValue = *temp;
+				hidScanInput();
+				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
+				if(padValue != expectedPadValue)
+				{
+					printf("Skipping, right buttons are not pressed.\n");
+					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
+					continue;
+				}
+			}
+
+			if(tryLoadFirmware(path))
+				break;
+			else
+			{
+				printf("Bad firmware, trying next one...\n");
+				TIMER_sleep(200);
+			}
+		}
+
+		// ... we failed, try next one
+	}
+
+	if(i >= 3)
+	{
+		return false;
+	}
+	
+	if(checkForHIDAbort())
+		return false;
+	
+	firmLoaded = 1;
 
 	return true;
 }

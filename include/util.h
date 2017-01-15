@@ -18,7 +18,7 @@ int strnicmp(const char *str1, const char *str2, u32 len);
 void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen);
 
 void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
-				void *srcBuf, size_t srcBufSize, size_t srcBufOffset);
+				void *srcBuf, size_t srcBufSize, size_t srcBufOffset, bool reverse);
 
 u32 getleu32(const void* ptr);
 

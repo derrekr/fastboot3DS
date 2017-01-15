@@ -14,7 +14,7 @@
 
 
 
-/* We don't want the FIRM to do hacky stuff with out loader */
+/* We don't want the FIRM to do hacky stuff with our loader */
 
 typedef struct
 {
@@ -132,7 +132,7 @@ bool firm_verify(u32 fwSize)
 		if(section->size == 0)
 			continue;
 
-		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size 0x%"PRIX32"\n",
+		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n",
 				(int) i, section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize) 

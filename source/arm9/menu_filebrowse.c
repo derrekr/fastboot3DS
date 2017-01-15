@@ -177,6 +177,7 @@ const char *browseForFile(const char *basePath)
 	u32 keys;
 	u32 cursor_pos = 0;
 	bool fileSelected = false;
+	int returnState = STATE_PREVIOUS;
 	
 	curEntriesCount = 0;
 	indexStackPtr = indexStack;
@@ -336,6 +337,8 @@ const char *browseForFile(const char *basePath)
 		switch(menuUpdateGlobalState())
 		{
 			case MENU_EVENT_HOME_PRESSED:
+				returnState = MENU_STATE_MAIN;
+				goto fail;
 			case MENU_EVENT_POWER_PRESSED:
 			case MENU_EVENT_SD_CARD_REMOVED:
 				goto fail;
@@ -355,8 +358,9 @@ done:
 	f_closedir(&curDirectory);
 	free(dirEntries);
 
+	menuSetReturnToState(returnState);
 	menuActState();
-	menuSetReturnToState(STATE_PREVIOUS);
+	
 	
 	return curPath;
 	
@@ -365,8 +369,8 @@ fail:
 	f_closedir(&curDirectory);
 	free(dirEntries);
 
-	menuActState();
-	menuSetReturnToState(STATE_PREVIOUS);
+	menuSetReturnToState(returnState);
+	menuActState();	
 	
 	return NULL;
 }

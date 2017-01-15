@@ -54,7 +54,14 @@ bool menuDumpNand(const char *filePath)
 		f_close(&file);
 		goto fail;
 	}
-
+	
+	// Allocate space to make sure the nand image is a contiguous file
+	if((fres = f_expand(&file, sectorCount<<9, 0)) != FR_OK)
+	{
+		printf("Failed to expand file! Error: %X\n", fres);
+		f_close(&file);
+		goto fail;
+	}
 
 	/* Main loop */
 

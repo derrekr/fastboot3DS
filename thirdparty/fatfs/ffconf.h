@@ -47,7 +47,7 @@
 /* This option switches fast seek function. (0:Disable or 1:Enable) */
 
 
-#define	_USE_EXPAND		0
+#define	_USE_EXPAND		1
 /* This option switches f_expand function. (0:Disable or 1:Enable) */
 
 

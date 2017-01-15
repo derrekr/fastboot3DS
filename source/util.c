@@ -60,7 +60,7 @@ void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen)
 
 // custom safe memcpy
 void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
-				void *srcBuf, size_t srcBufSize, size_t srcBufOffset)
+				void *srcBuf, size_t srcBufSize, size_t srcBufOffset, bool reverse)
 {
 	size_t dstRemaining, srcRemaining, actualSize;
 	
@@ -74,7 +74,23 @@ void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
 	
 	actualSize = min(dstRemaining, srcRemaining);
 	
-	memcpy(dstBuf+dstBufOffset, srcBuf+srcBufOffset, actualSize);
+	if(actualSize == 0)
+		return;
+	
+	if(reverse)
+	{
+		u8 *src = srcBuf + srcBufOffset + actualSize - 1;
+		u8 *dst = dstBuf + dstBufOffset + actualSize - 1;
+		
+		do {
+			*dst = *src;
+			dst--;
+			src--;
+			actualSize --;
+		} while(actualSize);
+	}
+	else
+		memcpy(dstBuf+dstBufOffset, srcBuf+srcBufOffset, actualSize);
 }
 
 u32 getleu32(const void* ptr)

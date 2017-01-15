@@ -21,7 +21,6 @@ static void unit_detect();
 static void boot_env_detect();
 static void fw_detect();
 static bool loadSettings(int *mode);
-bool tryLoadFirmwareFromSettings();
 
 // TODO: remove after debugging
 extern void panic(void);
@@ -61,7 +60,7 @@ int main(void)
 					screen_init();
 					/* fallthrough */
 				case BootModeQuiet:
-					enter_menu(MENU_STATE_FIRM_LAUNCH_SETTINGS);
+					TryLoadFirmwareFromSettings();
 					if(isFirmLoaded())
 						goto finish_firmlaunch;
 					/* else fallthrough */
@@ -325,10 +324,6 @@ static bool loadSettings(int *mode)
 u8 rng_get_byte()
 {
 	u32 tmp = REG_PRNG[0];
-	for(u32 i = 8; i < 32; i += 8)
-	{
-		tmp ^= (u8)(tmp >> i);
-	}
 	return (u8)tmp;
 }
 

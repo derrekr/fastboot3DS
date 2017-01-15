@@ -98,6 +98,8 @@ int enter_menu(int initial_state)
 	color = (rng_get_byte() % 6) + 1;
 	
 	cursor_pos = 0;
+	
+	clearConsoles();
 
 	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), NULL);
 
@@ -173,12 +175,12 @@ int enter_menu(int initial_state)
 				break;
 			
 			case MENU_STATE_FIRM_LAUNCH:
-				if(!menuLaunchFirm(firmPath))
+				if(!menuLaunchFirm(firmPath, false))
 					clearConsoles();
 				break;
 				
 			case MENU_STATE_FIRM_LAUNCH_SETTINGS:
-				if(!menuTryLoadFirmwareFromSettings())
+				if(!menuTryLoadFirmwareFromSettings(false))
 					clearConsoles();
 				break;
 				
@@ -403,9 +405,68 @@ void menuActState(void)
 
 	menu_event_state = MENU_EVENT_NONE;
 }
+/*
+static char *menuNormalizeText(const char *text)
+{
+	size_t curLineLen;
+	const char *p = text;
+	
+	char *q = (char *) malloc((strlen(text) + 1) * 3);
+	if(!q)
+		return NULL;
+	
+	while(*p)
+	{
+		if(p[0] == '\\' && p[1] == 'n')
+		{
+			
+		}
+	}
+}
 
+
+void menuCalcWindowMetrics(const char *text, int *x, int *y, int *width, int *height)
+{
+	const char *p = text;
+	size_t longestLineLen = 0;
+	size_t curLineLen;
+	size_t lines = 0;
+	
+	while(*p)
+	{
+		// Note: text shouldn't be malformed.
+		if(p[0] == '\n')
+		{
+			lines ++;
+			if(curLineLen > longestLineLen)
+				longestLineLen = curLineLen;
+			p += 2;
+		}
+		else
+		{
+			curLineLen++;
+			p++;
+		}
+	}
+	
+	if(curLineLen > longestLineLen)
+		longestLineLen = curLineLen;
+	
+	
+}
+*/
 void menuPrintPrompt(const char *text)
 {
+	/*
+	const char *p = text;
+	size_t lines = 0;
+	
+	
+	while(*p)
+	{
+	
+	}*/
+	
 	printf(text);
 }
 
