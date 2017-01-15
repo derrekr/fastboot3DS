@@ -15,14 +15,14 @@ typedef struct
 	u32 offset;
 	u32 address;
 	u32 size;
-	u32 type;
+	u32 copyMethod;
 	u8 hash[0x20];
 } firm_sectionheader;
 
 typedef struct
 {
-	u8 magic[4];
-	u8 reserved1[4];
+	u32 magic;
+	u32 priority;
 	u32 entrypointarm11;
 	u32 entrypointarm9;
 	u8 reserved2[0x30];

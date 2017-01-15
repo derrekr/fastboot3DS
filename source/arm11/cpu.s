@@ -47,9 +47,8 @@ initCpu:
 	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
 	clrex
 
-	ldr sp, =A11_STACK_END
-
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
+	ldr sp, =A11_STACK_END
 	blx setupMmu
 	bl setupVfp
 	cpsie a

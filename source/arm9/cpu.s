@@ -218,8 +218,8 @@ setupMpu:
 	@ Region 4 = no
 	@ Region 5 = no
 	@ Region 6 = no
-	@ Region 7 = no
-	mov r0, #0b00001010
+	@ Region 7 = yes
+	mov r0, #0b10001010
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
