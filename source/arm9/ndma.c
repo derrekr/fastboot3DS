@@ -23,7 +23,7 @@ void NDMA_init(void)
 	REG_NDMA_GLOBAL_CNT = NDMA_ROUND_ROBIN(32);
 
 	REG_IRQ_IE |= ((1u<<IRQ_DMAC_1_0) | (1u<<IRQ_DMAC_1_1) | (1u<<IRQ_DMAC_1_2) | (1u<<IRQ_DMAC_1_3) |
-					(1u<<IRQ_DMAC_1_4) | (1u<<IRQ_DMAC_1_5) | (1u<<IRQ_DMAC_1_6) | (1u<<IRQ_DMAC_1_7));
+	               (1u<<IRQ_DMAC_1_4) | (1u<<IRQ_DMAC_1_5) | (1u<<IRQ_DMAC_1_6) | (1u<<IRQ_DMAC_1_7));
 
 	leaveCriticalSection(oldState);
 }

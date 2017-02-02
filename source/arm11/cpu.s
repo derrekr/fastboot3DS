@@ -91,14 +91,14 @@ deinitCpu:
 	mov r2, #0
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x803807           @ Enable MMU, Strict data address alignment fault, D-Cache,
-                                @ Program flow prediction, I-Cache, high exception vectors,
-                                @ subpage AP bits disabled
+	                            @ Program flow prediction, I-Cache, high exception vectors,
+	                            @ subpage AP bits disabled
 	bic r0, r0, r1
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	mrc p15, 0, r0, c1, c0, 1   @ Read Auxiliary Control Register
 	bic r0, r0, #0x6F           @ Return stack, Dynamic branch prediction, Static branch prediction,
-                                @ Instruction folding, SMP mode: the CPU is taking part in coherency
-                                @ and L1 parity checking
+	                            @ Instruction folding, SMP mode: the CPU is taking part in coherency
+	                            @ and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
 	mcr p15, 0, r2, c7, c5, 4   @ Flush Prefetch Buffer

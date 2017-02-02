@@ -158,7 +158,7 @@ bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf)
 bool sdmmc_sd_write_sector(u32 sector, u32 count, const void *buf)
 {
 	if(!dev_sd.initialized)
-			return false;
+		return false;
 	return !sdmmc_sdcard_writesectors(sector, count, buf);
 }
 
@@ -299,9 +299,9 @@ bool sdmmc_dnand_init(void)
 
 		// Crypt settings
 		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_OUTPUT_LITTLE | AES_INPUT_LITTLE | AES_OUTPUT_REVERSED |
-							AES_INPUT_REVERSED | AES_MODE_CTR);
+		                   AES_INPUT_REVERSED | AES_MODE_CTR);
 		AES_setCryptParams(&dev_dnand.ctrAesCtx, AES_OUTPUT_BIG | AES_INPUT_BIG | AES_OUTPUT_NORMAL |
-							AES_INPUT_NORMAL | AES_MODE_CTR);
+		                   AES_INPUT_NORMAL | AES_MODE_CTR);
 
 		dev_dnand.dev.initialized = true;
 	}
@@ -315,7 +315,7 @@ static nand_partition_struct *find_partition(u32 sector, u32 count)
 	{
 		nand_partition_struct *partition = &dev_dnand.partitions[i];
 		if((partition->sector <= sector) && (partition->count >= count)
-			&& (partition->sector + partition->count >= sector + count))
+		   && (partition->sector + partition->count >= sector + count))
 		return partition;
 	}
 

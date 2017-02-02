@@ -90,3 +90,4 @@ clearMem_check_zero:
 
 _init:
 	bx lr
+.pool

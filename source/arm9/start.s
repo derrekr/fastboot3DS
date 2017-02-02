@@ -98,3 +98,4 @@ clearMem_check_zero:
 @ Needed by libc
 _init:
 	bx lr
+.pool

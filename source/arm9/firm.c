@@ -71,8 +71,8 @@ void NAKED firmLaunchStub(void)
 			REG_NDMA_DST_ADDR(i) = section->address;
 			REG_NDMA_WRITE_CNT(i) = section->size / 4;
 			REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
-			REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC
-								| NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
+			REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC |
+			                  NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
 		}
 		else
 		{
@@ -89,8 +89,8 @@ void NAKED firmLaunchStub(void)
 		}
 	}
 
-	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE
-			|| REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
+	while(REG_NDMA0_CNT & NDMA_ENABLE || REG_NDMA1_CNT & NDMA_ENABLE ||
+	      REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
 	REG_PXI_SYNC9 = 0; // Disable all IRQs
@@ -132,8 +132,8 @@ bool firm_verify(u32 fwSize)
 		if(section->size == 0)
 			continue;
 
-		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n",
-				(int) i, section->offset, section->address, section->size);
+		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n", (int)i,
+		       section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize) 
 		{
@@ -148,7 +148,7 @@ bool firm_verify(u32 fwSize)
 		}
 		
 		// check for bad sections
-		const u32 numEntries = sizeof(firmProtectedAreas)/sizeof(firmProtectedArea);
+		const u32 numEntries = sizeof(firmProtectedAreas) / sizeof(firmProtectedArea);
 		for(u32 j=0; j<numEntries; j++)
 		{ 
 			// protected region dimensions
@@ -175,7 +175,7 @@ bool firm_verify(u32 fwSize)
 		}
 
 		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
-						SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
+		    SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 		isValid = memcmp(hash, section->hash, 32) == 0;
 		printf("Hash: %s\e[0m\n", res[isValid]);
 
