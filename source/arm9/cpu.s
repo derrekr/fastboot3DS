@@ -128,7 +128,7 @@ setupTcms:
 #define PER_PRIV_RO_USR_NO_ACC (0b0101)
 #define PER_PRIV_RO_USR_RO     (0b0110)
 #define MAKE_PERMISSIONS(r0, r1, r2, r3, r4, r5, r6, r7) \
-	((r0) | (r1<<4) | (r2<<8) | (r3<<12) | (r4<<16) | (r5<<20) | (r6<<24) | (r7<<28))
+        ((r0) | (r1<<4) | (r2<<8) | (r3<<12) | (r4<<16) | (r5<<20) | (r6<<24) | (r7<<28))
 
 setupMpu:
 	@ Region 0: ITCM kernel mirror 32 KB
