@@ -48,8 +48,7 @@ extern u32 __start__;
  * @param[in]  xn      If this memory should be marked as execute never.
  * @param[in]  attr    Other attribute bits like caching.
  */
-static void mmuMapSections(const u32 va, const u32 pa, const u32 num, const bool shared,
-                           const u32 access, const u8 domain, const bool xn, const u32 attr)
+static void mmuMapSections(u32 va, u32 pa, u32 num, bool shared, u32 access, u8 domain, bool xn, u32 attr)
 {
 	for(u32 i = 0; i < 0x100000u * num; i += 0x100000u)
 	{
@@ -72,8 +71,7 @@ static void mmuMapSections(const u32 va, const u32 pa, const u32 num, const bool
  * @param[in]  xn       If this memory should be marked as execute never.
  * @param[in]  attr     Other attribute bits like caching.
  */
-static void mmuMapPages(const u32 va, const u32 pa, const u32 num, u32 *l2Table, const bool shared,
-						const u32 access, const u8 domain, const bool xn, const u32 attr)
+static void mmuMapPages(u32 va, u32 pa, u32 num, u32 *l2Table, bool shared, u32 access, u8 domain, bool xn, u32 attr)
 {
 	((u32*)A11_MMU_TABLES_BASE)[va>>20] = (((u32)l2Table & 0xFFFFFC00u) | (u32)domain<<5 | 0b01u);
 
