@@ -172,8 +172,8 @@ deinitCpu:
 	bl flushDCache
 	mov r2, #0
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
-	ldr r1, =0x803807           @ Enable MMU, Strict data address alignment fault, D-Cache,
-	                            @ Program flow prediction, I-Cache, high exception vectors,
+	ldr r1, =0xC03805           @ Disable MMU, D-Cache, Program flow prediction, I-Cache,
+	                            @ high exception vectors, Unaligned data access,
 	                            @ subpage AP bits disabled
 	bic r0, r0, r1
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register

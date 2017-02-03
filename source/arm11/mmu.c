@@ -148,8 +148,8 @@ void setupMmu(void)
 
 	// Modify Control Register
 	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 0" : "=r" (tmp) : );
-	tmp |= 0x803807u; // Enable MMU, Strict data address alignment fault, D-Cache,
-	                  // Program flow prediction, I-Cache, high exception vectors,
+	tmp |= 0xC03805u; // Enable MMU, D-Cache, Program flow prediction,
+	                  // I-Cache, high exception vectors, Unaligned data access,
 	                  // subpage AP bits disabled
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
 }
