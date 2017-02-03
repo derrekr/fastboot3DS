@@ -48,9 +48,18 @@ initCpu:
 	clrex
 
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
+
+	mov sp, #0                  @ SVC mode sp (Unused, aborts)
+	cpsid aif, #0x11            @ FIQ mode
+	mov sp, #0                  @ Not yet
+	cpsid aif, #0x12            @ IRQ mode
+	mov sp, #0                  @ Not yet
+	cpsid aif, #0x1F            @ System mode
 	ldr sp, =A11_STACK_END
+
 	blx setupMmu
 	bl setupVfp
+
 	cpsie a
 	bx r10
 .pool
@@ -83,7 +92,7 @@ setupVfp:
 
 
 deinitCpu:
-	cpsid aif, #0x1F
+	cpsid aif, #0x1F            @ System mode
 	mov r3, lr
 
 	bl stubExceptionVectors

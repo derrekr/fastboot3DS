@@ -36,7 +36,7 @@ _vectors:
 
 
 _start:
-	cpsid aif, #0x1F           @ Disable all interrupts, system mode
+	cpsid aif, #0x13           @ Disable all interrupts, SVC mode
 
 	bl initCpu
 

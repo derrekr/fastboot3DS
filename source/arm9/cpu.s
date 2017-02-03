@@ -47,13 +47,15 @@ initCpu:
 	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
 
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
-	bl setupMpu
-	bl setupTcms                @ Setup and enable DTCM and ITCM
 
+	mov sp, #0                  @ SVC mode sp (Unused, aborts)
 	msr cpsr_cxsf, #0xD2        @ IRQ mode
 	ldr sp, =(A9_STACK_END - 0x3000)
-	msr cpsr_cxsf, #0xDF
+	msr cpsr_cxsf, #0xDF        @ System mode
 	ldr sp, =A9_STACK_END
+
+	bl setupMpu
+	bl setupTcms                @ Setup and enable DTCM and ITCM
 
 	bx r10
 .pool
@@ -231,7 +233,7 @@ setupMpu:
 
 
 deinitCpu:
-	msr cpsr_cxsf, #0xDF
+	msr cpsr_cxsf, #0xDF        @ System mode
 	mov r3, lr
 
 	@ Stub vectors to endless loops

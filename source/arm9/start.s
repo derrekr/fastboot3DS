@@ -29,7 +29,7 @@
 
 
 _start:
-	msr cpsr_cxsf, #0xDF           @ Disable all interrupts, system mode
+	msr cpsr_cxsf, #0xD3           @ Disable all interrupts, SVC mode
 	b skip_pool
 
 	.string "3DS BOOTLOADER "
