@@ -57,7 +57,9 @@ int main(void)
 			}
 		}
 
+
 		/* Update state, check for changes */
+		
 		u8 hidstate = i2cmcu_readreg_hid();
 
 		if(hidstate & MCU_HID_POWER_BUTTON_PRESSED)
@@ -84,12 +86,6 @@ int main(void)
 	}
 
 start_firmlaunch:
-
-/*
-	// Turn off LCDs and backlight before FIRM launch.
-	i2cmcu_lcd_poweroff();
-	i2cmcu_lcd_backlight_poweroff();
-*/
 
 	return 0;
 }

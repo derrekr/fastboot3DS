@@ -8,8 +8,9 @@
 #undef ARM11
 #include "arm9/firm.h"
 #include "arm9/crypto.h"
-#include "cache.h"
 #include "arm9/ndma.h"
+#include "cache.h"
+#include "util.h"
 #include "pxi.h"
 
 
@@ -111,7 +112,7 @@ void NAKED firmLaunchStub(void)
 	__asm__ __volatile__("mov lr, %0\n\tbx %1" : : "r" (ret), "r" (entry9) : "lr", "pc");
 }
 
-bool firm_verify(u32 fwSize)
+bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	const char *res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
@@ -119,12 +120,21 @@ bool firm_verify(u32 fwSize)
 	bool retval = true;
 	u32 hash[8];
 	
-	if(firm_hdr->magic != 0x4D524946u)
+	if(fwSize > FIRM_MAX_SIZE)
+		return false;
+		
+	if(fwSize <= sizeof(firm_header))
 		return false;
 	
-	printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
-	printf("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
-
+	if(memcmp(firm_hdr->magic, 'FIRM', 4) != 0)
+		return false;
+	
+	if(printInfo)
+	{
+		printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
+		printf("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
+	}
+	
 	for(u32 i=0; i<4; i++)
 	{
 		firm_sectionheader *section = &firm_hdr->section[i];
@@ -132,23 +142,26 @@ bool firm_verify(u32 fwSize)
 		if(section->size == 0)
 			continue;
 
-		printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n",
+		if(printInfo)
+			printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n",
 				(int) i, section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize) 
 		{
-			printf("\x1B[31mBad section offset!\e[0m\n");
+			if(printInfo)
+				printf("\x1B[31mBad section offset!\e[0m\n");
 			return false;
 		}
 		
-		if((section->size >> 31) || (section->size + section->offset > fwSize))
+		if((section->size >= fwSize) || (section->size + section->offset > fwSize))
 		{
-			printf("\x1B[31mBad section size!\e[0m\n");
+			if(printInfo)
+				printf("\x1B[31mBad section size!\e[0m\n");
 			return false;
 		}
 		
 		// check for bad sections
-		const u32 numEntries = sizeof(firmProtectedAreas)/sizeof(firmProtectedArea);
+		const u32 numEntries = arrayEntries(firmProtectedArea);
 		for(u32 j=0; j<numEntries; j++)
 		{ 
 			// protected region dimensions
@@ -169,17 +182,24 @@ bool firm_verify(u32 fwSize)
 			
 			if(!isValid)
 			{
-				printf("\x1B[31mUnallowed section:\n0x%"PRIX32" - 0x%"PRIX32"\e[0m\n", start, end);
+				if(printInfo)
+					printf("\x1B[31mUnallowed section:\n0x%"PRIX32" - 0x%"PRIX32"\e[0m\n", start, end);
 				retval = false;
+				break;
 			}
 		}
-
-		sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
-						SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
-		isValid = memcmp(hash, section->hash, 32) == 0;
-		printf("Hash: %s\e[0m\n", res[isValid]);
-
-		retval &= isValid;
+		
+		if(!skipHashCheck)
+		{
+			sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
+							SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
+			isValid = memcmp(hash, section->hash, 32) == 0;
+			
+			if(printInfo)
+				printf("Hash: %s\e[0m\n", res[isValid]);
+			
+			retval &= isValid;
+		}
 	}
 	
 	return retval;

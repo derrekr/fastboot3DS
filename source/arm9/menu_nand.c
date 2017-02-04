@@ -8,6 +8,7 @@
 #include "hid.h"
 #include "util.h"
 #include "arm9/menu.h"
+#include "arm9/timer.h"
 #include "arm9/util_nand.h"
 
 
@@ -124,7 +125,9 @@ bool menuDumpNand(const char *filePath)
 
 fail:
 	free(buf);
-	wait(0x8000000);
+	
+	printf("Press any key to return...");
+	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
 	
@@ -227,7 +230,9 @@ bool menuRestoreNand(const char *filePath)
 fail:
 	free(buf);
 	remount_nand_fs();
-	wait(0x8000000);
+	
+	printf("Press any key to return...");
+	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
 	

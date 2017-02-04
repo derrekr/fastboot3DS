@@ -17,7 +17,7 @@
 
 static int firmLoaded = 0;
 
-static bool tryLoadFirmware(const char *filepath);
+static bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo);
 static u32 loadFirmSd(const char *filePath);
 
 bool isFirmLoaded(void)
@@ -41,7 +41,7 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 
 	menuUpdateGlobalState();
 	
-	if(!tryLoadFirmware(filePath))
+	if(!tryLoadFirmware(filePath), false, true)
 	{
 		if(!quick)
 		{
@@ -216,7 +216,7 @@ static bool checkForHIDAbort()
 bool TryLoadFirmwareFromSettings(void)
 {
 	const char *path;
-	int keyBootOption, keyPad;
+	int keyBootOption, keyBootMode, keyPad;
 	int i;
 	u32 padValue, expectedPadValue;
 
@@ -233,6 +233,9 @@ bool TryLoadFirmwareFromSettings(void)
 	{
 		return false;
 	}
+	
+	const u32 *temp = configGetData(keyBootMode);
+	keyBootMode = temp? *temp : BootModeNormal;
 
 	keyBootOption = KBootOption1;
 	keyPad = KBootOption1Buttons;
@@ -251,7 +254,7 @@ bool TryLoadFirmwareFromSettings(void)
 			if(!statFirmware(path))
 			{
 				printf("Couldn't find firmware...\n");
-				continue;
+				goto try_next;
 			}
 			
 			// check pad value
@@ -266,18 +269,24 @@ bool TryLoadFirmwareFromSettings(void)
 				{
 					printf("Skipping, right buttons are not pressed.\n");
 					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
-					continue;
+					goto try_next;
 				}
 			}
 
-			if(tryLoadFirmware(path))
+			if(tryLoadFirmware(path, false, false))
 				break;
 			else
 			{
 				printf("Bad firmware, trying next one...\n");
-				TIMER_sleep(200);
 			}
 		}
+		else
+			continue;
+		
+try_next:
+		
+		if(keyBootMode != BootModeQuick)
+			TIMER_sleep(300);
 
 		// ... we failed, try next one
 	}
@@ -295,7 +304,7 @@ bool TryLoadFirmwareFromSettings(void)
 	return true;
 }
 
-static bool tryLoadFirmware(const char *filepath)
+static bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
 {
 	u32 fw_size;
 
@@ -312,7 +321,7 @@ static bool tryLoadFirmware(const char *filepath)
 	if(fw_size == 0)
 		return false;
 
-	return firm_verify(fw_size);
+	return firm_verify(fw_size, skipHashCheck, printInfo);
 }
 
 static u32 loadFirmSd(const char *filePath)

@@ -3,12 +3,7 @@
 #include "types.h"
 #include "mem_map.h"
 
-#define FIRM_LOAD_ADDR  (VRAM_BASE + 0x200000)
-#define FIRM_MAX_SIZE   (0x00400000)
-
-#define FIRM_SECTION_CORRUPTED	0xBAD5EC
-#define FIRM_FATAL_ERROR		0xBADBAD
-#define FIRM_GOOD				0x900D
+#define FIRM_MAX_SIZE        (0x00400000)
 
 typedef struct
 {
@@ -44,5 +39,5 @@ const u32 firmVersionStringTable[] = {
 */
 
 
-bool firm_verify(u32 firmSize);
+bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo);
 noreturn void firm_launch(void);
