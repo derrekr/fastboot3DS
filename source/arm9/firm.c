@@ -126,7 +126,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	if(fwSize <= sizeof(firm_header))
 		return false;
 	
-	if(memcmp(firm_hdr->magic, 'FIRM', 4) != 0)
+	if(memcmp(&firm_hdr->magic, "FIRM", 4) != 0)
 		return false;
 	
 	if(printInfo)
