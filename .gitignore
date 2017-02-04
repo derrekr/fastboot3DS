@@ -1,10 +1,10 @@
 build9/
 build11/
+eclipse_project/
 boot3r.sublime-project
 boot3r.sublime-workspace
 code9.bin
-code9.elf
 code11.bin
+code9.elf
 code11.elf
-firm_builder.exe
-test_firm.bin
+firm.bin

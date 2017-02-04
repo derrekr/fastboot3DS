@@ -48,13 +48,12 @@ extern u32 __start__;
  * @param[in]  xn      If this memory should be marked as execute never.
  * @param[in]  attr    Other attribute bits like caching.
  */
-static void mmuMapSections(const u32 va, const u32 pa, const u32 num, const bool shared,
-							const u32 access, const u8 domain, const bool xn, const u32 attr)
+static void mmuMapSections(u32 va, u32 pa, u32 num, bool shared, u32 access, u8 domain, bool xn, u32 attr)
 {
 	for(u32 i = 0; i < 0x100000u * num; i += 0x100000u)
 	{
 		((u32*)A11_MMU_TABLES_BASE)[(va + i)>>20] = (((pa + i) & 0xFFF00000u) | (u32)shared<<16 | access<<10 |
-													(u32)domain<<5 | (u32)xn<<4 | attr<<2 | 0b10u);
+		                                             (u32)domain<<5 | (u32)xn<<4 | attr<<2 | 0b10u);
 	}
 }
 
@@ -72,28 +71,27 @@ static void mmuMapSections(const u32 va, const u32 pa, const u32 num, const bool
  * @param[in]  xn       If this memory should be marked as execute never.
  * @param[in]  attr     Other attribute bits like caching.
  */
-static void mmuMapPages(const u32 va, const u32 pa, const u32 num, u32 *l2Table, const bool shared,
-						const u32 access, const u8 domain, const bool xn, const u32 attr)
+static void mmuMapPages(u32 va, u32 pa, u32 num, u32 *l2Table, bool shared, u32 access, u8 domain, bool xn, u32 attr)
 {
 	((u32*)A11_MMU_TABLES_BASE)[va>>20] = (((u32)l2Table & 0xFFFFFC00u) | (u32)domain<<5 | 0b01u);
 
 	for(u32 i = 0; i < 0x1000u * num; i += 0x1000u)
 	{
 		l2Table[(va + i)>>12 & 0xFFu] = (((pa + i) & 0xFFFFF000u) | (u32)shared<<10 |
-									access<<4 | attr<<2 | 0b10u | (u32)xn);
+		                                 access<<4 | attr<<2 | 0b10u | (u32)xn);
 	}
 }
 
 void setupMmu(void)
 {
 	// TTBR0 address shared page table walk and outer cachable write-through, no allocate on write
-	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 0\n\t" : : "r" (A11_MMU_TABLES_BASE | 0x12u));
+	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 0" : : "r" (A11_MMU_TABLES_BASE | 0x12u));
 	// Use the 16 KB L1 table only
-	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 2\n\t" : : "r" (0u));
+	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 2" : : "r" (0u));
 	// Domain 1 = client, remaining domains all = no access
-	__asm__ __volatile__("mcr p15, 0, %0, c3, c0, 0\n\t" : : "r" (4u));
+	__asm__ __volatile__("mcr p15, 0, %0, c3, c0, 0" : : "r" (4u));
 	// Context ID Register (ASID = 0, PROCID = 0)
-	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 1\n\t" : : "r" (0u));
+	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 1" : : "r" (0u));
 
 
 	// Clear L1 and L2 tables
@@ -101,34 +99,34 @@ void setupMmu(void)
 
 	// IO mem mapping
 	mmuMapSections(IO_MEM_ARM9_ARM11, IO_MEM_ARM9_ARM11, 4, true,
-					PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_SHARED_DEVICE);
+	               PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_SHARED_DEVICE);
 
 	// MPCore private region mapping
 	mmuMapPages(MPCORE_PRIV_REG_BASE, MPCORE_PRIV_REG_BASE, 2,
-				(u32*)(A11_MMU_TABLES_BASE + 0x4000u), false, PERM_PRIV_RW_USR_NO_ACC,
-				1, true, L1_TO_L2(ATTR_NONSHARED_DEVICE));
+	            (u32*)(A11_MMU_TABLES_BASE + 0x4000u), false, PERM_PRIV_RW_USR_NO_ACC,
+	            1, true, L1_TO_L2(ATTR_NONSHARED_DEVICE));
 
 	// VRAM mapping
 	mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
 
 	// AXIWRAM MMU table mapping
 	mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
-				PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
+	            PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
 
 	// Remaining AXIWRAM pages
 	mmuMapPages(AXIWRAM_BASE + 0x5000u, AXIWRAM_BASE + 0x5000u, 123,
-				(u32*)(A11_MMU_TABLES_BASE + 0x4400u), true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
-				L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+	            (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
+	            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 	// Map boot11 mirror to loader executable start (exception vectors)
 	mmuMapPages(BOOT11_MIRROR2, (u32)&__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
-				PERM_PRIV_RO_USR_NO_ACC, 1, false,
-				L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+	            PERM_PRIV_RO_USR_NO_ACC, 1, false,
+	            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 
 	// Invalidate TLB (Unified TLB operation) + Data Synchronization Barrier
 	__asm__ __volatile__("mcr p15, 0, %0, c8, c7, 0\n\t"
-						"mcr p15, 0, %0, c7, c10, 4\n\t" : : "r" (0u));
+	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
 
 
 	// Invalidate tag RAMs before enabling SMP like recommended by the MPCore docs
@@ -140,16 +138,16 @@ void setupMmu(void)
 
 	u32 tmp;
 	// Modify Auxiliary Control Register
-	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 1\n\t" : "=r" (tmp) : );
+	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 1" : "=r" (tmp) : );
 	tmp |= 0x6Fu;     // Enable Return stack, Dynamic branch prediction, Static branch prediction,
 	                  // Instruction folding, SMP mode: the CPU is taking part in coherency
 	                  // and L1 parity checking
-	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 1\n\t" : : "r" (tmp));
+	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 1" : : "r" (tmp));
 
 	// Modify Control Register
-	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 0\n\t" : "=r" (tmp) : );
-	tmp |= 0x803807u; // Enable MMU, Strict data address alignment fault, D-Cache,
-	                  // Program flow prediction, I-Cache, high exception vectors,
+	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 0" : "=r" (tmp) : );
+	tmp |= 0xC03805u; // Enable MMU, D-Cache, Program flow prediction,
+	                  // I-Cache, high exception vectors, Unaligned data access,
 	                  // subpage AP bits disabled
-	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0\n\t" : : "r" (tmp));
+	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
 }

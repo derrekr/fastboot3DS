@@ -99,8 +99,8 @@ u32 getleu32(const void* ptr)
 
 u32 swap32(u32 val)
 {
-	return ((val>>24)|
-			(val>>8  & 0x0000FF00)|
-			(val<<8  & 0x00FF0000)|
-			(val<<24));
+	return ((val>>24) |
+	        (val>>8  & 0x0000FF00) |
+	        (val<<8  & 0x00FF0000) |
+	        (val<<24));
 }

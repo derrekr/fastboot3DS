@@ -177,21 +177,8 @@ static void consoleClearLine(char mode) {
 	}
 }
 
-// strchr() function with length check from WinterMute
 //---------------------------------------------------------------------------------
-static const char *strnchr(const char *p, char c, size_t n) {
-//---------------------------------------------------------------------------------
-	if (!p) return 0;
-
-	while (n-- > 0) {
-		if (*p == c) return p;
-		p++;
-	}
-	return 0;
-}
-
-//---------------------------------------------------------------------------------
-ssize_t con_write(UNUSED struct _reent *r,UNUSED int fd,const char *ptr, size_t len) {
+ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_t len) {
 //---------------------------------------------------------------------------------
 
 	char chr;
@@ -349,7 +336,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED int fd,const char *ptr, size_t 
 							parameter = 0;
 							if (escapelen == 1) {
 								consumed = 1;
-							} else if (strnchr(escapeseq,';',escapelen)) {
+							} else if (memchr(escapeseq,';',escapelen)) {
 								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
 								sscanf(escapeseq,"%dm%n", &parameter, &consumed);

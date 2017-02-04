@@ -54,10 +54,10 @@ irqHandler:
 	ldmia r12, {r1, r2}
 	and r1, r1, r2
 	mov r3, #0x80000000
-irqHandler_find_first_lp:
-	clz r0, r1
-	bics r1, r1, r3, lsr r0
-	bne irqHandler_find_first_lp
+	irqHandler_find_first_lp:
+		clz r0, r1
+		bics r1, r1, r3, lsr r0
+		bne irqHandler_find_first_lp
 	mov r1, r3, lsr r0
 	str r1, [r12, #4]           @ REG_IRQ_IF
 	rsb r2, r0, #31             @ r2 = 31 - r0

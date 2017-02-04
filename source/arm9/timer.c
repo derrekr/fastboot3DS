@@ -59,4 +59,3 @@ void _timerSleep(u32 ticks)
 		waitForIrq();
 	}
 }
-

@@ -122,7 +122,7 @@ static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, 
 	REG_NDMA0_WRITE_CNT = wordCount;
 	REG_NDMA0_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
 	REG_NDMA0_CNT = NDMA_ENABLE | NDMA_REPEATING_MODE | burstSize | NDMA_STARTUP_AES_IN |
-					NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
+	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
 
 	REG_NDMA1_CNT = 0;
 	REG_NDMA1_SRC_ADDR = (u32)REG_AESRDFIFO;
@@ -130,7 +130,7 @@ static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, 
 	REG_NDMA1_WRITE_CNT = wordCount;
 	REG_NDMA1_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
 	REG_NDMA1_CNT = NDMA_ENABLE | NDMA_REPEATING_MODE | burstSize | NDMA_STARTUP_AES_OUT |
-					NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
+	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 }
 
 void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
