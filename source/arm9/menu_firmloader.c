@@ -41,7 +41,7 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 
 	menuUpdateGlobalState();
 	
-	if(!tryLoadFirmware(filePath), false, true)
+	if(!tryLoadFirmware(filePath, false, true))
 	{
 		if(!quick)
 		{

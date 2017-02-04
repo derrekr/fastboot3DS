@@ -161,7 +161,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 		}
 		
 		// check for bad sections
-		const u32 numEntries = arrayEntries(firmProtectedArea);
+		const u32 numEntries = arrayEntries(firmProtectedAreas);
 		
 		for(u32 j=0; j<numEntries; j++)
 		{ 
