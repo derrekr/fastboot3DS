@@ -1,14 +1,21 @@
-#include "types.h"
-#include "IO.h"
 #include "mem_map.h"
+#include "types.h"
 #include "util.h"
 
+
+#define I2C_REGS_BUS0_BASE  (IO_MEM_ARM9_ARM11 + 0x61000)
+#define I2C_REGS_BUS1_BASE  (IO_MEM_ARM9_ARM11 + 0x44000)
+#define REG_I2C_BUS0_DATA   *((vu8* )(I2C_REGS_BUS0_BASE + 0x00))
+#define REG_I2C_BUS1_DATA   *((vu8* )(I2C_REGS_BUS1_BASE + 0x00))
+#define REG_I2C_BUS0_CNT    *((vu8* )(I2C_REGS_BUS0_BASE + 0x01))
+#define REG_I2C_BUS1_CNT    *((vu8* )(I2C_REGS_BUS1_BASE + 0x01))
 
 
 struct i2c_dev_table_entry {
 	u32 bus_id;
 	u8 devaddr;
 };
+
 
 static const struct i2c_dev_table_entry i2c_dev_table[] =
 {
@@ -23,13 +30,13 @@ static const struct i2c_dev_table_entry i2c_dev_table[] =
 	{1,	0x44}
 };
 
-
 // i2c mcu defines
 bool i2cmcu_reg0_upper_read;
 u8 i2cmcu_reg0_upper_data;
 bool i2cmcu_readreg0x0_bus0_read_flag;
 u8 i2cmcu_readreg0x0_bus0_first;
 u8 i2cmcu_readreg0x0_bus0_second;
+
 
 
 void i2c_wait(u32 bus_id);

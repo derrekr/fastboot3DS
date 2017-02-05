@@ -1,15 +1,13 @@
 /*
  *  AES code based on code from Normmatt
  *
- *  2016
+ *  2016 - 2017
  *  profi200
  */
 
 #pragma once
 
 #include "types.h"
-#include "io.h"
-
 
 
 //////////////////////////////////

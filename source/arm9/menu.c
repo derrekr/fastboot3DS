@@ -3,7 +3,6 @@
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "io.h"
 #include "util.h"
 #include "pxi.h"
 #include "arm9/console.h"

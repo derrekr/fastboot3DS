@@ -2,8 +2,14 @@
  *  Original code from ctrulib
  */
 
+#include "mem_map.h"
 #include "types.h"
 #include "hid.h"
+
+
+#define HID_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x00046000)
+#define REG_HID_PAD    ~(*((vu32*)(HID_REGS_BASE)))
+
 
 static u32 kOld, kHeld, kDown, kUp;
 

@@ -1,6 +1,24 @@
+#include "mem_map.h"
 #include "types.h"
 #include "arm9/timer.h"
 #include "arm9/interrupt.h"
+
+
+#define TIMER_REGS_BASE   (IO_MEM_ARM9_ONLY + 0x3000)
+#define REG_TIMER0_VAL    *((vu16*)(TIMER_REGS_BASE + 0x00))
+#define REG_TIMER0_CNT    *((vu16*)(TIMER_REGS_BASE + 0x02))
+
+#define REG_TIMER1_VAL    *((vu16*)(TIMER_REGS_BASE + 0x04))
+#define REG_TIMER1_CNT    *((vu16*)(TIMER_REGS_BASE + 0x06))
+
+#define REG_TIMER2_VAL    *((vu16*)(TIMER_REGS_BASE + 0x08))
+#define REG_TIMER2_CNT    *((vu16*)(TIMER_REGS_BASE + 0x0A))
+
+#define REG_TIMER3_VAL    *((vu16*)(TIMER_REGS_BASE + 0x0C))
+#define REG_TIMER3_CNT    *((vu16*)(TIMER_REGS_BASE + 0x0E))
+
+#define REG_TIMER_VAL(n)  *((vu16*)(TIMER_REGS_BASE + 0x00 + (n * 4)))
+#define REG_TIMER_CNT(n)  *((vu16*)(TIMER_REGS_BASE + 0x02 + (n * 4)))
 
 
 

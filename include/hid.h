@@ -1,8 +1,9 @@
 #pragma once
 
 #include "types.h"
-#include "io.h"
 
+
+#define HID_KEY_MASK_ALL  ((KEY_Y << 1) - 1)
 
 
 enum
@@ -21,7 +22,6 @@ enum
 	KEY_Y       = (1<<11),
 };
 
-#define HID_KEY_MASK_ALL       ((KEY_Y << 1) - 1)
 
 
 void hidScanInput(void);

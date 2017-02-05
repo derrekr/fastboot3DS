@@ -1,9 +1,12 @@
-
 #pragma once
 
+#include "types.h"
 
-#define SPIFLASH_CMD_RDSR   0x05
-#define SPIFLASH_CMD_READ   0x03
+
+#define SPIFLASH_CMD_RDSR  (0x05)
+#define SPIFLASH_CMD_READ  (0x03)
+
+
 
 // true if spiflash is installed, false otherwise
 bool spiflash_get_status();

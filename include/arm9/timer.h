@@ -1,8 +1,6 @@
 #pragma once
 
 #include "types.h"
-#include "io.h"
-
 
 
 #define TIMER_BASE_FREQ     (67027964.0)

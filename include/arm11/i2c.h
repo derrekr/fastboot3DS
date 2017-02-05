@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.h"
+
 
 
 // general i2c routines
@@ -18,12 +20,12 @@ void i2cmcu_lcd_backlight_poweroff();
 
 // mcu hid
 u8 i2cmcu_readreg_hid();
-#define MCU_HID_POWER_BUTTON_PRESSED		1
-#define MCU_HID_POWER_BUTTON_LONG_PRESSED	1<<1
-#define MCU_HID_HOME_BUTTON_PRESSED			1<<2
-#define MCU_HID_HOME_BUTTON_RELEASED		1<<3
-#define MCU_HID_SHELL_GOT_CLOSED			1<<5
-#define MCU_HID_SHELL_GOT_OPENED			1<<6
+#define MCU_HID_POWER_BUTTON_PRESSED       (1u)
+#define MCU_HID_POWER_BUTTON_LONG_PRESSED  (1u<<1)
+#define MCU_HID_HOME_BUTTON_PRESSED        (1u<<2)
+#define MCU_HID_HOME_BUTTON_RELEASED       (1u<<3)
+#define MCU_HID_SHELL_GOT_CLOSED           (1u<<5)
+#define MCU_HID_SHELL_GOT_OPENED           (1u<<6)
 
 // device 5/6
 u32 i2c_write_regdata_dev5_dev6(bool dev5, bool dev6, u32 regaddr, u8 data);

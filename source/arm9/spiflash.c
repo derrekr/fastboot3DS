@@ -1,6 +1,11 @@
+#include "mem_map.h"
 #include "types.h"
-#include "io.h"
 #include "arm9/spiflash.h"
+
+
+#define SPI_REGS_BUS2_BASE  (IO_MEM_ARM9_ARM11 + 0x60000)
+#define REG_SPI_BUS2_CNT    *((vu16*)(SPI_REGS_BUS2_BASE + 0x00))
+#define REG_SPI_BUS2_DATA   *((vu8* )(SPI_REGS_BUS2_BASE + 0x02))
 
 
 

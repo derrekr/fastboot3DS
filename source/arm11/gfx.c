@@ -1,9 +1,25 @@
-#include "types.h"
-#include "IO.h"
 #include "mem_map.h"
+#include "types.h"
 #include "util.h"
 #include "arm11/i2c.h"
 #include "gfx.h"
+
+
+#define PDN_REGS_BASE            (IO_MEM_ARM9_ARM11 + 0x40000)
+#define REG_PDN_GPU_CNT          *((vu32*)(PDN_REGS_BASE + 0x1200))
+#define REG_PDN_GPU_CNT2         *((vu32*)(PDN_REGS_BASE + 0x1204))
+#define REG_PDN_GPU_CNT2_8BIT    *((vu8* )(PDN_REGS_BASE + 0x1204))
+#define REG_PDN_GPU_CNT4         *((vu8* )(PDN_REGS_BASE + 0x1208))
+#define REG_PDN_GPU_CNT3         *((vu16*)(PDN_REGS_BASE + 0x1210))
+
+#define LCD_REGS_BASE           (IO_MEM_ARM11_ONLY + 0x2000)
+#define REG_LCD_COLORFILL_MAIN  *((vu32*)(LCD_REGS_BASE + 0x204))
+#define REG_LCD_COLORFILL_SUB   *((vu32*)(LCD_REGS_BASE + 0xA04))
+#define REG_LCD_BACKLIGHT_MAIN  *((vu32*)(LCD_REGS_BASE + 0x240))
+#define REG_LCD_BACKLIGHT_SUB   *((vu32*)(LCD_REGS_BASE + 0xA40))
+
+#define GPU_EXT_REGS_BASE       (IO_MEM_ARM11_ONLY + 0x200000)
+#define REG_GPU_EXT_CNT         *((vu32*)(GPU_EXT_REGS_BASE + 0x04))
 
 
 

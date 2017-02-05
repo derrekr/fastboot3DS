@@ -1,9 +1,12 @@
 #pragma once
 
-#include "io.h"
+#include "mem_map.h"
+#include "types.h"
 
 
-#define waitForIrq()      __asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0))
+#define IRQ_REGS_BASE  (IO_MEM_ARM9_ONLY + 0x1000)
+#define REG_IRQ_IE     *((vu32*)(IRQ_REGS_BASE + 0x00))
+#define REG_IRQ_IF     *((vu32*)(IRQ_REGS_BASE + 0x04))
 
 
 typedef enum
@@ -45,6 +48,11 @@ typedef enum
 void IRQ_init(void);
 void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void));
 void IRQ_unregisterHandler(Interrupt num);
+
+static inline void waitForIrq(void)
+{
+	__asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0));
+}
 
 inline u32 enterCriticalSection(void)
 {

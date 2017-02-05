@@ -1,7 +1,25 @@
 #pragma once
 
+#include "mem_map.h"
 #include "types.h"
-#include "io.h"
+
+
+#ifdef ARM9
+#define PXI9_REGS_BASE              (IO_MEM_ARM9_ONLY + 0x8000)
+#define REG_PXI_SYNC9               *((vu32*)(PXI9_REGS_BASE + 0x00))
+#define REG_PXI_CNT9                *((vu32*)(PXI9_REGS_BASE + 0x04))
+#define REG_PXI_SEND9               *((vu32*)(PXI9_REGS_BASE + 0x08))
+#define REG_PXI_RECV9               *((vu32*)(PXI9_REGS_BASE + 0x0C))
+#endif
+
+#ifdef ARM11
+#define PXI11_REGS_BASE             (IO_MEM_ARM9_ARM11 + 0x63000)
+#define REG_PXI_SYNC11              *((vu32*)(PXI11_REGS_BASE + 0x00))
+#define REG_PXI_CNT11               *((vu32*)(PXI11_REGS_BASE + 0x04))
+#define REG_PXI_SEND11              *((vu32*)(PXI11_REGS_BASE + 0x08))
+#define REG_PXI_RECV11              *((vu32*)(PXI11_REGS_BASE + 0x0C))
+#endif
+
 
 // Defines for PX_SYNC regs
 #define PXI_DATA_RECEIVED(reg)      (reg & 0xFF)

@@ -7,8 +7,8 @@
 
 #include <assert.h>
 #include <string.h>
-#include "types.h"
 #include "mem_map.h"
+#include "types.h"
 #include "arm9/crypto.h"
 #include "arm9/interrupt.h"
 #include "arm9/ndma.h"
@@ -19,6 +19,36 @@
 //////////////////////////////////
 //             AES              //
 //////////////////////////////////
+
+#define AES_REGS_BASE    (IO_MEM_ARM9_ONLY + 0x9000)
+#define REG_AESCNT       *((vu32*)(AES_REGS_BASE + 0x000))
+#define REG_AESBLKCNT    *((vu32*)(AES_REGS_BASE + 0x004))
+#define REG_AESBLKCNTH1  *((vu16*)(AES_REGS_BASE + 0x004))
+#define REG_AESBLKCNTH2  *((vu16*)(AES_REGS_BASE + 0x006))
+#define REG_AESWRFIFO     ((vu32*)(AES_REGS_BASE + 0x008))
+#define REG_AESRDFIFO     ((vu32*)(AES_REGS_BASE + 0x00C))
+#define REG_AESKEYSEL    *((vu8* )(AES_REGS_BASE + 0x010))
+#define REG_AESKEYCNT    *((vu8* )(AES_REGS_BASE + 0x011))
+#define REG_AESCTR        ((vu32*)(AES_REGS_BASE + 0x020))
+#define REG_AESMAC        ((vu32*)(AES_REGS_BASE + 0x030))
+
+#define REG_AESKEY0       ((vu32*)(AES_REGS_BASE + 0x040))
+#define REG_AESKEYX0      ((vu32*)(AES_REGS_BASE + 0x050))
+#define REG_AESKEYY0      ((vu32*)(AES_REGS_BASE + 0x060))
+#define REG_AESKEY1       ((vu32*)(AES_REGS_BASE + 0x070))
+#define REG_AESKEYX1      ((vu32*)(AES_REGS_BASE + 0x080))
+#define REG_AESKEYY1      ((vu32*)(AES_REGS_BASE + 0x090))
+#define REG_AESKEY2       ((vu32*)(AES_REGS_BASE + 0x0A0))
+#define REG_AESKEYX2      ((vu32*)(AES_REGS_BASE + 0x0B0))
+#define REG_AESKEYY2      ((vu32*)(AES_REGS_BASE + 0x0C0))
+#define REG_AESKEY3       ((vu32*)(AES_REGS_BASE + 0x0D0))
+#define REG_AESKEYX3      ((vu32*)(AES_REGS_BASE + 0x0E0))
+#define REG_AESKEYY3      ((vu32*)(AES_REGS_BASE + 0x0F0))
+
+#define REG_AESKEYFIFO    ((vu32*)(AES_REGS_BASE + 0x100))
+#define REG_AESKEYXFIFO   ((vu32*)(AES_REGS_BASE + 0x104))
+#define REG_AESKEYYFIFO   ((vu32*)(AES_REGS_BASE + 0x108))
+
 
 // TODO: Handle endianess!
 static void addCounter(u32 *restrict ctr, u32 val)
@@ -241,6 +271,13 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val)
 //////////////////////////////////
 //             SHA              //
 //////////////////////////////////
+
+#define SHA_REGS_BASE   (IO_MEM_ARM9_ONLY + 0xA000)
+#define REG_SHA_CNT     *((vu32*)(SHA_REGS_BASE + 0x00))
+#define REG_SHA_BLKCNT  *((vu32*)(SHA_REGS_BASE + 0x04))
+#define REG_SHA_HASH     ((u32* )(SHA_REGS_BASE + 0x40))
+#define REG_SHA_INFIFO   (       (SHA_REGS_BASE + 0x80))
+
 
 void SHA_start(u32 params)
 {
