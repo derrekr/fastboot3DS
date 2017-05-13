@@ -9,14 +9,14 @@
 
 //set up the palette for color printing
 static u16 colorTable[] = {
-	RGB8_to_565(  0,  0,  0),	// black
-	RGB8_to_565(128,  0,  0),	// red
-	RGB8_to_565(  0,128,  0),	// green
-	RGB8_to_565(128,128,  0),	// yellow
-	RGB8_to_565(  0,  0,128),	// blue
-	RGB8_to_565(128,  0,128),	// magenta
-	RGB8_to_565(  0,128,128),	// cyan
-	RGB8_to_565(192,192,192),	// white
+	RGB8_to_565(  0,  0,  0),	// faint black
+	RGB8_to_565(255,  0,  0),	// bright red
+	RGB8_to_565(  0,255,  0),	// bright green
+	RGB8_to_565(255,255,  0),	// bright yellow
+	RGB8_to_565(  0,  0,255),	// bright blue
+	RGB8_to_565(255,  0,255),	// bright magenta
+	RGB8_to_565(  0,255,255),	// bright cyan
+	RGB8_to_565(255,255,255),	// bright white
 
 	RGB8_to_565(128,128,128),	// bright black
 	RGB8_to_565(255,  0,  0),	// bright red
