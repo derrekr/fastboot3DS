@@ -9,7 +9,7 @@ void (*irqHandlerTable[32])(void);
 void IRQ_init(void)
 {
 	// Atomic IRQ disable and aknowledge
-	__asm__ __volatile__("stmia %0, {%1, %2}" : : "r" (&REG_IRQ_IE), "r" (0u), "r" (0xFFFFFFFFu) : "memory");
+	__asm__ __volatile__("stm %0, {%1, %2}" : : "r" (&REG_IRQ_IE), "r" (0u), "r" (0xFFFFFFFFu) : "memory");
 
 	for(u32 i = 0; i < 32; i++)
 	{
