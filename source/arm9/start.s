@@ -332,5 +332,6 @@ deinitCpu:
 
 	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
+	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
 	bx r3
 .pool
