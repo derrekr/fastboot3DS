@@ -32,7 +32,7 @@ void uiInit()
 	consoleMainInit();
 }
 
-static void clearConsoles()
+void clearConsoles()
 {
 	consoleSelect(&con_bottom);
 	consoleClear();

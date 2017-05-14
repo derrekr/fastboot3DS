@@ -341,24 +341,6 @@ u8 rng_get_byte()
 	return (u8)tmp;
 }
 
-void clearConsoles()
-{
-	consoleSelect(&con_bottom);
-	consoleClear();
-	consoleSelect(&con_top);
-	consoleClear();
-}
-
-void clearConsole(int which)
-{
-	if(which)
-		consoleSelect(&con_top);
-	else
-		consoleSelect(&con_bottom);
-		
-	consoleClear();
-}
-
 void power_off_safe()
 {
 	clearConsoles();

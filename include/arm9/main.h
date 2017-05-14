@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fatfs/ff.h"
-#include "arm9/console.h"
+#include "arm9/ui.h"
 
 typedef struct {
 	char	model[0x10];
@@ -16,9 +16,6 @@ typedef struct {
 } bootInfoStruct;
 
 bootInfoStruct bootInfo;
-
-// PrintConsole for each screen
-PrintConsole con_top, con_bottom;
 
 // SD card FAT fs instance
 FATFS sd_fs;
