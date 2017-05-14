@@ -18,8 +18,6 @@
 #include "arm9/interrupt.h"
 #include "arm9/config.h"
 
-// PrintConsole for each screen
-extern PrintConsole con_top, con_bottom;
 
 const menu_state_options menu_main = {
 	5,
@@ -54,6 +52,8 @@ int menu_previous_states_count;
 
 int menu_event_state;
 
+static void menuRunOnce(int state);
+
 static void menu_main_draw_top()
 {
 	const char *sd_res[2]	= {"\x1B[31mNo ", "\x1B[32mYes"};
@@ -64,12 +64,12 @@ static void menu_main_draw_top()
 	uiPrintCentered("fastboot 3DS v%" PRIu16 ".%" PRIu16,
 			BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
 	
-	printf(" Model: %s\n", bootInfo.model);
-	printf(" \x1B[33m%s\e[0m\n", bootInfo.boot_env);
-	printf(" \x1B[32m(%s Mode)\e[0m\n\n", bootInfo.mode);
-	printf(" SD card inserted: %s\e[0m\n", sd_res[bootInfo.sd_status]);
-	printf(" NAND status: %s\e[0m\n", nand_res[bootInfo.nand_status]);
-	printf(" Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
+	uiPrintTextAt(1, 3, "Model: %s", bootInfo.model);
+	uiPrintTextAt(1, 4, "\x1B[33m%s\e[0m", bootInfo.boot_env);
+	uiPrintTextAt(1, 5, "\x1B[32m(%s Mode)\e[0m", bootInfo.mode);
+	uiPrintTextAt(1, 7, "SD card inserted: %s\e[0m", sd_res[bootInfo.sd_status]);
+	uiPrintTextAt(1, 8, "NAND status: %s\e[0m", nand_res[bootInfo.nand_status]);
+	uiPrintTextAt(1, 9, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
 static void rewindConsole()
@@ -78,7 +78,7 @@ static void rewindConsole()
 	consoleSelect(&con_top);
 	printf("\033[0;0H");	// set cursor to the upper left corner
 	consoleSelect(&con_bottom);
-	printf("\033[0;0H\n\n\n\n");
+	printf("\033[0;0H");
 }
 
 int enter_menu(int initial_state)
@@ -127,7 +127,7 @@ int enter_menu(int initial_state)
 				// print all the options of the current state
 				consoleSelect(&con_bottom);
 				for(int i=0; i < cur_options->count; i++)
-					printf("\t\t\t%s\e[0m %s\n", cursor_pos == i ? "\x1B[33m*" : " ",
+					uiPrintTextAt(9, 4+i, "%s\e[0m %s\n", cursor_pos == i ? "\x1B[33m*" : " ",
 					cur_options->options[i].name);
 
 				if(keys & KEY_DUP)
@@ -250,7 +250,7 @@ exitAndLaunchFirm:
 	return 0;
 }
 
-void menuRunOnce(int state)
+static void menuRunOnce(int state)
 {
 	switch(state)
 	{

@@ -12,7 +12,7 @@
 #include "arm9/util_nand.h"
 
 
-u64 getFreeSpace(const char *drive)
+static u64 getFreeSpace(const char *drive)
 {
 	FATFS *fs;
 	DWORD freeClusters;
@@ -34,9 +34,6 @@ bool menuDumpNand(const char *filePath)
 	UINT bytesWritten;
 
 	uiClearConsoles();
-
-	consoleSelect(&con_bottom);
-	printf("\n\t\tPress B to cancel");
 	consoleSelect(&con_top);
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
@@ -45,13 +42,13 @@ bool menuDumpNand(const char *filePath)
 
 	if(getFreeSpace("sdmc:") < sectorCount<<9)
 	{
-		printf("Not enough space on the SD card!\n");
+		uiPrintError("Not enough space on the SD card!\n");
 		goto fail;
 	}
 
 	if((fres = f_open(&file, filePath, FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
 	{
-		printf("Failed to create '%s'! Error: %X\n", filePath, fres);
+		uiPrintError("Failed to create '%s'! Error: %X\n", filePath, fres);
 		f_close(&file);
 		goto fail;
 	}
@@ -59,7 +56,7 @@ bool menuDumpNand(const char *filePath)
 	// Allocate space to make sure the nand image is a contiguous file
 	if((fres = f_expand(&file, sectorCount<<9, 0)) != FR_OK)
 	{
-		printf("Failed to expand file! Error: %X\n", fres);
+		uiPrintError("Failed to expand file! Error: %X\n", fres);
 		f_close(&file);
 		goto fail;
 	}
@@ -75,13 +72,13 @@ bool menuDumpNand(const char *filePath)
 
 		if(!dev_rawnand->read_sector(curSector, curSectorBlkSize, buf))
 		{
-			printf("\nFailed to read sector 0x%"PRIx32"!\n", curSector);
+			uiPrintError("\nFailed to read sector 0x%"PRIx32"!\n", curSector);
 			f_close(&file);
 			goto fail;
 		}
 		if((f_write(&file, buf, curSectorBlkSize<<9, &bytesWritten) != FR_OK) || (bytesWritten != curSectorBlkSize<<9))
 		{
-			printf("\nFailed to write to file!\n");
+			uiPrintError("\nFailed to write to file!\n");
 			f_close(&file);
 			goto fail;
 		}
@@ -89,7 +86,7 @@ bool menuDumpNand(const char *filePath)
 		hidScanInput();
 		if(hidKeysDown() & KEY_B)
 		{
-			printf("\n...canceled!\n");
+			uiPrintInfo("\n...canceled!\n");
 			f_close(&file);
 			goto fail;
 		}
@@ -97,10 +94,12 @@ bool menuDumpNand(const char *filePath)
 		curSector += curSectorBlkSize;
 
 		// print current progress information
-		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
+		uiPrintInfo("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
 
-
+		
+		uiPrintProgressBar(10, 10, 200, 100 * curSector/sectorCount);
+		
 		switch(menuUpdateGlobalState())
 		{
 			case MENU_EVENT_HOME_PRESSED:
@@ -126,7 +125,7 @@ bool menuDumpNand(const char *filePath)
 fail:
 	free(buf);
 	
-	printf("Press any key to return...");
+	uiPrintInfo("Press any key to return...");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);

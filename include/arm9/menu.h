@@ -1,5 +1,7 @@
 #pragma once
 
+#include "arm9/menu_nand.h"
+
 enum menu_state_type {
 	MENU_STATE_MAIN = 0,
 	MENU_STATE_NAND_MENU,
