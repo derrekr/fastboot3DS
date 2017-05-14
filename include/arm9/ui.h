@@ -20,6 +20,7 @@
 PrintConsole con_top, con_bottom;
 
 void uiInit();
+void uiDrawSplashScreen();
 void uiClearConsoles();
 void clearConsole(int which);
 bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo);

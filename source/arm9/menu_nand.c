@@ -40,11 +40,17 @@ bool menuDumpNand(const char *filePath)
 	if(!buf)
 		panic();	// this should never happen.
 
+	uiPrintCentered("NAND Backup");
+	
+	uiPrintTextAt(0, 2, "Checking free space on SD card...\n");
+	
 	if(getFreeSpace("sdmc:") < sectorCount<<9)
 	{
 		uiPrintError("Not enough space on the SD card!\n");
 		goto fail;
 	}
+	
+	uiPrintTextAt(0, 3, "Creating image file...\n");
 
 	if((fres = f_open(&file, filePath, FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
 	{
@@ -60,6 +66,8 @@ bool menuDumpNand(const char *filePath)
 		f_close(&file);
 		goto fail;
 	}
+	
+	uiPrintTextAt(0, 4, "Dumping NAND...\n");
 
 	/* Main loop */
 
@@ -94,11 +102,11 @@ bool menuDumpNand(const char *filePath)
 		curSector += curSectorBlkSize;
 
 		// print current progress information
-		uiPrintInfo("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
+		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
 
 		
-		uiPrintProgressBar(10, 10, 200, 20, 100 * (float) curSector/sectorCount);
+		uiPrintProgressBar(10, 200, 20, 150, 100 * (float) curSector/sectorCount);
 		
 		switch(menuUpdateGlobalState())
 		{

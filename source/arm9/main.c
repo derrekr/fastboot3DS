@@ -15,8 +15,6 @@
 #include "arm9/menu.h"
 #include "arm9/main.h"
 
-
-
 static bool devs_init();
 static bool fs_early_init();
 static bool mount_fs();
@@ -33,6 +31,10 @@ int main(void)
 	hardwareInit();
 
 	hashCodeRoData();	// TODO: remove after debugging
+
+	screen_init();
+	
+	uiDrawSplashScreen();
 
 	uiInit();
 	

@@ -13,6 +13,8 @@
 
 static u8 randomColor;
 
+static const void *bannerData = banner_ppm_bin;
+
 static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data);
 
 static void consoleMainInit()
@@ -30,11 +32,15 @@ static void consoleMainInit()
 	consoleSelect(&con_top);
 }
 
+void uiDrawSplashScreen()
+{
+	uiDrawPPM(30,30, bannerData);
+	wait(0x6000000);	// test
+}
+
 void uiInit()
 {
 	consoleMainInit();
-	uiDrawPPM(30,30, banner_ppm_bin);	// test
-	wait(0x6000000);
 }
 
 static void clearConsoles()
