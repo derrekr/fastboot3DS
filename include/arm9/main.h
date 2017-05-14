@@ -1,5 +1,6 @@
 #pragma once
 
+#include "arm9/debug.h"
 #include "fatfs/ff.h"
 #include "arm9/ui.h"
 

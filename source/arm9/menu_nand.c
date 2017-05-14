@@ -98,7 +98,7 @@ bool menuDumpNand(const char *filePath)
 				curSector, sectorCount);
 
 		
-		uiPrintProgressBar(10, 10, 200, 100 * curSector/sectorCount);
+		uiPrintProgressBar(10, 10, 200, 20, 100 * (float) curSector/sectorCount);
 		
 		switch(menuUpdateGlobalState())
 		{
