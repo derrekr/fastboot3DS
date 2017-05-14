@@ -61,7 +61,7 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	
-	uiPrintCentered("3DS Bootloader v%" PRIu16 ".%" PRIu16,
+	uiPrintCentered("fastboot 3DS v%" PRIu16 ".%" PRIu16,
 			BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
 	
 	printf(" Model: %s\n", bootInfo.model);

@@ -9,8 +9,11 @@
 #include "arm9/main.h"
 #include "arm9/ui.h"
 #include "arm9/console.h"
+#include "banner_ppm_bin.h"
 
 static u8 randomColor;
+
+static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data);
 
 static void consoleMainInit()
 {
@@ -30,6 +33,8 @@ static void consoleMainInit()
 void uiInit()
 {
 	consoleMainInit();
+	uiDrawPPM(30,30, banner_ppm_bin);	// test
+	wait(0x6000000);
 }
 
 static void clearConsoles()
@@ -112,3 +117,30 @@ void uiPrintCentered(const char *const format, ...)
 	// TODO
 }*/
 
+
+static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
+{
+	unsigned width, height;
+	u16 *framebuf = (u16 *) FRAMEBUF_TOP_A_1;
+	
+	/* get image dimensions */
+	const char *ptr = (const char *) data + 3;
+		while(*ptr != 0x0A) ptr++;
+	ptr++;
+	
+	//sscanf(ptr, "%i %i", &width, &height);
+	width = 204; height = 21;
+	
+	const u8 *imagedata = data + 0x26;	// skip ppm header
+	
+	
+	for(unsigned x = 0; x < width; x++)
+	{
+		for(unsigned y = start_y; y < height+start_y; y++)
+		{
+			framebuf = &((u16*)FRAMEBUF_TOP_A_1)[SCREEN_HEIGHT_TOP * x + y];
+			u8 *pixeldata = &imagedata[(y*width+x)*3];
+			*framebuf = RGB8_to_565(pixeldata[0], pixeldata[1], pixeldata[2]);
+		}
+	}
+}
