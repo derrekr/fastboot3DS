@@ -60,15 +60,15 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	
-	uiPrintCentered("fastboot 3DS v%" PRIu16 ".%" PRIu16,
+	uiPrintCenteredInLine(1, "fastboot 3DS v%" PRIu16 ".%" PRIu16,
 			BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
 	
-	uiPrintTextAt(1, 3, "Model: %s", bootInfo.model);
-	uiPrintTextAt(1, 4, "\x1B[33m%s\e[0m", bootInfo.boot_env);
-	uiPrintTextAt(1, 5, "\x1B[32m(%s Mode)\e[0m", bootInfo.mode);
-	uiPrintTextAt(1, 7, "SD card inserted: %s\e[0m", sd_res[bootInfo.sd_status]);
-	uiPrintTextAt(1, 8, "NAND status: %s\e[0m", nand_res[bootInfo.nand_status]);
-	uiPrintTextAt(1, 9, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
+	uiPrintTextAt(1, 4, "Model: %s", bootInfo.model);
+	uiPrintTextAt(1, 5, "\x1B[33m%s\e[0m", bootInfo.boot_env);
+	uiPrintTextAt(1, 6, "\x1B[32m(%s Mode)\e[0m", bootInfo.mode);
+	uiPrintTextAt(1, 8, "SD card inserted: %s\e[0m", sd_res[bootInfo.sd_status]);
+	uiPrintTextAt(1, 9, "NAND status: %s\e[0m", nand_res[bootInfo.nand_status]);
+	uiPrintTextAt(1, 10, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
 static void rewindConsole()

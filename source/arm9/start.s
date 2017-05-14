@@ -35,7 +35,7 @@ _start:
 	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
 	b skip_pool
 
-	.string "3DS BOOTLOADER "
+	.string "FASTBOOT 3DS   "
 	.word   BOOTLOADER_VERSION
 
 skip_pool:
