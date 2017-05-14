@@ -128,7 +128,7 @@ void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int width,
 	{
 		for(u32 yy = y; yy < y + height; yy++)
 		{
-			fb[xx * 240 + yy] = color;
+			fb[xx * SCREEN_HEIGHT_TOP + yy] = color;
 		}
 	}
 }
