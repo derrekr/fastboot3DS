@@ -161,6 +161,12 @@ PrintConsole *consoleSelect(PrintConsole* console);
 PrintConsole *consoleGet(void);
 
 /**
+ * @brief Returns the currently used foreground color.
+ * @return The foreground color in RGB565.
+ */
+u16 consoleGetFgColor(void);
+
+/**
  * @brief Initialise the console.
  * @param screen The screen to use for the console.
  * @param console A pointer to the console data to initialize (if it's NULL, the default console will be used).

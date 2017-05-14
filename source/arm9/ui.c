@@ -118,11 +118,20 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 }*/
 
 
-/*void uiPrintProgressBar(unsigned x, unsigned y, unsigned width, unsigned height,
-							double percentage)
+void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int width,
+                        unsigned int height, float percentage)
 {
-	// TODO
-}*/
+	u16 *fb = consoleGet()->frameBuffer;
+	const u16 color = consoleGetFgColor();
+
+	for(u32 xx = x; xx < (u32)((x + width / 100) * percentage); xx++)
+	{
+		for(u32 yy = y; yy < y + height; yy++)
+		{
+			fb[xx * 240 + yy] = color;
+		}
+	}
+}
 
 
 static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
