@@ -106,7 +106,7 @@ bool menuDumpNand(const char *filePath)
 				curSector, sectorCount);
 
 		
-		uiPrintProgressBar(10, 200, 20, 150, curSector, sectorCount);
+		uiPrintProgressBar(10, 80, 380, 20, curSector, sectorCount);
 		
 		switch(menuUpdateGlobalState())
 		{
@@ -148,41 +148,46 @@ bool menuRestoreNand(const char *filePath)
 	UINT bytesRead;
 
 	uiClearConsoles();
-
-	consoleSelect(&con_bottom);
-	printf("\n\t\tPress B to cancel");
 	consoleSelect(&con_top);
+	
+	uiPrintCentered("NAND Restore");
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
 		panic();	// this should never happen.
+		
+	
+	uiPrintTextAt(0, 2, "Checking backup file...\n");
 
 	FILINFO fileStat;
 	if(f_stat(filePath, &fileStat) != FR_OK)
 	{
-		printf("Failed to get file status!\n");
+		uiPrintError("Failed to get file status!\n");
 		goto fail;
 	}
 	if(fileStat.fsize > dev_rawnand->get_sector_count()<<9)
 	{
-		printf("NAND file is bigger than NAND!\n");
+		uiPrintError("NAND file is bigger than NAND!\n");
 		goto fail;
 	}
 	if(fileStat.fsize < 0x200)
 	{
-		printf("NAND file is too small!\n");
+		uiPrintError("NAND file is too small!\n");
 		goto fail;
 	}
 
 	if(f_open(&file, filePath, FA_READ) != FR_OK)
 	{
-		printf("Failed to open '%s'!\n", filePath);
+		uiPrintError("Failed to open '%s'!\n", filePath);
 		f_close(&file);
 		goto fail;
 	}
-
+	
+	uiPrintTextAt(0, 3, "Unmounting NAND fs...\n");
 
 	unmount_nand_fs();
+
+	uiPrintTextAt(0, 4, "Restoring...\n");
 
 	/* Main loop */
 
@@ -196,20 +201,31 @@ bool menuRestoreNand(const char *filePath)
 
 		if(f_read(&file, buf, curSectorBlkSize<<9, &bytesRead) != FR_OK || bytesRead != curSectorBlkSize<<9)
 		{
-			printf("\nFailed to read from file!\n");
+			uiPrintError("\nFailed to read from file!\n");
 			f_close(&file);
 			goto fail;
 		}
 		if(!dev_rawnand->write_sector(curSector, curSectorBlkSize, buf))
 		{
-			printf("\nFailed to write sector 0x%"PRIX32"!\n", curSector);
+			uiPrintError("\nFailed to write sector 0x%"PRIX32"!\n", curSector);
+			f_close(&file);
+			goto fail;
+		}
+		
+		hidScanInput();
+		if(hidKeysDown() & KEY_B)
+		{
+			uiPrintInfo("\n...canceled!\n");
 			f_close(&file);
 			goto fail;
 		}
 
 		curSector += curSectorBlkSize;
-		printf("\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
+		
+		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
+		
+		uiPrintProgressBar(10, 80, 380, 20, curSector, sectorCount);
 
 		switch(menuUpdateGlobalState())
 		{
@@ -238,7 +254,7 @@ fail:
 	free(buf);
 	remount_nand_fs();
 	
-	printf("Press any key to return...");
+	uiPrintInfo("Press any key to return...");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
