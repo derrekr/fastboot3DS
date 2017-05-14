@@ -25,6 +25,7 @@ void uiClearConsoles();
 void clearConsole(int which);
 bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo);
 void uiPrintCentered(const char *const format, ...);
+void uiPrintCenteredInLine(unsigned int y, const char *const format, ...);
 void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...);
 //void uiShowMessageWindow(format, args...);
 void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,

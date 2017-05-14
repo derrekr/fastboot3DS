@@ -19,7 +19,7 @@ static u64 getFreeSpace(const char *drive)
 
 	if(f_getfree(drive, &freeClusters, &fs) != FR_OK)
 	{
-		printf("Failed to get free space for '%s'!\n", drive);
+		uiPrintError("Failed to get free space for '%s'!\n", drive);
 		return 0;
 	}
 	return ((u64)(freeClusters * fs->csize)) * 512;
@@ -40,9 +40,9 @@ bool menuDumpNand(const char *filePath)
 	if(!buf)
 		panic();	// this should never happen.
 
-	uiPrintCentered("NAND Backup");
+	uiPrintCenteredInLine(1, "NAND Backup");
 	
-	uiPrintTextAt(0, 2, "Checking free space on SD card...\n");
+	uiPrintTextAt(0, 3, "Checking free space on SD card...\n");
 	
 	if(getFreeSpace("sdmc:") < sectorCount<<9)
 	{
@@ -50,7 +50,7 @@ bool menuDumpNand(const char *filePath)
 		goto fail;
 	}
 	
-	uiPrintTextAt(0, 3, "Creating image file...\n");
+	uiPrintTextAt(0, 4, "Creating image file...\n");
 
 	if((fres = f_open(&file, filePath, FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
 	{
@@ -67,7 +67,7 @@ bool menuDumpNand(const char *filePath)
 		goto fail;
 	}
 	
-	uiPrintTextAt(0, 4, "Dumping NAND...\n");
+	uiPrintTextAt(0, 5, "Dumping NAND...\n");
 
 	/* Main loop */
 
@@ -126,6 +126,9 @@ bool menuDumpNand(const char *filePath)
 	f_close(&file);
 	free(buf);
 	
+	uiPrintInfo("Finished! Press any key to return...");
+	menuWaitForAnyPadkey();
+	
 	menuSetReturnToState(STATE_PREVIOUS);
 	
 	return true;
@@ -150,14 +153,14 @@ bool menuRestoreNand(const char *filePath)
 	uiClearConsoles();
 	consoleSelect(&con_top);
 	
-	uiPrintCentered("NAND Restore");
+	uiPrintCenteredInLine(1, "NAND Restore");
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
 		panic();	// this should never happen.
 		
 	
-	uiPrintTextAt(0, 2, "Checking backup file...\n");
+	uiPrintTextAt(0, 3, "Checking backup file...\n");
 
 	FILINFO fileStat;
 	if(f_stat(filePath, &fileStat) != FR_OK)
@@ -183,11 +186,11 @@ bool menuRestoreNand(const char *filePath)
 		goto fail;
 	}
 	
-	uiPrintTextAt(0, 3, "Unmounting NAND fs...\n");
+	uiPrintTextAt(0, 4, "Unmounting NAND fs...\n");
 
 	unmount_nand_fs();
 
-	uiPrintTextAt(0, 4, "Restoring...\n");
+	uiPrintTextAt(0, 5, "Restoring...\n");
 
 	/* Main loop */
 
@@ -245,6 +248,9 @@ bool menuRestoreNand(const char *filePath)
 	f_close(&file);
 	free(buf);
 	remount_nand_fs();
+	
+	uiPrintInfo("Finished! Press any key to return...");
+	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
 	

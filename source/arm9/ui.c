@@ -101,6 +101,21 @@ void uiPrintCentered(const char *const format, ...)
 	printf("%*s%s\n", (width - len) / 2, "", tmp);
 }
 
+void uiPrintCenteredInLine(unsigned int y, const char *const format, ...)
+{
+	const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
+	char tmp[width + 1];
+
+	va_list args;
+	va_start(args, format);
+	vsnprintf(tmp, width + 1, format, args);
+	va_end(args);
+
+	size_t len = strlen(tmp);
+	printf("\x1b[%u;%uH", y, consoleGet()->cursorX);
+	printf("%*s%s\n", (width - len) / 2, "", tmp);
+}
+
 /* Prints a given text at a certain position in the current window */
 void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...)
 {
