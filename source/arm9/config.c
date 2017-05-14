@@ -19,7 +19,7 @@
 #define MAX_FILE_SIZE	0x4000 - 1
 
 static const char *SdmcFilepath = "sdmc:\\loadercfg.txt";
-static const char *NandFilepath = "nand:\\loader\\loadercfg.txt";
+// static const char *NandFilepath = "nand:\\loader\\loadercfg.txt";
 
 static const char *filepath;
 
@@ -40,7 +40,6 @@ typedef struct {
 
 static void unloadConfigFile();
 static bool createConfigFile();
-bool writeConfigFile();
 static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
 static bool writeBootOption(AttributeEntryType *attr, const void *newData, int key);
@@ -574,7 +573,7 @@ static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key
 	if(!newData)
 		return false;
 	
-	mode = *(u32 *)newData;
+	mode = *(const u32 *)newData;
 	
 	if(mode > BootModeQuiet)
 		return false;

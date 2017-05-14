@@ -26,10 +26,6 @@ static void boot_env_detect();
 static void fw_detect();
 static bool loadSettings(int *mode);
 
-// TODO: remove after debugging
-extern void panic(void);
-extern void hashCodeRoData(void);
-
 int main(void)
 {
 	int mode;

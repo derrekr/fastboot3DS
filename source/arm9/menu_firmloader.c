@@ -88,7 +88,7 @@ fail:
 }
 
 // Does very basic checks whether the firmware actually exists.
-bool statFirmware(const char *filePath)
+static bool statFirmware(const char *filePath)
 {
 	FILINFO fileStat;
 	u32 fileSize;

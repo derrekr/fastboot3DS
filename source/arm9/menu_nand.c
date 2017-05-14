@@ -9,7 +9,6 @@
 #include "util.h"
 #include "arm9/menu.h"
 #include "arm9/timer.h"
-#include "arm9/util_nand.h"
 
 
 static u64 getFreeSpace(const char *drive)

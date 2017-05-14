@@ -488,35 +488,6 @@ static const devoptab_t dotab_stdout = {
 	NULL
 };
 
-static const devoptab_t dotab_null = {
-	"null",
-	0,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
-
 //---------------------------------------------------------------------------------
 PrintConsole* consoleInit(int screen, PrintConsole* console) {
 //---------------------------------------------------------------------------------

@@ -33,7 +33,7 @@ ARCH	:=	-march=armv5te -mtune=arm946e-s -mfloat-abi=soft -marm -mthumb-interwork
 
 DBGWARM	:=	-Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
 			-Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls \
-			-Wshadow -Wsign-conversion -fstrict-overflow -Wstrict-overflow=5 \
+			-Wshadow -fstrict-overflow \
 			-Wswitch-default -Wundef
 
 CFLAGS	:=	-Wall $(DBGWARM) -fstrict-aliasing -Wstrict-aliasing -std=c11 -g -O2 \

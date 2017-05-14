@@ -1,6 +1,9 @@
 #pragma once
 
+#include "arm9/ui.h"
+#include "arm9/menu_firmloader.h"
 #include "arm9/menu_nand.h"
+#include "arm9/menu_options.h"
 
 enum menu_state_type {
 	MENU_STATE_MAIN = 0,

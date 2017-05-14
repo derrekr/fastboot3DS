@@ -12,8 +12,6 @@
 #include "arm9/dev.h"
 
 
-extern void panic();
-
 // SD card device
 bool sdmmc_sd_init(void);
 bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf);

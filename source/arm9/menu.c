@@ -12,8 +12,8 @@
 #include "hid.h"
 #include "version.h"
 #include "arm9/main.h"
-#include "arm9/util_nand.h"
 #include "arm9/menu.h"
+#include "arm9/menu_firmloader.h"
 #include "arm9/timer.h"
 #include "arm9/interrupt.h"
 #include "arm9/config.h"
@@ -173,7 +173,7 @@ int enter_menu(int initial_state)
 				break;
 				
 			case MENU_STATE_FIRM_LAUNCH_SETTINGS:
-				if(!menuTryLoadFirmwareFromSettings(false))
+				if(!menuTryLoadFirmwareFromSettings())
 					uiClearConsoles();
 				break;
 				
@@ -187,36 +187,6 @@ int enter_menu(int initial_state)
 				break;
 			
 			case MENU_STATE_TEST_CONFIG:
-				uiClearConsoles();
-				consoleSelect(&con_top);
-				printf("Key Text Data:\n");
-				for(int i=0; i<KLast; i++)
-				{
-					char *text = (char*) configCopyText(i);
-					printf("\n%s: ", configGetKeyText(i));
-					if(text) {
-						printf("%s", text);
-						free(text);
-					}
-					else printf("<invalid>");
-				}
-				printf("\n\nKey Raw Data:\n");
-				for(int i=0; i<KLast; i++)
-				{
-					u8 *data = (u8*) configGetData(i);
-					printf("\n%s: ", configGetKeyText(i));
-					if(data) {
-						if(i < KBootOption1Buttons)
-							printf("filepath: %s", (char*)data);
-						else if(i < KBootMode)
-							printf("pad val: 0x%lX", *(u32*)data);
-						else
-							printf("boot mode val: 0x%lX", *(u32*)data);
-					}
-					else printf("<invalid>");
-				}
-				TIMER_sleep(6000);
-				uiClearConsoles();
 				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 			

@@ -16,7 +16,7 @@ int validateNandImage(const char *filePath)
 	if(f_open(&file, filePath, FA_READ) != FR_OK)
 		return NANDIMG_ERROR_NEXISTS;
 	
-	isContinuous = file.obj.stat & 3 == 2;
+	isContinuous = (file.obj.stat & 3) == 2;
 	
 	f_close(&file);
 	
