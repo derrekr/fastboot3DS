@@ -20,13 +20,12 @@
 
 
 const menu_state_options menu_main = {
-	5,
+	4,
 	{
-		{"Launch FIRM", MENU_STATE_FIRM_LAUNCH_SETTINGS},
+		{"Continue boot", MENU_STATE_FIRM_LAUNCH_SETTINGS},
 		{"NAND tools...", MENU_STATE_NAND_MENU},
 		{"Options...", MENU_STATE_OPTIONS_MENU},
 		{"Browse FIRM...", MENU_STATE_BROWSER},
-		{"CONFIG TEST", MENU_STATE_TEST_CONFIG}
 	}
 };
 
@@ -184,10 +183,6 @@ int enter_menu(int initial_state)
 				if(!path)	// no file selected
 					break;
 				menuSetEnterNextState(MENU_STATE_FIRM_LAUNCH);
-				break;
-			
-			case MENU_STATE_TEST_CONFIG:
-				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 			
 			case MENU_STATE_EXIT:

@@ -26,6 +26,7 @@ FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 
 void devs_close();
 bool remount_nand_fs();
+bool ensure_mounted(const char *path);
 void unmount_fs();
 void unmount_nand_fs();
 u8 rng_get_byte();

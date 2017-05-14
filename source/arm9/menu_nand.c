@@ -7,6 +7,7 @@
 #include "fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
+#include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/timer.h"
 

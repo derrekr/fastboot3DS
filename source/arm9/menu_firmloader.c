@@ -27,8 +27,6 @@ bool isFirmLoaded(void)
 
 bool menuLaunchFirm(const char *filePath, bool quick)
 {
-	u32 keys;
-	
 	if(!filePath)
 		return false;
 	
@@ -56,19 +54,6 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 	firmLoaded = 1;
 	
 	printf("\n\x1B[32mFirmware verification SUCCESS!\e[0m\n\n");
-	
-	/*
-	printf("Attempting to run firmware, press B to exit...\n");
-	
-	for(int i=0; i<0x800000; i++)
-	{
-		hidScanInput();
-		keys = hidKeysDown();
-		
-		if(keys & KEY_B)
-			goto fail;
-	}
-	*/
 	
 	menuSetReturnToState(MENU_STATE_EXIT);
 	
@@ -258,11 +243,11 @@ bool TryLoadFirmwareFromSettings(void)
 			}
 			
 			// check pad value
-			const u32 *temp;
-			temp = (const u32 *)configGetData(keyPad);
-			if(temp)
+			const u32 *dataPtr;
+			dataPtr = (const u32 *)configGetData(keyPad);
+			if(dataPtr)
 			{
-				expectedPadValue = *temp;
+				expectedPadValue = *dataPtr;
 				hidScanInput();
 				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
 				if(padValue != expectedPadValue)
