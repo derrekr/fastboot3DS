@@ -8,6 +8,7 @@
 #include "arm9/timer.h"
 #include "arm9/main.h"
 #include "arm9/ui.h"
+#include "arm9/console.h"
 
 
 static void consoleMainInit()
@@ -75,30 +76,39 @@ bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo)
 }
 
 /* Prints a given text in the center of the current line */
-void uiPrintCentered(format, args...)
+void uiPrintCentered(const char *const format, ...)
 {
-	// TODO
+	const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
+	char tmp[width + 1];
+
+	va_list args;
+	va_start(args, format);
+	vsnprintf(tmp, width + 1, format, args);
+	va_end(args);
+
+	size_t len = strlen(tmp);
+	printf("%*s\n", (width - len) / 2, tmp);
 }
 
 /* Prints a given text at a certain position in the current window */
-void uiPrintTextAt(unsigned x, unsigned y, format, args...)
+/*void uiPrintTextAt(unsigned x, unsigned y, format, args...)
 {
 	// TODO
-}
+}*/
 
 /* Prints a given text surrounded by a graphical window */
 /* centered in the middle of the screen. */
 /* Waits for the user to press any button, after that the */
 /* original framebuffer gets restored */
-void uiShowMessageWindow(format, args...)
+/*void uiShowMessageWindow(format, args...)
 {
 	// TODO
-}
+}*/
 
 
-void uiPrintProgressBar(unsigned x, unsigned y, unsigned width, unsigned height,
+/*void uiPrintProgressBar(unsigned x, unsigned y, unsigned width, unsigned height,
 							double percentage)
 {
 	// TODO
-}
+}*/
 
