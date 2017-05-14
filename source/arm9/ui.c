@@ -91,10 +91,17 @@ void uiPrintCentered(const char *const format, ...)
 }
 
 /* Prints a given text at a certain position in the current window */
-/*void uiPrintTextAt(unsigned x, unsigned y, format, args...)
+void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...)
 {
-	// TODO
-}*/
+	char tmp[256];
+
+	va_list args;
+	va_start(args, format);
+	vsnprintf(tmp, 256, format, args);
+	va_end(args);
+
+	printf("\x1b[%u;%uH%s", y, x, tmp);
+}
 
 /* Prints a given text surrounded by a graphical window */
 /* centered in the middle of the screen. */
