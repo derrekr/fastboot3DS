@@ -28,5 +28,4 @@ bool remount_nand_fs();
 void unmount_fs();
 void unmount_nand_fs();
 u8 rng_get_byte();
-void clearConsoles();
 void power_off_safe();

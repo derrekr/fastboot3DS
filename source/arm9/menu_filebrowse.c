@@ -182,7 +182,7 @@ const char *browseForFile(const char *basePath)
 	curEntriesCount = 0;
 	indexStackPtr = indexStack;
 	
-	clearConsoles();
+	uiClearConsoles();
 	
 	dirEntries = (EntryType *) malloc(MAX_CACHED_ENTRIES * sizeof(EntryType));
 	if(!dirEntries)
@@ -222,7 +222,7 @@ const char *browseForFile(const char *basePath)
 			
 		} while(!dev_sdcard->is_active());
 		
-		clearConsoles();
+		uiClearConsoles();
 	}
 	
 	res = f_opendir(&curDirectory, curPath);

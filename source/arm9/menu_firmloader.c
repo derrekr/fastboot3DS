@@ -34,7 +34,7 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 	
 	firmLoaded = 0;
 	
-	clearConsoles();
+	uiClearConsoles();
 	consoleSelect(&con_top);
 	
 	printf("FIRM Loader\n\n");
@@ -119,7 +119,7 @@ bool menuTryLoadFirmwareFromSettings(void)
 	int i;
 	u32 padValue, expectedPadValue;
 
-	clearConsoles();
+	uiClearConsoles();
 	consoleSelect(&con_top);
 
 	printf("Loading FIRM from settings\n\n");
@@ -172,7 +172,7 @@ bool menuTryLoadFirmwareFromSettings(void)
 				break;
 			else
 			{
-				clearConsoles();
+				uiClearConsoles();
 				consoleSelect(&con_top);
 			}
 		}

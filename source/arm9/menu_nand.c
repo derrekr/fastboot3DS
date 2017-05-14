@@ -33,7 +33,7 @@ bool menuDumpNand(const char *filePath)
 	FRESULT fres;
 	UINT bytesWritten;
 
-	clearConsoles();
+	uiClearConsoles();
 
 	consoleSelect(&con_bottom);
 	printf("\n\t\tPress B to cancel");
@@ -140,7 +140,7 @@ bool menuRestoreNand(const char *filePath)
 	FIL file;
 	UINT bytesRead;
 
-	clearConsoles();
+	uiClearConsoles();
 
 	consoleSelect(&con_bottom);
 	printf("\n\t\tPress B to cancel");

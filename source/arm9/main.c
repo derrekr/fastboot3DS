@@ -38,10 +38,7 @@ int main(void)
 
 	hashCodeRoData();	// TODO: remove after debugging
 
-	// Initialize console for both screens using the two different PrintConsole we have defined
-	consoleInit(SCREEN_TOP, &con_top);
-	consoleSetWindow(&con_top, 1, 1, con_top.windowWidth - 2, con_top.windowHeight - 2);
-	consoleInit(SCREEN_LOW, &con_bottom);
+	uiInit();
 	
 	consoleSelect(&con_top);
 	
@@ -343,7 +340,7 @@ u8 rng_get_byte()
 
 void power_off_safe()
 {
-	clearConsoles();
+	uiClearConsoles();
 
 	printf("Attempting to turn off...\n");
 

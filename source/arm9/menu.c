@@ -54,17 +54,14 @@ int menu_previous_states_count;
 
 int menu_event_state;
 
-
-u8 color;
-
 static void menu_main_draw_top()
 {
 	const char *sd_res[2]	= {"\x1B[31mNo ", "\x1B[32mYes"};
 	const char *nand_res[2]	= {"\x1B[31mError ", "\x1B[32mOK   "};
 	
 	consoleSelect(&con_top);
-	drawConsoleWindow(&con_top, 2, color);
-	printf("\n\t\t\t\t\t3DS Bootloader v%" PRIu16 ".%" PRIu16 "\n\n\n\n",
+	
+	uiPrintCentered("3DS Bootloader v%" PRIu16 ".%" PRIu16,
 			BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
 	
 	printf(" Model: %s\n", bootInfo.model);
@@ -92,13 +89,10 @@ int enter_menu(int initial_state)
 	const char *firmPath = NULL;
 	
 	menu_event_state = MENU_EVENT_NONE;
-
-	// randomize color
-	color = (rng_get_byte() % 6) + 1;
 	
 	cursor_pos = 0;
 	
-	clearConsoles();
+	uiClearConsoles();
 
 	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), NULL);
 
@@ -160,32 +154,32 @@ int enter_menu(int initial_state)
 				
 			case MENU_STATE_NAND_BACKUP:
 				menuDumpNand("sdmc:/nand.bin");
-				clearConsoles();
+				uiClearConsoles();
 				break;
 				
 			case MENU_STATE_NAND_RESTORE:
 				menuRestoreNand("sdmc:/nand.bin");
-				clearConsoles();
+				uiClearConsoles();
 				break;
 				
 			case MENU_STATE_OPTIONS_MENU:
 				menuOptions();
-				clearConsoles();
+				uiClearConsoles();
 				break;
 			
 			case MENU_STATE_FIRM_LAUNCH:
 				if(!menuLaunchFirm(firmPath, false))
-					clearConsoles();
+					uiClearConsoles();
 				break;
 				
 			case MENU_STATE_FIRM_LAUNCH_SETTINGS:
 				if(!menuTryLoadFirmwareFromSettings(false))
-					clearConsoles();
+					uiClearConsoles();
 				break;
 				
 			case MENU_STATE_BROWSER:
 				path = browseForFile("sdmc:");
-				clearConsoles();
+				uiClearConsoles();
 				firmPath = path;
 				if(!path)	// no file selected
 					break;
@@ -193,7 +187,7 @@ int enter_menu(int initial_state)
 				break;
 			
 			case MENU_STATE_TEST_CONFIG:
-				clearConsoles();
+				uiClearConsoles();
 				consoleSelect(&con_top);
 				printf("Key Text Data:\n");
 				for(int i=0; i<KLast; i++)
@@ -222,7 +216,7 @@ int enter_menu(int initial_state)
 					else printf("<invalid>");
 				}
 				TIMER_sleep(6000);
-				clearConsoles();
+				uiClearConsoles();
 				menuSetReturnToState(STATE_PREVIOUS);
 				break;
 			
@@ -262,7 +256,7 @@ void menuRunOnce(int state)
 	{
 		case MENU_STATE_FIRM_LAUNCH_SETTINGS:
 			if(!menuTryLoadFirmwareFromSettings())
-				clearConsoles();
+				uiClearConsoles();
 			break;
 		
 		default:

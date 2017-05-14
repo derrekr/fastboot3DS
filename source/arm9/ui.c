@@ -10,17 +10,17 @@
 #include "arm9/ui.h"
 #include "arm9/console.h"
 
+static u8 randomColor;
 
 static void consoleMainInit()
 {
 	/* Initialize console for both screens using the two different PrintConsole we have defined */
 	consoleInit(SCREEN_TOP, &con_top);
-	con_top.windowX = 1;
-	con_top.windowY = 1;
-	con_top.windowWidth -= 2;
-	con_top.windowHeight -= 2;
+	consoleSetWindow(&con_top, 1, 1, con_top.windowWidth - 2, con_top.windowHeight - 2);
 	
-	drawConsoleWindow(&con_top, 4, con_top.fg);
+	// randomize color
+	randomColor = (rng_get_byte() % 6) + 1;
+	drawConsoleWindow(&con_top, 2, randomColor);
 	
 	consoleInit(SCREEN_LOW, &con_bottom);
 	
@@ -32,7 +32,7 @@ void uiInit()
 	consoleMainInit();
 }
 
-void clearConsoles()
+static void clearConsoles()
 {
 	consoleSelect(&con_bottom);
 	consoleClear();

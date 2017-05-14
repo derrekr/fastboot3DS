@@ -48,7 +48,7 @@ bool menuOptions(void)
 	
 	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 	
-	clearConsoles();
+	uiClearConsoles();
 	consoleSelect(&con_bottom);
 	
 	calcConsoleMetrics();
@@ -260,7 +260,7 @@ void handleBootOption(void)
 		menuUpdateGlobalState();
 		menuActState();
 		const char *path = browseForFile("sdmc:");
-		clearConsoles();
+		uiClearConsoles();
 		
 		if(path)
 			configSetKeyData(key, path);
@@ -287,7 +287,7 @@ void handleNandImage(void)
 		menuUpdateGlobalState();
 		menuActState();
 		const char *path = browseForFile("sdmc:");
-		clearConsoles();
+		uiClearConsoles();
 		
 		if(path)
 		{
