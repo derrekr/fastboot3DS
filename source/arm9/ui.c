@@ -124,15 +124,28 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 }*/
 
 
-void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int width,
-                        unsigned int height, float percentage)
+void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
+                        unsigned int h, unsigned int cur, unsigned int max)
 {
 	u16 *fb = consoleGet()->frameBuffer;
 	const u16 color = consoleGetFgColor();
 
-	for(u32 xx = x; xx < (u32)((x + width / 100) * percentage); xx++)
+
+	for(u32 xx = x + 1; xx < x + w - 1; xx++)
 	{
-		for(u32 yy = y; yy < y + height; yy++)
+		fb[xx * SCREEN_HEIGHT_TOP + y] = color;
+		fb[xx * SCREEN_HEIGHT_TOP + y + h - 1] = color;
+	}
+
+	for(u32 yy = y; yy < y + h; yy++)
+	{
+		fb[x * SCREEN_HEIGHT_TOP + yy] = color;
+		fb[(x + w - 1) * SCREEN_HEIGHT_TOP + yy] = color;
+	}
+
+	for(u32 xx = x + 2; xx < (u32)(((float)(x + w - 2) / max) * cur); xx++)
+	{
+		for(u32 yy = y + 2; yy < y + h - 2; yy++)
 		{
 			fb[xx * SCREEN_HEIGHT_TOP + yy] = color;
 		}
