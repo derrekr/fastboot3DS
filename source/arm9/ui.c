@@ -87,7 +87,7 @@ void uiPrintCentered(const char *const format, ...)
 	va_end(args);
 
 	size_t len = strlen(tmp);
-	printf("%*s\n", (width - len) / 2, tmp);
+	printf("%*s%s\n", (width - len) / 2, "", tmp);
 }
 
 /* Prints a given text at a certain position in the current window */
