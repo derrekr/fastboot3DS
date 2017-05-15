@@ -11,9 +11,13 @@
 #include "arm9/console.h"
 #include "banner_ppm_bin.h"
 
+
 static u8 randomColor;
+static bool verbose = false;
 
 static const void *bannerData = banner_ppm_bin;
+
+
 
 static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data);
 
@@ -66,6 +70,11 @@ void clearConsole(int which)
 	consoleClear();
 }
 
+void uiSetVerbose(bool verb)
+{
+	verbose = verb;
+}
+
 /* TODO: Should look similar to uiShowMessageWindow */
 bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo)
 {
@@ -86,19 +95,36 @@ bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo)
 	} while(1);
 }
 
+void uiPrintIfVerbose(const char *const format, ...)
+{
+	if(verbose)
+	{
+		const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
+		char tmp[width + 1];
+
+		va_list args;
+		va_start(args, format);
+		vsnprintf(tmp, width + 1, format, args);
+		va_end(args);
+
+		size_t len = strlen(tmp);
+		printf("\x1B[0m%*s%s\n", (width - len) / 2, "", tmp);
+	}
+}
+
 /* Prints a given text in the center of the current line */
-void uiPrintCentered(const char *const format, ...)
+void uiPrintCentered(const char *const format, unsigned int color, ...)
 {
 	const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
 	char tmp[width + 1];
 
 	va_list args;
-	va_start(args, format);
+	va_start(args, color);
 	vsnprintf(tmp, width + 1, format, args);
 	va_end(args);
 
 	size_t len = strlen(tmp);
-	printf("%*s%s\n", (width - len) / 2, "", tmp);
+	printf("\x1B[%um%*s%s\n", color, (width - len) / 2, "", tmp);
 }
 
 void uiPrintCenteredInLine(unsigned int y, const char *const format, ...)
