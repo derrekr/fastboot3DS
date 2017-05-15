@@ -44,7 +44,7 @@ bool menuUpdateLoader()
 	// update file is just a firmware
 	if(!tryLoadFirmware(updateFilePath, false, false))
 	{
-		uiPrintError("Invalid update file!\n");
+		uiPrintError("Update file is corrupted!\n");
 		goto fail;
 	}
 
@@ -58,7 +58,7 @@ bool menuUpdateLoader()
 	// verify fastboot magic
 	if(memcmp(updateBuffer+0x208, "FASTBOOT 3DS   ", 0x10) != 0)
 	{
-		uiPrintError("Invalid update file!\n");
+		uiPrintError("Not an update file!\n");
 		goto fail;
 	}
 	

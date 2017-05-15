@@ -46,8 +46,6 @@ bool menuOptions(void)
 {
 	u32 keys;
 	
-	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
-	
 	uiClearConsoles();
 	consoleSelect(&con_bottom);
 	

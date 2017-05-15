@@ -68,6 +68,7 @@ bool menuDumpNand(const char *filePath)
 	}
 	
 	uiPrintTextAt(0, 5, "Dumping NAND...\n");
+	uiPrintTextAt(0, 22, "Press B to cancel."); 
 
 	/* Main loop */
 
@@ -94,7 +95,7 @@ bool menuDumpNand(const char *filePath)
 		hidScanInput();
 		if(hidKeysDown() & KEY_B)
 		{
-			uiPrintInfo("\n...canceled!\n");
+			uiPrintTextAt(0, 22, "... canceled.     "); 
 			f_close(&file);
 			goto fail;
 		}
@@ -104,9 +105,8 @@ bool menuDumpNand(const char *filePath)
 		// print current progress information
 		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
-
 		
-		uiPrintProgressBar(10, 80, 380, 20, curSector, sectorCount);
+		uiPrintProgressBar(0, 80, 380, 20, curSector, sectorCount);
 		
 		switch(menuUpdateGlobalState())
 		{
@@ -126,7 +126,7 @@ bool menuDumpNand(const char *filePath)
 	f_close(&file);
 	free(buf);
 	
-	uiPrintInfo("Finished! Press any key to return...");
+	uiPrintTextAt(0, 24, "Finished! Press any key to return.");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
@@ -136,7 +136,7 @@ bool menuDumpNand(const char *filePath)
 fail:
 	free(buf);
 	
-	uiPrintInfo("Press any key to return...");
+	uiPrintTextAt(0, 24, "Press any key to return.");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
@@ -191,7 +191,8 @@ bool menuRestoreNand(const char *filePath)
 	unmount_nand_fs();
 
 	uiPrintTextAt(0, 5, "Restoring...\n");
-
+	uiPrintTextAt(0, 22, "Press B to cancel."); 
+	
 	/* Main loop */
 
 	const u32 sectorCount = fileStat.fsize>>9;
@@ -218,7 +219,7 @@ bool menuRestoreNand(const char *filePath)
 		hidScanInput();
 		if(hidKeysDown() & KEY_B)
 		{
-			uiPrintInfo("\n...canceled!\n");
+			uiPrintTextAt(0, 22, "... canceled.     "); 
 			f_close(&file);
 			goto fail;
 		}
@@ -249,7 +250,7 @@ bool menuRestoreNand(const char *filePath)
 	free(buf);
 	remount_nand_fs();
 	
-	uiPrintInfo("Finished! Press any key to return...");
+	uiPrintTextAt(0, 24, "Finished! Press any key to return.");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);
@@ -260,7 +261,7 @@ fail:
 	free(buf);
 	remount_nand_fs();
 	
-	uiPrintInfo("Press any key to return...");
+	uiPrintTextAt(0, 24, "Press any key to return.");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);

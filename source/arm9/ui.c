@@ -214,9 +214,9 @@ static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
 	{
 		for(unsigned y = start_y; y < height+start_y; y++)
 		{
-			framebuf = &((u16*)FRAMEBUF_TOP_A_1)[SCREEN_HEIGHT_TOP * x + y];
-			u8 *pixeldata = &imagedata[(y*width+x)*3];
-			*framebuf = RGB8_to_565(pixeldata[0], pixeldata[1], pixeldata[2]);
+			//framebuf = &((u16*)FRAMEBUF_TOP_A_1)[SCREEN_HEIGHT_TOP * x + width - y];
+			u8 *pixeldata = &imagedata[(width*(y-1)+x)*3];
+			*framebuf++ = RGB8_to_565(pixeldata[0], pixeldata[1], pixeldata[2]);
 		}
 	}
 }

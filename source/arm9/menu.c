@@ -20,12 +20,13 @@
 
 
 const menu_state_options menu_main = {
-	4,
+	5,
 	{
 		{"Continue boot", MENU_STATE_FIRM_LAUNCH_SETTINGS},
 		{"NAND tools...", MENU_STATE_NAND_MENU},
 		{"Options...", MENU_STATE_OPTIONS_MENU},
 		{"Browse FIRM...", MENU_STATE_BROWSER},
+		{"Update", MENU_STATE_UPDATE},
 	}
 };
 
@@ -183,6 +184,11 @@ int enter_menu(int initial_state)
 				if(!path)	// no file selected
 					break;
 				menuSetEnterNextState(MENU_STATE_FIRM_LAUNCH);
+				break;
+			
+			case MENU_STATE_UPDATE:
+				menuUpdateLoader();
+				uiClearConsoles();
 				break;
 			
 			case MENU_STATE_EXIT:

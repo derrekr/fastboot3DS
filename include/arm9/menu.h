@@ -5,6 +5,7 @@
 #include "arm9/menu_nand.h"
 #include "arm9/menu_options.h"
 #include "arm9/menu_filebrowse.h"
+#include "arm9/menu_update.h"
 
 enum menu_state_type {
 	MENU_STATE_MAIN = 0,
@@ -16,6 +17,7 @@ enum menu_state_type {
 	MENU_STATE_NAND_RESTORE,
 	MENU_STATE_FIRM_LAUNCH,
 	MENU_STATE_BROWSER,
+	MENU_STATE_UPDATE,
 	MENU_STATE_EXIT,
 
 	STATE_PREVIOUS	// pseudo state for menuSetReturnToState()
