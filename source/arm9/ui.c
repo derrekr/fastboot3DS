@@ -112,8 +112,8 @@ void uiPrintIfVerbose(const char *const format, ...)
 	}
 }
 
-/* Prints a given text at the current line */
-void uiPrintLine(const char *const format, unsigned int color, bool centered, ...)
+/* Prints a given text at the current position */
+void uiPrint(const char *const format, unsigned int color, bool centered, ...)
 {
 	const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
 	char tmp[width + 1];
@@ -126,11 +126,11 @@ void uiPrintLine(const char *const format, unsigned int color, bool centered, ..
 	if(centered)
 	{
 		size_t len = strlen(tmp);
-		printf("\x1B[%um%*s%s\n\x1B[0m", color, (width - len) / 2, "", tmp);
+		printf("\x1B[%um%*s%s\x1B[0m", color, (width - len) / 2, "", tmp);
 	}
 	else
 	{
-		printf("\x1B[%um%s\n\x1B[0m", color, tmp);
+		printf("\x1B[%um%s\x1B[0m", color, tmp);
 	}
 }
 
