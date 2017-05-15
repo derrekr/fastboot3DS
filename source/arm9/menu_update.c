@@ -120,13 +120,12 @@ bool menuUpdateLoader()
 
 	/* We should be done now... */
 
-	
-
-
 	uiPrintInfo("Press any key to reboot...");
 	menuWaitForAnyPadkey();
 
-	panic();
+	reboot_safe();
+	
+	return true;
 	
 fail:
 	

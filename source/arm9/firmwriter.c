@@ -15,10 +15,11 @@
 static size_t totalToWrite;
 static size_t totalWritten;
 static size_t curSector;
+// static size_t blockSize;
 static bool protectSig;
 static bool failure;
 
-void firmwriterInit(size_t sector, size_t sectorCount, bool preserveSignature)
+void firmwriterInit(size_t sector, size_t sectorCount, /*size_t blockSize,*/ bool preserveSignature)
 {
 	if(sectorCount < 2)
 		panic();

@@ -31,3 +31,4 @@ void unmount_fs();
 void unmount_nand_fs();
 u8 rng_get_byte();
 void power_off_safe();
+void reboot_safe();

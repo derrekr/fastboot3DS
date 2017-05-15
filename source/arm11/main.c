@@ -5,18 +5,9 @@
 #include "gfx.h"
 #include "pxi.h"
 
-
-
-void turn_off(void)
-{
-	i2cmcu_lcd_poweroff();
-	i2cmcu_lcd_backlight_poweroff();
-	for(;;)
-	{
-		i2c_writeregdata(3, 0x20, 0xff);
-		wait(0x200000);
-	}
-}
+extern bool battery_ok(void);
+extern void power_off(void);
+extern void power_reboot(void);
 
 int main(void)
 {
@@ -48,7 +39,10 @@ int main(void)
 					poweroff_allowed = false;
 					break;
 				case PXI_CMD_POWER_OFF:
-					turn_off();
+					power_off();
+					break;
+				case PXI_CMD_REBOOT:
+					power_reboot();
 					break;
 				case PXI_CMD_FIRM_LAUNCH:
 					goto start_firmlaunch;
