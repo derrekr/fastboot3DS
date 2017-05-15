@@ -40,14 +40,14 @@ bool firmwriterWriteBlock()
 	if(totalWritten >= totalToWrite - 1)
 		return false;
 
-	if(!dev_rawnand->write_sector(curSector, 1, sourceBuf))
+	if(!dev_decnand->write_sector(curSector, 1, sourceBuf))
 	{
 		failure = true;
 		return false;
 	}
 
 	/* read back data and compare */
-	if(!dev_rawnand->read_sector(curSector, 1, blockData) ||
+	if(!dev_decnand->read_sector(curSector, 1, blockData) ||
 		memcmp(sourceBuf, blockData, sizeof blockData) != 0)
 	{
 		failure = true;
@@ -78,7 +78,7 @@ bool firmwriterFinish()
 	/* read signature from NAND if we want to keep sighax */
 	if(protectSig)
 	{
-		if(!dev_rawnand->read_sector(sector, 1, &header))
+		if(!dev_decnand->read_sector(sector, 1, &header))
 		{
 			failure = true;
 			return false;
@@ -88,14 +88,14 @@ bool firmwriterFinish()
 		firmBuf = (void *) &header;
 	}
 
-	if(!dev_rawnand->write_sector(sector, 1, firmBuf))
+	if(!dev_decnand->write_sector(sector, 1, firmBuf))
 	{
 		failure = true;
 		return false;
 	}
 
 	/* read back data and compare */
-	if(!dev_rawnand->read_sector(sector, 1, blockData) ||
+	if(!dev_decnand->read_sector(sector, 1, blockData) ||
 		memcmp(firmBuf, blockData, sizeof blockData) != 0)
 	{
 		failure = true;

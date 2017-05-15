@@ -92,12 +92,13 @@ bool menuUpdateLoader()
 	}
 	
 	partitionGetSectorOffset(index, &sector);
+	printf("writing to offset 0x%x aka 0x%x\n", sector, sector<<9);
 
 	uiPrintTextAt(0, 4, "Updating...\n");
 	
 	firmwriterInit(sector, fwSize / 0x200, true);
 	
-	for(size_t i=0; i<fwSize / 0x200; i++)
+	for(size_t i=1; i<fwSize / 0x200 + 1; i++)
 	{
 		if(!firmwriterIsDone())
 		{
@@ -110,6 +111,8 @@ bool menuUpdateLoader()
 		}
 		else
 		{
+			uiPrintTextAt(0, 21, "Finalizing...");
+			
 			if(!firmwriterFinish())
 			{
 				uiPrintError("Failed writing block!");
@@ -124,7 +127,7 @@ bool menuUpdateLoader()
 
 	/* We should be done now... */
 
-	uiPrintInfo("Press any key to reboot...");
+	uiPrintTextAt(0, 24, "Press any key to reboot...");
 	menuWaitForAnyPadkey();
 
 	reboot_safe();
@@ -133,7 +136,7 @@ bool menuUpdateLoader()
 	
 fail:
 	
-	uiPrintInfo("Press any key to return...");
+	uiPrintTextAt(0, 24, "Press any key to return...");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);

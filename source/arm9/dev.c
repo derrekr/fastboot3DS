@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "types.h"
 #include "mem_map.h"
@@ -9,6 +10,7 @@
 #include "arm9/crypto.h"
 #include "arm9/ndma.h"
 #include "arm9/timer.h"
+#include "util.h"
 #include "arm9/dev.h"
 #include "arm9/partitions.h"
 
@@ -352,16 +354,54 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	return true;
 }
 
-bool sdmmc_dnand_write_sector(UNUSED u32 sector, UNUSED u32 count, UNUSED const void *buf)
-{
+bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
+{	
+	size_t index;
+	u8 keyslot;
+	
 	if(!dev_dnand.dev.initialized && !sdmmc_dnand_init())
 		return false;
 
-	//return !sdmmc_nand_writesectors(sector, count, buf);
-	printf("Decnand write not implemented!\n");
-	panic();
+	if(!partitionFind(sector, count, &index))
+		return false;
+		
+	partitionGetKeyslot(index, &keyslot);
 
-	return false;
+	if(keyslot == 0xFF)
+		return false;	// unknown partition type
+
+	AES_ctx *ctx;
+	ctx = &dev_dnand.ctrAesCtx;
+	
+	if(!count)
+		return false;
+	
+	const size_t crypto_buf_size = min(count<<9, 0x1000);
+	void *crypto_buf = malloc(crypto_buf_size);
+	if(!crypto_buf)
+		return false;
+	
+	AES_selectKeyslot(keyslot, true);
+	AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL | AES_MODE_CTR, sector<<9);
+	
+	do {
+		size_t crypt_size = min(count<<9, crypto_buf_size);
+		
+		AES_crypt(ctx, buf, crypto_buf, crypt_size);
+		if(sdmmc_nand_writesectors(sector, crypt_size >> 9, crypto_buf))
+		{
+			free(crypto_buf);
+			return false;
+		}
+		
+		sector += crypt_size >> 9;
+		count -= crypt_size >> 9;
+		buf += crypt_size;
+	} while(count);
+	
+	free(crypto_buf);
+	
+	return true;
 }
 
 bool sdmmc_dnand_close(void)

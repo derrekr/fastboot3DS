@@ -106,7 +106,7 @@ bool menuDumpNand(const char *filePath)
 		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32" MB (Sector 0x%"PRIX32"/0x%"PRIX32")", curSector>>11, sectorCount>>11, 
 				curSector, sectorCount);
 		
-		uiPrintProgressBar(0, 80, 380, 20, curSector, sectorCount);
+		uiPrintProgressBar(10, 80, 380, 20, curSector, sectorCount);
 		
 		switch(menuUpdateGlobalState())
 		{
