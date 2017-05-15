@@ -77,7 +77,8 @@ bool menuUpdateLoader()
 		goto fail;
 	}
 	
-	if(!uiDialogYesNo("Do you want to update to version XXX?", "Update", "Cancel"))
+	if(!uiDialogYesNo("Update", "Cancel", "Update to v%" PRIu16 ".%" PRIu16,
+			updateVersion>>16, updateVersion & 0xFFFFu))
 	{
 		goto fail;
 	}
@@ -85,7 +86,10 @@ bool menuUpdateLoader()
 	/* NOTE: We assume sighax is installed on firm0 */
 
 	if(!partitionGetIndex(installPath, &index))
-		panic();
+	{
+		uiPrintError("Could not find partition %s!", installPath);
+		goto fail;
+	}
 	
 	partitionGetSectorOffset(index, &sector);
 

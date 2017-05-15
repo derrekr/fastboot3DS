@@ -76,12 +76,18 @@ void uiSetVerbose(bool verb)
 }
 
 /* TODO: Should look similar to uiShowMessageWindow */
-bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo)
+bool uiDialogYesNo(const char *textYes, const char *textNo, const char *const format, ...)
 {
+	char tmp[256];
 	u32 keys;
+
+	va_list args;
+	va_start(args, format);
+	vsnprintf(tmp, 256, format, args);
+	va_end(args);
 	
 	/* Print dialog */
-	uiPrintInfo("\n%s\n", text);
+	uiPrintInfo("\n%s\n", tmp);
 	uiPrintInfo("\t(A): %s\n\t(B): %s\n", textYes, textNo);
 	
 	/* Get user input */
@@ -219,7 +225,7 @@ static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
 	
 	for(unsigned x = 0; x < width; x++)
 	{
-		for(unsigned y = start_y; y < height+start_y; y++)
+		for(unsigned y = height+start_y; y > start_y; y--)
 		{
 			//framebuf = &((u16*)FRAMEBUF_TOP_A_1)[SCREEN_HEIGHT_TOP * x + width - y];
 			u8 *pixeldata = &imagedata[(width*(y-1)+x)*3];

@@ -16,7 +16,7 @@ void uiDrawSplashScreen();
 void uiClearConsoles();
 void clearConsole(int which);
 void uiSetVerbose(bool verb);
-bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo);
+bool uiDialogYesNo(const char *textYes, const char *textNo, const char *const format, ...);
 void uiPrintIfVerbose(const char *const format, ...);
 void uiPrintLine(const char *const format, unsigned int color, bool centered, ...);
 void uiPrintCenteredInLine(unsigned int y, const char *const format, ...);

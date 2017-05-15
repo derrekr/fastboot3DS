@@ -18,6 +18,7 @@ static inline int findPartition(const char *name)
 	
 	for(size_t i=0; i<numPartitions; i++)
 	{
+		// printf("findPartition: %s vs %s\n", name, partitions[i].name);
 		if(strlen(partitions[i].name) == namelen &&
 			memcmp(name, partitions[i].name, namelen) == 0)
 			return i;

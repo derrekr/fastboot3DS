@@ -270,9 +270,9 @@ bool sdmmc_dnand_init(void)
 					/* NOTE: This assumes there's not more than two firmware partitions! */
 					partitionSetKeyslot(index, 0x06);
 					if(partitionGetIndex("firm0", &temp))
-						partitionSetName(index, "firm0");
-					else
 						partitionSetName(index, "firm1");
+					else
+						partitionSetName(index, "firm0");
 					break;
 				case 4: // AGB_FIRM savegame
 					partitionSetKeyslot(index, 0x07);
