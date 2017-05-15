@@ -3,17 +3,9 @@
 #include "arm9/console.h"
 #include "hid.h"
 
-#define uiPrintInfo(format, args...)	       	\
-					printf("\e[0m");			\
-					printf(format, ## args);	\
-
-#define uiPrintWarning(format, args...)	       	\
-					printf("\x1B[33m");			\
-					printf(format, ## args);	\
-
-#define uiPrintError(format, args...)	       	\
-					printf("\x1B[31m");			\
-					printf(format, ## args);	\
+#define uiPrintInfo(format, ...)    uiPrintCentered(format, 0, ##__VA_ARGS__);
+#define uiPrintWarning(format, ...) uiPrintCentered(format, 33, ##__VA_ARGS__);
+#define uiPrintError(format, ...)   uiPrintCentered(format, 31, ##__VA_ARGS__);
 
 
 // PrintConsole for each screen
@@ -23,8 +15,10 @@ void uiInit();
 void uiDrawSplashScreen();
 void uiClearConsoles();
 void clearConsole(int which);
+void uiSetVerbose(bool verb);
 bool uiDialogYesNo(const char *text, const char *textYes, const char *textNo);
-void uiPrintCentered(const char *const format, ...);
+void uiPrintIfVerbose(const char *const format, ...);
+void uiPrintCentered(const char *const format, unsigned int color, ...);
 void uiPrintCenteredInLine(unsigned int y, const char *const format, ...);
 void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...);
 //void uiShowMessageWindow(format, args...);
