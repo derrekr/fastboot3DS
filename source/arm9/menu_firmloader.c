@@ -17,7 +17,6 @@
 
 static int firmLoaded = 0;
 
-static bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo);
 static u32 loadFirmSd(const char *filePath);
 
 bool isFirmLoaded(void)
@@ -289,14 +288,14 @@ try_next:
 	return true;
 }
 
-static bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
+bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
 {
 	u32 fw_size;
 
 	if(!filepath)
 		return false;
 
-	printf("Loading firmware:\n%s\n\n", filepath);
+	// printf("Loading firmware:\n%s\n\n", filepath);
 
 	if(strncmp(filepath, "sdmc:", 5) == 0)
 		fw_size = loadFirmSd(filepath);
