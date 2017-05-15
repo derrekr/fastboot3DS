@@ -59,7 +59,7 @@ int main(void)
 		if(hidstate & MCU_HID_POWER_BUTTON_PRESSED)
 		{
 			if(poweroff_allowed)	// direct power off allowed?
-				turn_off();
+				power_off();
 			PXI_trySendWord(PXI_RPL_POWER_PRESSED);
 		}
 
