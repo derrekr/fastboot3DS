@@ -50,6 +50,42 @@ static const firmProtectedArea firmProtectedAreas[] = {
 	}	
 };
 
+/* Calculates the actual firm partition size by using its header */
+bool firm_size(size_t *size)
+{
+	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
+	u32 curLen = sizeof(firm_header);
+	u32 curOffset = 0;
+	*size = 0;
+	
+	/* scan sections in reverse order */
+	for(int i=3; i>=0; i--)
+	{
+		firm_sectionheader *section = &firm_hdr->section[i];
+
+		if(section->size == 0)
+			continue;
+		
+		if(section->offset <= curOffset)
+			continue;
+		
+		curOffset = section->offset;
+			
+		if(section->size > FIRM_MAX_SIZE || curOffset >= FIRM_MAX_SIZE)
+			return false;
+		
+		if(curLen < curOffset + section->size)
+			curLen = curOffset + section->size;
+		
+		if(curLen > FIRM_MAX_SIZE)
+			return false;
+	}
+	
+	*size = curLen;
+	
+	return true;
+}
+
 // NOTE: Do not call any functions here!
 void NAKED firmLaunchStub(void)
 {	
@@ -146,7 +182,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n", (int)i,
 				   section->offset, section->address, section->size);
 				
-		if(section->offset >= fwSize) 
+		if(section->offset >= fwSize || section->offset < sizeof(firm_header))
 		{
 			if(printInfo)
 				printf("\x1B[31mBad section offset!\e[0m\n");

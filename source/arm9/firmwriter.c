@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "types.h"
 #include "mem_map.h"
-#include "arm9/console.h"
 #include "arm9/dev.h"
 #include "fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
+#include "arm9/firmwriter.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/timer.h"
@@ -45,7 +46,7 @@ bool firmwriterWriteBlock()
 	}
 
 	/* read back data and compare */
-	if(!dev_rawnand->read_sector(sector, sizeof blockData, blockData) ||
+	if(!dev_rawnand->read_sector(curSector, sizeof blockData, blockData) ||
 		memcmp(sourceBuf, blockData, sizeof blockData) != 0)
 	{
 		failure = true;
@@ -82,11 +83,11 @@ bool firmwriterFinish()
 			return false;
 		}
 
-		memcpy(header, firmBuf, 0x100);
-		firmBuf = (void *) header;
+		memcpy(&header, firmBuf, 0x100);
+		firmBuf = (void *) &header;
 	}
 
-	if(!dev_rawnand->write_sector(sector, 0x200, firmBuf);
+	if(!dev_rawnand->write_sector(sector, 0x200, firmBuf))
 	{
 		failure = true;
 		return false;

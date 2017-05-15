@@ -5,10 +5,12 @@
 #include "mem_map.h"
 #include "arm9/console.h"
 #include "arm9/dev.h"
+#include "arm9/partitions.h"
 #include "fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
 #include "version.h"
+#include "arm9/firmwriter.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/timer.h"
@@ -16,13 +18,14 @@
 #define MIN_UPDATE_SIZE	0x1000
 
 static const char *updateFilePath = "sdmc:\\fastboot3ds.bin";
-static const char *installPath = "firm0"
+static const char *installPath = "firm0";
 
 bool menuUpdateLoader()
 {
 	u8 *updateBuffer = (u8 *) FIRM_LOAD_ADDR;
 	FILINFO fileStat;
 	size_t fwSize;
+	size_t index;
 	size_t sector;
 
 	uiClearConsoles();
@@ -45,11 +48,9 @@ bool menuUpdateLoader()
 		goto fail;
 	}
 
-	// XXX
-	fwSize = calcFirmwareSize();
-
-	if(fwSize < MIN_UPDATE_SIZE || fwSize % 0x200)	// this would be really odd.
+	if(!firm_size(&fwSize) || fwSize < MIN_UPDATE_SIZE || fwSize % 0x200)
 	{
+		// this would be really odd.
 		uiPrintError("Invalid update file!\n");
 		goto fail;
 	}
@@ -83,7 +84,10 @@ bool menuUpdateLoader()
 
 	/* NOTE: We assume sighax is installed on firm0 */
 
-	sector = partitionGetSector(installPath);
+	if(!partitionGetIndex(installPath, &index))
+		panic();
+	
+	partitionGetSectorOffset(index, &sector);
 
 	uiPrintTextAt(0, 4, "Updating...\n");
 	
@@ -91,31 +95,27 @@ bool menuUpdateLoader()
 	
 	for(size_t i=0; i<fwSize / 0x200; i++)
 	{
-			if(!firmwriterIsDone())
+		if(!firmwriterIsDone())
+		{
+			/* Write one sector in each iteration and update ui */
+			if(!firmwriterWriteBlock())
 			{
-				/* Write one sector in each iteration and update ui */
-				if(!firmwriterWriteBlock())
-				{
-					uiPrintError("Failed writing block!");
-					goto fail;
-				}
+				uiPrintError("Failed writing block!");
+				goto fail;
 			}
-			else
+		}
+		else
+		{
+			if(!firmwriterFinish())
 			{
-				if(!firmwriterFinish())
-				{
-					uiPrintError("Failed writing block!");
-					goto fail;
-				}
-
+				uiPrintError("Failed writing block!");
+				goto fail;
 			}
-        
-			uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32", i, fwSize / 0x200);
+		}
+     
+		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32, i, fwSize / 0x200);
 
-			uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
-
-			
- 
+		uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
 	}
 
 	/* We should be done now... */

@@ -10,6 +10,7 @@
 #include "arm9/ndma.h"
 #include "arm9/timer.h"
 #include "arm9/dev.h"
+#include "arm9/partitions.h"
 
 
 // SD card device
@@ -56,19 +57,11 @@ const dev_struct *dev_rawnand = &dev_rnand;
 
 // Decrypted NAND device
 typedef struct {
-	u32 sector;
-	u32 count;
-	u8  type;
-	u8  keyslot;
-} nand_partition_struct;
-
-typedef struct {
 	dev_struct dev;
 	u32 twlCounter[4];
 	u32 ctrCounter[4];
 	AES_ctx twlAesCtx;
 	AES_ctx ctrAesCtx;
-	nand_partition_struct partitions[8];
 } dev_dnand_struct;
 
 bool sdmmc_dnand_init(void);
@@ -90,7 +83,6 @@ static dev_dnand_struct dev_dnand = {
 		sdmmc_dnand_is_active,
 		NULL
 	},
-	{0},
 	{0},
 	{0},
 	{0},
@@ -225,6 +217,7 @@ u32 sdmmc_rnand_get_sector_count(void)
 bool sdmmc_dnand_init(void)
 {
 	NCSD_header header;
+	size_t temp;
 	extern u32 ctr_nand_sector;
 
 	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
@@ -245,32 +238,49 @@ bool sdmmc_dnand_init(void)
 		if(header.magic != 0x4453434E) return false;
 
 		// Collect partition infos...
-		for(int i = 0; i < 8; i++)
+		for(int i = 0; i < MAX_PARTITIONS; i++)
 		{
-			dev_dnand.partitions[i].sector = header.partitions[i].mediaOffset;
-			dev_dnand.partitions[i].count  = header.partitions[i].mediaSize;
-			dev_dnand.partitions[i].type   = header.partFsType[i];
+			u8 type = header.partFsType[i];
+			size_t sector = header.partitions[i].mediaOffset;
+			
+			size_t index = partitionAdd(sector, header.partitions[i].mediaSize, type);
 
-			switch(dev_dnand.partitions[i].type)
+			switch(type)
 			{
 				case 1:
-					if(i == 0) dev_dnand.partitions[i].keyslot = 0x03; // TWL NAND partition
-					if(i == 4)                                         // CTR NAND partition
+					if(i == 0)
 					{
-						if(bootInfo.unit_is_new3ds) dev_dnand.partitions[i].keyslot = 0x05; // TODO: Load N3DS keyY
-						else dev_dnand.partitions[i].keyslot = 0x04;
+						partitionSetKeyslot(index, 0x03); // TWL NAND partition
+						partitionSetName(index, "twln");
+					}
+					else if(i == 4)	// CTR NAND partition
+					{
+						if(bootInfo.unit_is_new3ds)
+							partitionSetKeyslot(index, 0x05); // TODO: Load N3DS keyY
+						else
+							partitionSetKeyslot(index, 0x04);
+						
+						partitionSetName(index, "nand");
+						
 						// Set CTR NAND partition offset for diskio.c
-						ctr_nand_sector = header.partitions[i].mediaOffset;
+						ctr_nand_sector = sector;
 					}
 					break;
 				case 3: // firmX
-					dev_dnand.partitions[i].keyslot = 0x06;
+					/* NOTE: This assumes there's not more than two firmware partitions! */
+					partitionSetKeyslot(index, 0x06);
+					if(partitionGetIndex("firm0", &temp))
+						partitionSetName(index, "firm0");
+					else
+						partitionSetName(index, "firm1");
 					break;
 				case 4: // AGB_FIRM savegame
-					dev_dnand.partitions[i].keyslot = 0x07;
+					partitionSetKeyslot(index, 0x07);
+					partitionSetName(index, "agb");
 					break;
 				default: // Unused
-					dev_dnand.partitions[i].keyslot = 0xFF;
+					partitionSetKeyslot(index, 0xFF);
+					partitionSetName(index, "invalid");
 			}
 		}
 
@@ -307,33 +317,25 @@ bool sdmmc_dnand_init(void)
 	return true;
 }
 
-static nand_partition_struct *find_partition(u32 sector, u32 count)
-{
-	for(u32 i = 0; i < 8; i++)
-	{
-		nand_partition_struct *partition = &dev_dnand.partitions[i];
-		if((partition->sector <= sector) && (partition->count >= count)
-		   && (partition->sector + partition->count >= sector + count))
-		return partition;
-	}
-
-	return NULL;
-}
-
 bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 {
+	size_t index;
+	u8 keyslot;
+	
 	if(!dev_dnand.dev.initialized && !sdmmc_dnand_init())
 		return false;
 
-	nand_partition_struct *partition = find_partition(sector, count);
+	if(!partitionFind(sector, count, &index))
+		return false;
+		
+	partitionGetKeyslot(index, &keyslot);
 
-
-	if(!partition) return false;
-	if(partition->keyslot == 0xFF) return false;	// unknown partition type
+	if(keyslot == 0xFF)
+		return false;	// unknown partition type
 
 	AES_ctx *ctx;
-	AES_selectKeyslot(partition->keyslot, true);
-	if(partition->keyslot == 0x03)
+	AES_selectKeyslot(keyslot, true);
+	if(keyslot == 0x03)
 	{
 		ctx = &dev_dnand.twlAesCtx;
 		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED | AES_MODE_CTR, sector<<9);
