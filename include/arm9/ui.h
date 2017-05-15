@@ -3,9 +3,9 @@
 #include "arm9/console.h"
 #include "hid.h"
 
-#define uiPrintInfo(format, ...)    uiPrintCentered(format, 0, ##__VA_ARGS__);
-#define uiPrintWarning(format, ...) uiPrintCentered(format, 33, ##__VA_ARGS__);
-#define uiPrintError(format, ...)   uiPrintCentered(format, 31, ##__VA_ARGS__);
+#define uiPrintInfo(format, ...)    uiPrintCentered(format, 0, ##__VA_ARGS__)
+#define uiPrintWarning(format, ...) uiPrintCentered(format, 33, ##__VA_ARGS__)
+#define uiPrintError(format, ...)   uiPrintCentered(format, 31, ##__VA_ARGS__)
 
 
 // PrintConsole for each screen
