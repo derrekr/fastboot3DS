@@ -112,19 +112,26 @@ void uiPrintIfVerbose(const char *const format, ...)
 	}
 }
 
-/* Prints a given text in the center of the current line */
-void uiPrintCentered(const char *const format, unsigned int color, ...)
+/* Prints a given text at the current line */
+void uiPrintLine(const char *const format, unsigned int color, bool centered, ...)
 {
 	const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
 	char tmp[width + 1];
 
 	va_list args;
-	va_start(args, color);
+	va_start(args, centered);
 	vsnprintf(tmp, width + 1, format, args);
 	va_end(args);
 
-	size_t len = strlen(tmp);
-	printf("\x1B[%um%*s%s\n", color, (width - len) / 2, "", tmp);
+	if(centered)
+	{
+		size_t len = strlen(tmp);
+		printf("\x1B[%um%*s%s\n\x1B[0m", color, (width - len) / 2, "", tmp);
+	}
+	else
+	{
+		printf("\x1B[%um%s\n\x1B[0m", color, tmp);
+	}
 }
 
 void uiPrintCenteredInLine(unsigned int y, const char *const format, ...)
