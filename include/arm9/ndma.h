@@ -1,5 +1,5 @@
 /**
- * 2016
+ * 2017
  * profi200
  */
 
@@ -140,6 +140,15 @@
 void NDMA_init(void);
 
 /**
+ * @brief      Asynchronous copying of data using the NDMA engine.
+ *
+ * @param      dest    Pointer to destination memory. Must be 4 bytes aligned.
+ * @param      source  Pointer to source data. Must be 4 bytes aligned.
+ * @param[in]  num     The size of the data. Must be a multiple of 4.
+ */
+void NDMA_copyAsync(u32 *dest, const u32 *source, u32 num);
+
+/**
  * @brief      Copies data using the NDMA engine.
  *
  * @param      dest    Pointer to destination memory. Must be 4 bytes aligned.
@@ -147,6 +156,15 @@ void NDMA_init(void);
  * @param[in]  num     The size of the data. Must be a multiple of 4.
  */
 void NDMA_copy(u32 *dest, const u32 *source, u32 num);
+
+/**
+ * @brief      Asynchronous memory fill with the given value using the NDMA engine.
+ *
+ * @param      dest   Pointer to destination memory. Must be 4 bytes aligned.
+ * @param[in]  value  The value each 32-bit word will be set to.
+ * @param[in]  num    The size of the memory to fill. Must be a multiple of 4.
+ */
+void NDMA_fillAsync(u32 *dest, u32 value, u32 num);
 
 /**
  * @brief      Fills memory with the given value using the NDMA engine.
