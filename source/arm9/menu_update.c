@@ -98,12 +98,15 @@ bool menuUpdateLoader()
 	
 	firmwriterInit(sector, fwSize / 0x200, true);
 	
-	for(size_t i=1; i<fwSize / 0x200 + 1; i++)
+	size_t numSectors;
+	
+	for(size_t i=1; i<fwSize / 0x200 + 1; )
 	{
 		if(!firmwriterIsDone())
 		{
-			/* Write one sector in each iteration and update ui */
-			if(!firmwriterWriteBlock())
+			/* Write one block in each iteration and update ui */
+			numSectors = firmwriterWriteBlock();
+			if(!numSectors)
 			{
 				uiPrintError("Failed writing block!");
 				goto fail;
@@ -113,7 +116,8 @@ bool menuUpdateLoader()
 		{
 			uiPrintTextAt(0, 21, "Finalizing...");
 			
-			if(!firmwriterFinish())
+			numSectors = firmwriterFinish();
+			if(!numSectors)
 			{
 				uiPrintError("Failed writing block!");
 				goto fail;
@@ -123,6 +127,8 @@ bool menuUpdateLoader()
 		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32, i, fwSize / 0x200);
 
 		uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
+		
+		i+= numSectors;
 	}
 
 	/* We should be done now... */

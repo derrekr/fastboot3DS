@@ -277,6 +277,7 @@ bool menuFlashFirmware(const char *filepath)
 	size_t fwSize;
 	size_t index;
 	size_t sector;
+	size_t numSectors;
 
 	uiClearConsoles();
 	consoleSelect(&con_top);
@@ -321,12 +322,13 @@ bool menuFlashFirmware(const char *filepath)
 	
 	firmwriterInit(sector, fwSize / 0x200, false);
 	
-	for(size_t i=1; i<fwSize / 0x200 + 1; i++)
+	for(size_t i=1; i<fwSize / 0x200 + 1; )
 	{
 		if(!firmwriterIsDone())
 		{
-			/* Write one sector in each iteration and update ui */
-			if(!firmwriterWriteBlock())
+			/* Write one block in each iteration and update ui */
+			numSectors = firmwriterWriteBlock();
+			if(!numSectors)
 			{
 				uiPrintError("Failed writing block!");
 				goto fail;
@@ -336,7 +338,8 @@ bool menuFlashFirmware(const char *filepath)
 		{
 			uiPrintTextAt(0, 21, "Finalizing...");
 			
-			if(!firmwriterFinish())
+			numSectors = firmwriterFinish();
+			if(!numSectors)
 			{
 				uiPrintError("Failed writing block!");
 				goto fail;
@@ -346,6 +349,8 @@ bool menuFlashFirmware(const char *filepath)
 		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32, i, fwSize / 0x200);
 
 		uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
+		
+		i+= numSectors;
 	}
 
 	uiPrintTextAt(0, 24, "Success! Press any key to return.");

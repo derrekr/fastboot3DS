@@ -12,34 +12,29 @@
 #include "arm9/menu.h"
 #include "arm9/timer.h"
 
+
 static size_t totalToWrite;
 static size_t totalWritten;
 static size_t curSector;
-static size_t blockSize;
 static void *blockData;
 static bool protectSig;
 static bool failure;
 
 /* sector: start sector								*/
-/* length: firmware total length in bytes			*/
-/* block_Size: size of one block in bytes			*/
+/* blockCount: firmware total length in sectors		*/
 /* preserveSignature: flag for sighax protection	*/
-void firmwriterInit(size_t sector, size_t length, size_t block_Size, bool preserveSignature)
+bool firmwriterInit(size_t sector, size_t blockCount, bool preserveSignature)
 {
-	if(!block_Size || block_Count * block_Size < 2 * 0x200)
+	if(blockCount < FIRMWRITER_SECTORS_PER_BLOCK * 2)
 		return false;
 
-	if(block_Count > UINT_MAX / block_Size)
+	if(sector % 0x200)
 		return false;
 
-	if(sector % block_Size)
-		return false;
-
-	totalToWrite = block_Count;
+	totalToWrite = blockCount;
 	totalWritten = 0;
-	blockSize = block_Size;
 	// + 1 block because we'll write the firm header afterwards
-	curSector = sector + block_Size / 0x200;
+	curSector = sector + FIRMWRITER_SECTORS_PER_BLOCK;
 	protectSig = preserveSignature;
 	failure = false;
 
@@ -48,36 +43,41 @@ void firmwriterInit(size_t sector, size_t length, size_t block_Size, bool preser
 		free(blockData);
 	}
 
-	blockData = malloc(block_Size * block_Count);
+	blockData = malloc(FIRMWRITER_SECTORS_PER_BLOCK * 0x200);
 	
 	return blockData != NULL;
 }
 
-bool firmwriterWriteBlock()
+/* returns number of sectors written, 0 == failure */
+size_t firmwriterWriteBlock()
 {
-	void *sourceBuf = (void *) FIRM_LOAD_ADDR + (totalWritten + 1) * 0x200;
+	size_t numSectors;
+	
+	void *sourceBuf = (void *) FIRM_LOAD_ADDR + (totalWritten + FIRMWRITER_SECTORS_PER_BLOCK) * 0x200;
 
-	if(totalWritten >= totalToWrite - 1)
-		return false;
+	if(totalWritten >= totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK)
+		return 0;
+		
+	numSectors = min(FIRMWRITER_SECTORS_PER_BLOCK, totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK - totalWritten);
 
-	if(!dev_decnand->write_sector(curSector, 1, sourceBuf))
+	if(!dev_decnand->write_sector(curSector, numSectors, sourceBuf))
 	{
 		failure = true;
-		return false;
+		return 0;
 	}
 
 	/* read back data and compare */
-	if(!dev_decnand->read_sector(curSector, 1, blockData) ||
-		memcmp(sourceBuf, blockData, sizeof blockData) != 0)
+	if(!dev_decnand->read_sector(curSector, numSectors, blockData) ||
+		memcmp(sourceBuf, blockData, numSectors * 0x200) != 0)
 	{
 		failure = true;
-		return false;
+		return 0;
 	}
 
-	curSector++;
-	totalWritten++;
+	curSector += numSectors;
+	totalWritten += numSectors;
 
-	return true;
+	return numSectors;
 }
 
 bool firmwriterIsDone()
@@ -85,42 +85,54 @@ bool firmwriterIsDone()
      if(failure)
 		return false;
 
-	 return totalWritten == totalToWrite - 1;
+	 return totalWritten == totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK;
 }
 
-bool firmwriterFinish()
+/* returns number of sectors written, 0 == failure */
+size_t firmwriterFinish()
 {
-	u32 blockData[0x80];
 	firm_header header;
 	void *firmBuf = (void *) FIRM_LOAD_ADDR;
-	size_t sector = curSector - totalWritten - 1;
+	void *compBuf = blockData;
+	size_t sector = curSector - totalWritten - FIRMWRITER_SECTORS_PER_BLOCK;
 
 	/* read signature from NAND if we want to keep sighax */
 	if(protectSig)
 	{
+		memcpy(blockData, firmBuf, FIRMWRITER_SECTORS_PER_BLOCK * 0x200);
+		
 		if(!dev_decnand->read_sector(sector, 1, &header))
 		{
 			failure = true;
-			return false;
+			return 0;
 		}
 
-		memcpy(&header, firmBuf, 0x100);
-		firmBuf = (void *) &header;
+		memcpy(blockData + 0x100, &header.signature, 0x100);
+		firmBuf = blockData;
+		compBuf = malloc(FIRMWRITER_SECTORS_PER_BLOCK * 0x200);
+		if(!compBuf)
+		{
+			failure = true;
+			return 0;
+		}
 	}
 
-	if(!dev_decnand->write_sector(sector, 1, firmBuf))
+	if(!dev_decnand->write_sector(sector, FIRMWRITER_SECTORS_PER_BLOCK, firmBuf))
 	{
 		failure = true;
-		return false;
+		return 0;
 	}
 
 	/* read back data and compare */
-	if(!dev_decnand->read_sector(sector, 1, blockData) ||
-		memcmp(firmBuf, blockData, sizeof blockData) != 0)
+	if(!dev_decnand->read_sector(sector, FIRMWRITER_SECTORS_PER_BLOCK, compBuf) ||
+		memcmp(firmBuf, compBuf, FIRMWRITER_SECTORS_PER_BLOCK * 0x200) != 0)
 	{
 		failure = true;
-		return false;
+		return 0;
 	}
+
+	if(compBuf != blockData)
+		free(compBuf);
 
 	if(blockData)
 	{
@@ -128,5 +140,5 @@ bool firmwriterFinish()
 		blockData = NULL;
 	}
 
-	return true;
+	return FIRMWRITER_SECTORS_PER_BLOCK;
 }
