@@ -21,6 +21,10 @@
 #define REG_TIMER_CNT(n)  *((vu16*)(TIMER_REGS_BASE + 0x02 + (n * 4)))
 
 
+// For TIMER_sleep()
+static u32 overflows;
+
+
 
 void TIMER_init(void)
 {
@@ -58,19 +62,22 @@ void TIMER_stop(Timer timer)
 
 static void timerSleepHandler(void)
 {
-	REG_TIMER3_CNT = REG_TIMER2_CNT = 0;
-	IRQ_unregisterHandler(IRQ_TIMER_3);
+	overflows--;
+	if(!overflows)
+	{
+		REG_TIMER3_CNT = 0;
+		IRQ_unregisterHandler(IRQ_TIMER_3);
+	}
 }
 
-void _timerSleep(u32 ticks)
+void TIMER_sleep(u32 ms)
 {
-	REG_TIMER2_VAL = (u16)ticks;
-	REG_TIMER3_VAL = (u16)(ticks>>16);
+	REG_TIMER3_VAL = TIMER_FREQ_1024(1000.0);
+	overflows = ms;
 
 	IRQ_registerHandler(IRQ_TIMER_3, timerSleepHandler);
 
-	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_COUNT_UP;
-	REG_TIMER2_CNT = TIMER_ENABLE | TIMER_PRESCALER_1024;
+	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_PRESCALER_1024;
 
 	while(REG_TIMER3_CNT & TIMER_ENABLE)
 	{

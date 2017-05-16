@@ -3,7 +3,7 @@
 #include "types.h"
 
 
-#define TIMER_BASE_FREQ     (67027964.0)
+#define TIMER_BASE_FREQ     (67027963.95)
 
 #define TIMER_COUNT_UP      (1u<<2) // For cascading at least 2 timers
 #define TIMER_IRQ_ENABLE    (1u<<6)
@@ -58,10 +58,8 @@ void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, void (*irqHan
 void TIMER_stop(Timer timer);
 
 /**
- * @brief      Halts the processor for the specified number of ticks. Use the macro below.
+ * @brief      Halts the CPU for the specified number of milliseconds.
  *
- * @param[in]  ticks  The number of ticks.
+ * @param[in]  ms    The number of milliseconds to sleep.
  */
-void _timerSleep(u32 ticks);
-
-#define TIMER_sleep(ms)      _timerSleep(0xFFFFFFFFu - (u32)((TIMER_BASE_FREQ / 1024.0 / 1000.0) * ms) + 1)
+void TIMER_sleep(u32 ms);
