@@ -196,12 +196,12 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 			aesDmaFifoSize = 3;
 			ndmaBurstSize = NDMA_BURST_SIZE(16);
 		}
-		else if(!(blockSize & 31))
+		else*/ if(!(blockSize & 31))
 		{
 			aesDmaFifoSize = 1;
 			ndmaBurstSize = NDMA_BURST_SIZE(8);
 		}
-		else*/
+		else
 		{
 			aesDmaFifoSize = 0;
 			ndmaBurstSize = NDMA_BURST_SIZE(4);
