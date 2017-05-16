@@ -15,27 +15,47 @@
 static size_t totalToWrite;
 static size_t totalWritten;
 static size_t curSector;
-// static size_t blockSize;
+static size_t blockSize;
+static void *blockData;
 static bool protectSig;
 static bool failure;
 
-void firmwriterInit(size_t sector, size_t sectorCount, /*size_t blockSize,*/ bool preserveSignature)
+/* sector: start sector								*/
+/* length: firmware total length in bytes			*/
+/* block_Size: size of one block in bytes			*/
+/* preserveSignature: flag for sighax protection	*/
+void firmwriterInit(size_t sector, size_t length, size_t block_Size, bool preserveSignature)
 {
-	if(sectorCount < 2)
-		panic();
+	if(!block_Size || block_Count * block_Size < 2 * 0x200)
+		return false;
 
-	totalToWrite = sectorCount;
+	if(block_Count > UINT_MAX / block_Size)
+		return false;
+
+	if(sector % block_Size)
+		return false;
+
+	totalToWrite = block_Count;
 	totalWritten = 0;
-	// +1 because we'll write the firm header afterwards
-	curSector = sector + 1;
+	blockSize = block_Size;
+	// + 1 block because we'll write the firm header afterwards
+	curSector = sector + block_Size / 0x200;
 	protectSig = preserveSignature;
 	failure = false;
+
+	if(blockData)
+	{
+		free(blockData);
+	}
+
+	blockData = malloc(block_Size * block_Count);
+	
+	return blockData != NULL;
 }
 
 bool firmwriterWriteBlock()
 {
 	void *sourceBuf = (void *) FIRM_LOAD_ADDR + (totalWritten + 1) * 0x200;
-	u32 blockData[0x80];
 
 	if(totalWritten >= totalToWrite - 1)
 		return false;
@@ -100,6 +120,12 @@ bool firmwriterFinish()
 	{
 		failure = true;
 		return false;
+	}
+
+	if(blockData)
+	{
+		free(blockData);
+		blockData = NULL;
 	}
 
 	return true;

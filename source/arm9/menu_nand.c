@@ -10,7 +10,7 @@
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/timer.h"
-
+#include "arm9/firmwriter.h"
 
 static u64 getFreeSpace(const char *drive)
 {
@@ -262,6 +262,102 @@ fail:
 	remount_nand_fs();
 	
 	uiPrintTextAt(0, 24, "Press any key to return.");
+	menuWaitForAnyPadkey();
+	
+	menuSetReturnToState(STATE_PREVIOUS);
+	
+	return false;
+}
+
+bool menuFlashFirmware(const char *filepath)
+{
+	u8 *updateBuffer = (u8 *) FIRM_LOAD_ADDR;
+	const char *partName = "firm1";	// TODO let the user decide
+	FILINFO fileStat;
+	size_t fwSize;
+	size_t index;
+	size_t sector;
+
+	uiClearConsoles();
+	consoleSelect(&con_top);
+	
+	uiPrintCenteredInLine(1, "Flash firmware");
+	
+	uiPrintTextAt(0, 3, "Verifying file...\n");
+	
+	if(f_stat(filepath, &fileStat) != FR_OK)
+	{
+		uiPrintError("Could not retrieve file status!\n");
+		goto fail;
+	}
+	
+	if(!tryLoadFirmware(filepath, false, false) || !firm_size(&fwSize))
+	{
+		uiPrintError("Firmware is invalid or corrupted!\n");
+		goto fail;
+	}
+	
+	// verify fastboot magic
+	if(memcmp(updateBuffer+0x208, "FASTBOOT 3DS   ", 0x10) != 0)
+	{
+		uiPrintError("Not an update file!\n");
+		goto fail;
+	}
+
+	if(!partitionGetIndex(partName, &index))
+	{
+		uiPrintError("Could not find partition %s!", partName);
+		goto fail;
+	}
+	
+	partitionGetSectorOffset(index, &sector);
+	
+	if(!uiDialogYesNo("Update", "Cancel", "Flash firmware to %s?", partName))
+	{
+		goto fail;
+	}
+
+	uiPrintTextAt(0, 4, "Writing...\n");
+	
+	firmwriterInit(sector, fwSize / 0x200, false);
+	
+	for(size_t i=1; i<fwSize / 0x200 + 1; i++)
+	{
+		if(!firmwriterIsDone())
+		{
+			/* Write one sector in each iteration and update ui */
+			if(!firmwriterWriteBlock())
+			{
+				uiPrintError("Failed writing block!");
+				goto fail;
+			}
+		}
+		else
+		{
+			uiPrintTextAt(0, 21, "Finalizing...");
+			
+			if(!firmwriterFinish())
+			{
+				uiPrintError("Failed writing block!");
+				goto fail;
+			}
+		}
+     
+		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32, i, fwSize / 0x200);
+
+		uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
+	}
+
+	uiPrintTextAt(0, 24, "Success! Press any key to return.");
+	menuWaitForAnyPadkey();
+
+	menuSetReturnToState(STATE_PREVIOUS);
+	
+	return true;
+	
+fail:
+	
+	uiPrintTextAt(0, 24, "Press any key to return...");
 	menuWaitForAnyPadkey();
 	
 	menuSetReturnToState(STATE_PREVIOUS);

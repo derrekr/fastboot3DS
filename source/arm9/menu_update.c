@@ -92,7 +92,7 @@ bool menuUpdateLoader()
 	}
 	
 	partitionGetSectorOffset(index, &sector);
-	printf("writing to offset 0x%x aka 0x%x\n", sector, sector<<9);
+	// printf("writing to offset 0x%x aka 0x%x\n", sector, sector<<9);
 
 	uiPrintTextAt(0, 4, "Updating...\n");
 	

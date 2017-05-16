@@ -111,7 +111,7 @@ bool menuTryLoadFirmwareFromSettings(void)
 	// No Boot Option set up?
 	if(!configDataExist(KBootOption1) &&
 		!configDataExist(KBootOption2) &&
-		!!configDataExist(KBootOption3))
+		!configDataExist(KBootOption3))
 	{
 		menuPrintPrompt("No Boot-Option set up yet.\nGo to 'Options' to choose a file.\n");
 		menuWaitForAnyPadkey();
@@ -213,7 +213,7 @@ bool TryLoadFirmwareFromSettings(void)
 	// No Boot Option set up?
 	if(!configDataExist(KBootOption1) &&
 		!configDataExist(KBootOption2) &&
-		!!configDataExist(KBootOption3))
+		!configDataExist(KBootOption3))
 	{
 		return false;
 	}
