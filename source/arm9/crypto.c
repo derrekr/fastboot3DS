@@ -178,8 +178,8 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 	else ctrIvNonceSize = 3;
 
 	// All writes must finish before using DMA
-	//flushDCacheRange(in, size);
-	flushDCache();
+	flushDCacheRange(in, size);
+	if(in != out) flushDCacheRange(out, size);
 	// Save the original out pointer for later invalidation
 	const u32 *savedOut = out;
 
