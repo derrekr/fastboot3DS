@@ -10,6 +10,7 @@
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/timer.h"
+#include "arm9/partitions.h"
 #include "arm9/firmwriter.h"
 
 static u64 getFreeSpace(const char *drive)
@@ -271,7 +272,6 @@ fail:
 
 bool menuFlashFirmware(const char *filepath)
 {
-	u8 *updateBuffer = (u8 *) FIRM_LOAD_ADDR;
 	const char *partName = "firm1";	// TODO let the user decide
 	FILINFO fileStat;
 	size_t fwSize;
@@ -297,13 +297,6 @@ bool menuFlashFirmware(const char *filepath)
 		uiPrintError("Firmware is invalid or corrupted!\n");
 		goto fail;
 	}
-	
-	// verify fastboot magic
-	if(memcmp(updateBuffer+0x208, "FASTBOOT 3DS   ", 0x10) != 0)
-	{
-		uiPrintError("Not an update file!\n");
-		goto fail;
-	}
 
 	if(!partitionGetIndex(partName, &index))
 	{
@@ -313,7 +306,7 @@ bool menuFlashFirmware(const char *filepath)
 	
 	partitionGetSectorOffset(index, &sector);
 	
-	if(!uiDialogYesNo("Update", "Cancel", "Flash firmware to %s?", partName))
+	if(!uiDialogYesNo("Proceed", "Cancel", "Flash firmware to %s?", partName))
 	{
 		goto fail;
 	}

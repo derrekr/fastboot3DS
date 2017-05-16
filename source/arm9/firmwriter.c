@@ -16,7 +16,7 @@
 static size_t totalToWrite;
 static size_t totalWritten;
 static size_t curSector;
-static void *blockData;
+static void *blockData = NULL;
 static bool protectSig;
 static bool failure;
 
@@ -26,9 +26,6 @@ static bool failure;
 bool firmwriterInit(size_t sector, size_t blockCount, bool preserveSignature)
 {
 	if(blockCount < FIRMWRITER_SECTORS_PER_BLOCK * 2)
-		return false;
-
-	if(sector % 0x200)
 		return false;
 
 	totalToWrite = blockCount;
@@ -70,6 +67,8 @@ size_t firmwriterWriteBlock()
 	if(!dev_decnand->read_sector(curSector, numSectors, blockData) ||
 		memcmp(sourceBuf, blockData, numSectors * 0x200) != 0)
 	{
+		dumpMem(sourceBuf-0x100, numSectors * 0x200 + 0x100, "should.bin");
+		dumpMem(blockData-0x100, numSectors * 0x200 + 0x100, "isnt.bin");
 		failure = true;
 		return 0;
 	}
@@ -85,16 +84,22 @@ bool firmwriterIsDone()
      if(failure)
 		return false;
 
-	 return totalWritten == totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK;
+	 return totalWritten >= totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK;
 }
 
 /* returns number of sectors written, 0 == failure */
 size_t firmwriterFinish()
 {
-	firm_header header;
+	static firm_header header;
 	void *firmBuf = (void *) FIRM_LOAD_ADDR;
 	void *compBuf = blockData;
 	size_t sector = curSector - totalWritten - FIRMWRITER_SECTORS_PER_BLOCK;
+	
+	if(!firmwriterIsDone())
+	{
+		printf("firmwriter is not done yet.\n");
+		return false;
+	}
 
 	/* read signature from NAND if we want to keep sighax */
 	if(protectSig)

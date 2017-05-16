@@ -94,9 +94,13 @@ bool menuUpdateLoader()
 	partitionGetSectorOffset(index, &sector);
 	// printf("writing to offset 0x%x aka 0x%x\n", sector, sector<<9);
 
-	uiPrintTextAt(0, 4, "Updating...\n");
+	uiPrintTextAt(0, 9, "Updating...\n");
 	
-	firmwriterInit(sector, fwSize / 0x200, true);
+	if(!firmwriterInit(sector, fwSize / 0x200, true))
+	{
+		uiPrintError("Failed to start update process!");
+		goto fail;
+	}
 	
 	size_t numSectors;
 	
@@ -108,7 +112,7 @@ bool menuUpdateLoader()
 			numSectors = firmwriterWriteBlock();
 			if(!numSectors)
 			{
-				uiPrintError("Failed writing block!");
+				uiPrintError("Writing block failed!");
 				goto fail;
 			}
 		}

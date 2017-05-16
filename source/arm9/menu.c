@@ -31,10 +31,11 @@ const menu_state_options menu_main = {
 };
 
 const menu_state_options menu_nand = {
-	2,
+	3,
 	{
 		{"Backup NAND", MENU_STATE_NAND_BACKUP},
-		{"Restore NAND", MENU_STATE_NAND_RESTORE}
+		{"Restore NAND", MENU_STATE_NAND_RESTORE},
+		{"Flash Firmware", MENU_STATE_NAND_FLASH_FIRM}
 	}
 };
 
@@ -161,7 +162,16 @@ int enter_menu(int initial_state)
 				menuRestoreNand("sdmc:/nand.bin");
 				uiClearConsoles();
 				break;
-				
+			
+			case MENU_STATE_NAND_FLASH_FIRM:
+				path = browseForFile("sdmc:");
+				uiClearConsoles();
+				if(!path)
+					break;
+				menuFlashFirmware(path);
+				uiClearConsoles();
+				break;
+			
 			case MENU_STATE_OPTIONS_MENU:
 				menuOptions();
 				uiClearConsoles();
