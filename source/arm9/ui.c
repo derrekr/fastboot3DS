@@ -179,9 +179,66 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 /* centered in the middle of the screen. */
 /* Waits for the user to press any button, after that the */
 /* original framebuffer gets restored */
-/*void uiShowMessageWindow(format, args...)
+/*void uiShowMessageWindow(const char *const format, int screen, unsigned int x,
+                         unsigned int y, bool centered, ...)
 {
-	// TODO
+	char tmp[256];
+
+	va_list args;
+	va_start(args, centered);
+	vsnprintf(tmp, 256, format, args);
+	va_end(args);
+
+	char *ptr = tmp;
+	unsigned int lines = 3, longestLine = 1, curLen = 1;
+	while(*ptr)
+	{
+		switch(*ptr)
+		{
+			case '\n':
+				lines++;
+				curLen = 1;
+				break;
+			default:
+				curLen++;
+		}
+		if(curLen > longestLine) longestLine = curLen;
+
+		ptr++;
+	}
+
+	PrintConsole *prevCon = consoleGet();
+	PrintConsole windowCon;
+	consoleInit(screen, &windowCon);
+
+	if(centered)
+	{
+		x = (windowCon.windowWidth / 2) - (longestLine / 2);
+		y = (windowCon.windowHeight / 2) - (lines / 2);
+	}
+	consoleSetWindow(&windowCon, x, y, longestLine, lines);
+
+	u8 *fbBackup = (u8*)malloc(screen ? SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 :
+	                                    SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
+	if(fbBackup)
+	{
+		// TODO: Optimize to only backup what will be overwritten. I'm lazy.
+		memcpy(fbBackup, windowCon.frameBuffer, screen ? SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 :
+		                                                 SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
+
+		printf("\x1B[30m\x1B[47m\x1B[2J");
+		printf("%s\x1b[%u;%uHOK", tmp, lines - 1, (longestLine - 2) / 2);
+		do
+		{
+			hidScanInput();
+		} while(!hidKeysDown());
+
+		memcpy(windowCon.frameBuffer, fbBackup, screen ? SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 :
+		                                                 SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
+	}
+	free(fbBackup); // free() checks for NULL
+
+	consoleSelect(prevCon);
 }*/
 
 
