@@ -313,7 +313,11 @@ bool menuFlashFirmware(const char *filepath)
 
 	uiPrintTextAt(0, 4, "Writing...\n");
 	
-	firmwriterInit(sector, fwSize / 0x200, false);
+	if(!firmwriterInit(sector, fwSize / 0x200, false))
+	{
+		uiPrintError("Failed to start flashing process!");
+		goto fail;
+	}
 	
 	for(size_t i=1; i<fwSize / 0x200 + 1; )
 	{
@@ -323,7 +327,7 @@ bool menuFlashFirmware(const char *filepath)
 			numSectors = firmwriterWriteBlock();
 			if(!numSectors)
 			{
-				uiPrintError("Failed writing block!");
+				uiPrintError("Writing block failed!");
 				goto fail;
 			}
 		}
@@ -338,12 +342,12 @@ bool menuFlashFirmware(const char *filepath)
 				goto fail;
 			}
 		}
-     
+		
+		i+= numSectors;
+		
 		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32, i, fwSize / 0x200);
 
 		uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
-		
-		i+= numSectors;
 	}
 
 	uiPrintTextAt(0, 24, "Success! Press any key to return.");

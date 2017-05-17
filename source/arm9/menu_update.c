@@ -127,12 +127,12 @@ bool menuUpdateLoader()
 				goto fail;
 			}
 		}
-     
+		
+		i+= numSectors;
+		
 		uiPrintTextAt(1, 20, "\r%"PRId32"/%"PRId32, i, fwSize / 0x200);
 
 		uiPrintProgressBar(10, 80, 380, 20, i, fwSize / 0x200);
-		
-		i+= numSectors;
 	}
 
 	/* We should be done now... */
