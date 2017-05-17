@@ -210,7 +210,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 					break;
 				else
 				{
-					if(keyBootMode != BootModeQuiet)
+					if(keyBootMode == BootModeNormal)
 						uiPrintBootWarning();
 				}
 			}
@@ -220,7 +220,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 		
 try_next:
 		
-		if(keyBootMode != BootModeQuick)
+		if(fromMenu)
 			TIMER_sleep(300);
 
 		// ... we failed, try next one
@@ -230,7 +230,7 @@ try_next:
 	{
 		if(fromMenu)
 			menuSetReturnToState(STATE_PREVIOUS);
-		else if(keyBootMode != BootModeQuiet)
+		else if(keyBootMode == BootModeNormal)
 			uiPrintBootFailure();
 		return false;
 	}

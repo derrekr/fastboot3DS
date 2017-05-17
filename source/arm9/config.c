@@ -14,6 +14,7 @@
 #include "util.h"
 #include "hid.h"
 #include "arm9/debug.h"
+#include "arm9/ui.h"
 #include "arm9/config.h"
 
 #define MAX_FILE_SIZE	0x4000 - 1
@@ -107,7 +108,7 @@ bool loadConfigFile()
 	
 	if(fileSize > MAX_FILE_SIZE)
 	{
-		printf("Invalid config-file size!\n");
+		uiPrintIfVerbose("Invalid config-file size!\n");
 		goto fail;
 	}
 	
@@ -115,19 +116,19 @@ bool loadConfigFile()
 	
 	if(!filebuf)
 	{
-		printf("Out of memory!\n");
+		uiPrintIfVerbose("Out of memory!\n");
 		goto fail;
 	}
 	
 	if(f_open(&file, filepath, FA_READ) != FR_OK)
 	{
-		printf("Failed to open config-file for reading!\n");
+		uiPrintIfVerbose("Failed to open config-file for reading!\n");
 		goto fail;
 	}
 	
 	if(f_read(&file, filebuf, fileSize, &bytesRead) != FR_OK || bytesRead != fileSize)
 	{
-		printf("Failed to read from config-file!\n");
+		uiPrintIfVerbose("Failed to read from config-file!\n");
 		f_close(&file);
 		goto fail;
 	}
@@ -305,7 +306,7 @@ static bool parseConfigFile()
 		}
 		else
 		{	// TODO: what to do if ret == false ?
-			//printf("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
+			//uiPrintIfVerbose("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
 			keyFunctions[i].parse(curAttr);
 		}
 	}

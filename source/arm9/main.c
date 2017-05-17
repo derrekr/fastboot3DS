@@ -32,14 +32,12 @@ int main(void)
 	hardwareInit();
 
 	debugHashCodeRoData();
-
+	
 	screen_init();
 	
 	uiInit();
 	
 	checkSetVerboseMode();
-	
-	uiDrawSplashScreen();
 	
 	consoleSelect(&con_bottom);
 	
@@ -56,6 +54,8 @@ int main(void)
 	
 		if(loadSettings(&mode))
 		{
+			uiPrintIfVerbose("Trying to launch FIRM from settings...\n");
+		
 			switch(mode)
 			{
 				case BootModeQuick:
@@ -75,6 +75,8 @@ int main(void)
 		}
 		else screen_init();
 	}
+	
+	uiDrawSplashScreen();
 	
 	uiPrintIfVerbose("Initializing devices...\n");
 
