@@ -27,6 +27,10 @@ DATA		:=	data
 #---------------------------------------------------------------------------------
 DEFINES	:=
 
+ifneq ($(strip $(NO_DEBUG)),)
+	DEFINES	:=	$(DEFINES) -DNDEBUG
+endif
+
 LDNAME	:=	arm9.ld
 
 ARCH	:=	-march=armv5te -mtune=arm946e-s -mfloat-abi=soft -marm -mthumb-interwork

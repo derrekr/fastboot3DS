@@ -13,6 +13,7 @@ static u32 debugHash = 0;
 
 void hashCodeRoData()
 {
+#ifndef NDEBUG
 	extern u32 *__start__;
 	extern u32 *__exidx_start;
 	
@@ -23,6 +24,7 @@ void hashCodeRoData()
 	
 	for(u32 *ptr = start; ptr < end; ptr++)
 		debugHash += *ptr;
+#endif
 }
 
 noreturn void panic()
