@@ -153,10 +153,19 @@ void gfx_init(void)
 
 void gfx_deinit()
 {
-	i2cmcu_lcd_backlight_poweroff();
-	i2cmcu_lcd_poweroff();
+	/*i2cmcu_lcd_poweroff();
 
 	*(vu32*)0x10202A44 = 0;
 	*(vu32*)0x10202244 = 0;
+	REG_LCD_BACKLIGHT_MAIN = 0x0F; // Equals home menu brightness level 1
+	REG_LCD_BACKLIGHT_SUB = 0x0F;
 	*(vu32*)0x10202014 = 0;
+
+	REG_PDN_GPU_CNT = 1;*/
+
+	// Temporary Luma workaround
+	*((vu32*)(0x10400400+0x70)) = 0x00080341;
+	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;
+	*((vu32*)(0x10400500+0x70)) = 0x00080301;
+	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3;
 }
