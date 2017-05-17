@@ -94,6 +94,7 @@ int enter_menu(int initial_state)
 	cursor_pos = 0;
 	
 	uiClearConsoles();
+	uiDrawConsoleWindow();
 
 	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), NULL);
 

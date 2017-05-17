@@ -18,7 +18,7 @@ static bool verbose = false;
 static const void *bannerData = banner_ppm_bin;
 
 
-
+static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height);
 static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data);
 
 static void consoleMainInit()
@@ -29,7 +29,6 @@ static void consoleMainInit()
 	
 	// randomize color
 	randomColor = (rng_get_byte() % 6) + 1;
-	drawConsoleWindow(&con_top, 2, randomColor);
 	
 	consoleInit(SCREEN_LOW, &con_bottom);
 	
@@ -38,13 +37,21 @@ static void consoleMainInit()
 
 void uiDrawSplashScreen()
 {
-	uiDrawPPM(30,30, bannerData);
-	wait(0x6000000);	// test
+	unsigned width, height;
+	
+	uiGetPPMInfo(bannerData, &width, &height);
+	// centered draw
+	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, (SCREEN_HEIGHT_TOP - height) / 2, bannerData);
 }
 
 void uiInit()
 {
 	consoleMainInit();
+}
+
+void uiDrawConsoleWindow()
+{
+	drawConsoleWindow(&con_top, 2, randomColor);
 }
 
 static void clearConsoles()
@@ -206,30 +213,44 @@ void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
 	}
 }
 
+static inline void drawPixel(unsigned x, unsigned y, u16 color)
+{
+	u16 *framebuf = (u16 *) FRAMEBUF_TOP_A_1;
+	framebuf[x * SCREEN_HEIGHT_TOP + y] = color;
+}
+
+static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height)
+{
+	/* get image dimensions */
+	const char *ptr = (const char *) data + 3;
+		while(*ptr != 0x0A) ptr++;
+	ptr++;
+	
+	sscanf(ptr, "%i %i", width, height);
+}
 
 static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
 {
 	unsigned width, height;
-	u16 *framebuf = (u16 *) FRAMEBUF_TOP_A_1;
 	
 	/* get image dimensions */
 	const char *ptr = (const char *) data + 3;
 		while(*ptr != 0x0A) ptr++;
 	ptr++;
 	
-	//sscanf(ptr, "%i %i", &width, &height);
-	width = 204; height = 21;
+	sscanf(ptr, "%i %i", &width, &height);
 	
 	const u8 *imagedata = data + 0x26;	// skip ppm header
 	
+	u16 color;
 	
 	for(unsigned x = 0; x < width; x++)
 	{
-		for(unsigned y = height+start_y; y > start_y; y--)
+		for(unsigned y = height; y > 0; y--)
 		{
-			//framebuf = &((u16*)FRAMEBUF_TOP_A_1)[SCREEN_HEIGHT_TOP * x + width - y];
-			u8 *pixeldata = &imagedata[(width*(y-1)+x)*3];
-			*framebuf++ = RGB8_to_565(pixeldata[0], pixeldata[1], pixeldata[2]);
+			const u8 *pixeldata = &imagedata[(x + (y-1) * width)*3];
+			color = RGB8_to_565(pixeldata[2], pixeldata[0], pixeldata[1]);
+			drawPixel(start_x + x, start_y + height - y, color);
 		}
 	}
 }

@@ -13,6 +13,7 @@ PrintConsole con_top, con_bottom;
 
 void uiInit();
 void uiDrawSplashScreen();
+void uiDrawConsoleWindow();
 void uiClearConsoles();
 void clearConsole(int which);
 void uiSetVerbose(bool verb);
