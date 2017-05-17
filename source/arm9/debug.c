@@ -11,7 +11,7 @@
 static u32 debugHash = 0;
 
 
-void hashCodeRoData()
+void debugHashCodeRoData()
 {
 #ifndef NDEBUG
 	extern u32 *__start__;
@@ -72,7 +72,7 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 
 	// verify text and rodata
 	u32 prevHash = debugHash;
-	hashCodeRoData();
+	debugHashCodeRoData();
 	if(prevHash != debugHash)
 		codeChanged = true;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "arm9/debug.h"	// TODO: remove after debugging
+#include "arm9/debug.h"
 #include "fatfs/ff.h"
 #include "arm9/ui.h"
 

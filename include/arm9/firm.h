@@ -25,19 +25,6 @@ typedef struct
 	u8 signature[0x100];
 } firm_header;
 
-// TODO
-/*
-// <first word from signaure>, <version #>
-const u32 firmVersionTable[] = {
-	0, 0
-};
-
-// <version #><
-const u32 firmVersionStringTable[] = {
-	0, 0
-};
-*/
-
 bool firm_size(size_t *size);
 bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo);
 noreturn void firm_launch(void);

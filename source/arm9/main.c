@@ -30,7 +30,7 @@ int main(void)
 
 	hardwareInit();
 
-	hashCodeRoData();	// TODO: remove after debugging
+	debugHashCodeRoData();
 
 	screen_init();
 	
