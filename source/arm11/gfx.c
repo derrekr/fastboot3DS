@@ -1,3 +1,10 @@
+/*
+ * Based on code from https://github.com/AuroraWright/Luma3DS/blob/master/source/screen.c
+ * for compatibility.
+ * 
+ * Credits go to the Luma3DS devs and derrek for reverse engineering boot11.
+*/
+
 #include "mem_map.h"
 #include "types.h"
 #include "util.h"
@@ -23,41 +30,37 @@
 
 
 
-extern void gpio_set_bit(vu16 *reg, u8 bit_num);
-extern void gpio_clear_bit(vu16 *reg, u8 bit_num);
-
-void gfx_setup_framebuf_top()
+static void gfx_setup_framebuf_top()
 {
-	*((vu32 *)(0x10400400)) = 0x1C2;
-	*((vu32 *)(0x10400400+0x4)) = 0xD1;
-	*((vu32 *)(0x10400400+0xC)) = 0x1C1;
-	*((vu32 *)(0x10400400+0x10)) = 0x0;
-	*((vu32 *)(0x10400400+0x60)) = 0x1C100D1;
-	*((vu32 *)(0x10400400+0x14)) = 0xCF;
-	*((vu32 *)(0x10400400+0x18)) = 0xD1;
-	*((vu32 *)(0x10400400+0x8)) = 0x1C1;
-	*((vu32 *)(0x10400400+0x1C)) = 0x1C501C1;
-	*((vu32 *)(0x10400400+0x20)) = 0x10000;
-	*((vu32 *)(0x10400400+0x24)) = 0x19D;
-	*((vu32 *)(0x10400400+0x28)) = 0x02;
-	*((vu32 *)(0x10400400+0x30)) = 0x192;
-	*((vu32 *)(0x10400400+0x34)) = 0x192;
-	*((vu32 *)(0x10400400+0x64)) = 0x1920002;
-	*((vu32 *)(0x10400400+0x38)) = 0x01;
-	*((vu32 *)(0x10400400+0x3C)) = 0x02;
-	*((vu32 *)(0x10400400+0x2C)) = 0x192;
-	*((vu32 *)(0x10400400+0x40)) = 0x1930192;
-	*((vu32 *)(0x10400400+0x44)) = 0;
-	*((vu32 *)(0x10400400+0x48)) = 0x0;
-	*((vu32 *)(0x10400400+0x5C)) = 0x19000F0; // framebuf width & height, 400x240 
-	*((vu32 *)(0x10400400+0x90)) = 0x1E0; // 0x3C0; // framebuf stride, observed to be 0
-	*((vu32 *)(0x10400400+0x68)) = FRAMEBUF_TOP_A_1; // framebuf A first address
-	*((vu32 *)(0x10400400+0x6C)) = FRAMEBUF_TOP_A_2; // framebuf A second address
-	*((vu32 *)(0x10400400+0x9C)) = 0x1920000;
-	*((vu32 *)(0x10400400+0x70)) = 0x80042; // 0x80040;	// Framebuffer format: main screen, GL_RGBA8_OES
-	*((vu32 *)(0x10400400+0x74)) = 0x10700; // gets set to 0x10501 later on
-	*((vu32 *)(0x10400400+0x78)) = 0x70100; // gets set to 0x0 later on
-	*((vu32 *)(0x10400400+0x80)) = 0x0;
+	*((vu32*)(0x10400400+0x00)) = 0x000001C2;
+	*((vu32*)(0x10400400+0x04)) = 0x000000D1;
+	*((vu32*)(0x10400400+0x08)) = 0x000001C1;
+	*((vu32*)(0x10400400+0x0C)) = 0x000001C1;
+	*((vu32*)(0x10400400+0x10)) = 0x00000000;
+	*((vu32*)(0x10400400+0x14)) = 0x000000CF;
+	*((vu32*)(0x10400400+0x18)) = 0x000000d1;
+	*((vu32*)(0x10400400+0x1C)) = 0x01C501C1;
+	*((vu32*)(0x10400400+0x20)) = 0x00010000;
+	*((vu32*)(0x10400400+0x24)) = 0x0000019D;
+	*((vu32*)(0x10400400+0x28)) = 0x00000002;
+	*((vu32*)(0x10400400+0x2C)) = 0x00000192;
+	*((vu32*)(0x10400400+0x30)) = 0x00000192;
+	*((vu32*)(0x10400400+0x34)) = 0x00000192;
+	*((vu32*)(0x10400400+0x38)) = 0x00000001;
+	*((vu32*)(0x10400400+0x3C)) = 0x00000002;
+	*((vu32*)(0x10400400+0x40)) = 0x01960192;
+	*((vu32*)(0x10400400+0x44)) = 0x00000000;
+	*((vu32*)(0x10400400+0x48)) = 0x00000000;
+	*((vu32*)(0x10400400+0x5C)) = (SCREEN_WIDTH_TOP << 16) | SCREEN_HEIGHT_TOP; // framebuf width & height, 400x240 
+	*((vu32*)(0x10400400+0x60)) = 0x01C100D1;
+	*((vu32*)(0x10400400+0x64)) = 0x01920002;
+	*((vu32*)(0x10400400+0x68)) = FRAMEBUF_TOP_A_1;      // framebuf A first address
+	*((vu32*)(0x10400400+0x6C)) = FRAMEBUF_TOP_A_2;      // framebuf A second address
+	*((vu32*)(0x10400400+0x70)) = 0x00080042;            // Framebuffer format: main screen, GL_RGB565_OES
+	*((vu32*)(0x10400400+0x74)) = 0x00010501;
+	*((vu32*)(0x10400400+0x78)) = 0x00000000;
+	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 2; // framebuf stride, observed to be 0
+	*((vu32*)(0x10400400+0x9C)) = 0x00000000;
 
 	for(u32 i = 0; i < 0x100; i++)
 	{
@@ -67,39 +70,38 @@ void gfx_setup_framebuf_top()
 	}
 }
 
-void gfx_setup_framebuf_low()
+static void gfx_setup_framebuf_low()
 {
-	*((vu32 *)(0x10400500)) = 0x1C2;
-	*((vu32 *)(0x10400500+0x4)) = 0xD1;
-	*((vu32 *)(0x10400500+0xC)) = 0x1C1;
-	*((vu32 *)(0x10400500+0x10)) = 0xCD;
-	*((vu32 *)(0x10400500+0x60)) = 0x1C100D1;
-	*((vu32 *)(0x10400500+0x14)) = 0xCF;
-	*((vu32 *)(0x10400500+0x18)) = 0xD1;
-	*((vu32 *)(0x10400500+0x8)) = 0x1C1;
-	*((vu32 *)(0x10400500+0x1C)) = 0x1C501C1;
-	*((vu32 *)(0x10400500+0x20)) = 0x10000;
-	*((vu32 *)(0x10400500+0x24)) = 0x19D;
-	*((vu32 *)(0x10400500+0x28)) = 0x52;
-	*((vu32 *)(0x10400500+0x30)) = 0x192;
-	*((vu32 *)(0x10400500+0x34)) = 0x4F;
-	*((vu32 *)(0x10400500+0x64)) = 0x1920052;
-	*((vu32 *)(0x10400500+0x38)) = 0x50;
-	*((vu32 *)(0x10400500+0x3C)) = 0x52;
-	*((vu32 *)(0x10400500+0x2C)) = 0x192;
-	*((vu32 *)(0x10400500+0x40)) = 0x1930192;
-	*((vu32 *)(0x10400500+0x44)) = 0;
-	*((vu32 *)(0x10400500+0x48)) = 0x11;
-	*((vu32 *)(0x10400500+0x5C)) = 0x14000F0; // framebuf width & height
-	*((vu32 *)(0x10400500+0x90)) = 0x1E0; // 0x3C0; // framebuf stride, observed to be 0
-	*((vu32 *)(0x10400500+0x68)) = FRAMEBUF_SUB_A_1; // framebuf A first address
-	*((vu32 *)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2; // framebuf A second address
-	*((vu32 *)(0x10400500+0x9C)) = 0x1920000;
-	*((vu32 *)(0x10400500+0x70)) = 0x80002; // 0x80000;	// Framebuffer format: sub screen, GL_RGBA8_OES
-	*((vu32 *)(0x10400500+0x74)) = 0x10700; // gets set to 0x10501 later on
-	*((vu32 *)(0x10400500+0x78)) = 0x70100; // gets set to 0x0 later on
-	*((vu32 *)(0x10400500+0x80)) = 0x0;
-	
+	*((vu32*)(0x10400500+0x00)) = 0x000001C2;
+	*((vu32*)(0x10400500+0x04)) = 0x000000D1;
+	*((vu32*)(0x10400500+0x08)) = 0x000001C1;
+	*((vu32*)(0x10400500+0x0C)) = 0x000001C1;
+	*((vu32*)(0x10400500+0x10)) = 0x000000CD;
+	*((vu32*)(0x10400500+0x14)) = 0x000000CF;
+	*((vu32*)(0x10400500+0x18)) = 0x000000D1;
+	*((vu32*)(0x10400500+0x1C)) = 0x01C501C1;
+	*((vu32*)(0x10400500+0x20)) = 0x00010000;
+	*((vu32*)(0x10400500+0x24)) = 0x0000019D;
+	*((vu32*)(0x10400500+0x28)) = 0x00000052;
+	*((vu32*)(0x10400500+0x2C)) = 0x00000192;
+	*((vu32*)(0x10400500+0x30)) = 0x00000192;
+	*((vu32*)(0x10400500+0x34)) = 0x0000004F;
+	*((vu32*)(0x10400500+0x38)) = 0x00000050;
+	*((vu32*)(0x10400500+0x3C)) = 0x00000052;
+	*((vu32*)(0x10400500+0x40)) = 0x01980194;
+	*((vu32*)(0x10400500+0x44)) = 0x00000000;
+	*((vu32*)(0x10400500+0x48)) = 0x00000011;
+	*((vu32*)(0x10400500+0x5C)) = (SCREEN_WIDTH_SUB << 16) | SCREEN_HEIGHT_SUB; // framebuf width & height
+	*((vu32*)(0x10400500+0x60)) = 0x01C100D1;
+	*((vu32*)(0x10400500+0x64)) = 0x01920052;
+	*((vu32*)(0x10400500+0x68)) = FRAMEBUF_SUB_A_1;      // framebuf A first address
+	*((vu32*)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2;      // framebuf A second address
+	*((vu32*)(0x10400500+0x70)) = 0x00080002;            // Framebuffer format: sub screen, GL_RGB565_OES
+	*((vu32*)(0x10400500+0x74)) = 0x00010501;
+	*((vu32*)(0x10400500+0x78)) = 0x00000000;
+	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 2; // framebuf stride, observed to be 0
+	*((vu32*)(0x10400500+0x9C)) = 0x00000000;
+
 	for(u32 i = 0; i < 0x100; i++)
 	{
 		u32 val = 0x10101;
@@ -108,183 +110,53 @@ void gfx_setup_framebuf_low()
 	}
 }
 
-void gfx_init_framebufsetup()
+void gfx_clear_screens(u64 *top, u64 *sub)
 {
-	REG_PDN_GPU_CNT2_8BIT |= 1;	// turn on GPU
-	REG_PDN_GPU_CNT |= 1<<0x10;	// turn on LCD backlight
-	wait(0x1000);
-	
-	REG_PDN_GPU_CNT |= 0x1007F;
-	REG_PDN_GPU_CNT4 |= 1;
-	
-	REG_GPU_EXT_CNT |= 0x300;
-	
-	//memset(VRAM_BASE, 0xFF, VRAM_SIZE);
-	//gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
-	
-	gfx_setup_framebuf_top();
-	gfx_setup_framebuf_low();
-	
-	*((vu32 *)(0x1040044C)) = 0xFF00;
-	*((vu32 *)(0x1040054C)) = 0xFF;
+	vu32 *REGs_PSC0 = (vu32*)0x10400010,
+		 *REGs_PSC1 = (vu32*)0x10400020;
 
-	
-	wait(0x8000);
-	*((vu32 *)(0x10400578)) = 0x0;
-	*((vu32 *)(0x10400478)) = 0x0;
-	*((vu32 *)(0x10400574)) = 0x10501;
-	*((vu32 *)(0x10400474)) = 0x10501;
+	REGs_PSC0[0] = (u32)top>>3; // Start address
+	REGs_PSC0[1] = (SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 + (u32)top)>>3; // End address 
+	REGs_PSC0[2] = 0; // Fill value
+	REGs_PSC0[3] = (2u<<8) | 1u; // 32-bit pattern; start
+
+	REGs_PSC1[0] = (u32)sub>>3; // Start address
+	REGs_PSC1[1] = (SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2 + (u32)sub)>>3; // End address
+	REGs_PSC1[2] = 0; //Fill value
+	REGs_PSC1[3] = (2u<<8) | 1u; //32-bit pattern; start
+
+	while(!((REGs_PSC0[3] & 2) && (REGs_PSC1[3] & 2)));
 }
 
-void gpio_stuff_bit7_bit10()
+void gfx_init(void)
 {
-	// gpio_stuff
-	*((vu32 *) 0x10202014) = 0;
-	if(((*((u16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
-	{
-		gpio_set_bit((vu16 *)0x10147022, 0xA);
-		gpio_clear_bit((vu16 *)0x10147020, 0xA);
-	}
-	
-	// gpio_stuff2
-	if(((*((vu16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
-	{
-		gpio_set_bit((vu16 *)0x10147022, 7);
-		gpio_clear_bit((vu16 *)0x10147020, 7);
-	}
-}
-
-void gfx_lcd_set_mcu_conf()
-{
-	u8 mcu_data;
-	if(i2cmcu_readreg0x0_upper(&mcu_data) && (mcu_data != 0x01))
-	{
-		*((vu32 *) 0x10202244) = (*((vu32 *) 0x10202244) & 0xFFFF0C00) + 0x60FF;
-		*((vu32 *) 0x10202A44) = (*((vu32 *) 0x10202A44) & 0xFFFF0C00) + 0x60FF;
-	}
-	else
-	{
-		*((vu32 *) 0x10202244) = (*((vu32 *) 0x10202244) & 0xFFFF0C00) + 0xFF;
-		*((vu32 *) 0x10202A44) = (*((vu32 *) 0x10202A44) & 0xFFFF0C00) + 0xFF;
-	}
-}
-
-void gfx_init_step1()
-{
-	gfx_init_framebufsetup();
-	*((vu32 *) 0x10202000) = 0;
-	*((vu32 *) 0x10202004) = 0xA390A39;
-	//gpio_stuff_bit7_bit10();
-	gfx_lcd_set_mcu_conf();
-}
-
-u32 gfx_i2c_lcd_init()
-{
-	if(!i2c_write_regdata_dev5_dev6(true, true, 0x11, 0x10) ||
-	   !i2c_write_regdata_dev5_dev6(true, false, 0x50, 0x1) ||
-	   !i2c_write_regdata_dev5_dev6(true, true, 0x60, 0) ||
-	   !i2c_write_regdata_dev5_dev6(true, true, 1, 0x10))
-		return 0;
-	return 1;
-}
-
-void gfx_init_step2()
-{
-	wait(0x1000);
-	// gpio_stuff
-	*((vu32 *) 0x10202014) = 1;
-	if(((*((vu16 *) 0x10140FFC)) << 0x1F) >> 0x1F)
-	{
-		gpio_set_bit((vu16 *)0x10147022, 0xA);
-		gpio_set_bit((vu16 *)0x10147020, 0xA);
-	}
-	
-	// enable color fill regs for both screens
-	REG_LCD_COLORFILL_MAIN |= 1<<24;
-	REG_LCD_COLORFILL_SUB |= 1<<24;
-	
-	*((vu32 *) 0x1020200C) &= 0xFFFEFFFE;
-	
-	wait(0x1000);
-	//gfx_i2c_lcd_init();
-	i2cmcu_lcd_poweron();
-}
-
-u32 gfx_i2c_lcd_finish()
-{
-	u8 response = i2c_write_echo_read(5, 0x40, 0x62);
-	if(i2c_write_echo_read(6, 0x40, 0x62) != response)
-		return 0;
-	if(response == 1)
-		return 1;
-	return 0;
-}
-
-void gfx_init_step3()
-{
+	REG_PDN_GPU_CNT = 0x1007F;
+	*((vu32*)0x10202014) = 0x00000001;
+	*((vu32*)0x1020200C) &= 0xFFFEFFFE;
 	REG_LCD_BACKLIGHT_MAIN = 0x0F; // Equals home menu brightness level 1
 	REG_LCD_BACKLIGHT_SUB = 0x0F;
-	
-	int i;
-	for(i=0; i<10; i++)
-	{
-		//if(!gfx_i2c_lcd_finish())
-			wait(0x20000);
-		//else break;
-	}
-	
+	*((vu32*)0x10202244) = 0x1023E;
+	*((vu32*)0x10202A44) = 0x1023E;
+
+	gfx_setup_framebuf_top();
+	gfx_setup_framebuf_low();
+
+	i2cmcu_lcd_poweron();
+	REG_LCD_COLORFILL_MAIN = 1u<<24;
+	REG_LCD_COLORFILL_SUB = 1u<<24;
+	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, (u64*)FRAMEBUF_SUB_A_1);
+
+	i2cmcu_lcd_backlight_poweron();
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
-	
-	*((vu32 *) 0x10202244) = *((vu32 *) 0x10202244) | 0x10000;
-	*((vu32 *) 0x10202A44) = *((vu32 *) 0x10202A44) | 0x10000;
-	
-	// enable lcd lights
-	i2cmcu_lcd_backlight_poweron();
 }
 
-void gfx_init()
+void gfx_deinit()
 {
-	static bool gfxInitDone;
+	i2cmcu_lcd_backlight_poweroff();
+	i2cmcu_lcd_poweroff();
 
-	if(gfxInitDone)
-		return;
-
-	gfxInitDone = true;
-
-	gfx_init_step1();
-	gfx_init_step2();
-	gfx_init_step3();
+	*(vu32*)0x10202A44 = 0;
+	*(vu32*)0x10202244 = 0;
+	*(vu32*)0x10202014 = 0;
 }
-
-void gfx_set_framebufs(u8 r, u8 g, u8 b, u8 a)
-{
-	u8 *framebuf = (u8 *) FRAMEBUF_TOP_A_1;
-	for(u32 i=0; i<SCREEN_HEIGHT_TOP*SCREEN_WIDTH_TOP; i++)
-	{
-		*framebuf++ = a;
-		*framebuf++ = b;
-		*framebuf++ = g;
-		*framebuf++ = r;
-	}
-	
-	framebuf = (u8 *) FRAMEBUF_SUB_A_1;
-	for(u32 i=0; i<SCREEN_HEIGHT_SUB*SCREEN_WIDTH_SUB; i++)
-	{
-		*framebuf++ = a;
-		*framebuf++ = b;
-		*framebuf++ = g;
-		*framebuf++ = r;
-	}
-}
-
-void gfx_set_black_sub()
-{
-	REG_LCD_COLORFILL_SUB |= 1<<24;
-}
-
-void gfx_clear_framebufs()
-{
-	gfx_set_framebufs(0x00, 0x00, 0x00, 0x00);
-}
-

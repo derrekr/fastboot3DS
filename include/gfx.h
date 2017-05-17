@@ -18,18 +18,6 @@
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 
+void gfx_clear_screens(u64 *top, u64 *sub);
 void gfx_init();
-void gfx_set_framebufs(u8 r, u8 g, u8 b, u8 a);
-void gfx_set_black_sub();
-void gfx_clear_framebufs();
-
-inline u32 *gfx_get_framebuf_ptr(int top_screen, u16 x, u16 y)
-{
-	if(top_screen)
-	{
-		u32 *framebuf = (u32 *) FRAMEBUF_TOP_A_1;
-		return &framebuf[SCREEN_HEIGHT_TOP*x + SCREEN_HEIGHT_TOP-y];
-	}
-	u32 *framebuf = (u32 *) FRAMEBUF_SUB_A_1;
-	return &framebuf[SCREEN_HEIGHT_SUB*x + SCREEN_HEIGHT_SUB-y];
-}
+void gfx_deinit();

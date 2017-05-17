@@ -15,8 +15,6 @@ int main(void)
 
 	hardwareInit();
 
-	gfx_clear_framebufs();
-
 	for(;;)
 	{
 		bool successFlag;
@@ -80,6 +78,7 @@ int main(void)
 	}
 
 start_firmlaunch:
+	gfx_deinit(); // TODO: Let ARM9 decide when to deinit gfx
 
 	return 0;
 }
