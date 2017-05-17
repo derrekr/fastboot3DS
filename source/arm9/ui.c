@@ -77,9 +77,14 @@ void clearConsole(int which)
 	consoleClear();
 }
 
-void uiSetVerbose(bool verb)
+void uiSetVerboseMode(bool verb)
 {
 	verbose = verb;
+}
+
+bool uiGetVerboseMode()
+{
+	return verbose;
 }
 
 /* TODO: Should look similar to uiShowMessageWindow */
@@ -112,16 +117,14 @@ void uiPrintIfVerbose(const char *const format, ...)
 {
 	if(verbose)
 	{
-		const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
-		char tmp[width + 1];
+		char tmp[256];
 
 		va_list args;
 		va_start(args, format);
-		vsnprintf(tmp, width + 1, format, args);
+		vsnprintf(tmp, 256, format, args);
 		va_end(args);
-
-		size_t len = strlen(tmp);
-		printf("\x1B[0m%*s%s\n", (width - len) / 2, "", tmp);
+		
+		printf(tmp);
 	}
 }
 

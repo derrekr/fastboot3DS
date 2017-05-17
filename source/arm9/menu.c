@@ -23,9 +23,9 @@ const menu_state_options menu_main = {
 	5,
 	{
 		{"Continue boot", MENU_STATE_FIRM_LAUNCH_SETTINGS},
+		{"Launch Firmware...", MENU_STATE_BROWSER},
 		{"NAND tools...", MENU_STATE_NAND_MENU},
 		{"Options...", MENU_STATE_OPTIONS_MENU},
-		{"Browse FIRM...", MENU_STATE_BROWSER},
 		{"Update", MENU_STATE_UPDATE},
 	}
 };
@@ -184,7 +184,7 @@ int enter_menu(int initial_state)
 				break;
 				
 			case MENU_STATE_FIRM_LAUNCH_SETTINGS:
-				if(!menuTryLoadFirmwareFromSettings())
+				if(!tryLoadFirmwareFromSettings(true))
 					uiClearConsoles();
 				break;
 				
@@ -237,7 +237,7 @@ static void menuRunOnce(int state)
 	switch(state)
 	{
 		case MENU_STATE_FIRM_LAUNCH_SETTINGS:
-			if(!menuTryLoadFirmwareFromSettings())
+			if(!tryLoadFirmwareFromSettings(true))
 				uiClearConsoles();
 			break;
 		
@@ -380,68 +380,9 @@ void menuActState(void)
 
 	menu_event_state = MENU_EVENT_NONE;
 }
-/*
-static char *menuNormalizeText(const char *text)
-{
-	size_t curLineLen;
-	const char *p = text;
-	
-	char *q = (char *) malloc((strlen(text) + 1) * 3);
-	if(!q)
-		return NULL;
-	
-	while(*p)
-	{
-		if(p[0] == '\\' && p[1] == 'n')
-		{
-			
-		}
-	}
-}
 
-
-void menuCalcWindowMetrics(const char *text, int *x, int *y, int *width, int *height)
-{
-	const char *p = text;
-	size_t longestLineLen = 0;
-	size_t curLineLen;
-	size_t lines = 0;
-	
-	while(*p)
-	{
-		// Note: text shouldn't be malformed.
-		if(p[0] == '\n')
-		{
-			lines ++;
-			if(curLineLen > longestLineLen)
-				longestLineLen = curLineLen;
-			p += 2;
-		}
-		else
-		{
-			curLineLen++;
-			p++;
-		}
-	}
-	
-	if(curLineLen > longestLineLen)
-		longestLineLen = curLineLen;
-	
-	
-}
-*/
 void menuPrintPrompt(const char *text)
 {
-	/*
-	const char *p = text;
-	size_t lines = 0;
-	
-	
-	while(*p)
-	{
-	
-	}*/
-	
 	printf(text);
 }
 

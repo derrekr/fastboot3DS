@@ -95,7 +95,7 @@ size_t firmwriterFinish()
 	
 	if(!firmwriterIsDone())
 	{
-		printf("firmwriter is not done yet.\n");
+		// printf("firmwriter is not done yet.\n");
 		return false;
 	}
 

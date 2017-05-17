@@ -90,88 +90,11 @@ static bool statFirmware(const char *filePath)
 		
 		return true;
 	}
+	else if(strncmp(filePath, "firm1:", 5) == 0)
+		return true;	// this is always available
 	
 	// unknown mountpoint
 	return false;
-}
-
-bool menuTryLoadFirmwareFromSettings(void)
-{
-	const char *path;
-	int keyBootOption, keyPad;
-	int i;
-	u32 padValue, expectedPadValue;
-
-	uiClearConsoles();
-	consoleSelect(&con_top);
-
-	printf("Loading FIRM from settings\n\n");
-	
-	// No Boot Option set up?
-	if(!configDataExist(KBootOption1) &&
-		!configDataExist(KBootOption2) &&
-		!configDataExist(KBootOption3))
-	{
-		menuPrintPrompt("No Boot-Option set up yet.\nGo to 'Options' to choose a file.\n");
-		menuWaitForAnyPadkey();
-		menuSetReturnToState(STATE_PREVIOUS);
-		return false;
-	}
-
-	keyBootOption = KBootOption1;
-	keyPad = KBootOption1Buttons;
-
-	for(i=0; i<3; i++, keyBootOption++, keyPad++)
-	{
-		path = (const char *)configGetData(keyBootOption);
-		if(path)
-		{
-			printf("\nBoot Option #%i:\n%s\n", i + 1, path);
-			
-			// check if fw still exists
-			if(!statFirmware(path))
-			{
-				printf("Couldn't find firmware...\n");
-				continue;
-			}
-			
-			// check pad value
-			const u32 *temp;
-			temp = (const u32 *)configGetData(keyPad);
-			if(temp)
-			{
-				expectedPadValue = *temp;
-				hidScanInput();
-				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
-				if(padValue != expectedPadValue)
-				{
-					printf("Skipping, right buttons are not pressed.\n");
-					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
-					continue;
-				}
-			}
-
-			if(menuLaunchFirm(path, false))
-				break;
-			else
-			{
-				uiClearConsoles();
-				consoleSelect(&con_top);
-			}
-		}
-
-		// ... we failed, try next one
-	}
-
-	if(i >= 3)
-	{
-		menuSetReturnToState(STATE_PREVIOUS);
-		return false;
-	}
-	
-	menuSetReturnToState(MENU_STATE_EXIT);
-
-	return true;
 }
 
 static bool checkForHIDAbort()
@@ -196,13 +119,16 @@ static bool checkForHIDAbort()
 	return false;
 }
 
-bool TryLoadFirmwareFromSettings(void)
+bool tryLoadFirmwareFromSettings(bool fromMenu)
 {
 	const char *path;
 	int keyBootOption, keyBootMode, keyPad;
 	int i;
 	u32 padValue, expectedPadValue;
 
+	if(fromMenu)
+		uiClearConsoles();
+	
 	consoleSelect(&con_top);
 	
 	firmLoaded = 0;
@@ -214,6 +140,12 @@ bool TryLoadFirmwareFromSettings(void)
 		!configDataExist(KBootOption2) &&
 		!configDataExist(KBootOption3))
 	{
+		if(fromMenu)
+		{
+			menuPrintPrompt("No Boot-Option set up yet.\nGo to 'Options' to choose a file.\n");
+			menuWaitForAnyPadkey();
+			menuSetReturnToState(STATE_PREVIOUS);
+		}
 		return false;
 	}
 	
@@ -256,11 +188,24 @@ bool TryLoadFirmwareFromSettings(void)
 				}
 			}
 
-			if(tryLoadFirmware(path, false, false))
-				break;
+			if(fromMenu)
+			{
+				if(menuLaunchFirm(path, false))
+					break;
+				else
+				{
+					uiClearConsoles();
+					consoleSelect(&con_top);
+				}
+			}
 			else
 			{
-				printf("Bad firmware, trying next one...\n");
+				if(tryLoadFirmware(path, false, false))
+					break;
+				else
+				{
+					printf("Bad firmware, trying next one...\n");
+				}
 			}
 		}
 		else
@@ -276,6 +221,8 @@ try_next:
 
 	if(i >= 3)
 	{
+		if(fromMenu)
+			menuSetReturnToState(STATE_PREVIOUS);
 		return false;
 	}
 	
@@ -283,6 +230,9 @@ try_next:
 		return false;
 	
 	firmLoaded = 1;
+	
+	if(fromMenu)
+		menuSetReturnToState(MENU_STATE_EXIT);
 
 	return true;
 }
@@ -364,11 +314,16 @@ bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
 
 	if(!filepath)
 		return false;
+	
+	if(!statFirmware(filepath))
+		return false;
 
 	// printf("Loading firmware:\n%s\n\n", filepath);
 
+	/* SD card */
 	if(strncmp(filepath, "sdmc:", 5) == 0)
 		fw_size = loadFirmSd(filepath);
+	/* NAND */
 	else if(strncmp(filepath, "firm1:", 5) == 0)
 		fw_size = loadFirmNandPartition(filepath);
 	else

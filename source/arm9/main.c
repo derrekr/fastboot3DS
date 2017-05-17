@@ -23,6 +23,7 @@ static void unit_detect();
 static void boot_env_detect();
 static void fw_detect();
 static bool loadSettings(int *mode);
+static void checkSetVerboseMode();
 
 int main(void)
 {
@@ -36,9 +37,11 @@ int main(void)
 	
 	uiInit();
 	
+	checkSetVerboseMode();
+	
 	uiDrawSplashScreen();
 	
-	consoleSelect(&con_top);
+	consoleSelect(&con_bottom);
 	
 	uiPrintIfVerbose("\x1B[32mGood morning\nHello !\e[0m\n\n");
 	
@@ -59,7 +62,7 @@ int main(void)
 					screen_init();
 					/* fallthrough */
 				case BootModeQuiet:
-					TryLoadFirmwareFromSettings();
+					tryLoadFirmwareFromSettings(false);
 					if(isFirmLoaded())
 						goto finish_firmlaunch;
 					/* else fallthrough */
@@ -212,7 +215,7 @@ static bool mount_fs()
 	}
 	else finalRes = false;
 
-	if(!finalRes)
+	if(!finalRes && uiGetVerboseMode())
 		TIMER_sleep(2000);
 
 	return finalRes;
@@ -325,6 +328,16 @@ static bool loadSettings(int *mode)
 	*mode = BootModeNormal;
 
 	return false;
+}
+
+static void checkSetVerboseMode()
+{
+	u32 keys;
+	
+	hidScanInput();
+	keys = hidKeysDown() & HID_KEY_MASK_ALL;
+	if(keys == HID_VERBOSE_MODE_BUTTONS)
+		uiSetVerboseMode(true);
 }
 
 #define PRNG_REGS_BASE  (IO_MEM_ARM9_ONLY + 0x11000)

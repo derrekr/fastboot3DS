@@ -18,8 +18,8 @@
 
 #define MAX_FILE_SIZE	0x4000 - 1
 
-static const char *SdmcFilepath = "sdmc:\\loadercfg.txt";
-// static const char *NandFilepath = "nand:\\loader\\loadercfg.txt";
+static const char *SdmcFilepath = "sdmc:\\fastbootcfg.txt";
+// static const char *NandFilepath = "nand:\\loader\\fastbootcfg.txt";
 
 static const char *filepath;
 

@@ -9,6 +9,7 @@
 #include "arm9/firm.h"
 #include "arm9/crypto.h"
 #include "arm9/ndma.h"
+#include "arm9/ui.h"
 #include "cache.h"
 #include "util.h"
 #include "pxi.h"
@@ -167,8 +168,8 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	
 	if(printInfo)
 	{
-		printf("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
-		printf("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
+		uiPrintInfo("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
+		uiPrintInfo("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
 	}
 	
 	for(u32 i=0; i<4; i++)
@@ -179,20 +180,20 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			continue;
 
 		if(printInfo)
-			printf("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n", (int)i,
+			uiPrintInfo("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n", (int)i,
 				   section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize || section->offset < sizeof(firm_header))
 		{
 			if(printInfo)
-				printf("\x1B[31mBad section offset!\e[0m\n");
+				uiPrintInfo("\x1B[31mBad section offset!\e[0m\n");
 			return false;
 		}
 		
 		if((section->size >= fwSize) || (section->size + section->offset > fwSize))
 		{
 			if(printInfo)
-				printf("\x1B[31mBad section size!\e[0m\n");
+				uiPrintInfo("\x1B[31mBad section size!\e[0m\n");
 			return false;
 		}
 		
@@ -220,7 +221,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			if(!isValid)
 			{
 				if(printInfo)
-					printf("\x1B[31mUnallowed section:\n0x%"PRIX32" - 0x%"PRIX32"\e[0m\n", start, end);
+					uiPrintInfo("\x1B[31mUnallowed section:\n0x%"PRIX32" - 0x%"PRIX32"\e[0m\n", start, end);
 				retval = false;
 				break;
 			}
@@ -233,7 +234,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			isValid = memcmp(hash, section->hash, 32) == 0;
 			
 			if(printInfo)
-				printf("Hash: %s\e[0m\n", res[isValid]);
+				uiPrintInfo("Hash: %s\e[0m\n", res[isValid]);
 			
 			retval &= isValid;
 		}
@@ -253,7 +254,7 @@ noreturn void firm_launch(void)
 	//printf("Relocating FIRM launch stub...\n");
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE>>2);
 
-	printf("Starting firm launch...\n");
+	//printf("Starting firm launch...\n");
 	void (*stub)(void) = (void (*)(void))A9_STUB_ENTRY;
 	stub();
 	while(1);
