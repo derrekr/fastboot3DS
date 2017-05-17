@@ -67,8 +67,6 @@ size_t firmwriterWriteBlock()
 	if(!dev_decnand->read_sector(curSector, numSectors, blockData) ||
 		memcmp(sourceBuf, blockData, numSectors * 0x200) != 0)
 	{
-		dumpMem(sourceBuf-0x100, numSectors * 0x200 + 0x100, "should.bin");
-		dumpMem(blockData-0x100, numSectors * 0x200 + 0x100, "isnt.bin");
 		failure = true;
 		return 0;
 	}

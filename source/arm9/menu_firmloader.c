@@ -14,10 +14,9 @@
 #include "arm9/menu.h"
 #include "arm9/firm.h"
 #include "arm9/config.h"
+#include "arm9/partitions.h"
 
 static int firmLoaded = 0;
-
-static u32 loadFirmSd(const char *filePath);
 
 bool isFirmLoaded(void)
 {
@@ -218,7 +217,7 @@ bool TryLoadFirmwareFromSettings(void)
 		return false;
 	}
 	
-	const u32 *temp = configGetData(keyBootMode);
+	const u32 *temp = configGetData(KBootMode);
 	keyBootMode = temp? *temp : BootModeNormal;
 
 	keyBootOption = KBootOption1;
@@ -288,26 +287,6 @@ try_next:
 	return true;
 }
 
-bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
-{
-	u32 fw_size;
-
-	if(!filepath)
-		return false;
-
-	// printf("Loading firmware:\n%s\n\n", filepath);
-
-	if(strncmp(filepath, "sdmc:", 5) == 0)
-		fw_size = loadFirmSd(filepath);
-	else
-		return false;	// TODO: Support more devices
-
-	if(fw_size == 0)
-		return false;
-
-	return firm_verify(fw_size, skipHashCheck, printInfo);
-}
-
 static u32 loadFirmSd(const char *filePath)
 {
 	FIL file;
@@ -347,4 +326,56 @@ static u32 loadFirmSd(const char *filePath)
 	f_close(&file);
 
 	return fileSize;
+}
+
+static u32 loadFirmNandPartition(const char *filePath)
+{
+	char partName[11];
+	void *firmBuf = (void *) FIRM_LOAD_ADDR;
+	size_t index;
+	size_t sector;
+	size_t firmSize;
+	
+	sscanf(filePath, "%10s:", partName);
+	
+	if(!partitionGetIndex(partName, &index))
+		return 0;
+	
+	partitionGetSectorOffset(index, &sector);
+
+	/* get header to figure out the actual firm size */
+	if(!dev_decnand->read_sector(sector, 1, firmBuf))
+		return 0;
+	
+	if(!firm_size(&firmSize))
+		return 0;
+
+	/* read the rest */
+
+	if(!dev_decnand->read_sector(sector + 1, firmSize - 1, firmBuf + 0x200))
+		return 0;
+
+	return firmSize;
+}
+
+bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
+{
+	u32 fw_size;
+
+	if(!filepath)
+		return false;
+
+	// printf("Loading firmware:\n%s\n\n", filepath);
+
+	if(strncmp(filepath, "sdmc:", 5) == 0)
+		fw_size = loadFirmSd(filepath);
+	else if(strncmp(filepath, "firm1:", 5) == 0)
+		fw_size = loadFirmNandPartition(filepath);
+	else
+		return false;	// TODO: Support more devices
+
+	if(fw_size == 0)
+		return false;
+
+	return firm_verify(fw_size, skipHashCheck, printInfo);
 }
