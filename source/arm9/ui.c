@@ -10,12 +10,16 @@
 #include "arm9/ui.h"
 #include "arm9/console.h"
 #include "banner_ppm_bin.h"
+#include "bootwarning_ppm_bin.h"
+#include "bootfail_ppm_bin.h"
 
 
 static u8 randomColor;
 static bool verbose = false;
 
 static const void *bannerData = banner_ppm_bin;
+static const void *bootWarningData = bootwarning_ppm_bin;
+static const void *bootFailureData = bootfail_ppm_bin;
 
 
 static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height);
@@ -294,11 +298,7 @@ static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
 	unsigned width, height;
 	
 	/* get image dimensions */
-	const char *ptr = (const char *) data + 3;
-		while(*ptr != 0x0A) ptr++;
-	ptr++;
-	
-	sscanf(ptr, "%i %i", &width, &height);
+	uiGetPPMInfo(data, &width, &height);
 	
 	const u8 *imagedata = data + 0x26;	// skip ppm header
 	
@@ -313,4 +313,42 @@ static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
 			drawPixel(start_x + x, start_y + height - y, color);
 		}
 	}
+}
+
+static void clearPPM(unsigned start_x, unsigned start_y, const u8 *data)
+{
+	unsigned width, height;
+	
+	/* get image dimensions */
+	uiGetPPMInfo(data, &width, &height);
+	
+	u16 color = 0;
+	
+	for(unsigned x = 0; x < width; x++)
+	{
+		for(unsigned y = height; y > 0; y--)
+		{
+			drawPixel(start_x + x, start_y + height - y, color);
+		}
+	}
+}
+
+void uiPrintBootWarning()
+{
+	unsigned width, height;
+	
+	uiGetPPMInfo(bootWarningData, &width, &height);
+	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, bootWarningData);
+	TIMER_sleep(400);
+}
+
+void uiPrintBootFailure()
+{
+	unsigned width, height;
+	
+	uiGetPPMInfo(bootWarningData, &width, &height);
+	clearPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, bootWarningData);
+	uiGetPPMInfo(bootFailureData, &width, &height);
+	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, bootFailureData);
+	TIMER_sleep(400);
 }

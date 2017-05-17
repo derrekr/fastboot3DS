@@ -128,7 +128,7 @@ bool sdmmc_sd_init(void)
 
 		if(!sdmmc_sd_is_active())
 		{
-			TIMER_sleep(250.4f); // Wait until the SD bus times out
+			TIMER_sleep(300); // Wait until the SD bus times out
 			if(!sdmmc_sd_is_active()) return false; // Check again if a SD card is inserted
 		}
 

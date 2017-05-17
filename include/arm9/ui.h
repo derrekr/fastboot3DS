@@ -26,3 +26,5 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 //void uiShowMessageWindow(format, args...);
 void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
                         unsigned int h, unsigned int cur, unsigned int max);
+void uiPrintBootWarning();
+void uiPrintBootFailure();

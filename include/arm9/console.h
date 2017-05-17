@@ -179,6 +179,7 @@ void consoleClear(void);
 
 void consoleSetCursor(PrintConsole* console, int x, int y);
 
+void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex);
 
 #ifdef __cplusplus
 }

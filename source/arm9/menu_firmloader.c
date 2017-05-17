@@ -133,7 +133,8 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 	
 	firmLoaded = 0;
 
-	printf("Loading FIRM from settings\n\n");
+	if(fromMenu)
+		uiPrintCenteredInLine(2, "Loading FIRM from settings");
 	
 	// No Boot Option set up?
 	if(!configDataExist(KBootOption1) &&
@@ -163,12 +164,14 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 		path = (const char *)configGetData(keyBootOption);
 		if(path)
 		{
-			printf("\nBoot Option #%i:\n%s\n", i + 1, path);
+			if(fromMenu)
+				printf("\nBoot Option #%i:\n%s\n", i + 1, path);
 			
 			// check if fw still exists
 			if(!statFirmware(path))
 			{
-				printf("Couldn't find firmware...\n");
+				if(fromMenu)
+					printf("Couldn't find firmware...\n");
 				goto try_next;
 			}
 			
@@ -182,8 +185,11 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
 				if(padValue != expectedPadValue)
 				{
-					printf("Skipping, right buttons are not pressed.\n");
-					printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
+					if(fromMenu)
+					{
+						printf("Skipping, right buttons are not pressed.\n");
+						printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
+					}
 					goto try_next;
 				}
 			}
@@ -204,7 +210,8 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 					break;
 				else
 				{
-					printf("Bad firmware, trying next one...\n");
+					if(keyBootMode != BootModeQuiet)
+						uiPrintBootWarning();
 				}
 			}
 		}
@@ -223,6 +230,8 @@ try_next:
 	{
 		if(fromMenu)
 			menuSetReturnToState(STATE_PREVIOUS);
+		else if(keyBootMode != BootModeQuiet)
+			uiPrintBootFailure();
 		return false;
 	}
 	
