@@ -25,14 +25,14 @@ void menuCredits(void)
 
 	uiPrintCenteredInLine(i++, "Main developers:");
 	uiPrintCenteredInLine(i++, "derrek");
-	uiPrintCenteredInLine(i+=2, "profi200");
-	uiPrintCenteredInLine(i++, "Thanks to:");
+	uiPrintCenteredInLine(i++, "profi200");
+	uiPrintCenteredInLine(i+=2, "Thanks to:");
 	uiPrintCenteredInLine(i++, "yellows8");
 	uiPrintCenteredInLine(i++, "plutoo");
 	uiPrintCenteredInLine(i++, "smea");
 	uiPrintCenteredInLine(i++, "Normmatt (for sdmmc code)");
-	uiPrintCenteredInLine(i+=2, "WinterMute (for console code)");
-	uiPrintCenteredInLine(i++, "... everyone who contriubted to 3dbrew.org");
+	uiPrintCenteredInLine(i++, "WinterMute (for console code)");
+	uiPrintCenteredInLine(i+=2, "... everyone who contriubted to 3dbrew.org");
 
 	for(;;)
 	{

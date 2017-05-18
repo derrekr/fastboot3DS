@@ -166,7 +166,7 @@ void uiPrintCenteredInLine(unsigned int y, const char *const format, ...)
 	va_end(args);
 
 	size_t len = strlen(tmp);
-	printf("\x1b[%u;%uH", y, consoleGet()->cursorX);
+	printf("\x1b[%u;%uH", y, 0);
 	printf("%*s%s\n", (width - len) / 2, "", tmp);
 }
 
