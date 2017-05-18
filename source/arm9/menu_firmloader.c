@@ -85,7 +85,7 @@ static bool statFirmware(const char *filePath)
 		
 		fileSize = fileStat.fsize;
 		
-		if(fileSize == 0 || FIRM_MAX_SIZE > FIRM_MAX_SIZE)
+		if(fileSize == 0 || fileSize > FIRM_MAX_SIZE)
 			return false;
 		
 		return true;
