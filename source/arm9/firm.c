@@ -96,7 +96,7 @@ void NAKED firmLaunchStub(void)
 	register u32 entry11 = firm_hdr->entrypointarm11;
 
 
-	for(int i = 0; i < 4; i++)
+	for(u32 i = 0; i < 4; i++)
 	{
 		firm_sectionheader *section = &firm_hdr->section[i];
 		if(section->size == 0)
@@ -136,7 +136,7 @@ void NAKED firmLaunchStub(void)
 	REG_PXI_SEND9 = (u32)entry11;
 
 	// Wait for ARM11...
-	for(;;)
+	while(1)
 	{
 		while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
 		if(REG_PXI_RECV9 == PXI_RPL_FIRM_LAUNCH_READY)
@@ -152,7 +152,7 @@ void NAKED firmLaunchStub(void)
 bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	const char *res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
+	const char *const res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
 	bool isValid;
 	bool retval = true;
 	u32 hash[8];
@@ -168,8 +168,8 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	
 	if(printInfo)
 	{
-		uiPrintInfo("ARM9  entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm9);
-		uiPrintInfo("ARM11 entry: 0x%"PRIX32"\n", firm_hdr->entrypointarm11);
+		uiPrintInfo("\nARM9  entry: 0x%" PRIX32 "\n", firm_hdr->entrypointarm9);
+		uiPrintInfo("ARM11 entry: 0x%" PRIX32 "\n\n", firm_hdr->entrypointarm11);
 	}
 	
 	for(u32 i=0; i<4; i++)
@@ -180,20 +180,20 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			continue;
 
 		if(printInfo)
-			uiPrintInfo("Section %i:\noffset: 0x%"PRIX32", addr: 0x%"PRIX32", size: 0x%"PRIX32"\n", (int)i,
-				   section->offset, section->address, section->size);
+			uiPrintInfo("Section %" PRIu32 ":\n offset: 0x%" PRIX32 "\n   addr: 0x%" PRIX32 "\n   size: 0x%" PRIX32 "\n",
+			             i, section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize || section->offset < sizeof(firm_header))
 		{
 			if(printInfo)
-				uiPrintInfo("\x1B[31mBad section offset!\e[0m\n");
+				uiPrintError("Bad section offset!\n");
 			return false;
 		}
 		
 		if((section->size >= fwSize) || (section->size + section->offset > fwSize))
 		{
 			if(printInfo)
-				uiPrintInfo("\x1B[31mBad section size!\e[0m\n");
+				uiPrintError("Bad section size!\n");
 			return false;
 		}
 		
@@ -221,7 +221,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			if(!isValid)
 			{
 				if(printInfo)
-					uiPrintInfo("\x1B[31mUnallowed section:\n0x%"PRIX32" - 0x%"PRIX32"\e[0m\n", start, end);
+					uiPrintError("Unallowed section:\n0x%" PRIX32 " - 0x%" PRIX32 "\n", start, end);
 				retval = false;
 				break;
 			}
@@ -230,11 +230,11 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 		if(!skipHashCheck)
 		{
 			sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
-							SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
+			    SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 			isValid = memcmp(hash, section->hash, 32) == 0;
 			
 			if(printInfo)
-				uiPrintInfo("Hash: %s\e[0m\n", res[isValid]);
+				uiPrintInfo("Hash: %s\x1B[0m\n", res[isValid]);
 			
 			retval &= isValid;
 		}
