@@ -177,6 +177,9 @@ static void unloadConfigFile()
 
 bool writeConfigFile()
 {
+	if(!filebuf)
+		goto fail;
+
 	const u32 fileSize = strlen(filebuf);
 	unsigned int bytesWritten;
 	
