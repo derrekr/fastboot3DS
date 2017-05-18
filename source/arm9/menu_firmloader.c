@@ -255,7 +255,7 @@ static u32 loadFirmSd(const char *filePath)
 		return 0;
 	}
 
-	if(fileSize == 0 || FIRM_MAX_SIZE > FIRM_MAX_SIZE)
+	if(fileSize == 0 || fileSize > FIRM_MAX_SIZE)
 	{
 		f_close(&file);
 		return 0;
