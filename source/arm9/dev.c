@@ -127,15 +127,15 @@ bool sdmmc_sd_init(void)
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
 		/* poll and sleep */
-		unsigned timeout = 270; // in ms
+		unsigned timeout = 258; // in ms
 
 		do {
 			// if sd card is ready, stop polling
 			if(sdmmc_sd_is_active())
 				break;
 
-			TIMER_sleep(1);
-			timeout--;
+			TIMER_sleep(2);
+			timeout -= 2;
 
 		} while(timeout);
 		
