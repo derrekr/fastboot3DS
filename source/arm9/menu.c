@@ -20,13 +20,14 @@
 
 
 const menu_state_options menu_main = {
-	5,
+	6,
 	{
 		{"Continue boot", MENU_STATE_FIRM_LAUNCH_SETTINGS},
 		{"Launch Firmware...", MENU_STATE_BROWSER},
 		{"NAND tools...", MENU_STATE_NAND_MENU},
 		{"Options...", MENU_STATE_OPTIONS_MENU},
 		{"Update", MENU_STATE_UPDATE},
+		{"Credits", MENU_STATE_CREDITS},
 	}
 };
 
@@ -188,6 +189,11 @@ int enter_menu(int initial_state)
 			
 			case MENU_STATE_UPDATE:
 				menuUpdateLoader();
+				uiClearConsoles();
+				break;
+			
+			case MENU_STATE_CREDITS:
+				menuCredits();
 				uiClearConsoles();
 				break;
 			
