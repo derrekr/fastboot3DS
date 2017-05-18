@@ -26,7 +26,8 @@ void menuCredits(void)
 	uiPrintCenteredInLine(i++, "Main developers:");
 	uiPrintCenteredInLine(i++, "derrek");
 	uiPrintCenteredInLine(i++, "profi200");
-	uiPrintCenteredInLine(i+=2, "Thanks to:");
+	i++;
+	uiPrintCenteredInLine(i++, "Thanks to:");
 	uiPrintCenteredInLine(i++, "yellows8");
 	uiPrintCenteredInLine(i++, "plutoo");
 	uiPrintCenteredInLine(i++, "smea");

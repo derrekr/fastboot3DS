@@ -165,16 +165,20 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 			if(dataPtr)
 			{
 				expectedPadValue = *dataPtr;
-				hidScanInput();
-				padValue = HID_KEY_MASK_ALL & hidKeysHeld();
-				if(padValue != expectedPadValue)
-				{
-					if(fromMenu)
+				
+				if(expectedPadValue != 0)
+				{	
+					hidScanInput();
+					padValue = HID_KEY_MASK_ALL & hidKeysHeld();
+					if(padValue != expectedPadValue)
 					{
-						uiPrintInfo("Skipping, right buttons are not pressed.\n");
-						uiPrintInfo("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
+						if(fromMenu)
+						{
+							uiPrintInfo("Skipping, right buttons are not pressed.\n");
+							uiPrintInfo("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
+						}
+						goto try_next;
 					}
-					goto try_next;
 				}
 			}
 
