@@ -18,6 +18,8 @@
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 
-void gfx_clear_screens(u64 *top, u64 *sub);
+#ifdef ARM11
+void gfx_clear_screens(u64 *top, u32 topSize, u64 *sub, u32 subSize);
 void gfx_init();
 void gfx_deinit();
+#endif

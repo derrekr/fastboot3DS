@@ -110,22 +110,22 @@ static void gfx_setup_framebuf_low()
 	}
 }
 
-void gfx_clear_screens(u64 *top, u64 *sub)
+void gfx_clear_screens(u64 *top, u32 topSize, u64 *sub, u32 subSize)
 {
-	vu32 *REGs_PSC0 = (vu32*)0x10400010,
-		 *REGs_PSC1 = (vu32*)0x10400020;
+	vu32 *REGs_PSC0 = (vu32*)0x10400010;
+	vu32 *REGs_PSC1 = (vu32*)0x10400020;
 
 	REGs_PSC0[0] = (u32)top>>3; // Start address
-	REGs_PSC0[1] = (SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 + (u32)top)>>3; // End address 
+	REGs_PSC0[1] = ((u32)top + topSize)>>3; // End address 
 	REGs_PSC0[2] = 0; // Fill value
 	REGs_PSC0[3] = (2u<<8) | 1u; // 32-bit pattern; start
 
 	REGs_PSC1[0] = (u32)sub>>3; // Start address
-	REGs_PSC1[1] = (SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2 + (u32)sub)>>3; // End address
+	REGs_PSC1[1] = ((u32)sub + subSize)>>3; // End address
 	REGs_PSC1[2] = 0; //Fill value
 	REGs_PSC1[3] = (2u<<8) | 1u; //32-bit pattern; start
 
-	while(!((REGs_PSC0[3] & 2) && (REGs_PSC1[3] & 2)));
+	while(REGs_PSC0[3] & 2 || REGs_PSC1[3] & 2);
 }
 
 void gfx_init(void)
@@ -141,11 +141,12 @@ void gfx_init(void)
 	gfx_setup_framebuf_top();
 	gfx_setup_framebuf_low();
 
-	i2cmcu_lcd_poweron();
 	REG_LCD_COLORFILL_MAIN = 1u<<24;
 	REG_LCD_COLORFILL_SUB = 1u<<24;
-	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, (u64*)FRAMEBUF_SUB_A_1);
+	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2,
+	                  (u64*)FRAMEBUF_SUB_A_1, SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
 
+	i2cmcu_lcd_poweron();
 	i2cmcu_lcd_backlight_poweron();
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
@@ -157,13 +158,15 @@ void gfx_deinit()
 
 	*(vu32*)0x10202A44 = 0;
 	*(vu32*)0x10202244 = 0;
-	REG_LCD_BACKLIGHT_MAIN = 0x0F; // Equals home menu brightness level 1
-	REG_LCD_BACKLIGHT_SUB = 0x0F;
+	REG_LCD_BACKLIGHT_MAIN = 0;
+	REG_LCD_BACKLIGHT_SUB = 0;
 	*(vu32*)0x10202014 = 0;
 
 	REG_PDN_GPU_CNT = 1;*/
 
 	// Temporary Luma workaround
+	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 3,
+	                  (u64*)(FRAMEBUF_SUB_A_1 + 0x17700), SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 3 - 0x17700);
 	*((vu32*)(0x10400400+0x70)) = 0x00080341;
 	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;
 	*((vu32*)(0x10400500+0x70)) = 0x00080301;
