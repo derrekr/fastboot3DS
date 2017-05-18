@@ -5,7 +5,7 @@
 #include "types.h"
 #include "util.h"
 #include "hid.h"
-#include "arm9/pxi.h"
+#include "pxi.h"
 #include "arm9/timer.h"
 #include "arm9/main.h"
 #include "arm9/ui.h"
@@ -362,20 +362,15 @@ bool uiCheckHomePressed(u32 msTimeout)
 	/* Check PXI Response register */
 	u32 replyCode = PXI_tryRecvWord(&successFlag);
 	
+	curMs = 0;
+	
 	do {
 		
 		while(successFlag)
 		{
-			switch(replyCode)
+			if(replyCode == PXI_RPL_HOME_PRESSED)
 			{
-				case PXI_RPL_HOME_PRESSED:
-					retcode = MENU_EVENT_HOME_PRESSED;
-					break;
-				case PXI_RPL_POWER_PRESSED:
-					retcode = MENU_EVENT_POWER_PRESSED;
-					break;
-				default:
-					panic();
+				return true;
 			}
 			// maybe there's more..?
 			replyCode = PXI_tryRecvWord(&successFlag);
@@ -384,5 +379,9 @@ bool uiCheckHomePressed(u32 msTimeout)
 		TIMER_sleep(1);
 		curMs++;
 
-	} while(curMs < maxMs);
+	} while(curMs < msTimeout);
+	
+	/* timed out ... */
+	
+	return false;
 }

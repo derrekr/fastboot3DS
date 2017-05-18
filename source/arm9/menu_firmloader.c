@@ -99,24 +99,8 @@ static bool statFirmware(const char *filePath)
 
 static bool checkForHIDAbort()
 {
-	bool successFlag;
-	u32 replyCode = PXI_tryRecvWord(&successFlag);
-	
-	while(successFlag)
-	{
-		switch(replyCode)
-		{
-			case PXI_RPL_HOME_PRESSED:
-			case PXI_RPL_POWER_PRESSED:
-				return true;
-			default:
-				break;
-		}
-		
-		replyCode = PXI_tryRecvWord(&successFlag);
-	}
-	
-	return false;
+	// give it 10 ms to check whether home button was pressed
+	return uiCheckHomePressed(10);
 }
 
 bool tryLoadFirmwareFromSettings(bool fromMenu)
