@@ -52,7 +52,7 @@ int main(void)
 
 		/* Update state, check for changes */
 		
-		u8 hidstate = i2cmcu_readreg_hid();
+		u8 hidstate = i2cmcu_readreg_hid_irq();
 
 		if(hidstate & MCU_HID_POWER_BUTTON_PRESSED)
 		{
@@ -72,6 +72,11 @@ int main(void)
 			i2cmcu_lcd_poweron();
 			i2cmcu_lcd_backlight_poweron();
 		}
+		
+		hidstate = i2cmcu_readreg_hid_held();
+		
+		if(!(hidstate & MCU_HID_HOME_BUTTON_NOT_HELD))
+			PXI_trySendWord(PXI_RPL_HOME_HELD);
 
 		// wait a bit, don't spam the i2c bus
 		wait(0x8000);

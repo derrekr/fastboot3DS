@@ -306,6 +306,7 @@ int menuUpdateGlobalState(void)
 		switch(replyCode)
 		{
 			case PXI_RPL_HOME_PRESSED:
+			case PXI_RPL_HOME_HELD:
 				retcode = MENU_EVENT_HOME_PRESSED;
 				break;
 			case PXI_RPL_POWER_PRESSED:

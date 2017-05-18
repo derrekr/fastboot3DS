@@ -27,7 +27,7 @@ static void checkSetVerboseMode();
 
 int main(void)
 {
-	int mode;
+	int mode = BootModeNormal;
 
 	hardwareInit();
 
@@ -59,6 +59,7 @@ int main(void)
 			switch(mode)
 			{
 				case BootModeQuick:
+					uiDrawSplashScreen();
 					screen_init();
 					/* fallthrough */
 				case BootModeQuiet:
@@ -76,7 +77,8 @@ int main(void)
 		else screen_init();
 	}
 	
-	uiDrawSplashScreen();
+	if(mode != BootModeQuick)
+		uiDrawSplashScreen();
 	
 	uiPrintIfVerbose("Initializing devices...\n");
 
@@ -100,7 +102,7 @@ int main(void)
 
 	uiPrintIfVerbose("Entering menu...\n");
 
-	TIMER_sleep(100);
+	TIMER_sleep(500);
 
 	consoleClear();
 

@@ -368,7 +368,8 @@ bool uiCheckHomePressed(u32 msTimeout)
 		
 		while(successFlag)
 		{
-			if(replyCode == PXI_RPL_HOME_PRESSED)
+			if(replyCode == PXI_RPL_HOME_PRESSED ||
+				replyCode == PXI_RPL_HOME_HELD)
 			{
 				return true;
 			}

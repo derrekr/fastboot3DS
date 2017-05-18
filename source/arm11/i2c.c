@@ -286,12 +286,22 @@ u32 i2cmcu_readreg0x0_bus0()
 	return i2cmcu_readreg0x0_bus0_second ? 1 : 0;
 }
 
-u8 i2cmcu_readreg_hid()
+u8 i2cmcu_readreg_hid_irq()
 {
 	u8 data;
 	if(!i2cmcu_readregdata(0x10, &data, 1))
 		return 0;
 	return data;
+}
+
+u8 i2cmcu_readreg_hid_held()
+{
+	u8 data[19];
+	
+	if(!i2cmcu_readregdata(0x7F, data, sizeof data))
+		return 0;
+	
+	return data[18];
 }
 
 // aka i2cmcu_write_reg0x20_0x22

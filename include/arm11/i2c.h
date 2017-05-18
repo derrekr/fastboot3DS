@@ -19,11 +19,13 @@ void i2cmcu_lcd_poweroff();	// also disabled backlight
 void i2cmcu_lcd_backlight_poweroff();
 
 // mcu hid
-u8 i2cmcu_readreg_hid();
+u8 i2cmcu_readreg_hid_irq();
+u8 i2cmcu_readreg_hid_held();
 #define MCU_HID_POWER_BUTTON_PRESSED       (1u)
 #define MCU_HID_POWER_BUTTON_LONG_PRESSED  (1u<<1)
 #define MCU_HID_HOME_BUTTON_PRESSED        (1u<<2)
 #define MCU_HID_HOME_BUTTON_RELEASED       (1u<<3)
+#define MCU_HID_HOME_BUTTON_NOT_HELD       (1u<<1)
 #define MCU_HID_SHELL_GOT_CLOSED           (1u<<5)
 #define MCU_HID_SHELL_GOT_OPENED           (1u<<6)
 

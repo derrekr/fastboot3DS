@@ -39,7 +39,10 @@ bool menuDumpNand(const char *filePath)
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
-		panic();	// this should never happen.
+	{	// this should never happen.
+		uiPrintIfVerbose("Out of memory!");
+		return false;
+	}
 
 	uiPrintCenteredInLine(1, "NAND Backup");
 	
@@ -158,7 +161,10 @@ bool menuRestoreNand(const char *filePath)
 
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
-		panic();	// this should never happen.
+	{	// this should never happen.
+		uiPrintIfVerbose("Out of memory!");
+		return false;
+	}
 		
 	
 	uiPrintTextAt(0, 3, "Checking backup file...\n");
