@@ -28,3 +28,4 @@ void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
                         unsigned int h, unsigned int cur, unsigned int max);
 void uiPrintBootWarning();
 void uiPrintBootFailure();
+bool uiCheckHomePressed(u32 msTimeout);

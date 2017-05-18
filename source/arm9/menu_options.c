@@ -21,7 +21,7 @@
 static const char *optionStrings[] = {
 	"Change Boot Mode",
 	"Setup Boot Option",
-	"Setup NAND Image"
+	// "Setup NAND Image" -- currently unuseed
 };
 
 static char optionSubStrings[MAX_SUBOPTIONS][0x20];
