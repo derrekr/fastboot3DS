@@ -137,15 +137,16 @@ void uiPrintIfVerbose(const char *const format, ...)
 void uiPrint(const char *const format, unsigned int color, bool centered, ...)
 {
 	const unsigned int width = (unsigned int)consoleGet()->consoleWidth;
-	char tmp[width + 1];
+	char tmp[256];
 
 	va_list args;
 	va_start(args, centered);
-	vsnprintf(tmp, width + 1, format, args);
+	vsnprintf(tmp, 556, format, args);
 	va_end(args);
 
 	if(centered)
 	{
+		// Warning. The string must be <= the console width here!
 		size_t len = strlen(tmp);
 		printf("\x1B[%um%*s%s\x1B[0m", color, (width - len) / 2, "", tmp);
 	}

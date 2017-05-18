@@ -180,7 +180,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			continue;
 
 		if(printInfo)
-			uiPrintInfo("Section %" PRIu32 ":\n offset: 0x%" PRIX32 "\n   addr: 0x%" PRIX32 "\n   size: 0x%" PRIX32 "\n",
+			uiPrintInfo("Section %" PRIu32 ":\n Offset: 0x%" PRIX32 "\n   Addr: 0x%" PRIX32 "\n   Size: 0x%" PRIX32 "\n",
 			             i, section->offset, section->address, section->size);
 				
 		if(section->offset >= fwSize || section->offset < sizeof(firm_header))
@@ -234,7 +234,7 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 			isValid = memcmp(hash, section->hash, 32) == 0;
 			
 			if(printInfo)
-				uiPrintInfo("Hash: %s\x1B[0m\n", res[isValid]);
+				uiPrintInfo("   Hash: %s\x1B[0m\n", res[isValid]);
 			
 			retval &= isValid;
 		}
