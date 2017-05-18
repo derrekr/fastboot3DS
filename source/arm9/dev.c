@@ -126,11 +126,21 @@ bool sdmmc_sd_init(void)
 		// thanks yellows8
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
-		if(!sdmmc_sd_is_active())
-		{
-			TIMER_sleep(255); // Wait until the SD bus times out. 253 ms works. 255 for safety.
-			if(!sdmmc_sd_is_active()) return false; // Check again if a SD card is inserted
-		}
+		/* poll and sleep */
+		unsigned timeout = 270; // in ms
+
+		do {
+			// if sd card is ready, stop polling
+			if(sdmmc_sd_is_active())
+				break;
+
+			TIMER_sleep(1);
+			timeout--;
+
+		} while(timeout);
+		
+		if(!timeout)	// we timed out
+			return false;
 
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
