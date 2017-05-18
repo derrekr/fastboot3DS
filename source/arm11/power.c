@@ -29,7 +29,7 @@ void power_off(void)
 	
 	for(;;)
 	{
-		i2c_writeregdata(3, 0x20, 0xff);
+		i2c_writeregdata(3, 0x20, 1u);
 		wait(0x200000);
 	}
 }
@@ -41,7 +41,7 @@ void power_reboot(void)
 	
 	for(;;)
 	{
-		i2c_writeregdata(3, 0x20, 0x04);
+		i2c_writeregdata(3, 0x20, 1u << 2);
 		wait(0x200000);
 	}
 }
