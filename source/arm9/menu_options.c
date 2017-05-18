@@ -69,7 +69,7 @@ bool menuOptions(void)
 		{
 			if(i<OptionCount)
 			{
-				printf("%s %s", i == curOptionIndex ? "*" : " ", optionStrings[i]);
+				uiPrintInfo("%s %s", i == curOptionIndex ? "*" : " ", optionStrings[i]);
 				rewindConsoleX();
 			
 				if(subOptionsActive && i == curOptionIndex)
@@ -77,10 +77,10 @@ bool menuOptions(void)
 					for(unsigned int j=0; j<curSubOptionCount; j++)
 					{
 						if(curSubOptionHighlighted && j == curHighlightedSubOptionIndex)
-							printf(" %s  \x1B[33m%s\e[0m", j == curSubOptionIndex ? "*" : " ",
+							uiPrintInfo(" %s  \x1B[33m%s\e[0m", j == curSubOptionIndex ? "*" : " ",
 															optionSubStrings[j]);
 						else
-							printf(" %s  %s", j == curSubOptionIndex ? "*" : " ", optionSubStrings[j]);
+							uiPrintInfo(" %s  %s", j == curSubOptionIndex ? "*" : " ", optionSubStrings[j]);
 						rewindConsoleX();
 					}
 				}
@@ -215,7 +215,7 @@ void rewindConsole(void)
 void rewindConsoleX(void)
 {
 	unsigned int len = con_bottom.windowWidth - con_bottom.cursorX;
-	while(len--) printf(" ");
+	while(len--) uiPrintInfo(" ");
 	
 	consoleSetCursor(&con_bottom, consoleX, con_bottom.cursorY + 1);
 }
@@ -231,7 +231,7 @@ void handleBootMode(void)
 	}
 	else
 	{
-		u32 *mode = (u32 *)configGetData(KBootMode);
+		const u32 *mode = (const u32 *)configGetData(KBootMode);
 		if(mode)
 		{
 			curHighlightedSubOptionIndex = *mode;
@@ -289,7 +289,7 @@ void handleNandImage(void)
 		
 		if(path)
 		{
-			if(ret = validateNandImage(path))
+			if((ret = validateNandImage(path)) != 0)
 			{
 				switch(ret)
 				{
@@ -301,6 +301,8 @@ void handleNandImage(void)
 						break;
 					case NANDIMG_ERROR_NCONTS:
 						menuPrintPrompt("NAND Image file is not continuous!\n");
+						break;
+					default:
 						break;
 				}
 			}

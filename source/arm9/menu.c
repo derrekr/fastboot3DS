@@ -73,15 +73,6 @@ static void menu_main_draw_top()
 	uiPrintTextAt(1, 10, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
-static void rewindConsole()
-{
-	// get ready to repaint
-	consoleSelect(&con_top);
-	printf("\033[0;0H");	// set cursor to the upper left corner
-	consoleSelect(&con_bottom);
-	printf("\033[0;0H");
-}
-
 int enter_menu(int initial_state)
 {
 	u32 keys;
@@ -121,8 +112,6 @@ int enter_menu(int initial_state)
 				
 				hidScanInput();
 				keys = hidKeysDown();
-		
-				rewindConsole();
 				
 				menu_main_draw_top();
 			
@@ -206,7 +195,8 @@ int enter_menu(int initial_state)
 				goto exitAndLaunchFirm;
 				break;
 			
-			default: printf("OOPS!\n"); break;
+			/* this should never happen */
+			default: uiPrintIfVerbose("OOPS!\n"); break;
 		}
 
 		switch(menuUpdateGlobalState())
@@ -383,7 +373,8 @@ void menuActState(void)
 
 void menuPrintPrompt(const char *text)
 {
-	printf(text);
+	// TODO: use uiShowMessageWindow
+	uiPrintInfo(text);
 }
 
 void menuWaitForAnyPadkey()

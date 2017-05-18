@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "arm9/nandimage.h"
 #include "fatfs/ff.h"
 #include "util.h"

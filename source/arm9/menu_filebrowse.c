@@ -119,10 +119,10 @@ static void updateCursor(int cursor_pos, int old_cursor_pos, int maxEntries)
 {
 	// clear old '*' char
 	consoleSetCursor(&con_bottom, 0, (old_cursor_pos % (maxEntries)) + 1);
-	printf(" ");
+	uiPrintInfo(" ");
 	
 	consoleSetCursor(&con_bottom, 0, (cursor_pos % (maxEntries)) + 1);
-	printf("*");
+	uiPrintInfo("*");
 }
 
 static void updateScreen(int cursor_pos, bool dirChange)
@@ -151,9 +151,9 @@ static void updateScreen(int cursor_pos, bool dirChange)
 	
 	// print the current path in the first line
 	formatEntry(entry, curPath, (u32) maxLen - 3, false);
-	printf("%s :", entry);
+	uiPrintInfo("%s :", entry);
 	
-	if(cursor_pos < (u32) maxEntries)
+	if(cursor_pos < (int) maxEntries)
 	{
 		start = 0;
 		end = min(maxEntries, curEntriesCount);
@@ -167,7 +167,7 @@ static void updateScreen(int cursor_pos, bool dirChange)
 	for(unsigned i = start; i < end; i++)
 	{
 		formatEntry(entry, dirEntries[i].name, (u32) maxLen - 2, true);
-		printf("\n%s %s", i == (unsigned) cursor_pos ? "*" : " ", entry);
+		uiPrintInfo("\n%s %s", i == (unsigned) cursor_pos ? "*" : " ", entry);
 	}
 }
 

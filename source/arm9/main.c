@@ -213,7 +213,7 @@ static bool mount_fs()
 		if(res[3] == FR_OK) uiPrintIfVerbose("%s\e[0m\n", res_str[1]);
 		else uiPrintIfVerbose("%s ERROR 0x%d\e[0m\n", res_str[0], res[3]);
 
-		finalRes &= res[3] == res[2] == res[1] == FR_OK;
+		finalRes &= ((res[3] == res[2]) == res[1]) == FR_OK;
 	}
 	else finalRes = false;
 

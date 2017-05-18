@@ -22,7 +22,7 @@ static const char *installPath = "firm0";
 
 bool menuUpdateLoader()
 {
-	u8 *updateBuffer = (u8 *) FIRM_LOAD_ADDR;
+	u32 *updateBuffer = (u32 *) FIRM_LOAD_ADDR;
 	FILINFO fileStat;
 	size_t fwSize;
 	size_t index;
@@ -56,14 +56,14 @@ bool menuUpdateLoader()
 	}
 	
 	// verify fastboot magic
-	if(memcmp(updateBuffer+0x208, "FASTBOOT 3DS   ", 0x10) != 0)
+	if(memcmp((void*)updateBuffer+0x208, "FASTBOOT 3DS   ", 0x10) != 0)
 	{
 		uiPrintError("Not an update file!\n");
 		goto fail;
 	}
 	
 	/* check version */
-	u32 updateVersion = *(u32 *)(updateBuffer + 0x218);
+	u32 updateVersion = *(u32 *)((void*)updateBuffer + 0x218);
 	
 	if(updateVersion < BOOTLOADER_VERSION)
 	{

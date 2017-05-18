@@ -29,3 +29,4 @@ void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
 void uiPrintBootWarning();
 void uiPrintBootFailure();
 bool uiCheckHomePressed(u32 msTimeout);
+void uiWaitForAnyPadkey();

@@ -65,7 +65,8 @@ int menuUpdateGlobalState(void);
 // This must be called once in each (sub-) menu iteration,
 // after menuUpdateGlobalState has been called.
 void menuActState(void);
-
+// Shows a windowed text, updates menu state.
 void menuPrintPrompt(const char *text);
+// Waits for any key being pressed, updates menu state.
 void menuWaitForAnyPadkey();
 

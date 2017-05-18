@@ -736,13 +736,6 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
 	
 	int starty = (console->windowY - 1) * 8 - thickness;
 	int endy = console->windowHeight * 8 + thickness;
-	
-	/*
-	printf("startx: %i\n", startx);
-	printf("endx: %i\n", endx);
-	printf("endy: %i\n", endy);
-	printf("starty: %i\n", starty);
-	*/
 
 	u16 color = colorTable[colorIndex];
 	

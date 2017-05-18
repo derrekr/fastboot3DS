@@ -33,7 +33,7 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 	uiClearConsoles();
 	consoleSelect(&con_top);
 	
-	printf("FIRM Loader\n\n");
+	uiPrintCenteredInLine(1, "FIRM Loader");
 
 	menuUpdateGlobalState();
 	
@@ -41,8 +41,8 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 	{
 		if(!quick)
 		{
-			printf("\n\x1B[31mBad firmware.\e[0m\n\n");
-			printf("Press any key...\n");
+			uiPrintError("Bad firmware.\n");
+			uiPrintInfo("Press any key...\n");
 			
 			menuWaitForAnyPadkey();
 		}
@@ -51,7 +51,7 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 	
 	firmLoaded = 1;
 	
-	printf("\n\x1B[32mFirmware verification SUCCESS!\e[0m\n\n");
+	uiPrint("Firmware verification SUCCESS!", 32, true);
 	
 	menuSetReturnToState(MENU_STATE_EXIT);
 	
@@ -59,7 +59,7 @@ bool menuLaunchFirm(const char *filePath, bool quick)
 
 fail:
 	
-	printf("FIRM-Launch aborted.\n");
+	uiPrintCenteredInLine(25, "FIRM-Launch aborted.");
 	
 	TIMER_sleep(500);
 	
@@ -149,13 +149,13 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 		if(path)
 		{
 			if(fromMenu)
-				printf("\nBoot Option #%i:\n%s\n", i + 1, path);
+				uiPrintInfo("Boot Option #%i:\n%s\n", i + 1, path);
 			
 			// check if fw still exists
 			if(!statFirmware(path))
 			{
 				if(fromMenu)
-					printf("Couldn't find firmware...\n");
+					uiPrintInfo("Couldn't find firmware...\n");
 				goto try_next;
 			}
 			
@@ -171,8 +171,8 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 				{
 					if(fromMenu)
 					{
-						printf("Skipping, right buttons are not pressed.\n");
-						printf("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
+						uiPrintInfo("Skipping, right buttons are not pressed.\n");
+						uiPrintInfo("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
 					}
 					goto try_next;
 				}
@@ -239,7 +239,7 @@ static u32 loadFirmSd(const char *filePath)
 
 	if(f_stat(filePath, &fileStat) != FR_OK)
 	{
-		printf("Failed to get file status!\n");
+		uiPrintInfo("Failed to get file status!\n");
 		return 0;
 	}
 
@@ -247,7 +247,7 @@ static u32 loadFirmSd(const char *filePath)
 
 	if(f_open(&file, filePath, FA_READ) != FR_OK)
 	{
-		printf("Failed to open '%s'!\n", filePath);
+		uiPrintInfo("Failed to open '%s'!\n", filePath);
 		return 0;
 	}
 
@@ -259,7 +259,7 @@ static u32 loadFirmSd(const char *filePath)
 
 	if(f_read(&file, (u8*)FIRM_LOAD_ADDR, fileSize, &bytesRead) != FR_OK)
 	{
-		printf("Failed to read from file!\n");
+		uiPrintInfo("Failed to read from file!\n");
 		fileSize = 0;
 	}
 
