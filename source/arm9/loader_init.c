@@ -3,6 +3,7 @@
 #include "arm9/ndma.h"
 #include "arm9/timer.h"
 #include "pxi.h"
+#include "arm9/crypto.h"
 
 
 
@@ -12,4 +13,5 @@ void hardwareInit(void)
 	NDMA_init();
 	TIMER_init();
 	PXI_init();
+	AES_init();
 }

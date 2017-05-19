@@ -88,7 +88,7 @@ int enter_menu(int initial_state)
 	uiClearConsoles();
 	uiDrawConsoleWindow();
 
-	TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), NULL);
+	//TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
 
 	// caller requested to enter a submenu?
 	if(initial_state != MENU_STATE_MAIN)
@@ -223,7 +223,7 @@ int enter_menu(int initial_state)
 	}
 
 exitAndLaunchFirm:
-	TIMER_stop(TIMER_0);
+	//TIMER_stop(TIMER_0);
 
 	return 0;
 }

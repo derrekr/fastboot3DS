@@ -60,6 +60,8 @@ typedef struct
 } AES_ctx;
 
 
+void AES_init(void);
+
 /**
  * @brief      Selects keyslot and sets the key for the specified key type.
  *

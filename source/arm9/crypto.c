@@ -50,6 +50,26 @@
 #define REG_AESKEYYFIFO   ((vu32*)(AES_REGS_BASE + 0x108))
 
 
+void AES_init(void)
+{
+	REG_AESCNT = AES_MAC_SIZE(4) | AES_FLUSH_WRITE_FIFO | AES_FLUSH_READ_FIFO;
+	*((vu8*)0x10000008) |= 0xCu; // ??
+
+	//REG_NDMA0_CNT = 0;
+	REG_NDMA0_DST_ADDR = (u32)REG_AESWRFIFO;
+	REG_NDMA0_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
+	REG_NDMA0_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_IN |
+	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
+
+	//REG_NDMA1_CNT = 0;
+	REG_NDMA1_SRC_ADDR = (u32)REG_AESRDFIFO;
+	REG_NDMA1_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
+	REG_NDMA1_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_OUT |
+	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
+
+	REG_IRQ_IE |= 1u<<IRQ_AES;
+}
+
 // TODO: Handle endianess!
 static void addCounter(u32 *restrict ctr, u32 val)
 {
@@ -146,21 +166,13 @@ void AES_setCryptParams(AES_ctx *restrict ctx, u32 params)
 
 static void setupNdma(const u32 *restrict in, u32 *restrict out, u32 wordCount, u32 burstSize)
 {
-	REG_NDMA0_CNT = 0;
 	REG_NDMA0_SRC_ADDR = (u32)in;
-	REG_NDMA0_DST_ADDR = (u32)REG_AESWRFIFO;
 	REG_NDMA0_WRITE_CNT = wordCount;
-	REG_NDMA0_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
-	REG_NDMA0_CNT = NDMA_ENABLE | NDMA_REPEATING_MODE | burstSize | NDMA_STARTUP_AES_IN |
-	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
+	REG_NDMA0_CNT = (REG_NDMA0_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | burstSize;
 
-	REG_NDMA1_CNT = 0;
-	REG_NDMA1_SRC_ADDR = (u32)REG_AESRDFIFO;
 	REG_NDMA1_DST_ADDR = (u32)out;
 	REG_NDMA1_WRITE_CNT = wordCount;
-	REG_NDMA1_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
-	REG_NDMA1_CNT = NDMA_ENABLE | NDMA_REPEATING_MODE | burstSize | NDMA_STARTUP_AES_OUT |
-	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
+	REG_NDMA1_CNT = (REG_NDMA1_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | burstSize;
 }
 
 void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size)
@@ -251,7 +263,8 @@ void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out,
 	}
 
 	// Disable the NDMA channels
-	REG_NDMA1_CNT = REG_NDMA0_CNT = 0;
+	REG_NDMA0_CNT = (REG_NDMA0_CNT<<1)>>1;
+	REG_NDMA1_CNT = (REG_NDMA1_CNT<<1)>>1;
 
 	// Throw possibly cached lines out of the window
 	invalidateDCacheRange(savedOut, size);

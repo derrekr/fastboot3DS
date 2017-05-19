@@ -35,23 +35,15 @@ void TIMER_init(void)
 		REG_TIMER_CNT(i) = 0;
 	}
 
-	REG_IRQ_IE |= ((1u<<IRQ_TIMER_0) | (1u<<IRQ_TIMER_1) | (1u<<IRQ_TIMER_2) | (1u<<IRQ_TIMER_3));
+	REG_IRQ_IE |= 1u<<IRQ_TIMER_3;
 
 	leaveCriticalSection(oldState);
 }
 
-void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, void (*irqHandler)(void))
+void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)
 {
-	u16 irq = 0;
-
-	if(irqHandler)
-	{
-		IRQ_registerHandler(IRQ_TIMER_0 + timer, irqHandler);
-		irq = TIMER_IRQ_ENABLE;
-	}
-
 	REG_TIMER_VAL(timer) = ticks;
-	REG_TIMER_CNT(timer) = TIMER_ENABLE | irq | prescaler;
+	REG_TIMER_CNT(timer) = TIMER_ENABLE | (enableIrq ? TIMER_IRQ_ENABLE : 0) | prescaler;
 }
 
 void TIMER_stop(Timer timer)

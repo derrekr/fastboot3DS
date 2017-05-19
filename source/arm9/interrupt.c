@@ -8,8 +8,8 @@ void (*irqHandlerTable[32])(void);
 
 void IRQ_init(void)
 {
-	// Atomic IRQ disable and aknowledge
-	__asm__ __volatile__("stm %0, {%1, %2}" : : "r" (&REG_IRQ_IE), "r" (0u), "r" (0xFFFFFFFFu) : "memory");
+	REG_IRQ_IE = 0;
+	REG_IRQ_IF = 0xFFFFFFFFu;
 
 	for(u32 i = 0; i < 32; i++)
 	{
@@ -22,7 +22,7 @@ void IRQ_init(void)
 void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void))
 {
 	irqHandlerTable[num] = irqHandler;
-	REG_IRQ_IE |= (1u<<num);
+	REG_IRQ_IE |= 1u<<num;
 }
 
 void IRQ_unregisterHandler(Interrupt num)
