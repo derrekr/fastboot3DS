@@ -133,8 +133,8 @@ void gfx_init(void)
 	REG_PDN_GPU_CNT = 0x1007F;
 	*((vu32*)0x10202014) = 0x00000001;
 	*((vu32*)0x1020200C) &= 0xFFFEFFFE;
-	REG_LCD_BACKLIGHT_MAIN = 0x0F; // Equals home menu brightness level 1
-	REG_LCD_BACKLIGHT_SUB = 0x0F;
+	REG_LCD_BACKLIGHT_MAIN = 0x30;
+	REG_LCD_BACKLIGHT_SUB = 0x30;
 	*((vu32*)0x10202244) = 0x1023E;
 	*((vu32*)0x10202A44) = 0x1023E;
 
