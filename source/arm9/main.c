@@ -45,6 +45,10 @@ int main(void)
 	
 	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
 	
+	uiPrintIfVerbose("Detecting unit...\n");
+
+	unit_detect();
+	
 	uiPrintIfVerbose("Early filesystem init...\n");
 	
 	/* Try to read the settings file ASAP. */
@@ -87,10 +91,6 @@ int main(void)
 	uiPrintIfVerbose("Mounting filesystems...\n");
 
 	if(!mount_fs()) screen_init();
-
-	uiPrintIfVerbose("Detecting unit...\n");
-
-	unit_detect();
 
 	uiPrintIfVerbose("Detecting boot environment...\n");
 
