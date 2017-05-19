@@ -225,6 +225,19 @@ u32 sdmmc_rnand_get_sector_count(void)
 }
 
 
+static void deriveAndsetN3dsKey0x05(void)
+{
+	u32 pad[4] = {0xA44F8047, 0xAC1990BD, 0x4604A232, 0x5460447C};
+
+	pad[0] ^= ((u32*)BOOT9_BASE)[0];
+	pad[1] ^= ((u32*)BOOT9_BASE)[1];
+	pad[2] ^= ((u32*)BOOT9_BASE)[2];
+	pad[3] ^= ((u32*)BOOT9_BASE)[3];
+
+	AES_setKey(AES_INPUT_BIG | AES_INPUT_NORMAL, 0x05, AES_KEY_TYPE_Y, pad, false, true);
+}
+
+
 // ------------------------------ decrypted nand glue functions ------------------------------
 bool sdmmc_dnand_init(void)
 {
@@ -268,7 +281,7 @@ bool sdmmc_dnand_init(void)
 					else if(i == 4)	// CTR NAND partition
 					{
 						if(bootInfo.unit_is_new3ds)
-							partitionSetKeyslot(index, 0x05); // TODO: Load N3DS keyY
+							{deriveAndsetN3dsKey0x05(); partitionSetKeyslot(index, 0x05);}
 						else
 							partitionSetKeyslot(index, 0x04);
 						
