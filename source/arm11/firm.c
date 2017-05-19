@@ -8,7 +8,7 @@ void NAKED firmLaunchStub(void)
 {
 	// Answer ARM0
 	REG_PXI_SYNC11 = 0; // Disable all IRQs
-	*((vu32*)0x1FFFFFFC) = 0;
+	*((vu32*)A11_FALLBACK_ENTRY) = 0;
 	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND11 = PXI_RPL_OK;
 
@@ -23,7 +23,7 @@ void NAKED firmLaunchStub(void)
 
 	if(!e)
 	{
-		while(!(e = (intptr_t)*((vu32*)0x1FFFFFFC)));
+		while(!(e = (intptr_t)*((vu32*)A11_FALLBACK_ENTRY)));
 	}
 
 	((void (*)(void))e)();

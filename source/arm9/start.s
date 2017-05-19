@@ -63,7 +63,7 @@ skip_pool:
 
 	mov sp, #0                  @ SVC mode sp (Unused, aborts)
 	msr cpsr_cxsf, #0xD2        @ IRQ mode
-	ldr sp, =(A9_STACK_END - 0x3000)
+	ldr sp, =(A9_STACK_END - 0x2000)
 	msr cpsr_cxsf, #0xDF        @ System mode
 	ldr sp, =A9_STACK_END
 

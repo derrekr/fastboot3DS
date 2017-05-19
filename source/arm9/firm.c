@@ -255,7 +255,6 @@ noreturn void firm_launch(void)
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE>>2);
 
 	//printf("Starting firm launch...\n");
-	void (*stub)(void) = (void (*)(void))A9_STUB_ENTRY;
-	stub();
+	((void (*)(void))A9_STUB_ENTRY)();
 	while(1);
 }

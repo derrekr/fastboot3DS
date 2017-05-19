@@ -58,11 +58,6 @@ void NDMA_fillAsync(u32 *dest, u32 value, u32 num)
 	REG_NDMA7_BLOCK_CNT = NDMA_BLOCK_SYS_FREQ;
 	REG_NDMA7_FILL_DATA = value;
 	REG_NDMA7_CNT = NDMA_ENABLE | NDMA_IRQ_ENABLE | NDMA_STARTUP_IMMEDIATE | NDMA_SRC_UPDATE_FILL | NDMA_DST_UPDATE_INC;
-
-	while(REG_NDMA7_CNT & NDMA_ENABLE)
-	{
-		waitForIrq();
-	}
 }
 
 void NDMA_fill(u32 *dest, u32 value, u32 num)
