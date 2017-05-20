@@ -21,12 +21,20 @@ void IRQ_init(void)
 
 void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void))
 {
+	const u32 oldState = enterCriticalSection();
+
 	irqHandlerTable[num] = irqHandler;
 	REG_IRQ_IE |= 1u<<num;
+
+	leaveCriticalSection(oldState);
 }
 
 void IRQ_unregisterHandler(Interrupt num)
 {
+	const u32 oldState = enterCriticalSection();
+
 	REG_IRQ_IE &= ~(1u<<num);
 	irqHandlerTable[num] = (void (*)(void))NULL;
+
+	leaveCriticalSection(oldState);
 }

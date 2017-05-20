@@ -107,10 +107,10 @@ void NAKED firmLaunchStub(void)
 		{
 			REG_NDMA_SRC_ADDR(i) = FIRM_LOAD_ADDR + section->offset;
 			REG_NDMA_DST_ADDR(i) = section->address;
-			REG_NDMA_WRITE_CNT(i) = section->size / 4;
-			REG_NDMA_BLOCK_CNT(i) = NDMA_BLOCK_SYS_FREQ;
-			REG_NDMA_CNT(i) = NDMA_DST_UPDATE_INC | NDMA_SRC_UPDATE_INC |
-			                  NDMA_STARTUP_IMMEDIATE | NDMA_ENABLE;
+			REG_NDMA_LOG_BLK_CNT(i) = section->size / 4;
+			REG_NDMA_INT_CNT(i) = NDMA_INT_SYS_FREQ;
+			REG_NDMA_CNT(i) = NDMA_ENABLE | NDMA_BURST_SIZE(128) | NDMA_STARTUP_IMMEDIATE |
+			                  NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_INC;
 		}
 		else
 		{
@@ -252,7 +252,7 @@ noreturn void firm_launch(void)
 	while(PXI_recvWord() != PXI_RPL_OK);
 	
 	//printf("Relocating FIRM launch stub...\n");
-	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE>>2);
+	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE);
 
 	//printf("Starting firm launch...\n");
 	((void (*)(void))A9_STUB_ENTRY)();
