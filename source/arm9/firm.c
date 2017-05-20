@@ -165,7 +165,13 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	
 	if(memcmp(&firm_hdr->magic, "FIRM", 4) != 0)
 		return false;
-	
+
+	if(firm_hdr->entrypointarm9 == 0)
+	{
+		if(printInfo) uiPrintError("Bad ARM9 entrypoint!\n");
+		return false;
+	}
+
 	if(printInfo)
 	{
 		uiPrintInfo("\nARM9  entry: 0x%" PRIX32 "\n", firm_hdr->entrypointarm9);
