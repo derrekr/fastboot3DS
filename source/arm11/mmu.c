@@ -34,7 +34,7 @@
 
 
 extern void clearMem(u32 *adr, u32 size);
-extern u32 __start__;
+extern u32 __start__[];
 
 /**
  * @brief      Maps up to 4096 1 MB sections of memory.
@@ -119,7 +119,7 @@ void setupMmu(void)
 	            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 	// Map boot11 mirror to loader executable start (exception vectors)
-	mmuMapPages(BOOT11_MIRROR2, (u32)&__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
+	mmuMapPages(BOOT11_MIRROR2, (u32)__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
 	            PERM_PRIV_RO_USR_NO_ACC, 1, false,
 	            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
@@ -150,4 +150,10 @@ void setupMmu(void)
 	                  // I-Cache, high exception vectors, Unaligned data access,
 	                  // subpage AP bits disabled
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
+
+	// Invalidate all caches + Data Synchronization Barrier
+	__asm__ __volatile__("mcr p15, 0, %0, c7, c5, 4\n\t"
+	                     "mcr p15, 0, %0, c7, c5, 0\n\t"
+	                     "mcr p15, 0, %0, c7, c6, 0\n\t"
+	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
 }
