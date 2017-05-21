@@ -87,7 +87,7 @@
 
 
 // REG_NDMA_GLOBAL_CNT
-#define NDMA_ROUND_ROBIN(n)    ((u32)log2(n) | (1u<<31) | 1u) // n = number of CPU cycles
+#define NDMA_ROUND_ROBIN(n)    ((u32)log2(n)<<16 | 1u<<31 | 1u) // n = number of CPU cycles
 #define NDMA_HIGHEST_PRIO      (1u)
 
 // REG_NDMA_INT_CNT

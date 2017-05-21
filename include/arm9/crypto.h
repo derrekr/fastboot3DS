@@ -1,7 +1,5 @@
 /*
- *  AES code based on code from Normmatt
- *
- *  2016 - 2017
+ *  2017
  *  profi200
  */
 
@@ -10,13 +8,14 @@
 #include "types.h"
 
 
+
 //////////////////////////////////
 //             AES              //
 //////////////////////////////////
 
-#define AES_MAX_BUF_SIZE      (0xFFFC0)
+#define AES_MAX_BLOCKS        (0xFFFC)
 
-#define AES_WRITE_FIFO_COUNT  (REG_AESCNT>>0 & 0x1F)
+#define AES_WRITE_FIFO_COUNT  (REG_AESCNT & 0x1F)
 #define AES_READ_FIFO_COUNT   (REG_AESCNT>>5 & 0x1F)
 
 #define AES_FLUSH_READ_FIFO   (1u<<10)
@@ -24,14 +23,16 @@
 #define AES_MAC_SIZE(n)       (((n - 2) / 2)<<16)
 #define AES_MAC_SRC_REG       (1u<<20)
 #define AES_MAC_VALID         ((bool)(REG_AESCNT>>21 & 1))
-#define AES_OUTPUT_BIG        (1u<<22)
+
+#define AES_OUTPUT_BIG        (1u)
 #define AES_OUTPUT_LITTLE     (0u)
-#define AES_INPUT_BIG         (1u<<23)
+#define AES_INPUT_BIG         (1u)
 #define AES_INPUT_LITTLE      (0u)
-#define AES_OUTPUT_NORMAL     (1u<<24)
+#define AES_OUTPUT_NORMAL     (4u)
 #define AES_OUTPUT_REVERSED   (0u)
-#define AES_INPUT_NORMAL      (1u<<25)
+#define AES_INPUT_NORMAL      (4u)
 #define AES_INPUT_REVERSED    (0u)
+
 #define AES_UPDATE_KEYSLOT    (1u<<26)
 #define AES_IRQ_ENABLE        (1u<<30)
 #define AES_ENABLE            (1u<<31)
@@ -45,96 +46,118 @@
 #define AES_MODE_ECB_ENCRYPT  (7u<<27)
 
 
-typedef enum
-{
-	AES_KEY_TYPE_NORMAL = 0,
-	AES_KEY_TYPE_X      = 1,
-	AES_KEY_TYPE_Y      = 2,
-} AesKeyType;
-
 typedef struct
 {
-	u32 ctrIvNonce[4];
 	u32 ctrIvNonceParams;
+	u32 ctrIvNonce[4];
 	u32 aesParams;
 } AES_ctx;
 
 
+/**
+ * @brief      Initializes the AES hardware and the NDMA channels used by it.
+ */
 void AES_init(void);
 
+
 /**
- * @brief      Selects keyslot and sets the key for the specified key type.
+ * @brief      Sets a normal key.
  *
- * @param[in]  params           Word order and endianess bitmask.
- * @param[in]  keyslot          The keyslot this key will be set for.
- * @param[in]  keyType          The key type. Can be AES_KEY_TYPE_NORMAL/X/Y.
- * @param[in]  key              Pointer to 128-bit AES key data.
- * @param[in]  useTwlScrambler  bool true if TWL keyscrambler is used instead of CTR keyscrambler (only with CTR keyslots).
- * @param[in]  updateKeyslot    bool true if the final AES key should immediately be calculated and set.
+ * @param[in]  keyslot         The keyslot this key will be set for.
+ * @param[in]  orderEndianess  Word order and endianess bitmask.
+ * @param[in]  key             Pointer to 128-bit AES key data.
  */
-void AES_setKey(u32 params, u8 keyslot, AesKeyType type, const u32 *restrict key, bool useTwlScrambler, bool updateKeyslot);
+void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4]);
+
+
+/**
+ * @brief      Sets a keyX.
+ *
+ * @param[in]  keyslot          The keyslot this key will be set for.
+ * @param[in]  orderEndianess   Word order and endianess bitmask.
+ * @param[in]  useTwlScrambler  Set to true to use the TWL keyscrambler for keyslots > 0x03.
+ * @param[in]  keyX             Pointer to 128-bit AES keyX data.
+ */
+void AES_setKeyX(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyX[4]);
+
+
+/**
+ * @brief      Sets a keyY.
+ *
+ * @param[in]  keyslot          The keyslot this key will be set for.
+ * @param[in]  orderEndianess   Word order and endianess bitmask.
+ * @param[in]  useTwlScrambler  Set to true to use the TWL keyscrambler for keyslots > 0x03.
+ * @param[in]  keyY             Pointer to 128-bit AES keyY data.
+ */
+void AES_setKeyY(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyY[4]);
+
 
 /**
  * @brief      Selects the given keyslot for all following crypto operations.
  *
- * @param[in]  keyslot        The keyslot to select.
- * @param[in]  updateKeyslot  bool true if the final AES key should immediately be calculated and set.
+ * @param[in]  keyslot  The keyslot to select.
  */
-void AES_selectKeyslot(u8 keyslot, bool updateKeyslot);
+void AES_selectKeyslot(u8 keyslot);
+
 
 /**
- * @brief      Copies the given CTR/IV/nonce into internal state.
+ * @brief      Copies the given nonce into internal state.
  *
- * @param      ctx         Pointer to AES_ctx (AES context).
- * @param[in]  ctrIvNonce  Pointer to CTR/IV/nonce data. Size is determined by params.
- * @param[in]  params      Word order, endianess and AES cipher mode bitmask.
- * @param[in]  initialCtr  Value to update the counter in CTR mode with. Can be 0.
+ * @param      ctx             Pointer to AES_ctx (AES context).
+ * @param[in]  orderEndianess  Word order and endianess bitmask.
+ * @param[in]  nonce           Pointer to the nonce data.
  */
-void AES_setCtrIvNonce(AES_ctx *restrict ctx, const u32 *restrict ctrIvNonce, u32 params, u32 initialCtr);
+void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3]);
+
 
 /**
- * @brief      Returns a pointer to the CTR/IV/nonce stored in internal state.
+ * @brief      Copies the given counter/initialization vector into internal state.
  *
- * @param      ctx   Pointer to AES_ctx (AES context).
- *
- * @return     A pointer to the internal CTR/IV/nonce data.
+ * @param      ctx             Pointer to AES_ctx (AES context).
+ * @param[in]  orderEndianess  Word order and endianess bitmask.
+ * @param[in]  ctrIv           Pointer to the counter/initialization vector data.
  */
-u32* AES_getCtrIvNoncePtr(AES_ctx *restrict ctx);
+void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4]);
 
-/**
- * @brief      Sets params in internal state for all following crypto operations.
- *
- * @param      ctx     Pointer to AES_ctx (AES context).
- * @param[in]  params  Params bitmask to set.
- */
-void AES_setCryptParams(AES_ctx *restrict ctx, u32 params);
-
-/**
- * @brief      En-/decrypts data with the previosly set params.
- * @brief      In CTR mode the internal counter is updated after each call.
- *
- * @param      ctx   Pointer to AES_ctx (AES context).
- * @param[in]  in    In data pointer. Can be the same as out.
- * @param      out   Out data pointer. Can be the same as in.
- * @param[in]  size  Data size. If not 16 bytes aligned it is rounded up.
- */
-void AES_crypt(AES_ctx *restrict ctx, const u32 *restrict in, u32 *restrict out, u32 size);
 
 /**
  * @brief      Increments the internal counter with the given value (CTR mode).
  *
- * @param      ctx   Pointer to AES_ctx (AES context).
- * @param[in]  val   Value to add to the counter.
+ * @param      ctr   Pointer to the counter data.
+ * @param[in]  val   Value to increment the counter with.
  */
-void AES_addCounter(AES_ctx *restrict ctx, u32 val); // TODO: Handle endianess!
+void AES_addCounter(u32 ctr[4], u32 val);
+
 
 /**
  * @brief      Decrements the internal counter with the given value (CTR mode).
  *
- * @param      ctx   Pointer to AES_ctx (AES context).
- * @param[in]  val   Value to substract from the counter.
+ * @param      ctr   Pointer to the counter data.
+ * @param[in]  val   Value to decrement the counter with.
  */
-void AES_subCounter(AES_ctx *restrict ctx, u32 val);
+void AES_subCounter(u32 ctr[4], u32 val);
+
+
+/**
+ * @brief      Sets params in the AES context for all following crypto operations.
+ *
+ * @param      ctx                Pointer to AES_ctx (AES context).
+ * @param[in]  inEndianessOrder   Input endianess and word order bitmask.
+ * @param[in]  outEndianessOrder  Output endianess and word order bitmask.
+ */
+void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianessOrder);
+
+
+/**
+ * @brief      En-/decrypts data with AES CTR.
+ *
+ * @param      ctx     Pointer to AES_ctx (AES context).
+ * @param[in]  in      In data pointer. Can be the same as out.
+ * @param      out     Out data pointer. Can be the same as in.
+ * @param[in]  blocks  Number of blocks to process. 1 block is 16 bytes.
+ * @param[in]  dma     Set to true to enable DMA.
+ */
+void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma);
 
 
 
@@ -148,10 +171,9 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val);
 #define SHA_INPUT_LITTLE   (0u)
 #define SHA_OUTPUT_BIG     (SHA_INPUT_BIG)
 #define SHA_OUTPUT_LITTLE  (SHA_INPUT_LITTLE)
-
 #define SHA_MODE_256       (0u)
 #define SHA_MODE_224       (1u<<4)
-#define SHA_MODE_1         (1u<<5)
+#define SHA_MODE_1         (2u<<4)
 
 
 /**
@@ -159,7 +181,7 @@ void AES_subCounter(AES_ctx *restrict ctx, u32 val);
  *
  * @param[in]  params  Mode and input endianess bitmask.
  */
-void SHA_start(u32 params);
+void SHA_start(u8 params);
 
 /**
  * @brief      Hashes the data pointed to.
@@ -167,7 +189,7 @@ void SHA_start(u32 params);
  * @param[in]  data  Pointer to data to hash.
  * @param[in]  size  Size of the data to hash.
  */
-void SHA_update(const u32 *restrict data, u32 size);
+void SHA_update(const u32 *data, u32 size);
 
 /**
  * @brief      Generates the final hash.
@@ -175,7 +197,7 @@ void SHA_update(const u32 *restrict data, u32 size);
  * @param      hash       Pointer to memory to copy the hash to.
  * @param[in]  endianess  Endianess bitmask for the hash.
  */
-void SHA_finish(u32 *restrict hash, u32 endianess);
+void SHA_finish(u32 *const hash, u8 endianess);
 
 /**
  * @brief      Hashes a single block of data and outputs the hash.
@@ -186,4 +208,4 @@ void SHA_finish(u32 *restrict hash, u32 endianess);
  * @param[in]  params         Mode and input endianess bitmask.
  * @param[in]  hashEndianess  Endianess bitmask for the hash.
  */
-void sha(const u32 *restrict data, u32 size, u32 *restrict hash, u32 params, u32 hashEndianess);
+void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess);

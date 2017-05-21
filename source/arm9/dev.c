@@ -234,7 +234,8 @@ static void deriveAndsetN3dsKey0x05(void)
 	pad[2] ^= ((u32*)BOOT9_BASE)[2];
 	pad[3] ^= ((u32*)BOOT9_BASE)[3];
 
-	AES_setKey(AES_INPUT_BIG | AES_INPUT_NORMAL, 0x05, AES_KEY_TYPE_Y, pad, false, true);
+	AES_setKeyY(0x05, AES_INPUT_BIG | AES_INPUT_NORMAL, false, pad);
+	AES_selectKeyslot(0x05);
 }
 
 
@@ -310,11 +311,8 @@ bool sdmmc_dnand_init(void)
 		}
 
 		// Hash NAND CID to create the CTRs for crypto
-		u32 hash[8];
-		sha((u32*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
-		memcpy(dev_dnand.twlCounter, hash, 16);
-		sha((u32*)0x01FFCD84, 16, hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
-		memcpy(dev_dnand.ctrCounter, hash, 16);
+		sha((u32*)0x01FFCD84, 16, dev_dnand.twlCounter, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
+		sha((u32*)0x01FFCD84, 16, dev_dnand.ctrCounter, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
 
 		// TWL keyslot 0x03 keyX
 		u32 twlKeyX[4];
@@ -322,19 +320,19 @@ bool sdmmc_dnand_init(void)
 		twlKeyX[1] = 0x544E494E; // "NINT"
 		twlKeyX[2] = 0x4F444E45; // "ENDO"
 		twlKeyX[3] = *((u32*)0x01FFB80C) ^ 0x08C267B7;
-		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED, 3, AES_KEY_TYPE_X, twlKeyX, false, false);
+		AES_setKeyX(0x03, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyX);
 
 		// TWL keyslot 0x03 keyY
 		u32 twlKeyY[4];
 		for(int i = 0; i < 3; i++) twlKeyY[i] = ((u32*)0x01FFD3C8)[i];
 		twlKeyY[3] = 0xE1A00005;
-		AES_setKey(AES_INPUT_LITTLE | AES_INPUT_REVERSED, 3, AES_KEY_TYPE_Y, twlKeyY, false, true);
+		AES_setKeyY(0x03, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyY);
 
 		// Crypt settings
-		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_OUTPUT_LITTLE | AES_INPUT_LITTLE | AES_OUTPUT_REVERSED |
-		                   AES_INPUT_REVERSED | AES_MODE_CTR);
-		AES_setCryptParams(&dev_dnand.ctrAesCtx, AES_OUTPUT_BIG | AES_INPUT_BIG | AES_OUTPUT_NORMAL |
-		                   AES_INPUT_NORMAL | AES_MODE_CTR);
+		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_INPUT_LITTLE | AES_INPUT_REVERSED,
+		                   AES_OUTPUT_LITTLE | AES_OUTPUT_REVERSED);
+		AES_setCryptParams(&dev_dnand.ctrAesCtx, AES_INPUT_BIG | AES_INPUT_NORMAL,
+		                   AES_OUTPUT_BIG | AES_OUTPUT_NORMAL);
 
 		dev_dnand.dev.initialized = true;
 	}
@@ -359,20 +357,22 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 		return false;	// unknown partition type
 
 	AES_ctx *ctx;
-	AES_selectKeyslot(keyslot, true);
+	AES_selectKeyslot(keyslot);
 	if(keyslot == 0x03)
 	{
 		ctx = &dev_dnand.twlAesCtx;
-		AES_setCtrIvNonce(ctx, dev_dnand.twlCounter, AES_INPUT_LITTLE | AES_INPUT_REVERSED | AES_MODE_CTR, sector<<9);
+		AES_setCtrIv(ctx, AES_INPUT_LITTLE | AES_INPUT_REVERSED, dev_dnand.twlCounter);
+		AES_addCounter(ctx->ctrIvNonce, sector<<9);
 	}
 	else
 	{
 		ctx = &dev_dnand.ctrAesCtx;
-		AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL | AES_MODE_CTR, sector<<9);
+		AES_setCtrIv(ctx, AES_INPUT_LITTLE | AES_INPUT_NORMAL, dev_dnand.ctrCounter);
+		AES_addCounter(ctx->ctrIvNonce, sector<<9);
 	}
 	
 	if(sdmmc_nand_readsectors(sector, count, buf)) return false;
-	AES_crypt(ctx, buf, buf, count<<9);
+	AES_ctr(ctx, buf, buf, count<<5, true);
 
 	return true;
 }
@@ -392,33 +392,42 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 
 	if(keyslot == 0xFF)
 		return false;	// unknown partition type
-
-	AES_ctx *ctx;
-	ctx = &dev_dnand.ctrAesCtx;
 	
 	if(!count)
 		return false;
 	
-	const size_t crypto_buf_size = min(count<<9, 0x1000);
-	void *crypto_buf = malloc(crypto_buf_size);
+	const size_t crypto_sec_size = min(count, 0x1000>>9);
+	void *crypto_buf = malloc(crypto_sec_size<<9);
 	if(!crypto_buf)
 		return false;
 	
-	AES_selectKeyslot(keyslot, true);
-	AES_setCtrIvNonce(ctx, dev_dnand.ctrCounter, AES_INPUT_LITTLE | AES_INPUT_NORMAL | AES_MODE_CTR, sector<<9);
+	AES_selectKeyslot(keyslot);
+	AES_ctx *ctx;
+	if(keyslot == 0x03)
+	{
+		ctx = &dev_dnand.twlAesCtx;
+		AES_setCtrIv(ctx, AES_INPUT_LITTLE | AES_INPUT_REVERSED, dev_dnand.twlCounter);
+		AES_addCounter(ctx->ctrIvNonce, sector<<9);
+	}
+	else
+	{
+		ctx = &dev_dnand.ctrAesCtx;
+		AES_setCtrIv(ctx, AES_INPUT_LITTLE | AES_INPUT_NORMAL, dev_dnand.ctrCounter);
+		AES_addCounter(ctx->ctrIvNonce, sector<<9);
+	}
 	
 	do {
-		size_t crypt_size = min(count<<9, crypto_buf_size);
-		
-		AES_crypt(ctx, buf, crypto_buf, crypt_size);
-		if(sdmmc_nand_writesectors(sector, crypt_size >> 9, crypto_buf))
+		size_t crypt_size = min(count, crypto_sec_size);
+
+		AES_ctr(ctx, buf, crypto_buf, crypt_size<<5, true);
+		if(sdmmc_nand_writesectors(sector, crypt_size, crypto_buf))
 		{
 			free(crypto_buf);
 			return false;
 		}
 		
-		sector += crypt_size >> 9;
-		count -= crypt_size >> 9;
+		sector += crypt_size;
+		count -= crypt_size;
 		buf += crypt_size;
 	} while(count);
 	

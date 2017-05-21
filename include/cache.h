@@ -5,8 +5,8 @@
 
 
 void invalidateICache(void);
-void invalidateICacheRange(void *base, u32 size);
+void invalidateICacheRange(const void *const base, u32 size);
 void flushDCache(void);
-void flushDCacheRange(void *base, u32 size);
+void flushDCacheRange(const void *const base, u32 size);
 void invalidateDCache(void);
-void invalidateDCacheRange(void *base, u32 size);
+void invalidateDCacheRange(const void *const base, u32 size);
