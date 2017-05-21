@@ -82,7 +82,7 @@ static void mmuMapPages(u32 va, u32 pa, u32 num, u32 *l2Table, bool shared, u32 
 	}
 }
 
-void setupMmu(void)
+void NAKED setupMmu(void)
 {
 	// TTBR0 address shared page table walk and outer cachable write-through, no allocate on write
 	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 0" : : "r" (A11_MMU_TABLES_BASE | 0x12u));
@@ -151,9 +151,10 @@ void setupMmu(void)
 	                  // subpage AP bits disabled
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
 
-	// Invalidate all caches + Data Synchronization Barrier
+	// Invalidate all caches + Data Synchronization Barrier + return
 	__asm__ __volatile__("mcr p15, 0, %0, c7, c5, 4\n\t"
 	                     "mcr p15, 0, %0, c7, c5, 0\n\t"
 	                     "mcr p15, 0, %0, c7, c6, 0\n\t"
-	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
+	                     "mcr p15, 0, %0, c7, c10, 4\n\t"
+	                     "bx lr" : : "r" (0u));
 }
