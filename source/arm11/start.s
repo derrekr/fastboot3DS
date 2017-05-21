@@ -63,10 +63,10 @@ _start:
 	mov r0, #0
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
-	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
-	mcr p15, 0, r0, c7, c5, 0   @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c6, 0   @ Invalidate Entire Data Cache
-	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
+	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
+	mcr p15, 0, r0, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
+	mcr p15, 0, r0, c7, c6, 0  @ Invalidate Entire Data Cache
+	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
 
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
@@ -84,10 +84,10 @@ _start:
 	sub r1, r1, r0
 	bl clearMem
 
-	blx setupMmu
+	//blx setupMmu
 	bl setupVfp
 	clrex
-	cpsie a
+	//cpsie a
 
 	blx __libc_init_array      @ Initialize ctors and dtors
 
@@ -184,10 +184,10 @@ deinitCpu:
 	                            @ and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
-	mcr p15, 0, r2, c7, c5, 4   @ Flush Prefetch Buffer
-	mcr p15, 0, r2, c7, c5, 0   @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r2, c7, c6, 0   @ Invalidate Entire Data Cache
-	mcr p15, 0, r2, c7, c10, 4  @ Data Synchronization Barrier
+	mcr p15, 0, r2, c7, c5, 4  @ Flush Prefetch Buffer
+	mcr p15, 0, r2, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
+	mcr p15, 0, r2, c7, c6, 0  @ Invalidate Entire Data Cache
+	mcr p15, 0, r2, c7, c10, 4 @ Data Synchronization Barrier
 
 	@ Disable VFP11
 	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
