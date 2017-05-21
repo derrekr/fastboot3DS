@@ -60,6 +60,8 @@ static void gfx_setup_framebuf_top()
 	*((vu32*)(0x10400400+0x74)) = 0x00010501;
 	*((vu32*)(0x10400400+0x78)) = 0x00000000;
 	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 2; // framebuf stride, observed to be 0
+	*((vu32*)(0x10400400+0x94)) = FRAMEBUF_TOP_A_1;
+	*((vu32*)(0x10400400+0x98)) = FRAMEBUF_TOP_A_2;
 	*((vu32*)(0x10400400+0x9C)) = 0x00000000;
 
 	for(u32 i = 0; i < 0x100; i++)
@@ -110,22 +112,31 @@ static void gfx_setup_framebuf_low()
 	}
 }
 
-void gfx_clear_screens(u64 *top, u32 topSize, u64 *sub, u32 subSize)
+void gfx_clear_screens(u64 *framebufs1, u32 framebufs1Size, u64 *framebufs2, u32 framebufs2Size)
 {
 	vu32 *REGs_PSC0 = (vu32*)0x10400010;
 	vu32 *REGs_PSC1 = (vu32*)0x10400020;
 
-	REGs_PSC0[0] = (u32)top>>3; // Start address
-	REGs_PSC0[1] = ((u32)top + topSize)>>3; // End address 
+	REGs_PSC0[0] = (u32)framebufs1>>3; // Start address
+	REGs_PSC0[1] = ((u32)framebufs1 + framebufs1Size)>>3; // End address 
 	REGs_PSC0[2] = 0; // Fill value
 	REGs_PSC0[3] = (2u<<8) | 1u; // 32-bit pattern; start
 
-	REGs_PSC1[0] = (u32)sub>>3; // Start address
-	REGs_PSC1[1] = ((u32)sub + subSize)>>3; // End address
+	REGs_PSC1[0] = (u32)framebufs2>>3; // Start address
+	REGs_PSC1[1] = ((u32)framebufs2 + framebufs2Size)>>3; // End address
 	REGs_PSC1[2] = 0; //Fill value
 	REGs_PSC1[3] = (2u<<8) | 1u; //32-bit pattern; start
 
 	while(REGs_PSC0[3] & 2 || REGs_PSC1[3] & 2);
+}
+
+void gfx_swapFramebufs(void)
+{
+	static u32 activeFb = 0;
+	activeFb ^= 1;
+
+	*((vu32*)(0x10400400+0x78)) = (*((vu32*)(0x10400400+0x78)) & 0xFFFFFFFE) | activeFb;
+	*((vu32*)(0x10400500+0x78)) = (*((vu32*)(0x10400500+0x78)) & 0xFFFFFFFE) | activeFb;
 }
 
 void gfx_init(void)
@@ -141,15 +152,10 @@ void gfx_init(void)
 	gfx_setup_framebuf_top();
 	gfx_setup_framebuf_low();
 
-	REG_LCD_COLORFILL_MAIN = 1u<<24;
-	REG_LCD_COLORFILL_SUB = 1u<<24;
-	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2,
-	                  (u64*)FRAMEBUF_SUB_A_1, SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
-
-	i2cmcu_lcd_poweron();
-	i2cmcu_lcd_backlight_poweron();
-	REG_LCD_COLORFILL_MAIN = 0;
-	REG_LCD_COLORFILL_SUB = 0;
+	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB,
+	                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	i2c_writeregdata(3, 0x22, 0x2A);
+	wait(30000000);
 }
 
 void gfx_deinit()
@@ -165,8 +171,8 @@ void gfx_deinit()
 	REG_PDN_GPU_CNT = 1;*/
 
 	// Temporary Luma workaround
-	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 3,
-	                  (u64*)(FRAMEBUF_SUB_A_1 + 0x17700), SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 3 - 0x17700);
+	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300,
+	                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300);
 	*((vu32*)(0x10400400+0x70)) = 0x00080341;
 	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;
 	*((vu32*)(0x10400500+0x70)) = 0x00080301;

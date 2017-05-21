@@ -85,9 +85,9 @@ _start:
 	sub r1, r1, r0
 	bl clearMem
 
-	//blx setupMmu
+	blx setupMmu
 	bl setupVfp
-	//cpsie a
+	cpsie a
 
 	blx __libc_init_array      @ Initialize ctors and dtors
 
