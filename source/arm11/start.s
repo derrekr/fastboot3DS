@@ -67,6 +67,7 @@ _start:
 	mcr p15, 0, r0, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c6, 0  @ Invalidate Entire Data Cache
 	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
+	clrex
 
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
@@ -86,7 +87,6 @@ _start:
 
 	//blx setupMmu
 	bl setupVfp
-	clrex
 	//cpsie a
 
 	blx __libc_init_array      @ Initialize ctors and dtors
