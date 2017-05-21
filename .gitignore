@@ -3,8 +3,6 @@ build11/
 eclipse_project/
 boot3r.sublime-project
 boot3r.sublime-workspace
-code9.bin
-code11.bin
-code9.elf
-code11.elf
-firm.bin
+*.elf
+*.bin
+*.firm
