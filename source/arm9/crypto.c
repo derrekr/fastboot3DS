@@ -194,20 +194,21 @@ void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3])
 
 
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
+	u32 *const ctrIvNonce = ctx->ctrIvNonce;
 	u32 lastu32;
 	if(orderEndianess & 4)
 	{
-		ctx->ctrIvNonce[0] = nonce[2];
-		ctx->ctrIvNonce[1] = nonce[1];
+		ctrIvNonce[0] = nonce[2];
+		ctrIvNonce[1] = nonce[1];
 		lastu32 = nonce[0];
 	}
 	else
 	{
-		ctx->ctrIvNonce[0] = nonce[0];
-		ctx->ctrIvNonce[1] = nonce[1];
+		ctrIvNonce[0] = nonce[0];
+		ctrIvNonce[1] = nonce[1];
 		lastu32 = nonce[2];
 	}
-	ctx->ctrIvNonce[2] = lastu32;
+	ctrIvNonce[2] = lastu32;
 }
 
 void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
@@ -217,22 +218,23 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 
 
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
+	u32 *const ctrIvNonce = ctx->ctrIvNonce;
 	u32 lastu32;
 	if(orderEndianess & 4)
 	{
-		ctx->ctrIvNonce[0] = ctrIv[3];
-		ctx->ctrIvNonce[1] = ctrIv[2];
-		ctx->ctrIvNonce[2] = ctrIv[1];
+		ctrIvNonce[0] = ctrIv[3];
+		ctrIvNonce[1] = ctrIv[2];
+		ctrIvNonce[2] = ctrIv[1];
 		lastu32 = ctrIv[0];
 	}
 	else
 	{
-		ctx->ctrIvNonce[0] = ctrIv[0];
-		ctx->ctrIvNonce[1] = ctrIv[1];
-		ctx->ctrIvNonce[2] = ctrIv[2];
+		ctrIvNonce[0] = ctrIv[0];
+		ctrIvNonce[1] = ctrIv[1];
+		ctrIvNonce[2] = ctrIv[2];
 		lastu32 = ctrIv[3];
 	}
-	ctx->ctrIvNonce[3] = lastu32;
+	ctrIvNonce[3] = lastu32;
 }
 
 // TODO: Handle endianess!
