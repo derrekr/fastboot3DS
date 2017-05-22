@@ -10,7 +10,6 @@
 #include "arm9/crypto.h"
 #include "arm9/interrupt.h"
 #include "arm9/ndma.h"
-#include "cache.h"
 
 
 
@@ -361,12 +360,6 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 	u32 *const ctr = ctx->ctrIvNonce;
 	const u32 aesParams = AES_MODE_CTR | ctx->aesParams;
 
-
-	if(dma)
-	{
-		flushDCacheRange(in, blocks<<4);
-		invalidateDCacheRange(out, blocks<<4);
-	}
 
 	while(blocks)
 	{

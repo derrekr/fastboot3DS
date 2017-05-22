@@ -5,14 +5,18 @@
 .global invalidateICache
 .global invalidateICacheRange
 .global flushDCache
+.global flushInvalidateDCache
 .global flushDCacheRange
+.global flushInvalidateDCacheRange
 .global invalidateDCache
 .global invalidateDCacheRange
 
 .type invalidateICache STT_FUNC
 .type invalidateICacheRange STT_FUNC
 .type flushDCache STT_FUNC
+.type flushInvalidateDCache STT_FUNC
 .type flushDCacheRange STT_FUNC
+.type flushInvalidateDCacheRange STT_FUNC
 .type invalidateDCache STT_FUNC
 .type invalidateDCacheRange STT_FUNC
 
@@ -55,7 +59,25 @@ flushDCache:
 		add r1, r1, #0x40000000
 		cmp r1, #0
 		bne flushDCache_outer_lp
-	b drainWriteBuffer
+	b drainWriteBufferFlushInvalidate
+
+
+flushInvalidateDCache:
+	mov r1, #0
+	flushInvalidateDCache_outer_lp:
+		mov r0, #0
+		flushInvalidateDCache_inner_lp:
+			orr r2, r1, r0             @ Generate segment and line address
+			mcr p15, 0, r2, c7, c14, 2 @ "Clean and flush data cache entry Index and segment"
+			add r0, r0, #CACHE_LINE_SIZE
+			cmp r0, #(DCACHE_SIZE / 4)
+			bne flushInvalidateDCache_inner_lp
+		add r1, r1, #0x40000000
+		cmp r1, #0
+		bne flushInvalidateDCache_outer_lp
+drainWriteBufferFlushInvalidate:
+	mcr p15, 0, r1, c7, c10, 4         @ Drain write buffer
+	bx lr
 
 
 flushDCacheRange:
@@ -66,8 +88,18 @@ flushDCacheRange:
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt flushDCacheRange_lp
+	b drainWriteBufferFlushInvalidateRange
 
-drainWriteBuffer:
+
+flushInvalidateDCacheRange:
+	add r1, r1, r0
+	bic r0, r0, #(CACHE_LINE_SIZE - 1)
+	flushInvalidateDCacheRange_lp:
+		mcr p15, 0, r0, c7, c14, 1  @ "Clean and flush data cache entry Address"
+		add r0, r0, #CACHE_LINE_SIZE
+		cmp r0, r1
+		blt flushInvalidateDCacheRange_lp
+drainWriteBufferFlushInvalidateRange:
 	mov r0, #0
 	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
 	bx lr

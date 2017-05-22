@@ -8,7 +8,7 @@
 #include "arm9/sdmmc.h"
 #include "arm9/spiflash.h"
 #include "arm9/crypto.h"
-#include "arm9/ndma.h"
+#include "cache.h"
 #include "arm9/timer.h"
 #include "util.h"
 #include "arm9/dev.h"
@@ -371,6 +371,7 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	}
 	
 	if(sdmmc_nand_readsectors(sector, count, buf)) return false;
+	flushInvalidateDCacheRange(buf, count<<9);
 	AES_ctr(ctx, buf, buf, count<<5, true);
 
 	return true;
@@ -399,7 +400,9 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 	void *crypto_buf = malloc(crypto_sec_size<<9);
 	if(!crypto_buf)
 		return false;
-	
+
+	flushDCacheRange(buf, count<<9);
+
 	AES_selectKeyslot(keyslot);
 	AES_ctx *ctx;
 	if(keyslot == 0x03)
@@ -418,6 +421,7 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 	do {
 		size_t crypt_size = min(count, crypto_sec_size);
 
+		invalidateDCacheRange(crypto_buf, crypt_size<<9);
 		AES_ctr(ctx, buf, crypto_buf, crypt_size<<5, true);
 		if(sdmmc_nand_writesectors(sector, crypt_size, crypto_buf))
 		{

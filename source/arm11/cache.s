@@ -5,14 +5,18 @@
 .global invalidateICache
 .global invalidateICacheRange
 .global flushDCache
+.global flushInvalidateDCache
 .global flushDCacheRange
+.global flushInvalidateDCacheRange
 .global invalidateDCache
 .global invalidateDCacheRange
 
 .type invalidateICache STT_FUNC
 .type invalidateICacheRange STT_FUNC
 .type flushDCache STT_FUNC
+.type flushInvalidateDCache STT_FUNC
 .type flushDCacheRange STT_FUNC
+.type flushInvalidateDCacheRange STT_FUNC
 .type invalidateDCache STT_FUNC
 .type invalidateDCacheRange STT_FUNC
 
@@ -54,6 +58,13 @@ flushDCache:
 	bx lr
 
 
+flushInvalidateDCache:
+	mov r0, #0
+	mcr p15, 0, r0, c7, c14, 0      @ "Clean and Invalidate Entire Data Cache"
+	mcr p15, 0, r0, c7, c10, 4      @ Data Synchronization Barrier
+	bx lr
+
+
 flushDCacheRange:
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
@@ -63,6 +74,19 @@ flushDCacheRange:
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt flushDCacheRange_lp
+	mcr p15, 0, r2, c7, c10, 4      @ Data Synchronization Barrier
+	bx lr
+
+
+flushInvalidateDCacheRange:
+	add r1, r1, r0
+	bic r0, r0, #(CACHE_LINE_SIZE - 1)
+	mov r2, #0
+	flushInvalidateDCacheRange_lp:
+		mcr p15, 0, r0, c7, c14, 1  @ "Clean and Invalidate Data Cache Line (using MVA)"
+		add r0, r0, #CACHE_LINE_SIZE
+		cmp r0, r1
+		blt flushInvalidateDCacheRange_lp
 	mcr p15, 0, r2, c7, c10, 4      @ Data Synchronization Barrier
 	bx lr
 
