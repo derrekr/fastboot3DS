@@ -234,7 +234,7 @@ static void deriveAndsetN3dsKey0x05(void)
 	pad[2] ^= ((u32*)BOOT9_BASE)[2];
 	pad[3] ^= ((u32*)BOOT9_BASE)[3];
 
-	AES_setKeyY(0x05, AES_INPUT_BIG | AES_INPUT_NORMAL, false, pad);
+	AES_setKey(0x05, AES_KEY_Y, AES_INPUT_BIG | AES_INPUT_NORMAL, false, pad);
 }
 
 
@@ -319,13 +319,13 @@ bool sdmmc_dnand_init(void)
 		twlKeyX[1] = 0x544E494E; // "NINT"
 		twlKeyX[2] = 0x4F444E45; // "ENDO"
 		twlKeyX[3] = *((u32*)0x01FFB80C) ^ 0x08C267B7;
-		AES_setKeyX(0x03, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyX);
+		AES_setKey(0x03, AES_KEY_X, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyX);
 
 		// TWL keyslot 0x03 keyY
 		u32 twlKeyY[4];
 		for(int i = 0; i < 3; i++) twlKeyY[i] = ((u32*)0x01FFD3C8)[i];
 		twlKeyY[3] = 0xE1A00005;
-		AES_setKeyY(0x03, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyY);
+		AES_setKey(0x03, AES_KEY_Y, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyY);
 
 		// Crypt settings
 		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_INPUT_LITTLE | AES_INPUT_REVERSED,

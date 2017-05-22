@@ -3,3 +3,4 @@
 
 
 void hardwareInit(void);
+void hardwareDeinit(void);

@@ -16,7 +16,7 @@
 #define AES_MAX_BLOCKS        (0xFFFC)
 
 #define AES_WRITE_FIFO_COUNT  (REG_AESCNT & 0x1F)
-#define AES_READ_FIFO_COUNT   (REG_AESCNT>>5 & 0x1F)
+#define AES_READ_FIFO_COUNT   (REG_AESCNT & 0x3E0)
 
 #define AES_FLUSH_READ_FIFO   (1u<<10)
 #define AES_FLUSH_WRITE_FIFO  (1u<<11)
@@ -46,6 +46,13 @@
 #define AES_MODE_ECB_ENCRYPT  (7u<<27)
 
 
+typedef enum
+{
+	AES_KEY_NORMAL = 0,
+	AES_KEY_X      = 1,
+	AES_KEY_Y      = 2,
+} AesKeyType;
+
 typedef struct
 {
 	u32 ctrIvNonceParams;
@@ -60,33 +67,15 @@ typedef struct
 void AES_init(void);
 
 /**
- * @brief      Sets a normal key.
+ * @brief      Sets a AES key in the specified keyslot.
  *
  * @param[in]  keyslot         The keyslot this key will be set for.
+ * @param[in]  type            The key type. Can be AES_KEY_NORMAL/X/Y.
  * @param[in]  orderEndianess  Word order and endianess bitmask.
+ * @param[in]  twlScrambler    Set to true to use the TWL keyscrambler for keyslots > 0x03.
  * @param[in]  key             Pointer to 128-bit AES key data.
  */
-void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4]);
-
-/**
- * @brief      Sets a keyX.
- *
- * @param[in]  keyslot          The keyslot this key will be set for.
- * @param[in]  orderEndianess   Word order and endianess bitmask.
- * @param[in]  useTwlScrambler  Set to true to use the TWL keyscrambler for keyslots > 0x03.
- * @param[in]  keyX             Pointer to 128-bit AES keyX data.
- */
-void AES_setKeyX(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyX[4]);
-
-/**
- * @brief      Sets a keyY.
- *
- * @param[in]  keyslot          The keyslot this key will be set for.
- * @param[in]  orderEndianess   Word order and endianess bitmask.
- * @param[in]  useTwlScrambler  Set to true to use the TWL keyscrambler for keyslots > 0x03.
- * @param[in]  keyY             Pointer to 128-bit AES keyY data.
- */
-void AES_setKeyY(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyY[4]);
+void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScrambler, const u32 key[4]);
 
 /**
  * @brief      Selects the given keyslot for all following crypto operations.

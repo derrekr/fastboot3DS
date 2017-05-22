@@ -7,3 +7,7 @@ void hardwareInit(void)
 {
 	PXI_init();
 }
+
+/*void hardwareDeinit(void)
+{
+}*/

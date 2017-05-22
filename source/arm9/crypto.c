@@ -43,9 +43,9 @@
 #define REG_AESKEYX3          ((vu32*)(AES_REGS_BASE + 0x0E0))
 #define REG_AESKEYY3          ((vu32*)(AES_REGS_BASE + 0x0F0))
 
-#define REG_AESKEYFIFO       *((vu32*)(AES_REGS_BASE + 0x100))
-#define REG_AESKEYXFIFO      *((vu32*)(AES_REGS_BASE + 0x104))
-#define REG_AESKEYYFIFO      *((vu32*)(AES_REGS_BASE + 0x108))
+#define REG_AESKEYFIFO        ((vu32*)(AES_REGS_BASE + 0x100))
+#define REG_AESKEYXFIFO       ((vu32*)(AES_REGS_BASE + 0x104))
+#define REG_AESKEYYFIFO       ((vu32*)(AES_REGS_BASE + 0x108))
 
 
 void AES_init(void)
@@ -66,7 +66,7 @@ void AES_init(void)
 	REG_IRQ_IE |= 1u<<IRQ_AES;
 }
 
-void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4])
+void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScrambler, const u32 key[4])
 {
 	assert(keyslot < 0x40);
 	assert(key != NULL);
@@ -75,17 +75,17 @@ void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4])
 	REG_AESCNT = (u32)orderEndianess<<23;
 	if(keyslot > 3)
 	{
-		REG_AESKEYCNT = keyslot | 0x80u;
-		REG_AESKEYFIFO = key[0];
-		REG_AESKEYFIFO = key[1];
-		REG_AESKEYFIFO = key[2];
-		REG_AESKEYFIFO = key[3];
+		REG_AESKEYCNT = 0x80u | (type > AES_KEY_NORMAL && twlScrambler ? 1u : 0u)<<6 | keyslot;
+		REG_AESKEYFIFO[type] = key[0];
+		REG_AESKEYFIFO[type] = key[1];
+		REG_AESKEYFIFO[type] = key[2];
+		REG_AESKEYFIFO[type] = key[3];
 	}
 	else
 	{
 		u32 lastu32;
-		vu32 *twlKeyNReg = &REG_AESKEY0[12 * keyslot];
-		if(orderEndianess & 4)
+		vu32 *twlKeyNReg = &REG_AESKEY0[12u * keyslot + type * 4u];
+		if(orderEndianess & AES_INPUT_NORMAL)
 		{
 			twlKeyNReg[0] = key[3];
 			twlKeyNReg[1] = key[2];
@@ -100,80 +100,6 @@ void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4])
 			lastu32 = key[3];
 		}
 		twlKeyNReg[3] = lastu32;
-	}
-}
-
-void AES_setKeyX(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyX[4])
-{
-	assert(keyslot < 0x40);
-	assert(keyX != NULL);
-
-
-	REG_AESCNT = (u32)orderEndianess<<23;
-	if(keyslot > 3)
-	{
-		REG_AESKEYCNT = keyslot | (u8)useTwlScrambler<<6 | 0x80u;
-		REG_AESKEYXFIFO = keyX[0];
-		REG_AESKEYXFIFO = keyX[1];
-		REG_AESKEYXFIFO = keyX[2];
-		REG_AESKEYXFIFO = keyX[3];
-	}
-	else
-	{
-		u32 lastu32;
-		vu32 *twlKeyNReg = &REG_AESKEY0[12 * keyslot];
-		if(orderEndianess & 4)
-		{
-			twlKeyNReg[4] = keyX[3];
-			twlKeyNReg[5] = keyX[2];
-			twlKeyNReg[6] = keyX[1];
-			lastu32 = keyX[0];
-		}
-		else
-		{
-			twlKeyNReg[4] = keyX[0];
-			twlKeyNReg[5] = keyX[1];
-			twlKeyNReg[6] = keyX[2];
-			lastu32 = keyX[3];
-		}
-		twlKeyNReg[7] = lastu32;
-	}
-}
-
-void AES_setKeyY(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyY[4])
-{
-	assert(keyslot < 0x40);
-	assert(keyY != NULL);
-
-
-	REG_AESCNT = (u32)orderEndianess<<23;
-	if(keyslot > 3)
-	{
-		REG_AESKEYCNT = keyslot | (u8)useTwlScrambler<<6 | 0x80u;
-		REG_AESKEYYFIFO = keyY[0];
-		REG_AESKEYYFIFO = keyY[1];
-		REG_AESKEYYFIFO = keyY[2];
-		REG_AESKEYYFIFO = keyY[3];
-	}
-	else
-	{
-		u32 lastu32;
-		vu32 *twlKeyNReg = &REG_AESKEY0[12 * keyslot];
-		if(orderEndianess & 4)
-		{
-			twlKeyNReg[8]  = keyY[3];
-			twlKeyNReg[9]  = keyY[2];
-			twlKeyNReg[10] = keyY[1];
-			lastu32 = keyY[0];
-		}
-		else
-		{
-			twlKeyNReg[8]  = keyY[0];
-			twlKeyNReg[9]  = keyY[1];
-			twlKeyNReg[10] = keyY[2];
-			lastu32 = keyY[3];
-		}
-		twlKeyNReg[11] = lastu32;
 	}
 }
 
@@ -195,7 +121,7 @@ void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3])
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
 	u32 *const ctrIvNonce = ctx->ctrIvNonce;
 	u32 lastu32;
-	if(orderEndianess & 4)
+	if(orderEndianess & AES_INPUT_NORMAL)
 	{
 		ctrIvNonce[0] = nonce[2];
 		ctrIvNonce[1] = nonce[1];
@@ -219,7 +145,7 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
 	u32 *const ctrIvNonce = ctx->ctrIvNonce;
 	u32 lastu32;
-	if(orderEndianess & 4)
+	if(orderEndianess & AES_INPUT_NORMAL)
 	{
 		ctrIvNonce[0] = ctrIv[3];
 		ctrIvNonce[1] = ctrIv[2];
@@ -282,7 +208,7 @@ void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianess
 	ctx->aesParams = (u32)inEndianessOrder<<23 | (u32)outEndianessOrder<<22;
 }
 
-static void processBlocksCpu(const u32 *in, u32 *out, u32 blocks)
+static void aesProcessBlocksCpu(const u32 *in, u32 *out, u32 blocks)
 {
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | 3<<12 | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
@@ -304,7 +230,7 @@ static void processBlocksCpu(const u32 *in, u32 *out, u32 blocks)
 }
 
 // AES_init() must be called before this works
-static void processBlocksDma(const u32 *in, u32 *out, u32 blocks)
+static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 {
 	// DMA can't reach TCMs
 	assert(((u32)in >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)in < DTCM_BASE) || ((u32)in >= DTCM_BASE + DTCM_SIZE)));
@@ -371,8 +297,8 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 
 		REG_AESCNT = aesParams;
 		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
-		if(dma) processBlocksDma(in, out, blockNum);
-		else processBlocksCpu(in, out, blockNum);
+		if(dma) aesProcessBlocksDma(in, out, blockNum);
+		else aesProcessBlocksCpu(in, out, blockNum);
 
 		AES_addCounter(ctr, blockNum<<4);
 		in += blockNum<<2;
@@ -396,7 +322,7 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 
 void SHA_start(u8 params)
 {
-	REG_SHA_CNT = SHA_ENABLE | (u32)params;
+	REG_SHA_CNT = (u32)params | SHA_ENABLE;
 }
 
 void SHA_update(const u32 *data, u32 size)
