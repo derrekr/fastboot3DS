@@ -1,6 +1,6 @@
 #include "types.h"
 #include "util.h"
-#include "arm11/loader_init.h"
+#include "arm11/hardware.h"
 #include "arm11/i2c.h"
 #include "gfx.h"
 #include "pxi.h"

@@ -235,7 +235,6 @@ static void deriveAndsetN3dsKey0x05(void)
 	pad[3] ^= ((u32*)BOOT9_BASE)[3];
 
 	AES_setKeyY(0x05, AES_INPUT_BIG | AES_INPUT_NORMAL, false, pad);
-	AES_selectKeyslot(0x05);
 }
 
 

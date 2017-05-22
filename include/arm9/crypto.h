@@ -59,7 +59,6 @@ typedef struct
  */
 void AES_init(void);
 
-
 /**
  * @brief      Sets a normal key.
  *
@@ -68,7 +67,6 @@ void AES_init(void);
  * @param[in]  key             Pointer to 128-bit AES key data.
  */
 void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4]);
-
 
 /**
  * @brief      Sets a keyX.
@@ -80,7 +78,6 @@ void AES_setNormalKey(u8 keyslot, u8 orderEndianess, const u32 key[4]);
  */
 void AES_setKeyX(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyX[4]);
 
-
 /**
  * @brief      Sets a keyY.
  *
@@ -91,14 +88,12 @@ void AES_setKeyX(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 
  */
 void AES_setKeyY(u8 keyslot, u8 orderEndianess, bool useTwlScrambler, const u32 keyY[4]);
 
-
 /**
  * @brief      Selects the given keyslot for all following crypto operations.
  *
  * @param[in]  keyslot  The keyslot to select.
  */
 void AES_selectKeyslot(u8 keyslot);
-
 
 /**
  * @brief      Copies the given nonce into internal state.
@@ -109,7 +104,6 @@ void AES_selectKeyslot(u8 keyslot);
  */
 void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3]);
 
-
 /**
  * @brief      Copies the given counter/initialization vector into internal state.
  *
@@ -119,7 +113,6 @@ void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3]);
  */
 void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4]);
 
-
 /**
  * @brief      Increments the internal counter with the given value (CTR mode).
  *
@@ -127,7 +120,6 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4]);
  * @param[in]  val   Value to increment the counter with.
  */
 void AES_addCounter(u32 ctr[4], u32 val);
-
 
 /**
  * @brief      Decrements the internal counter with the given value (CTR mode).
@@ -137,7 +129,6 @@ void AES_addCounter(u32 ctr[4], u32 val);
  */
 void AES_subCounter(u32 ctr[4], u32 val);
 
-
 /**
  * @brief      Sets params in the AES context for all following crypto operations.
  *
@@ -146,7 +137,6 @@ void AES_subCounter(u32 ctr[4], u32 val);
  * @param[in]  outEndianessOrder  Output endianess and word order bitmask.
  */
 void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianessOrder);
-
 
 /**
  * @brief      En-/decrypts data with AES CTR.

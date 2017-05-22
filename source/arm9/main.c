@@ -6,7 +6,7 @@
 #include "util.h"
 #include "pxi.h"
 #include "hid.h"
-#include "arm9/loader_init.h"
+#include "arm9/hardware.h"
 #include "fatfs/ff.h"
 #include "arm9/dev.h"
 #include "arm9/firm.h"
@@ -118,6 +118,8 @@ finish_firmlaunch:
 	uiPrintIfVerbose("Closing devices...\n");
 
 	devs_close();
+
+	hardwareDeinit();
 
 	return 0;
 }
@@ -265,11 +267,11 @@ static void screen_init()
 }
 
 #define PDN_REGS_BASE          (IO_MEM_ARM9_ARM11 + 0x40000)
-#define REG_PDN_MPCORE_CLKCNT  *((vu16*)(PDN_REGS_BASE + 0x1300))
+#define REG_PDN_MPCORE_CFG     *((vu16*)(PDN_REGS_BASE + 0x0FFC))
 
 static void unit_detect()
 {
-	bootInfo.unit_is_new3ds = REG_PDN_MPCORE_CLKCNT != 0;
+	bootInfo.unit_is_new3ds = REG_PDN_MPCORE_CFG & 2;
 
 	sprintf(bootInfo.model, "%s 3DS", bootInfo.unit_is_new3ds ? "New" : "Original");
 		

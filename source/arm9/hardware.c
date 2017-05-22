@@ -15,3 +15,10 @@ void hardwareInit(void)
 	PXI_init();
 	AES_init();
 }
+
+void hardwareDeinit(void)
+{
+	// New 3DS K9L doesn't like FIFO counts >4 and hangs.
+	// Thx Nintendo
+	AES_init();
+}
