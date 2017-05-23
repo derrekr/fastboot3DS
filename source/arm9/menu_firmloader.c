@@ -329,5 +329,10 @@ bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
 	if(fw_size == 0)
 		return false;
 
-	return firm_verify(fw_size, skipHashCheck, printInfo);
+	if(!firm_verify(fw_size, skipHashCheck, printInfo)) return false;
+
+	((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[0] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7474));
+	strncpy_s((void*)(ITCM_KERNEL_MIRROR + 0x7474), filepath, 256, 256);
+
+	return true;
 }
