@@ -121,6 +121,9 @@ finish_firmlaunch:
 
 	hardwareDeinit();
 
+	// TODO: Proper argc/v passing needs to be implemented.
+	firm_launch(1, (const char**)(ITCM_KERNEL_MIRROR + 0x7470));
+
 	return 0;
 }
 

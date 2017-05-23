@@ -88,12 +88,11 @@ bool firm_size(size_t *size)
 }
 
 // NOTE: Do not call any functions here!
-void NAKED firmLaunchStub(void)
+void NAKED firmLaunchStub(int argc, const char **argv)
 {	
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	register u32 entry9 = firm_hdr->entrypointarm9;
-	register u32 ret = firm_hdr->entrypointarm9;
-	register u32 entry11 = firm_hdr->entrypointarm11;
+	void (*entry9)(int, const char**, u32) = (void (*)(int, const char**, u32))firm_hdr->entrypointarm9;
+	u32 entry11 = firm_hdr->entrypointarm11;
 
 
 	for(u32 i = 0; i < 4; i++)
@@ -133,7 +132,7 @@ void NAKED firmLaunchStub(void)
 	// Tell ARM11 its entrypoint
 	REG_PXI_SYNC9 = 0; // Disable all IRQs
 	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND9 = (u32)entry11;
+	REG_PXI_SEND9 = entry11;
 
 	// Wait for ARM11...
 	while(1)
@@ -142,11 +141,11 @@ void NAKED firmLaunchStub(void)
 		if(REG_PXI_RECV9 == PXI_RPL_FIRM_LAUNCH_READY)
 			break;
 	}
-
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
-	__asm__ __volatile__("mov lr, %0\n\tbx %1" : : "r" (ret), "r" (entry9) : "lr", "pc");
+	entry9(argc, argv, 0xBEEFu);
+	__builtin_unreachable();
 }
 
 bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
@@ -249,18 +248,22 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	return retval;
 }
 
-noreturn void firm_launch(void)
+extern void deinitCpu(void);
+
+noreturn void firm_launch(int argc, const char **argv)
 {
 	//printf("Sending PXI_CMD_FIRM_LAUNCH\n");
 	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
 
 	//printf("Waiting for ARM11...\n");
 	while(PXI_recvWord() != PXI_RPL_OK);
-	
+
+	deinitCpu();
+
 	//printf("Relocating FIRM launch stub...\n");
 	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE);
 
 	//printf("Starting firm launch...\n");
-	((void (*)(void))A9_STUB_ENTRY)();
+	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);
 	while(1);
 }

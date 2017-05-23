@@ -25,7 +25,6 @@
 .extern fake_heap_end
 .extern __libc_init_array
 .extern main
-.extern firm_launch
 
 .section ".crt0"
 
@@ -91,10 +90,6 @@ skip_pool:
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main
-	cmp r0, #0
-	bne fail_loop
-	bl deinitCpu
-	b firm_launch
 	fail_loop:
 		mov r0, #0
 		@ Wait for interrupt

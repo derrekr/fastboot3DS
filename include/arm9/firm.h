@@ -27,4 +27,4 @@ typedef struct
 
 bool firm_size(size_t *size);
 bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo);
-noreturn void firm_launch(void);
+noreturn void firm_launch(int argc, const char **argv);

@@ -22,7 +22,6 @@
 .extern setupMmu
 .extern __libc_init_array
 .extern main
-.extern firm_launch
 
 .section ".crt0"
 
@@ -94,10 +93,6 @@ _start:
 	mov r0, #0                 @ argc
 	mov r1, #0                 @ argv
 	blx main
-	cmp r0, #0
-	bne fail_loop
-	bl deinitCpu
-	b firm_launch
 	fail_loop:
 		wfi
 		b fail_loop

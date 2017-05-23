@@ -6,28 +6,33 @@
 
 void NAKED firmLaunchStub(void)
 {
+	*((vu32*)A11_FALLBACK_ENTRY) = 0;
+
 	// Answer ARM0
 	REG_PXI_SYNC11 = 0; // Disable all IRQs
-	*((vu32*)A11_FALLBACK_ENTRY) = 0;
 	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND11 = PXI_RPL_OK;
 
 	// Wait for entry address
 	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
-	intptr_t e = (intptr_t)REG_PXI_RECV11;
+	u32 entry = REG_PXI_RECV11;
 
 	// Tell ARM9 we got the entry
 	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND11 = PXI_RPL_FIRM_LAUNCH_READY;
 	REG_PXI_CNT11 = 0; // Disable PXI
 
-	if(!e)
+	if(!entry)
 	{
-		while(!(e = (intptr_t)*((vu32*)A11_FALLBACK_ENTRY)));
+		while(!*((vu32*)A11_FALLBACK_ENTRY));
+		entry = *((vu32*)A11_FALLBACK_ENTRY);
 	}
 
-	((void (*)(void))e)();
+	((void (*)(void))entry)();
+	__builtin_unreachable();
 }
+
+extern void deinitCpu(void);
 
 noreturn void firm_launch(void)
 {
@@ -36,6 +41,8 @@ noreturn void firm_launch(void)
 	{
 		((u32*)A11_STUB_ENTRY)[i] = ((u32*)firmLaunchStub)[i];
 	}
+
+	deinitCpu();
 
 	((void (*)(void))A11_STUB_ENTRY)();
 	while(1);
