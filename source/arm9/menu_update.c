@@ -56,14 +56,14 @@ bool menuUpdateLoader()
 	}
 	
 	// verify fastboot magic
-	if(memcmp((void*)updateBuffer+0x208, "FASTBOOT 3DS   ", 0x10) != 0)
+	if(memcmp((void*)updateBuffer+0x200, "FASTBOOT 3DS   ", 0x10) != 0)
 	{
 		uiPrintError("Not an update file!\n");
 		goto fail;
 	}
 	
 	/* check version */
-	u32 updateVersion = *(u32 *)((void*)updateBuffer + 0x218);
+	u32 updateVersion = *(u32 *)((void*)updateBuffer + 0x210);
 	
 	if(updateVersion < BOOTLOADER_VERSION)
 	{

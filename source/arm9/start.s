@@ -30,14 +30,13 @@
 
 
 
-_start:
-	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
-	b skip_pool
-
+__start__:
 	.string "FASTBOOT 3DS   "
 	.word   BOOTLOADER_VERSION
 
-skip_pool:
+_start:
+	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
+
 	@ Control register:
 	@ [19] ITCM load mode         : disabled
 	@ [18] ITCM                   : disabled

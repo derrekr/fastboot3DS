@@ -27,6 +27,7 @@
 
 
 
+__start__:
 vectors:
 	ldr pc, =_start            @ Reset vector
 	ldr pc, =(vectors + 0x04)  @ Undefined instruction vector
@@ -63,8 +64,7 @@ _start:
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
 	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r0, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c6, 0  @ Invalidate Entire Data Cache
+	mcr p15, 0, r0, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
 	clrex
 
@@ -179,10 +179,9 @@ deinitCpu:
 	                            @ and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
-	mcr p15, 0, r2, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r2, c7, c5, 0  @ Invalidate Entire Instruction Cache. Also flushes the branch target cache
-	mcr p15, 0, r2, c7, c6, 0  @ Invalidate Entire Data Cache
-	mcr p15, 0, r2, c7, c10, 4 @ Data Synchronization Barrier
+	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
+	mcr p15, 0, r0, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
+	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
 
 	@ Disable VFP11
 	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
