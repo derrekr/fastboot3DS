@@ -80,6 +80,7 @@ static void setupKeys(void)
 	if(REG_PDN_MPCORE_CFG & 2u) // New 3DS
 	{
 		*((vu8*)0x10010014) = CFG_UNITINFO;
+		*((vu64*)0x10012100) = twlConsoleId;
 
 		REG_AESKEYX1[2] = (u32)(twlConsoleId>>32);
 		REG_AESKEYX1[3] = (u32)twlConsoleId;
