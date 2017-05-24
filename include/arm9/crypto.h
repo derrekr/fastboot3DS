@@ -67,6 +67,11 @@ typedef struct
 void AES_init(void);
 
 /**
+ * @brief      Deinits AES to workaround a K9L bug.
+ */
+void AES_deinit(void);
+
+/**
  * @brief      Sets a AES key in the specified keyslot.
  *
  * @param[in]  keyslot         The keyslot this key will be set for.
