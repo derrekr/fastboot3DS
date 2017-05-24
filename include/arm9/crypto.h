@@ -138,6 +138,18 @@ void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianess
  */
 void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma);
 
+/**
+ * @brief      En-/decrypts data with AES ECB.
+ *
+ * @param      ctx     Pointer to AES_ctx (AES context).
+ * @param[in]  in      In data pointer. Can be the same as out.
+ * @param      out     Out data pointer. Can be the same as in.
+ * @param[in]  blocks  Number of blocks to process. 1 block is 16 bytes.
+ * @param[in]  enc     Set to true to encrypt and false to decrypt.
+ * @param[in]  dma     Set to true to enable DMA.
+ */
+void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma);
+
 
 
 //////////////////////////////////

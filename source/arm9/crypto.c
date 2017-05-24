@@ -48,6 +48,93 @@
 #define REG_AESKEYYFIFO       ((vu32*)(AES_REGS_BASE + 0x108))
 
 
+/*static void deriveKey(u32 pad[4], u32 boot9Off)
+{
+	const u32 *pad2 = (u32*)(BOOT9_BASE + boot9Off);
+
+	pad[0] ^= pad2[0];
+	pad[1] ^= pad2[1];
+	pad[2] ^= pad2[2];
+	pad[3] ^= pad2[3];
+}*/
+
+static void setupKeys(void)
+{
+	const bool isDevUnit = CFG_UNITINFO != 0;
+
+	const u64 twlConsoleId = (isDevUnit ? (*((vu64*)0x10012000)) :
+	                                      ((*((vu64*)0x01FFB808) ^ 0x8C267B7B358A6AFULL) | 0x80000000ULL));
+
+	REG_AESCNT = 0;
+	REG_AESKEYX3[0] = (u32)twlConsoleId;
+	REG_AESKEYX3[1] = 0x544E494E; // "NINT"
+	REG_AESKEYX3[2] = 0x4F444E45; // "ENDO"
+	REG_AESKEYX3[3] = (u32)(twlConsoleId>>32);
+
+	// For twln/p access we always need to set this up
+	REG_AESKEYY3[0] = ((u32*)0x01FFD3C8)[0];
+	REG_AESKEYY3[1] = ((u32*)0x01FFD3C8)[1];
+	REG_AESKEYY3[2] = ((u32*)0x01FFD3C8)[2];
+	REG_AESKEYY3[3] = 0xE1A00005;
+
+	if(REG_PDN_MPCORE_CFG & 2u) // New 3DS
+	{
+		*((vu8*)0x10010014) = CFG_UNITINFO;
+
+		REG_AESKEYX1[2] = (u32)(twlConsoleId>>32);
+		REG_AESKEYX1[3] = (u32)twlConsoleId;
+
+		alignas(4) const u8 keyY0x05[16] = {
+		0x4D, 0x80, 0x4F, 0x4E, 0x99, 0x90, 0x19, 0x46, 0x13, 0xA2, 0x04, 0xAC, 0x58, 0x44, 0x60, 0xBE};
+		AES_setKey(0x05, AES_KEY_Y, AES_INPUT_BIG | AES_INPUT_NORMAL, false, (const u32*)keyY0x05);
+
+		alignas(4) const u8 keyY0x24[16] = {
+		0x74, 0xCA, 0x07, 0x48, 0x84, 0xF4, 0x22, 0x8D, 0xEB, 0x2A, 0x1C, 0xA7, 0x2D, 0x28, 0x77, 0x62};
+		AES_setKey(0x24, AES_KEY_Y, AES_INPUT_BIG | AES_INPUT_NORMAL, false, (const u32*)keyY0x24);
+
+		alignas(4) const u8 keyX0x25s[2][16] = {
+		 {0xCE, 0xE7, 0xD8, 0xAB, 0x30, 0xC0, 0x0D, 0xAE, 0x85, 0x0E, 0xF5, 0xE3, 0x82, 0xAC, 0x5A, 0xF3},
+		 {0x81, 0x90, 0x7A, 0x4B, 0x6F, 0x1B, 0x47, 0x32, 0x3A, 0x67, 0x79, 0x74, 0xCE, 0x4A, 0xD7, 0x1B}};
+		AES_setKey(0x25, AES_KEY_X, AES_INPUT_BIG | AES_INPUT_NORMAL, false, (const u32*)keyX0x25s[isDevUnit]);
+
+		alignas(4) const u8 keyY0x2Fs[2][16] = {
+		 {0xC3, 0x69, 0xBA, 0xA2, 0x1E, 0x18, 0x8A, 0x88, 0xA9, 0xAA, 0x94, 0xE5, 0x50, 0x6A, 0x9F, 0x16},
+		 {0x73, 0x25, 0xC4, 0xEB, 0x14, 0x3A, 0x0D, 0x5F, 0x5D, 0xB6, 0xE5, 0xC5, 0x7A, 0x21, 0x95, 0xAC}};
+		AES_setKey(0x2F, AES_KEY_Y, AES_INPUT_BIG | AES_INPUT_NORMAL, false, (const u32*)keyY0x2Fs[isDevUnit]);
+
+		// Set 0x11 keyslot
+		alignas(4) const u8 key1s[2][16] = {
+		 {0x07, 0x29, 0x44, 0x38, 0xF8, 0xC9, 0x75, 0x93, 0xAA, 0x0E, 0x4A, 0xB4, 0xAE, 0x84, 0xC1, 0xD8},
+		 {0xA2, 0xF4, 0x00, 0x3C, 0x7A, 0x95, 0x10, 0x25, 0xDF, 0x4E, 0x9E, 0x74, 0xE3, 0x0C, 0x92, 0x99}};
+		alignas(4) const u8 key2s[2][16] = {
+		 {0x42, 0x3F, 0x81, 0x7A, 0x23, 0x52, 0x58, 0x31, 0x6E, 0x75, 0x8E, 0x3A, 0x39, 0x43, 0x2E, 0xD0},
+		 {0xFF, 0x77, 0xA0, 0x9A, 0x99, 0x81, 0xE9, 0x48, 0xEC, 0x51, 0xC9, 0x32, 0x5D, 0x14, 0xEC, 0x25}};
+
+
+		alignas(4) u8 keyBlocks[2][16] = {
+		 {0xA4, 0x8D, 0xE4, 0xF1, 0x0B, 0x36, 0x44, 0xAA, 0x90, 0x31, 0x28, 0xFF, 0x4D, 0xCA, 0x76, 0xDF},
+		 {0xDD, 0xDA, 0xA4, 0xC6, 0x2C, 0xC4, 0x50, 0xE9, 0xDA, 0xB6, 0x9B, 0x0D, 0x9D, 0x2A, 0x21, 0x98}};
+		u32 decKey[4];
+
+		AES_ctx ctx;
+		AES_setCryptParams(&ctx, AES_INPUT_BIG | AES_INPUT_NORMAL, AES_OUTPUT_BIG | AES_OUTPUT_NORMAL);
+
+		// key 0x18
+		AES_setKey(0x11, AES_KEY_NORMAL, AES_INPUT_BIG | AES_INPUT_NORMAL, false, (const u32*)key1s[isDevUnit]);
+		AES_selectKeyslot(0x11);
+		AES_ecb(&ctx, (const u32*)keyBlocks[0], decKey, 1, false, false);
+		AES_setKey(0x18, AES_KEY_X, AES_INPUT_BIG | AES_INPUT_NORMAL, false, decKey);
+
+		AES_setKey(0x11, AES_KEY_NORMAL, AES_INPUT_BIG | AES_INPUT_NORMAL, false, (const u32*)key2s[isDevUnit]);
+		AES_selectKeyslot(0x11);
+		for(u8 slot = 0x19; slot < 0x20; slot++, keyBlocks[1][0xF]++)
+		{
+			AES_ecb(&ctx, (const u32*)keyBlocks[1], decKey, 1, false, false);
+			AES_setKey(slot, AES_KEY_X, AES_INPUT_BIG | AES_INPUT_NORMAL, false, decKey);
+		}
+	}
+}
+
 void AES_init(void)
 {
 	REG_AESCNT = AES_MAC_SIZE(4) | AES_FLUSH_WRITE_FIFO | AES_FLUSH_READ_FIFO;
@@ -56,14 +143,16 @@ void AES_init(void)
 	REG_NDMA0_DST_ADDR = REG_AESWRFIFO;
 	REG_NDMA0_INT_CNT = NDMA_INT_SYS_FREQ;
 	REG_NDMA0_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_IN |
-	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
+					NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
 
 	REG_NDMA1_SRC_ADDR = REG_AESRDFIFO;
 	REG_NDMA1_INT_CNT = NDMA_INT_SYS_FREQ;
 	REG_NDMA1_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_OUT |
-	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
+					NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 
 	REG_IRQ_IE |= 1u<<IRQ_AES;
+
+	setupKeys();
 }
 
 void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScrambler, const u32 key[4])
@@ -265,7 +354,7 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | AES_IRQ_ENABLE | aesFifoSize<<14 | (3 - aesFifoSize)<<12 |
-	              AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
+				  AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
 	while(REG_AESCNT & AES_ENABLE)
 	{
 		waitForIrq();
@@ -301,6 +390,28 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 		else aesProcessBlocksCpu(in, out, blockNum);
 
 		AES_addCounter(ctr, blockNum<<4);
+		in += blockNum<<2;
+		out += blockNum<<2;
+		blocks -= blockNum;
+	}
+}
+
+void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma)
+{
+	assert(ctx != NULL);
+	assert(in != NULL);
+	assert(out != NULL);
+
+	const u32 aesParams =  (enc ? AES_MODE_ECB_ENCRYPT : AES_MODE_ECB_DECRYPT) | ctx->aesParams;
+
+
+	while(blocks)
+	{
+		REG_AESCNT = aesParams;
+		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
+		if(dma) aesProcessBlocksDma(in, out, blockNum);
+		else aesProcessBlocksCpu(in, out, blockNum);
+
 		in += blockNum<<2;
 		out += blockNum<<2;
 		blocks -= blockNum;

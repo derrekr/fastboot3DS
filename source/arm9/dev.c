@@ -225,19 +225,6 @@ u32 sdmmc_rnand_get_sector_count(void)
 }
 
 
-static void deriveAndsetN3dsKey0x05(void)
-{
-	u32 pad[4] = {0xA44F8047, 0xAC1990BD, 0x4604A232, 0x5460447C};
-
-	pad[0] ^= ((u32*)BOOT9_BASE)[0];
-	pad[1] ^= ((u32*)BOOT9_BASE)[1];
-	pad[2] ^= ((u32*)BOOT9_BASE)[2];
-	pad[3] ^= ((u32*)BOOT9_BASE)[3];
-
-	AES_setKey(0x05, AES_KEY_Y, AES_INPUT_BIG | AES_INPUT_NORMAL, false, pad);
-}
-
-
 // ------------------------------ decrypted nand glue functions ------------------------------
 bool sdmmc_dnand_init(void)
 {
@@ -281,7 +268,7 @@ bool sdmmc_dnand_init(void)
 					else if(i == 4)	// CTR NAND partition
 					{
 						if(bootInfo.unit_is_new3ds)
-							{deriveAndsetN3dsKey0x05(); partitionSetKeyslot(index, 0x05);}
+							partitionSetKeyslot(index, 0x05);
 						else
 							partitionSetKeyslot(index, 0x04);
 						
@@ -310,22 +297,10 @@ bool sdmmc_dnand_init(void)
 		}
 
 		// Hash NAND CID to create the CTRs for crypto
-		sha((u32*)0x01FFCD84, 16, dev_dnand.twlCounter, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
-		sha((u32*)0x01FFCD84, 16, dev_dnand.ctrCounter, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
-
-		// TWL keyslot 0x03 keyX
-		u32 twlKeyX[4];
-		twlKeyX[0] = (*((u32*)0x01FFB808) ^ 0xB358A6AF) | 0x80000000;
-		twlKeyX[1] = 0x544E494E; // "NINT"
-		twlKeyX[2] = 0x4F444E45; // "ENDO"
-		twlKeyX[3] = *((u32*)0x01FFB80C) ^ 0x08C267B7;
-		AES_setKey(0x03, AES_KEY_X, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyX);
-
-		// TWL keyslot 0x03 keyY
-		u32 twlKeyY[4];
-		for(int i = 0; i < 3; i++) twlKeyY[i] = ((u32*)0x01FFD3C8)[i];
-		twlKeyY[3] = 0xE1A00005;
-		AES_setKey(0x03, AES_KEY_Y, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, twlKeyY);
+		u32 cid[4];
+		if(sdmmc_get_cid(true, cid)) return false;
+		sha(cid, 16, dev_dnand.twlCounter, SHA_INPUT_BIG | SHA_MODE_1, SHA_OUTPUT_BIG);
+		sha(cid, 16, dev_dnand.ctrCounter, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_LITTLE);
 
 		// Crypt settings
 		AES_setCryptParams(&dev_dnand.twlAesCtx, AES_INPUT_LITTLE | AES_INPUT_REVERSED,
