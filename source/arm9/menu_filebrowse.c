@@ -55,7 +55,7 @@ static bool scanDirectory()
 		dirEntries[curEntriesCount + i].isDir = (fno.fattrib & AM_DIR) != 0;
 		
 		if(fno.fattrib & AM_DIR)	// directory
-			snprintf(dirEntries[curEntriesCount + i].name, _MAX_LFN + 1, "\\%s", fno.fname);
+			snprintf(dirEntries[curEntriesCount + i].name, _MAX_LFN + 1, "/%s", fno.fname);
 		else	// file
 			strncpy_s(dirEntries[curEntriesCount + i].name, fno.fname, _MAX_LFN + 1, _MAX_LFN + 2);
 	}
@@ -70,7 +70,7 @@ static u32 ascendPath()
 	char *end = curPath + strlen(curPath);
 	
 	for(; end != curPath + 1; end--)
-		if(*end == '\\' || *(end - 1) == ':') break;
+		if(*end == '/' || *(end - 1) == ':') break;
 		
 	*end = '\0';
 	
@@ -304,7 +304,7 @@ const char *browseForFile(const char *basePath)
 				{
 					if(strlen(dirEntries[cursor_pos].name) + strlen(curPath) + 2 > sizeof(curPath))
 						goto fail;	// TODO? Path too long.
-					strcat(curPath, "\\");
+					strcat(curPath, "/");
 					strcat(curPath, dirEntries[cursor_pos].name);
 					fileSelected = true;
 					menuSetReturnToState(STATE_PREVIOUS);
