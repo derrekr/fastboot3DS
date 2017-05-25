@@ -33,8 +33,6 @@ int main(void)
 
 	debugHashCodeRoData();
 	
-	screen_init();
-	
 	uiInit();
 	
 	checkSetVerboseMode();
@@ -63,8 +61,8 @@ int main(void)
 			switch(mode)
 			{
 				case BootModeQuick:
-					uiDrawSplashScreen();
 					screen_init();
+					uiDrawSplashScreen();
 					/* fallthrough */
 				case BootModeQuiet:
 					tryLoadFirmwareFromSettings(false);
