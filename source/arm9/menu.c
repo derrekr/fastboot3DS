@@ -53,6 +53,7 @@ enum menu_state_type menu_previous_states[8];
 int menu_previous_states_count;
 
 int menu_event_state;
+static bool waitForVBlank;
 
 static void menuRunOnce(int state);
 
@@ -74,6 +75,22 @@ static void menu_main_draw_top()
 	uiPrintTextAt(1, 10, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
+void menuSetVBlank(bool enable)
+{
+	if(enable)
+	{
+		IRQ_registerHandler(IRQ_TIMER_0, NULL);
+		TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+		waitForVBlank = true;
+	}
+	else
+	{
+		waitForVBlank = false;
+		TIMER_stop(TIMER_0);
+		IRQ_unregisterHandler(IRQ_TIMER_0);
+	}
+}
+
 int enter_menu(int initial_state)
 {
 	u32 keys;
@@ -88,7 +105,7 @@ int enter_menu(int initial_state)
 	uiClearConsoles();
 	uiDrawConsoleWindow();
 
-	//TIMER_start(TIMER_0, TIMER_PRESCALER_64, TIMER_FREQ_64(60.0f), true);
+	menuSetVBlank(true);
 
 	// caller requested to enter a submenu?
 	if(initial_state != MENU_STATE_MAIN)
@@ -145,13 +162,17 @@ int enter_menu(int initial_state)
 				break;
 				
 			case MENU_STATE_NAND_BACKUP:
+				menuSetVBlank(false);
 				menuDumpNand("sdmc:/nand.bin");
 				uiClearConsoles();
+				menuSetVBlank(true);
 				break;
 				
 			case MENU_STATE_NAND_RESTORE:
+				menuSetVBlank(false);
 				menuRestoreNand("sdmc:/nand.bin");
 				uiClearConsoles();
+				menuSetVBlank(true);
 				break;
 			
 			case MENU_STATE_NAND_FLASH_FIRM:
@@ -159,8 +180,10 @@ int enter_menu(int initial_state)
 				uiClearConsoles();
 				if(!path)
 					break;
+				menuSetVBlank(false);
 				menuFlashFirmware(path);
 				uiClearConsoles();
+				menuSetVBlank(true);
 				break;
 			
 			case MENU_STATE_OPTIONS_MENU:
@@ -188,8 +211,10 @@ int enter_menu(int initial_state)
 				break;
 			
 			case MENU_STATE_UPDATE:
+				menuSetVBlank(false);
 				menuUpdateLoader();
 				uiClearConsoles();
+				menuSetVBlank(true);
 				break;
 			
 			case MENU_STATE_CREDITS:
@@ -223,7 +248,7 @@ int enter_menu(int initial_state)
 	}
 
 exitAndLaunchFirm:
-	//TIMER_stop(TIMER_0);
+	menuSetVBlank(false);
 
 	return 0;
 }
@@ -293,7 +318,7 @@ int menuUpdateGlobalState(void)
 	// Later if PXI interrupts are implemented we need an
 	// interrupt handler here which can tell the timer and
 	// PXI interrupts apart.
-	//waitForIrq();
+	if(waitForVBlank) waitForIrq();
 
 
 	/* Check PXI Response register */

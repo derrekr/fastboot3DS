@@ -53,6 +53,9 @@ extern int menu_previous_states_count;
 
 extern int menu_event_state;
 
+// Enable or disable the pseudo VBlank in the menu.
+void menuSetVBlank(bool enable);
+
 int enter_menu(int initial_state);
 
 // Use this to change to another sub-menu.

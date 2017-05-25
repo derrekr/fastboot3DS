@@ -72,7 +72,7 @@ bool menuDumpNand(const char *filePath)
 	}
 	
 	uiPrintTextAt(0, 5, "Dumping NAND...\n");
-	uiPrintTextAt(0, 22, "Press B to cancel."); 
+	uiPrintTextAt(0, 22, "Press B to cancel.");
 
 	/* Main loop */
 
