@@ -12,7 +12,7 @@ void PXI_init(void)
 	REG_PXI_SYNC9 |= 9u<<8;
 	while((REG_PXI_SYNC9 & 0xFFu) != 11u);
 
-	REG_IRQ_IE |= 1u<<IRQ_PXI_SYNC;
+	IRQ_registerHandler(IRQ_PXI_SYNC, NULL);
 }
 
 void PXI_sendWord(u32 val)

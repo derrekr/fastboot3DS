@@ -151,7 +151,7 @@ void AES_init(void)
 	REG_NDMA1_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_OUT |
 	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 
-	REG_IRQ_IE |= 1u<<IRQ_AES;
+	IRQ_registerHandler(IRQ_AES, NULL);
 
 	setupKeys();
 }

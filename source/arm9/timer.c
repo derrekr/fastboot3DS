@@ -32,8 +32,6 @@ void TIMER_init(void)
 	{
 		REG_TIMER_CNT(i) = 0;
 	}
-
-	REG_IRQ_IE |= 1u<<IRQ_TIMER_3;
 }
 
 void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)

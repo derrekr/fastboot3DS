@@ -1,12 +1,6 @@
 #pragma once
 
-#include "mem_map.h"
 #include "types.h"
-
-
-#define IRQ_REGS_BASE  (IO_MEM_ARM9_ONLY + 0x1000)
-#define REG_IRQ_IE     *((vu32*)(IRQ_REGS_BASE + 0x00))
-#define REG_IRQ_IF     *((vu32*)(IRQ_REGS_BASE + 0x04))
 
 
 typedef enum

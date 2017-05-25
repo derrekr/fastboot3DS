@@ -19,7 +19,7 @@ void NDMA_init(void)
 
 	REG_NDMA_GLOBAL_CNT = NDMA_ROUND_ROBIN(32);
 
-	REG_IRQ_IE |= 1u<<IRQ_DMAC_1_7;
+	IRQ_registerHandler(IRQ_DMAC_1_7, NULL);
 }
 
 void NDMA_copyAsync(u32 *dest, const u32 *source, u32 size)
