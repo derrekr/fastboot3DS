@@ -45,7 +45,6 @@ void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIr
 void TIMER_stop(Timer timer)
 {
 	REG_TIMER_CNT(timer) = 0;
-	IRQ_unregisterHandler(IRQ_TIMER_0 + timer);
 }
 
 static void timerSleepHandler(void)
