@@ -26,12 +26,20 @@ static u32 overflows;
 
 
 
+static void timerSleepHandler(void)
+{
+	overflows--;
+	if(!overflows) REG_TIMER3_CNT = 0;
+}
+
 void TIMER_init(void)
 {
 	for(u32 i = 0; i < 4; i++)
 	{
 		REG_TIMER_CNT(i) = 0;
 	}
+
+	IRQ_registerHandler(IRQ_TIMER_3, timerSleepHandler);
 }
 
 void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq)
@@ -45,22 +53,10 @@ void TIMER_stop(Timer timer)
 	REG_TIMER_CNT(timer) = 0;
 }
 
-static void timerSleepHandler(void)
-{
-	overflows--;
-	if(!overflows)
-	{
-		REG_TIMER3_CNT = 0;
-		IRQ_unregisterHandler(IRQ_TIMER_3);
-	}
-}
-
 void TIMER_sleep(u32 ms)
 {
 	REG_TIMER3_VAL = TIMER_FREQ_1024(1000.0);
 	overflows = ms;
-
-	IRQ_registerHandler(IRQ_TIMER_3, timerSleepHandler);
 
 	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_PRESCALER_1024;
 
