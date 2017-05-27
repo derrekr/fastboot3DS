@@ -152,8 +152,9 @@ void gfx_init(void)
 	gfx_setup_framebuf_top();
 	gfx_setup_framebuf_low();
 
-	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB,
-	                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	// The GPU mem fill races against the console.
+	//gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB,
+	//                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	i2c_writeregdata(3, 0x22, 0x2A);
 	wait(30000000);
 }
