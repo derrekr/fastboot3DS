@@ -19,3 +19,4 @@ bool partitionGetIndex(const char *name, size_t *index);
 bool partitionGetSectorOffset(size_t index, size_t *offset);
 bool partitionSetKeyslot(size_t index, u8 keyslot);
 bool partitionGetKeyslot(size_t index, u8 *keyslot);
+void partitionsReset(void);

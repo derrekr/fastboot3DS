@@ -133,3 +133,16 @@ bool partitionGetKeyslot(size_t index, u8 *keyslot)
 	return true;
 }
 
+void partitionsReset(void)
+{
+	numPartitions = 0;
+
+	for(u32 i = 0; i < MAX_PARTITIONS; i++)
+	{
+		partitions[i].name[0] = '\0';
+		partitions[i].sector = 0;
+		partitions[i].count = 0;
+		partitions[i].type = 0;
+		partitions[i].keyslot = 0xFF;
+	}
+}

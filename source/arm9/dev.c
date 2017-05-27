@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "types.h"
 #include "mem_map.h"
 #include "arm9/main.h"
@@ -116,18 +117,17 @@ const dev_struct *dev_flash = &dev_wififlash;
 // -------------------------------- sd card glue functions --------------------------------
 bool sdmmc_sd_init(void)
 {
-	//printf("sdmmc_sd_init\n");
-	//if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
-	sdmmc_init();
-	dev_rnand.initialized = dev_sd.initialized = dev_dnand.dev.initialized = false;
-	
 	if(!dev_sd.initialized)
 	{
+		sdmmc_dnand_close();
+		sdmmc_rnand_close();
+		sdmmc_init();
+
 		// thanks yellows8
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
 		/* poll and sleep */
-		unsigned timeout = 258; // in ms
+		unsigned timeout = 260; // In ms. 256 works. 260 for safety.
 
 		do {
 			// if sd card is ready, stop polling
@@ -144,23 +144,28 @@ bool sdmmc_sd_init(void)
 
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
-		//printf("sd init: success!\n");
 	}
-	//else printf("sd init: nothing to do!\n");
+
 	return true;
 }
 
 bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf)
 {
-	if(!dev_sd.initialized)
-		return false;
+	if(!dev_sd.initialized) return false;
+
+	assert(count != 0);
+	assert(buf != NULL);
+
 	return !sdmmc_sdcard_readsectors(sector, count, buf);
 }
 
 bool sdmmc_sd_write_sector(u32 sector, u32 count, const void *buf)
 {
-	if(!dev_sd.initialized)
-		return false;
+	if(!dev_sd.initialized) return false;
+
+	assert(count != 0);
+	assert(buf != NULL);
+
 	return !sdmmc_sdcard_writesectors(sector, count, buf);
 }
 
@@ -177,34 +182,44 @@ bool sdmmc_sd_is_active(void)
 
 u32 sdmmc_sd_get_sector_count(void)
 {
+	if(!dev_sd.initialized) return 0;
 	return getMMCDevice(1)->total_size;
 }
 
 
 // -------------------------------- raw nand glue functions --------------------------------
 bool sdmmc_rnand_init(void)
-{
-	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
-		sdmmc_init();
-	
-	if(!dev_rnand.initialized && !dev_dnand.dev.initialized) {
+{	
+	if(!dev_rnand.initialized)
+	{
+		// sdmmc_sd_init() calls sdmmc_init() for us so if it fails
+		// we try to init NAND anyway.
+		if(!dev_sd.initialized) sdmmc_sd_init();
+
 		if(Nand_Init()) return false;
 		dev_rnand.initialized = true;
 	}
+
 	return true;
 }
 
 bool sdmmc_rnand_read_sector(u32 sector, u32 count, void *buf)
 {
-	if(!dev_rnand.initialized && !sdmmc_rnand_init())
-		return false;
+	if(!dev_rnand.initialized) return false;
+
+	assert(count != 0);
+	assert(buf != NULL);
+
 	return !sdmmc_nand_readsectors(sector, count, buf);
 }
 
 bool sdmmc_rnand_write_sector(u32 sector, u32 count, const void *buf)
 {
-	if(!dev_rnand.initialized && !sdmmc_rnand_init())
-		return false;
+	if(!dev_rnand.initialized) return false;
+
+	assert(count != 0);
+	assert(buf != NULL);
+
 	return !sdmmc_nand_writesectors(sector, count, buf);
 }
 
@@ -221,6 +236,7 @@ bool sdmmc_rnand_is_active(void)
 
 u32 sdmmc_rnand_get_sector_count(void)
 {
+	if(!dev_rnand.initialized) return 0;
 	return getMMCDevice(0)->total_size;
 }
 
@@ -228,20 +244,17 @@ u32 sdmmc_rnand_get_sector_count(void)
 // ------------------------------ decrypted nand glue functions ------------------------------
 bool sdmmc_dnand_init(void)
 {
-	NCSD_header header;
-	size_t temp;
-	extern u32 ctr_nand_sector;
-
-	if(!dev_rnand.initialized && !dev_sd.initialized && !dev_dnand.dev.initialized)
-		sdmmc_init();
-
 	if(!dev_dnand.dev.initialized)
 	{
 		if(!dev_rnand.initialized)
 		{
-			Nand_Init();
-			dev_rnand.initialized = true;
+			if(!sdmmc_rnand_init()) return false;
 		}
+
+		NCSD_header header;
+		size_t temp;
+		extern u32 ctr_nand_sector;
+
 
 		// Read NCSD header
 		if(sdmmc_nand_readsectors(0, 1, (void*)&header)) return false;
@@ -319,16 +332,16 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	size_t index;
 	u8 keyslot;
 	
-	if(!dev_dnand.dev.initialized && !sdmmc_dnand_init())
-		return false;
+	if(!dev_dnand.dev.initialized) return false;
 
-	if(!partitionFind(sector, count, &index))
-		return false;
+	assert(count != 0);
+	assert(buf != NULL);
+
+	if(!partitionFind(sector, count, &index)) return false;
 		
 	partitionGetKeyslot(index, &keyslot);
 
-	if(keyslot == 0xFF)
-		return false;	// unknown partition type
+	if(keyslot == 0xFF) return false; // unknown partition type
 
 	AES_ctx *ctx;
 	AES_selectKeyslot(keyslot);
@@ -357,20 +370,16 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 	size_t index;
 	u8 keyslot;
 	
-	if(!dev_dnand.dev.initialized && !sdmmc_dnand_init())
-		return false;
+	if(!dev_dnand.dev.initialized) return false;
 
-	if(!partitionFind(sector, count, &index))
-		return false;
+	assert(count != 0);
+
+	if(!partitionFind(sector, count, &index)) return false;
 		
 	partitionGetKeyslot(index, &keyslot);
 
-	if(keyslot == 0xFF)
-		return false;	// unknown partition type
-	
-	if(!count)
-		return false;
-	
+	if(keyslot == 0xFF) return false; // unknown partition type
+
 	const size_t crypto_sec_size = min(count, 0x1000>>9);
 	void *crypto_buf = malloc(crypto_sec_size<<9);
 	if(!crypto_buf)
@@ -416,6 +425,7 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 
 bool sdmmc_dnand_close(void)
 {
+	partitionsReset();
 	dev_dnand.dev.initialized = false;
 	return true;
 }
@@ -445,7 +455,6 @@ bool wififlash_read_sector(u32 sector, u32 count, void *buf)
 
 bool wififlash_close(void)
 {
-	// nothing to do here..?
 	dev_wififlash.initialized = false;
 	return true;
 }
@@ -458,5 +467,6 @@ bool wififlash_is_active(void)
 
 u32 wififlash_get_sector_count(void)
 {
+	if(!dev_wififlash.initialized) return 0;
 	return 0x20000>>9;
 }

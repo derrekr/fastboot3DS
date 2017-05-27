@@ -385,14 +385,13 @@ void menuActState(void)
 			menu_state = menu_next_state;
 			break;
 		case MENU_EVENT_SD_CARD_INSERTED:
-			// try to initialize sd card
-			dev_sdcard->init();
+			unmount_nand_fs();
 			f_mount(&sd_fs, "sdmc:", 1);
+			remount_nand_fs();
 			// also try to load saved settings
 			loadConfigFile();
 			break;
 		case MENU_EVENT_SD_CARD_REMOVED:
-			// what else to do here?
 			dev_sdcard->close();
 			f_mount(NULL, "sdmc:", 1);
 			break;

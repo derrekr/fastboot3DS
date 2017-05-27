@@ -15,8 +15,7 @@
 #include "arm9/menu.h"
 #include "arm9/main.h"
 
-static bool devs_init();
-static bool fs_early_init();
+static void initWifiFlash(void);
 static bool mount_fs();
 static void screen_init();
 static void unit_detect();
@@ -46,11 +45,13 @@ int main(void)
 	uiPrintIfVerbose("Detecting unit...\n");
 
 	unit_detect();
-	
-	uiPrintIfVerbose("Early filesystem init...\n");
+
+	initWifiFlash();
+
+	uiPrintIfVerbose("Filesystem init...\n");
 	
 	/* Try to read the settings file ASAP. */
-	if(fs_early_init())
+	if(mount_fs())
 	{
 		uiPrintIfVerbose("Loading settings...\n");
 	
@@ -78,17 +79,10 @@ int main(void)
 		}
 		else screen_init();
 	}
+	else screen_init();
 	
 	if(mode != BootModeQuick)
 		uiDrawSplashScreen();
-	
-	uiPrintIfVerbose("Initializing devices...\n");
-
-	if(!devs_init()) screen_init();
-
-	uiPrintIfVerbose("Mounting filesystems...\n");
-
-	if(!mount_fs()) screen_init();
 
 	uiPrintIfVerbose("Detecting boot environment...\n");
 
@@ -125,27 +119,6 @@ finish_firmlaunch:
 	return 0;
 }
 
-static bool devs_init()
-{
-	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
-	bool sdRes, nandRes, wifiRes;
-
-	uiPrintIfVerbose(" Initializing SD card... ");
-	uiPrintIfVerbose("%s\e[0m\n", res_str[sdRes = dev_sdcard->init()]);
-	uiPrintIfVerbose(" Initializing raw NAND... ");
-	uiPrintIfVerbose("%s\e[0m\n", res_str[nandRes = dev_rawnand->init()]);
-	uiPrintIfVerbose(" Initializing Wifi flash... ");
-	uiPrintIfVerbose("%s\e[0m\n", res_str[wifiRes = dev_flash->init()]);
-
-	bootInfo.sd_status = sdRes;
-	bootInfo.nand_status = nandRes;
-	bootInfo.wififlash_status = wifiRes;
-
-	// atm only those boot options are possible, so if the init
-	// for both failed, this is a fatal error.
-	return sdRes && nandRes;
-}
-
 void devs_close()
 {
 	dev_sdcard->close();
@@ -156,13 +129,13 @@ void devs_close()
 
 bool remount_nand_fs()
 {
-	bool res = true;
+	FRESULT res = FR_OK;
 
-	res &= f_mount(&nand_twlnfs, "twln:", 1);
-	res &= f_mount(&nand_twlpfs, "twlp:", 1);
-	res &= f_mount(&nand_fs, "nand:", 1);
+	res |= f_mount(&nand_twlnfs, "twln:", 1);
+	res |= f_mount(&nand_twlpfs, "twlp:", 1);
+	res |= f_mount(&nand_fs, "nand:", 1);
 
-	return res;
+	return res == FR_OK;
 }
 
 void unmount_nand_fs()
@@ -170,62 +143,55 @@ void unmount_nand_fs()
 	f_mount(NULL, "twln:", 1);
 	f_mount(NULL, "twlp:", 1);
 	f_mount(NULL, "nand:", 1);
+	dev_decnand->close();
+	dev_rawnand->close();
 }
 
-// This only initializes and mounts SD card fs.
-static bool fs_early_init()
+static void initWifiFlash(void)
 {
-	FRESULT res;
-	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
-	
-	res = f_mount(&sd_fs, "sdmc:", 1);
-	
-	uiPrintIfVerbose("%s\e[0m\n", res_str[res == FR_OK]);
-	
+	const char *const res_str[2] = {"\x1B[31m Failed!", "\x1B[32m OK!"};
+
+	uiPrintIfVerbose(" Initializing Wifi flash...");
+	bool flashRes = dev_flash->init();
+	uiPrintIfVerbose("%s\x1B[0m\n", res_str[flashRes]);
+	bootInfo.wififlash_status = flashRes;
+}
+
+static bool mount_fs(void)
+{
+	FRESULT res = FR_OK, nandRes = FR_OK, tmp;
+	const char *const res_str[2] = {"\x1B[31m Failed!", "\x1B[32m OK!"};
+
+
+	uiPrintIfVerbose(" Mounting SD card FAT FS...");
+	tmp = f_mount(&sd_fs, "sdmc:", 1);
+	bootInfo.sd_status = tmp == FR_OK;
+	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
+	res |= tmp;
+
+
+	uiPrintIfVerbose(" Mounting twln FS...");
+	tmp = f_mount(&nand_twlnfs, "twln:", 1);
+	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
+	nandRes |= tmp;
+
+	uiPrintIfVerbose(" Mounting twlp FS...");
+	tmp = f_mount(&nand_twlpfs, "twlp:", 1);
+	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
+	nandRes |= tmp;
+
+	uiPrintIfVerbose(" Mounting CTR NAND FS...");
+	tmp = f_mount(&nand_fs, "nand:", 1);
+	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
+	nandRes |= tmp;
+
+	bootInfo.nand_status = nandRes == FR_OK;
+	res |= nandRes;
+
+
+	if(res && uiGetVerboseMode()) TIMER_sleep(2000);
+
 	return res == FR_OK;
-}
-
-static bool mount_fs()
-{
-	FRESULT res[4];
-	bool finalRes = true;
-	const char *res_str[2] = {"\x1B[31mFailed!", "\x1B[32mOK!"};
-
-	if(bootInfo.sd_status)
-	{
-		uiPrintIfVerbose("Mounting SD card FAT FS... ");
-		res[0] = f_mount(&sd_fs, "sdmc:", 1);
-		if(res[0] == FR_OK) uiPrintIfVerbose("%s\e[0m\n", res_str[1]);
-		else uiPrintIfVerbose("%s ERROR 0x%d\e[0m\n", res_str[0], res[0]);
-		finalRes &= res[0] == FR_OK;
-	}
-	else finalRes = false;
-
-	if(bootInfo.nand_status)
-	{
-		uiPrintIfVerbose("Mounting twln FS... ");
-		res[1] = f_mount(&nand_twlnfs, "twln:", 1);
-		if(res[1] == FR_OK) uiPrintIfVerbose("%s\e[0m\n", res_str[1]);
-		else uiPrintIfVerbose("%s ERROR 0x%d\e[0m\n", res_str[0], res[1]);
-
-		uiPrintIfVerbose("Mounting twlp FS... ");
-		res[2] = f_mount(&nand_twlpfs, "twlp:", 1);
-		if(res[2] == FR_OK) uiPrintIfVerbose("%s\e[0m\n", res_str[1]);
-		else uiPrintIfVerbose("%s ERROR 0x%d\e[0m\n", res_str[0], res[2]);
-
-		uiPrintIfVerbose("Mounting CTR NAND FAT FS... ");
-		res[3] = f_mount(&nand_fs, "nand:", 1);
-		if(res[3] == FR_OK) uiPrintIfVerbose("%s\e[0m\n", res_str[1]);
-		else uiPrintIfVerbose("%s ERROR 0x%d\e[0m\n", res_str[0], res[3]);
-
-		finalRes &= ((res[3] == res[2]) == res[1]) == FR_OK;
-	}
-	else finalRes = false;
-
-	if(!finalRes && uiGetVerboseMode())
-		TIMER_sleep(2000);
-
-	return finalRes;
 }
 
 bool ensure_mounted(const char *path)
