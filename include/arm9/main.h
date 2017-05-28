@@ -5,15 +5,15 @@
 #include "arm9/ui.h"
 
 typedef struct {
-	char	model[0x10];
-	bool	unit_is_new3ds;
-	char	boot_env[0x20];
-	char	mode[7];
-	char	fw_ver1[10];
-	char	fw_ver2[10];
-	bool	wififlash_status;
-	bool	nand_status;
-	bool	sd_status;
+	char  model[0x10];
+	bool  unit_is_new3ds;
+	char  boot_env[0x20];
+	char  mode[7];
+	char  fw_ver1[10];
+	char  fw_ver2[10];
+	bool  wififlash_status;
+	u32   nand_status;      // Bit 0: twln, bit 1: twlp, bit 2: nand
+	u32   sd_status;        // 0: Not inserted, 1: FS init failed, 2: OK
 } bootInfoStruct;
 
 bootInfoStruct bootInfo;
@@ -25,7 +25,7 @@ FATFS sd_fs;
 FATFS nand_twlnfs, nand_twlpfs, nand_fs;
 
 void devs_close();
-bool remount_nand_fs();
+u32  remount_nand_fs();
 bool ensure_mounted(const char *path);
 void unmount_fs();
 void unmount_nand_fs();

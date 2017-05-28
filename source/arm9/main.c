@@ -16,7 +16,7 @@
 #include "arm9/main.h"
 
 static void initWifiFlash(void);
-static bool mount_fs();
+static u32  mount_fs(void);
 static void screen_init();
 static void unit_detect();
 static void boot_env_detect();
@@ -51,7 +51,7 @@ int main(void)
 	uiPrintIfVerbose("Filesystem init...\n");
 	
 	/* Try to read the settings file ASAP. */
-	if(mount_fs())
+	if(mount_fs() > 0) // We got at least 1 drive mounted
 	{
 		uiPrintIfVerbose("Loading settings...\n");
 	
@@ -79,7 +79,6 @@ int main(void)
 		}
 		else screen_init();
 	}
-	else screen_init();
 	
 	if(mode != BootModeQuick)
 		uiDrawSplashScreen();
@@ -127,15 +126,15 @@ void devs_close()
 	dev_flash->close();
 }
 
-bool remount_nand_fs()
+u32 remount_nand_fs()
 {
-	FRESULT res = FR_OK;
+	u32 res = 0;
 
-	res |= f_mount(&nand_twlnfs, "twln:", 1);
-	res |= f_mount(&nand_twlpfs, "twlp:", 1);
-	res |= f_mount(&nand_fs, "nand:", 1);
+	res |= (f_mount(&nand_twlnfs, "twln:", 1) ? 0 : 1u);
+	res |= (f_mount(&nand_twlpfs, "twlp:", 1) ? 0 : 1u<<1);
+	res |= (f_mount(&nand_fs, "nand:", 1) ? 0 : 1u<<2);
 
-	return res == FR_OK;
+	return res;
 }
 
 void unmount_nand_fs()
@@ -157,41 +156,45 @@ static void initWifiFlash(void)
 	bootInfo.wififlash_status = flashRes;
 }
 
-static bool mount_fs(void)
+static u32 mount_fs(void)
 {
-	FRESULT res = FR_OK, nandRes = FR_OK, tmp;
+	FRESULT tmp;
+	u32 res = 0;
 	const char *const res_str[2] = {"\x1B[31m Failed!", "\x1B[32m OK!"};
 
 
 	uiPrintIfVerbose(" Mounting SD card FAT FS...");
 	tmp = f_mount(&sd_fs, "sdmc:", 1);
-	bootInfo.sd_status = tmp == FR_OK;
+	bootInfo.sd_status = (tmp ? 0 : 2u);
 	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
-	res |= tmp;
+	res |= (tmp ? 0 : 1u);
 
 
 	uiPrintIfVerbose(" Mounting twln FS...");
 	tmp = f_mount(&nand_twlnfs, "twln:", 1);
 	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
-	nandRes |= tmp;
+	res |= (tmp ? 0 : 1u<<1);
 
 	uiPrintIfVerbose(" Mounting twlp FS...");
 	tmp = f_mount(&nand_twlpfs, "twlp:", 1);
 	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
-	nandRes |= tmp;
+	res |= (tmp ? 0 : 1u<<2);
 
 	uiPrintIfVerbose(" Mounting CTR NAND FS...");
 	tmp = f_mount(&nand_fs, "nand:", 1);
 	uiPrintIfVerbose("%s %d\x1B[0m\n", res_str[tmp == FR_OK], tmp);
-	nandRes |= tmp;
+	res |= (tmp ? 0 : 1u<<3);
 
-	bootInfo.nand_status = nandRes == FR_OK;
-	res |= nandRes;
+	bootInfo.nand_status = res>>1;
 
 
-	if(res && uiGetVerboseMode()) TIMER_sleep(2000);
+	if(res != 0xFu && uiGetVerboseMode())
+	{
+		screen_init();
+		TIMER_sleep(2000);
+	}
 
-	return res == FR_OK;
+	return res;
 }
 
 bool ensure_mounted(const char *path)

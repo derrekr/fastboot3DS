@@ -59,8 +59,9 @@ static void menuRunOnce(int state);
 
 static void menu_main_draw_top()
 {
-	const char *sd_res[2]	= {"\x1B[31mNo ", "\x1B[32mYes"};
-	const char *nand_res[2]	= {"\x1B[31mError ", "\x1B[32mOK   "};
+	const char *const sd_res[3]      = {"\x1B[33mNot inserted", "\x1B[31mFS init failed", "\x1B[32mOK            "};
+	const char *const nand_res[2]    = {"\x1B[31mInit failed: ", "\x1B[32mOK                         "};
+	const char *const nand_drives[3] = {"twln ", "twlp ", "nand"};
 	
 	consoleSelect(&con_top);
 	
@@ -69,9 +70,16 @@ static void menu_main_draw_top()
 	
 	uiPrintTextAt(1, 4, "Model: %s", bootInfo.model);
 	uiPrintTextAt(1, 5, "\x1B[33m%s\e[0m", bootInfo.boot_env);
-	uiPrintTextAt(1, 6, "\x1B[32m(%s Mode)\e[0m", bootInfo.mode);
-	uiPrintTextAt(1, 8, "SD card inserted: %s\e[0m", sd_res[bootInfo.sd_status]);
-	uiPrintTextAt(1, 9, "NAND status: %s\e[0m", nand_res[bootInfo.nand_status]);
+	uiPrintTextAt(1, 6, "\x1B[32m(%s Mode)\x1B[0m", bootInfo.mode);
+	uiPrintTextAt(1, 8, "SD card status: %s\x1B[0m", sd_res[bootInfo.sd_status]);
+	uiPrintTextAt(1, 9, "NAND status: %s\x1B[0m", nand_res[bootInfo.nand_status == 7]);
+	if(bootInfo.nand_status != 7)
+	{
+		for(u32 i = 0; i < 3; i++)
+		{
+			if(!(bootInfo.nand_status>>i)) uiPrintError(nand_drives[i]);
+		}
+	}
 	uiPrintTextAt(1, 10, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
 }
 
@@ -347,14 +355,14 @@ int menuUpdateGlobalState(void)
 
 	/* Check for HW changes */
 
-	bool sd_status;
-
-	sd_status = dev_sdcard->is_active();
-	if(sd_status != bootInfo.sd_status)
+	bool sd_active = dev_sdcard->is_active();
+	if(!bootInfo.sd_status && sd_active)
 	{
-		retcode = sd_status ? MENU_EVENT_SD_CARD_INSERTED :
-				MENU_EVENT_SD_CARD_REMOVED;
-		bootInfo.sd_status = sd_status;	// update bootInfo status
+		retcode = MENU_EVENT_SD_CARD_INSERTED;
+	}
+	else if(bootInfo.sd_status && !sd_active)
+	{
+		retcode = MENU_EVENT_SD_CARD_REMOVED;
 	}
 
 
@@ -386,12 +394,14 @@ void menuActState(void)
 			break;
 		case MENU_EVENT_SD_CARD_INSERTED:
 			unmount_nand_fs();
-			f_mount(&sd_fs, "sdmc:", 1);
-			remount_nand_fs();
+			if(!f_mount(&sd_fs, "sdmc:", 1)) bootInfo.sd_status = 2;
+			else bootInfo.sd_status = 1;
+			bootInfo.nand_status = remount_nand_fs();
 			// also try to load saved settings
 			loadConfigFile();
 			break;
 		case MENU_EVENT_SD_CARD_REMOVED:
+			bootInfo.sd_status = 0;
 			dev_sdcard->close();
 			f_mount(NULL, "sdmc:", 1);
 			break;
