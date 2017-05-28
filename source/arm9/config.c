@@ -199,7 +199,15 @@ bool writeConfigFile()
 			goto fail;
 		}
 	}
-	
+
+	// Make sure changes are written to disk in case
+	// the SD card is removed later.
+	if(f_sync(&file) != FR_OK)
+	{
+		f_close(&file);
+		goto fail;
+	}
+
 	f_close(&file);
 	
 	return true;

@@ -36,7 +36,7 @@ DSTATUS disk_status (
 	switch(pdrv)
 	{
 		case FATFS_DEV_NUM_SD:
-			if(!dev_sdcard->is_active()) stat = STA_NOINIT;
+			if(!dev_sdcard->is_active() || !dev_sdcard->initialized) stat = STA_NOINIT;
 			break;
 		case FATFS_DEV_NUM_TWL_NAND:
 			if(!dev_decnand->is_active()) stat = STA_NOINIT;
