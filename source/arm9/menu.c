@@ -59,7 +59,7 @@ static void menuRunOnce(int state);
 
 static void menu_main_draw_top()
 {
-	const char *const sd_res[3]      = {"\x1B[33mNot inserted", "\x1B[31mFS init failed", "\x1B[32mOK            "};
+	const char *const sd_res[3]      = {"\x1B[33mNot inserted  ", "\x1B[31mFS init failed", "\x1B[32mOK            "};
 	const char *const nand_res[2]    = {"\x1B[31mInit failed: ", "\x1B[32mOK                         "};
 	const char *const nand_drives[3] = {"twln ", "twlp ", "nand"};
 	
