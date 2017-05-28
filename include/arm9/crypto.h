@@ -22,7 +22,7 @@
 #define AES_FLUSH_WRITE_FIFO  (1u<<11)
 #define AES_MAC_SIZE(n)       (((n - 2) / 2)<<16)
 #define AES_MAC_SRC_REG       (1u<<20)
-#define AES_MAC_VALID         ((bool)(REG_AESCNT>>21 & 1))
+#define AES_IS_MAC_VALID      ((bool)(REG_AESCNT>>21 & 1u))
 
 #define AES_OUTPUT_BIG        (1u)
 #define AES_OUTPUT_LITTLE     (0u)
@@ -154,6 +154,22 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma);
  * @param[in]  dma     Set to true to enable DMA.
  */
 void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma);
+
+/**
+ * @brief      En-/decrypts data with AES CCM. This is broken for more than AES_MAX_BLOCKS.
+ *
+ * @param      ctx      Pointer to AES_ctx (AES context).
+ * @param[in]  in       In data pointer. Can be the same as out.
+ * @param      out      Out data pointer. Can be the same as in.
+ * @param[in]  macSize  The AES MAC size in bytes.
+ * @param      mac      Pointer to in/out AES MAC.
+ * @param[in]  blocks   Number of blocks to process. 1 block is 16 bytes.
+ * @param[in]  enc      Set to true to encrypt and false to decrypt.
+ * @param[in]  dma      Set to true to enable DMA.
+ *
+ * @return     Returns if the AES MAC is valid in decryption mode. Otherwise true.
+ */
+bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac, u32 blocks, bool enc, bool dma);
 
 
 

@@ -424,6 +424,80 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
 	}
 }
 
+bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac, u32 blocks, bool enc, bool dma)
+{
+	assert(ctx != NULL);
+	assert(in != NULL);
+	assert(out != NULL);
+	assert(macSize != 0);
+	assert(mac != NULL);
+
+	const u32 nonceParams = ctx->ctrIvNonceParams;
+	u32 *const nonce = ctx->ctrIvNonce;
+	const u32 aesParams = (enc ? AES_MODE_CCM_ENCRYPT : AES_MODE_CCM_DECRYPT) |
+	                      AES_MAC_SIZE(macSize) | AES_MAC_SRC_REG | ctx->aesParams;
+
+
+	if(!enc)
+	{
+		REG_AESCNT = aesParams;
+		if(aesParams>>25 & 1u)
+		{
+			for(u32 i = 0; i < macSize / 4; i++)
+			{
+				REG_AESMAC[i] = mac[macSize / 4 - 1 - i];
+			}
+		}
+		else
+		{
+			for(u32 i = 0; i < macSize / 4; i++)
+			{
+				REG_AESMAC[i] = mac[i];
+			}
+		}
+	}
+
+	while(blocks)
+	{
+		REG_AESCNT = nonceParams;
+		REG_AESCTR[0] = nonce[0];
+		REG_AESCTR[1] = nonce[1];
+		REG_AESCTR[2] = nonce[2];
+
+		REG_AES_BLKCNT_LOW = 0;
+		REG_AESCNT = aesParams;
+		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
+		if(dma) aesProcessBlocksDma(in, out, blockNum);
+		else aesProcessBlocksCpu(in, out, blockNum);
+
+		// TODO: How to update the nonce?
+		in += blockNum<<2;
+		out += blockNum<<2;
+		blocks -= blockNum;
+	}
+
+	if(enc)
+	{
+		if(aesParams>>24 & 1u)
+		{
+			for(u32 i = 0; i < macSize / 4; i++)
+			{
+				mac[i] = REG_AESMAC[macSize / 4 - 1 - i];
+			}
+		}
+		else
+		{
+			for(u32 i = 0; i < macSize / 4; i++)
+			{
+				mac[i] = REG_AESMAC[i];
+			}
+		}
+	}
+
+	if(enc) return true;
+	else return AES_IS_MAC_VALID;
+}
+
 
 
 //////////////////////////////////
