@@ -5,7 +5,7 @@
 
 
 
-#if _USE_LFN == 3	/* LFN with a working buffer on the heap */
+#if FF_USE_LFN == 3	/* LFN with a working buffer on the heap */
 /*------------------------------------------------------------------------*/
 /* Allocate a memory block                                                */
 /*------------------------------------------------------------------------*/

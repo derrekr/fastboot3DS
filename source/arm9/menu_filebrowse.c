@@ -14,7 +14,7 @@
 
 
 #define MAX_CACHED_ENTRIES	0x400
-#define MAX_ENTRY_SIZE		_MAX_LFN + 2
+#define MAX_ENTRY_SIZE		FF_MAX_LFN + 2
 #define MAX_NEW_ENTRIES		0x20
 #define MAX_PATH_LENGTH		0x400
 #define	MAX_PATH_DEPTH		0x20
@@ -55,9 +55,9 @@ static bool scanDirectory()
 		dirEntries[curEntriesCount + i].isDir = (fno.fattrib & AM_DIR) != 0;
 		
 		if(fno.fattrib & AM_DIR)	// directory
-			snprintf(dirEntries[curEntriesCount + i].name, _MAX_LFN + 1, "/%s", fno.fname);
+			snprintf(dirEntries[curEntriesCount + i].name, FF_MAX_LFN + 1, "/%s", fno.fname);
 		else	// file
-			strncpy_s(dirEntries[curEntriesCount + i].name, fno.fname, _MAX_LFN + 1, _MAX_LFN + 2);
+			strncpy_s(dirEntries[curEntriesCount + i].name, fno.fname, FF_MAX_LFN + 1, FF_MAX_LFN + 2);
 	}
 	
 	curEntriesCount += i;

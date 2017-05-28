@@ -2,12 +2,12 @@
 /  Low level disk interface modlue include file   (C)ChaN, 2014          /
 /-----------------------------------------------------------------------*/
 
+#ifndef _DISKIO_DEFINED
+#define _DISKIO_DEFINED
+
 #define FATFS_DEV_NUM_SD        0
 #define FATFS_DEV_NUM_TWL_NAND  1
 #define FATFS_DEV_NUM_CTR_NAND  2
-
-#ifndef _DISKIO_DEFINED
-#define _DISKIO_DEFINED
 
 #ifdef __cplusplus
 extern "C" {
