@@ -334,7 +334,7 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 
 	// Check block alignment
 	u32 aesFifoSize, dmaBurstSize;
-	if(!(blocks & 3))
+	if(!(blocks & 3) || blocks == AES_MAX_BLOCKS)
 	{
 		aesFifoSize = 3;
 		dmaBurstSize = NDMA_BURST_SIZE(16);
@@ -395,6 +395,10 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 		if(dma) aesProcessBlocksDma(in, out, blockNum);
 		else aesProcessBlocksCpu(in, out, blockNum);
 
+		// AES will process 64 bytes for the last block of the
+		// block transfer even if only 48 are setup (0xFFFF vs. 0x10000 blocks).
+		if(dma && blockNum == AES_MAX_BLOCKS) blockNum++;
+
 		AES_addCounter(ctr, blockNum<<4);
 		in += blockNum<<2;
 		out += blockNum<<2;
@@ -417,6 +421,10 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
 		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
 		if(dma) aesProcessBlocksDma(in, out, blockNum);
 		else aesProcessBlocksCpu(in, out, blockNum);
+
+		// AES will process 64 bytes for the last block of the
+		// block transfer even if only 48 are setup (0xFFFF vs. 0x10000 blocks).
+		if(dma && blockNum == AES_MAX_BLOCKS) blockNum++;
 
 		in += blockNum<<2;
 		out += blockNum<<2;
@@ -469,6 +477,10 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac,
 		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
 		if(dma) aesProcessBlocksDma(in, out, blockNum);
 		else aesProcessBlocksCpu(in, out, blockNum);
+
+		// AES will process 64 bytes for the last block of the
+		// block transfer even if only 48 are setup (0xFFFF vs. 0x10000 blocks).
+		if(dma && blockNum == AES_MAX_BLOCKS) blockNum++;
 
 		// TODO: How to update the nonce?
 		in += blockNum<<2;
