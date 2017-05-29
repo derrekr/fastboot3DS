@@ -448,8 +448,9 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac,
 
 	if(!enc)
 	{
+		// TODO: Padding for MACs < 16 bytes.
 		REG_AESCNT = aesParams;
-		if(aesParams>>25 & 1u)
+		if(aesParams>>23 & AES_INPUT_NORMAL)
 		{
 			for(u32 i = 0; i < macSize / 4; i++)
 			{
@@ -490,18 +491,19 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac,
 
 	if(enc)
 	{
-		if(aesParams>>24 & 1u)
+		// The MAC output order is the opposite of the setup order. AES engine bug?
+		if(aesParams>>22 & AES_OUTPUT_NORMAL)
 		{
 			for(u32 i = 0; i < macSize / 4; i++)
 			{
-				mac[i] = REG_AESMAC[macSize / 4 - 1 - i];
+				mac[i] = *((vu32*)REG_AESRDFIFO);
 			}
 		}
 		else
 		{
 			for(u32 i = 0; i < macSize / 4; i++)
 			{
-				mac[i] = REG_AESMAC[i];
+				mac[macSize / 4 - 1 - i] = *((vu32*)REG_AESRDFIFO);
 			}
 		}
 	}
