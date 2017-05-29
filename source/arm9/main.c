@@ -309,9 +309,6 @@ static void checkSetVerboseMode()
 		uiSetVerboseMode(true);
 }
 
-#define PRNG_REGS_BASE  (IO_MEM_ARM9_ONLY + 0x11000)
-#define REG_PRNG         ((vu32*)(PRNG_REGS_BASE))
-
 u8 rng_get_byte()
 {
 	u32 tmp = REG_PRNG[0];

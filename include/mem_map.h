@@ -90,12 +90,14 @@
 
 
 
-#define PDN_REGS_BASE          (IO_MEM_ARM9_ARM11 + 0x40000)
-#define REG_PDN_MPCORE_CFG     *((vu16*)(PDN_REGS_BASE + 0x0FFC))
+#define CFG_REGS_BASE        (IO_MEM_ARM9_ONLY)
+#define CFG_BOOTENV          *((vu32*)(CFG_REGS_BASE + 0x10000))
+#define CFG_UNITINFO         *((vu8* )(CFG_REGS_BASE + 0x10010))
 
-#define CFG_REGS_BASE          (IO_MEM_ARM9_ONLY)
-#define CFG_BOOTENV            *((vu32*)(CFG_REGS_BASE + 0x10000))
-#define CFG_UNITINFO           *((vu8* )(CFG_REGS_BASE + 0x10010))
+#define REG_PRNG              ((vu32*)(IO_MEM_ARM9_ONLY + 0x11000))
+
+#define REG_PDN_MPCORE_CFG   *((vu16*)(IO_MEM_ARM9_ARM11 + 0x40000 + 0x0FFC))
+
 
 /* Custom mappings */
 #ifdef ARM9
