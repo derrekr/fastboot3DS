@@ -432,7 +432,7 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
 	}
 }
 
-bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac, u32 blocks, bool enc, bool dma)
+bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 mac[4], u32 blocks, bool enc, bool dma)
 {
 	assert(ctx != NULL);
 	assert(in != NULL);
@@ -448,21 +448,21 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac,
 
 	if(!enc)
 	{
-		// TODO: Padding for MACs < 16 bytes.
+		// TODO: Do this with REG_AESWRFIFO instead.
 		REG_AESCNT = aesParams;
 		if(aesParams>>23 & AES_INPUT_NORMAL)
 		{
-			for(u32 i = 0; i < macSize / 4; i++)
-			{
-				REG_AESMAC[i] = mac[macSize / 4 - 1 - i];
-			}
+			REG_AESMAC[0] = mac[3];
+			REG_AESMAC[1] = mac[2];
+			REG_AESMAC[2] = mac[1];
+			REG_AESMAC[3] = mac[0];
 		}
 		else
 		{
-			for(u32 i = 0; i < macSize / 4; i++)
-			{
-				REG_AESMAC[i] = mac[i];
-			}
+			REG_AESMAC[0] = mac[0];
+			REG_AESMAC[1] = mac[1];
+			REG_AESMAC[2] = mac[2];
+			REG_AESMAC[3] = mac[3];
 		}
 	}
 
@@ -491,7 +491,10 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac,
 
 	if(enc)
 	{
-		for(u32 i = 0; i < macSize / 4; i++) mac[i] = *((vu32*)REG_AESRDFIFO);
+		mac[0] = *((vu32*)REG_AESRDFIFO);
+		mac[1] = *((vu32*)REG_AESRDFIFO);
+		mac[2] = *((vu32*)REG_AESRDFIFO);
+		mac[3] = *((vu32*)REG_AESRDFIFO);
 	}
 
 	if(enc) return true;

@@ -162,14 +162,14 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
  * @param[in]  in       In data pointer. Can be the same as out.
  * @param      out      Out data pointer. Can be the same as in.
  * @param[in]  macSize  The AES MAC size in bytes.
- * @param      mac      Pointer to in/out AES MAC.
+ * @param      mac      Pointer to in/out AES MAC. The MAC must/will be padded with zeros.
  * @param[in]  blocks   Number of blocks to process. 1 block is 16 bytes.
  * @param[in]  enc      Set to true to encrypt and false to decrypt.
  * @param[in]  dma      Set to true to enable DMA.
  *
  * @return     Returns if the AES MAC is valid in decryption mode. Otherwise true.
  */
-bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac, u32 blocks, bool enc, bool dma);
+bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 mac[4], u32 blocks, bool enc, bool dma);
 
 
 
