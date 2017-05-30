@@ -491,21 +491,7 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 *mac,
 
 	if(enc)
 	{
-		// The MAC output order is the opposite of the setup order. AES engine bug?
-		if(aesParams>>22 & AES_OUTPUT_NORMAL)
-		{
-			for(u32 i = 0; i < macSize / 4; i++)
-			{
-				mac[i] = *((vu32*)REG_AESRDFIFO);
-			}
-		}
-		else
-		{
-			for(u32 i = 0; i < macSize / 4; i++)
-			{
-				mac[macSize / 4 - 1 - i] = *((vu32*)REG_AESRDFIFO);
-			}
-		}
+		for(u32 i = 0; i < macSize / 4; i++) mac[i] = *((vu32*)REG_AESRDFIFO);
 	}
 
 	if(enc) return true;
