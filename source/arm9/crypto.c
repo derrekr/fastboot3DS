@@ -373,13 +373,13 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 		dmaBurstSize = NDMA_BURST_SIZE(4);
 	}
 
-	REG_NDMA1_DST_ADDR = (u32)out;
-	REG_NDMA1_LOG_BLK_CNT = aesFifoSize * 4 + 4;
-	REG_NDMA1_CNT = (REG_NDMA1_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
-
 	REG_NDMA0_SRC_ADDR = (u32)in;
 	REG_NDMA0_LOG_BLK_CNT = aesFifoSize * 4 + 4;
 	REG_NDMA0_CNT = (REG_NDMA0_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
+
+	REG_NDMA1_DST_ADDR = (u32)out;
+	REG_NDMA1_LOG_BLK_CNT = aesFifoSize * 4 + 4;
+	REG_NDMA1_CNT = (REG_NDMA1_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
 
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | AES_IRQ_ENABLE | aesFifoSize<<14 | (3 - aesFifoSize)<<12 |
