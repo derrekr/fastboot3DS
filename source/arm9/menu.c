@@ -77,7 +77,7 @@ static void menu_main_draw_top()
 	{
 		for(u32 i = 0; i < 3; i++)
 		{
-			if(!(bootInfo.nand_status>>i)) uiPrintError(nand_drives[i]);
+			if(!(bootInfo.nand_status>>i & 1u)) uiPrintError(nand_drives[i]);
 		}
 	}
 	uiPrintTextAt(1, 10, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
