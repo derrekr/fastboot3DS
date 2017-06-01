@@ -76,7 +76,7 @@ static void setupKeys(void)
 	AES_setKey(0x02, AES_KEY_X, AES_INPUT_LITTLE | AES_INPUT_REVERSED, false, (u32*)0x01FFD398);
 
 	u32 key3X[4] = {(u32)twlConsoleId, 0, 0, (u32)(twlConsoleId>>32)};
-	if(*((vu8*)0x10010014) != 0)
+	if(isDevUnit)
 	{
 		key3X[1] = 0xEE7A4B1E;
 		key3X[2] = 0xAF42C08B;

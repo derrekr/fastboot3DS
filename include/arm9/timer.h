@@ -10,10 +10,10 @@
 #define TIMER_ENABLE        (1u<<7)
 
 // Convenience macros for calculating the ticks. Based on libnds
-#define TIMER_FREQ(n)       (0xFFFFu - (u16)(TIMER_BASE_FREQ / n) + 1)
-#define TIMER_FREQ_64(n)    (0xFFFFu - (u16)(TIMER_BASE_FREQ / 64.0 / n) + 1)
-#define TIMER_FREQ_256(n)   (0xFFFFu - (u16)(TIMER_BASE_FREQ / 256.0 / n) + 1)
-#define TIMER_FREQ_1024(n)  (0xFFFFu - (u16)(TIMER_BASE_FREQ / 1024.0 / n) + 1)
+#define TIMER_FREQ(n)       (0x10000u - (u16)(TIMER_BASE_FREQ / n))
+#define TIMER_FREQ_64(n)    (0x10000u - (u16)(TIMER_BASE_FREQ / 64.0 / n))
+#define TIMER_FREQ_256(n)   (0x10000u - (u16)(TIMER_BASE_FREQ / 256.0 / n))
+#define TIMER_FREQ_1024(n)  (0x10000u - (u16)(TIMER_BASE_FREQ / 1024.0 / n))
 
 
 typedef enum
