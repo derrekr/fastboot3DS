@@ -21,6 +21,7 @@
 #define AES_FLUSH_READ_FIFO   (1u<<10)
 #define AES_FLUSH_WRITE_FIFO  (1u<<11)
 #define AES_MAC_SIZE(n)       (((n - 2) / 2)<<16)
+#define AES_PASS_PAYLOARD     (1u<<19) // Passes the associated data to REG_AESRDFIFO
 #define AES_MAC_SRC_REG       (1u<<20)
 #define AES_IS_MAC_VALID      ((bool)(REG_AESCNT>>21 & 1u))
 
@@ -156,20 +157,23 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma);
 void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma);
 
 /**
- * @brief      En-/decrypts data with AES CCM. This is broken for more than AES_MAX_BLOCKS.
+ * @brief      En-/decrypts data with AES CCM.
+ * @brief      Note: The AES hardware implements this in a non-standard way
+ * @brief      limiting it to 1 nonce for 1 MB.
  *
  * @param      ctx      Pointer to AES_ctx (AES context).
  * @param[in]  in       In data pointer. Can be the same as out.
  * @param      out      Out data pointer. Can be the same as in.
  * @param[in]  macSize  The AES MAC size in bytes.
- * @param      mac      Pointer to in/out AES MAC. The MAC must/will be padded with zeros.
+ * @param      mac      Pointer to in/out AES MAC. The MAC must/will be padded
+ *                      with zeros (non-standard).
  * @param[in]  blocks   Number of blocks to process. 1 block is 16 bytes.
  * @param[in]  enc      Set to true to encrypt and false to decrypt.
- * @param[in]  dma      Set to true to enable DMA.
  *
- * @return     Returns if the AES MAC is valid in decryption mode. Otherwise true.
+ * @return     Returns true in decryption mode if the AES MAC is valid. Otherwise true.
  */
-bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 mac[4], u32 blocks, bool enc, bool dma);
+bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 macSize,
+             u32 mac[4], u16 blocks, bool enc);
 
 
 

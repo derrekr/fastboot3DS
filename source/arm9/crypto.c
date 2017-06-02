@@ -455,7 +455,8 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
 	}
 }
 
-bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 mac[4], u32 blocks, bool enc, bool dma)
+bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 macSize,
+             u32 mac[4], u16 blocks, bool enc)
 {
 	assert(ctx != NULL);
 	assert(in != NULL);
@@ -463,56 +464,19 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 mac[4
 	assert(macSize != 0);
 	assert(mac != NULL);
 
-	const u32 nonceParams = ctx->ctrIvNonceParams;
-	u32 *const nonce = ctx->ctrIvNonce;
-	const u32 aesParams = (enc ? AES_MODE_CCM_ENCRYPT : AES_MODE_CCM_DECRYPT) |
-	                      AES_MAC_SIZE(macSize) | AES_MAC_SRC_REG | ctx->aesParams;
 
+	REG_AESCNT = ctx->ctrIvNonceParams;
+	REG_AESCTR[0] = ctx->ctrIvNonce[0];
+	REG_AESCTR[1] = ctx->ctrIvNonce[1];
+	REG_AESCTR[2] = ctx->ctrIvNonce[2];
 
-	if(!enc)
-	{
-		REG_AESCNT = aesParams;
-		if(aesParams>>23 & AES_INPUT_NORMAL)
-		{
-			REG_AESMAC[0] = mac[3];
-			REG_AESMAC[1] = mac[2];
-			REG_AESMAC[2] = mac[1];
-			REG_AESMAC[3] = mac[0];
-		}
-		else
-		{
-			REG_AESMAC[0] = mac[0];
-			REG_AESMAC[1] = mac[1];
-			REG_AESMAC[2] = mac[2];
-			REG_AESMAC[3] = mac[3];
-		}
-	}
-
-	while(blocks)
-	{
-		REG_AESCNT = nonceParams;
-		REG_AESCTR[0] = nonce[0];
-		REG_AESCTR[1] = nonce[1];
-		REG_AESCTR[2] = nonce[2];
-
-		REG_AES_BLKCNT_LOW = 0;
-		REG_AESCNT = aesParams;
-		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
-		if(dma) aesProcessBlocksDma(in, out, blockNum);
-		else aesProcessBlocksCpu(in, out, blockNum);
-
-		// AES will process 64 bytes for the last block of the
-		// block transfer even if only 48 are setup (0xFFFF vs. 0x10000 blocks).
-		if(dma && blockNum == AES_MAX_BLOCKS) blockNum++;
-
-		// TODO: How to update the nonce?
-		in += blockNum<<2;
-		out += blockNum<<2;
-		blocks -= blockNum;
-	}
+	REG_AES_BLKCNT_LOW = 0;
+	REG_AESCNT = (enc ? AES_MODE_CCM_ENCRYPT : AES_MODE_CCM_DECRYPT) |
+	             AES_MAC_SIZE(macSize) | ctx->aesParams;
+	aesProcessBlocksCpu(in, out, blocks);
 
 	// This is broken right now with DMA due to a (AES engine?) bug.
-	/*if(!enc)
+	if(!enc)
 	{
 		*((vu32*)REG_AESWRFIFO) = mac[0];
 		*((vu32*)REG_AESWRFIFO) = mac[1];
@@ -520,8 +484,7 @@ bool AES_ccm(AES_ctx *const ctx, const u32 *in, u32 *out, u32 macSize, u32 mac[4
 		*((vu32*)REG_AESWRFIFO) = mac[3];
 		while(REG_AESCNT & AES_ENABLE);
 	}
-	else*/
-	if(enc)
+	else
 	{
 		mac[0] = *((vu32*)REG_AESRDFIFO);
 		mac[1] = *((vu32*)REG_AESRDFIFO);
