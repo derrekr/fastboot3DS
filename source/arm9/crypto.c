@@ -283,6 +283,8 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 // TODO: Handle endianess!
 void AES_addCounter(u32 ctr[4], u32 val)
 {
+	assert(ctr != NULL);
+
 	u32 carry, i = 1;
 	u64 sum;
 
@@ -303,6 +305,8 @@ void AES_addCounter(u32 ctr[4], u32 val)
 
 void AES_subCounter(u32 ctr[4], u32 val)
 {
+	assert(ctr != NULL);
+
 	u32 carry, i = 1;
 	u32 sum;
 
@@ -429,6 +433,77 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 	}
 }
 
+/*void AES_cbc(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma)
+{
+	assert(ctx != NULL);
+	assert(in != NULL);
+	assert(out != NULL);
+
+	const u32 ivParams = ctx->ctrIvNonceParams;
+	u32 *const iv = ctx->ctrIvNonce;
+	const u32 aesParams = (enc ? AES_MODE_CBC_ENCRYPT : AES_MODE_CBC_DECRYPT) | ctx->aesParams;
+
+
+	while(blocks)
+	{
+		REG_AESCNT = ivParams;
+		REG_AESCTR[0] = iv[0];
+		REG_AESCTR[1] = iv[1];
+		REG_AESCTR[2] = iv[2];
+		REG_AESCTR[3] = iv[3];
+
+		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
+
+		if(!enc)
+		{
+			// Save last 16 bytes of the input blocks as next IV
+			const u32 *const nextIv = in + (blockNum<<2) - 4;
+			if(aesParams>>23 & AES_INPUT_NORMAL)
+			{
+				iv[0] = nextIv[3];
+				iv[1] = nextIv[2];
+				iv[2] = nextIv[1];
+				iv[3] = nextIv[0];
+			}
+			else
+			{
+				iv[0] = nextIv[0];
+				iv[1] = nextIv[1];
+				iv[2] = nextIv[2];
+				iv[3] = nextIv[3];
+			}
+		}
+
+		REG_AESCNT = aesParams;
+		if(dma) aesProcessBlocksDma(in, out, blockNum);
+		else aesProcessBlocksCpu(in, out, blockNum);
+
+		if(enc)
+		{
+			// Save last 16 bytes of the output blocks as next IV
+			const u32 *const nextIv = out + (blockNum<<2) - 4;
+			if(aesParams>>23 & AES_INPUT_NORMAL)
+			{
+				iv[0] = nextIv[3];
+				iv[1] = nextIv[2];
+				iv[2] = nextIv[1];
+				iv[3] = nextIv[0];
+			}
+			else
+			{
+				iv[0] = nextIv[0];
+				iv[1] = nextIv[1];
+				iv[2] = nextIv[2];
+				iv[3] = nextIv[3];
+			}
+		}
+
+		in += blockNum<<2;
+		out += blockNum<<2;
+		blocks -= blockNum;
+	}
+}*/
+
 void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma)
 {
 	assert(ctx != NULL);
@@ -463,6 +538,7 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 	assert(out != NULL);
 	assert(macSize != 0);
 	assert(mac != NULL);
+	assert(blocks != 0);
 
 
 	REG_AESCNT = ctx->ctrIvNonceParams;
