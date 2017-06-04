@@ -48,6 +48,8 @@ static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool writeBootOptionPad(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootMode(AttributeEntryType *attr);
 static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key);
+static bool parseDevMode(AttributeEntryType *attr);
+static bool writeDevMode(AttributeEntryType *attr, const void *newData, int key);
 
 static const char *keyStrings[] = {
 	"BOOT_OPTION1",
@@ -59,7 +61,8 @@ static const char *keyStrings[] = {
 	"BOOT_OPTION1_BUTTONS",
 	"BOOT_OPTION2_BUTTONS",
 	"BOOT_OPTION3_BUTTONS",
-	"BOOT_MODE"
+	"BOOT_MODE",
+	"DEV_MODE"
 };
 
 static FunctionsEntryType keyFunctions[] = {
@@ -73,7 +76,8 @@ static FunctionsEntryType keyFunctions[] = {
 	{ parseBootOptionPad,	writeBootOptionPad },
 	{ parseBootOptionPad,	writeBootOptionPad },
 	{ parseBootOptionPad,	writeBootOptionPad },
-	{ parseBootMode,		writeBootMode }
+	{ parseBootMode,		writeBootMode },
+	{ parseDevMode,			writeDevMode }
 };
 
 static AttributeEntryType attributes[numKeys];
@@ -660,6 +664,58 @@ static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key
 	*(u32 *)attr->data = mode;
 	
 	const char *textData = modeTable[mode];
+	
+	writeAttributeText(attr, textData, key);
+	
+	return true;
+}
+
+static const char * devModeStates[] = {
+	"Enabled", "Disabled"
+};
+
+static bool parseDevMode(AttributeEntryType *attr)
+{
+	char *textData = attr->textData;
+	bool enabled;
+
+	if(strcmp(textData, devModeStates[0]) == 0)
+		enabled = true;
+	else if(strcmp(textData, devModeStates[1]) == 0)
+		enabled = false;
+	else
+	{
+		attr->data = NULL;
+		return false;
+	}
+
+	attr->data = (bool *) malloc(sizeof(bool));
+	if(!attr->data)
+		return false;
+
+	*(bool *)attr->data = enabled;
+	return true;
+}
+
+static bool writeDevMode(AttributeEntryType *attr, const void *newData, int key)
+{
+	bool enabled;
+	
+	if(!newData)
+		return false;
+	
+	enabled = *(const bool *)newData;
+	
+	if(!attr->data)
+	{
+		attr->data = (bool *) malloc(sizeof(bool));
+		if(!attr->data)
+			return false;
+	}
+	
+	*(bool *)attr->data = enabled;
+	
+	const char *textData = modeTable[enabled ? 0 : 1];
 	
 	writeAttributeText(attr, textData, key);
 	
