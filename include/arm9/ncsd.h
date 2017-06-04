@@ -3,7 +3,6 @@
 #include "types.h"
 
 
-
 typedef struct
 {
 	u8 signature[0x100];

@@ -12,6 +12,7 @@
 #include "arm9/timer.h"
 #include "arm9/partitions.h"
 #include "arm9/firmwriter.h"
+#include "arm9/nandimage.h"
 
 static u64 getFreeSpace(const char *drive)
 {
@@ -189,6 +190,13 @@ bool menuRestoreNand(const char *filePath)
 	if(f_open(&file, filePath, FA_READ) != FR_OK)
 	{
 		uiPrintError("Failed to open '%s'!\n", filePath);
+		f_close(&file);
+		goto fail;
+	}
+	
+	if(!isNandImageCompatible(&file))
+	{
+		uiPrintError("NAND file is not compatible with this console!\n");
 		f_close(&file);
 		goto fail;
 	}
