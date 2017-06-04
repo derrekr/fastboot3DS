@@ -45,6 +45,7 @@ static bool parseConfigFile();
 static bool parseBootOption(AttributeEntryType *attr);
 static bool writeBootOption(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootOptionPad(AttributeEntryType *attr);
+static bool writeBootOptionPad(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootMode(AttributeEntryType *attr);
 static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key);
 
@@ -69,9 +70,9 @@ static FunctionsEntryType keyFunctions[] = {
 	{ parseBootOption,		writeBootOption },
 	{ parseBootOption,		writeBootOption },
 	{ parseBootOption,		writeBootOption },
-	{ parseBootOptionPad,	NULL },
-	{ parseBootOptionPad,	NULL },
-	{ parseBootOptionPad,	NULL },
+	{ parseBootOptionPad,	writeBootOptionPad },
+	{ parseBootOptionPad,	writeBootOptionPad },
+	{ parseBootOptionPad,	writeBootOptionPad },
 	{ parseBootMode,		writeBootMode }
 };
 
@@ -534,17 +535,17 @@ static bool writeBootOption(AttributeEntryType *attr, const void *newData, int k
 	return true;
 }
 
+static const char * convTable[] = {
+	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
+	"UP", "DOWN", "R", "L", "X", "Y"
+};
+
 static bool parseBootOptionPad(AttributeEntryType *attr)
 {
 	char c;
 	char *textData = attr->textData;
 	u32 padValue = 0;
 	u32 i;
-	
-	static const char * convTable[] = {
-		"A", "B", "SELECT", "START", "RIGHT", "LEFT",
-		"UP", "DOWN", "R", "L", "X", "Y"
-	};
 	
 	for(; (c = *textData) != '\0' && textData < attr->textData + attr->textLength;)
 	{
@@ -566,6 +567,45 @@ static bool parseBootOptionPad(AttributeEntryType *attr)
 		return false;
 		
 	*(u32 *)attr->data = padValue;
+	return true;
+}
+
+static bool writeBootOptionPad(AttributeEntryType *attr, const void *newData, int key)
+{
+	char tempbuf[0x40] = { 0 };
+	u32 padValue;
+	u32 i;
+	bool keysAdded = false;
+	
+	if(!newData)
+		return false;
+	
+	padValue = *(const u32 *)newData;
+	
+	padValue &= HID_KEY_MASK_ALL;
+	
+	if(!attr->data)
+	{
+		attr->data = (u32 *) malloc(sizeof(u32));
+		if(!attr->data)
+			return false;
+	}
+	
+	*(u32 *)attr->data = padValue;
+	
+	for(i=0; i<arrayEntries(convTable); i++)
+	{
+		if((padValue >> i) & 1)
+		{
+			if(keysAdded)
+				strcat(tempbuf, " + ");
+			strcat(tempbuf, convTable[i]);
+			keysAdded = true;
+		}
+	}
+	
+	writeAttributeText(attr, tempbuf, key);
+	
 	return true;
 }
 
@@ -619,9 +659,9 @@ static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key
 	
 	*(u32 *)attr->data = mode;
 	
-	const char *data = modeTable[mode];
+	const char *textData = modeTable[mode];
 	
-	writeAttributeText(attr, data, key);
+	writeAttributeText(attr, textData, key);
 	
 	return true;
 }
