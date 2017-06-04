@@ -118,7 +118,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 	firmLoaded = 0;
 
 	if(fromMenu)
-		uiPrintCenteredInLine(2, "Loading FIRM from settings");
+		uiPrintCenteredInLine(1, "Loading FIRM from settings\n");
 	
 	// No Boot Option set up?
 	if(!configDataExist(KBootOption1) &&
