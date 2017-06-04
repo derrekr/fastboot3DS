@@ -170,7 +170,6 @@ bool menuOptions(void)
 		{
 			case MENU_EVENT_HOME_PRESSED:
 			case MENU_EVENT_POWER_PRESSED:
-			case MENU_EVENT_SD_CARD_REMOVED:
 			case MENU_EVENT_STATE_CHANGE:
 				goto done;
 			default:

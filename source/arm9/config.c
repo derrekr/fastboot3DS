@@ -19,8 +19,8 @@
 
 #define MAX_FILE_SIZE	0x4000 - 1
 
-static const char *SdmcFilepath = "sdmc:/fastbootcfg.txt";
-// static const char *NandFilepath = "nand:/loader/fastbootcfg.txt";
+static const char *SdmcFilepath = "sdmc:/3ds/fastbootcfg.txt";
+static const char *NandFilepath = "nand:/3ds/fastbootcfg.txt";
 
 static const char *filepath;
 
@@ -81,24 +81,44 @@ static char *filebuf = NULL;
 
 static bool configLoaded = false;
 
-/* This loads the config file from SD card and parses it */
+/* This loads the config file from SD card or eMMC and parses it */
 bool loadConfigFile()
 {
 	FILINFO fileStat;
 	u32 fileSize;
 	unsigned bytesRead;
+	bool createFile = false;
 	
 	if(configLoaded)
 		unloadConfigFile();
 	
-	filepath = SdmcFilepath;
+	// first, try SD card fatfs
+	if(bootInfo.sd_status == 2)
+	{
+		filepath = SdmcFilepath;
+		
+		// does the config file exist?
+		if(f_stat(filepath, &fileStat) != FR_OK)
+		{
+			createFile = true;
+		}
+	}
+	else
+	{
+		filepath = NandFilepath;
+		
+		if(f_stat(filepath, &fileStat) != FR_OK)
+		{
+			createFile = true;
+		}
+	}
 	
-	// does the config file exist?
-	if(f_stat(filepath, &fileStat) != FR_OK)
+	if(createFile)
 	{
 		// try to create a file
 		if(!createConfigFile())
 			return false;
+		
 		// does it work now?
 		if(f_stat(filepath, &fileStat) != FR_OK)
 			return false;
