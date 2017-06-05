@@ -10,7 +10,6 @@
 #include "fatfs/ff.h"
 #include "fatfs/diskio.h"
 #include "hid.h"
-#include "version.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/menu_firmloader.h"
@@ -65,8 +64,7 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	
-	uiPrintCenteredInLine(1, "fastboot 3DS v%" PRIu16 ".%" PRIu16 COMMIT_HASH,
-			BOOTLOADER_VERSION>>16, BOOTLOADER_VERSION & 0xFFFFu);
+	uiPrintCenteredInLine(1, "fastboot 3DS v%" PRIu16 ".%" PRIu16 COMMIT_HASH, VER_MAJOR, VER_MINOR);
 	
 	uiPrintTextAt(1, 4, "Model: %s", bootInfo.model);
 	uiPrintTextAt(1, 5, "\x1B[33m%s\e[0m", bootInfo.boot_env);

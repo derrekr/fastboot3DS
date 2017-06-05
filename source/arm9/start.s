@@ -1,5 +1,4 @@
 #include "mem_map.h"
-#include "version.h"
 
 .arm
 .cpu arm946e-s
@@ -32,7 +31,7 @@
 
 __start__:
 	.string "FASTBOOT 3DS   "
-	.word   BOOTLOADER_VERSION
+	.word   (VER_MAJOR<<16 | VER_MINOR)
 
 _start:
 	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
