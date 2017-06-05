@@ -188,8 +188,8 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 /* centered in the middle of the screen. */
 /* Waits for the user to press any button, after that the */
 /* original framebuffer gets restored */
-/*void uiShowMessageWindow(const char *const format, int screen, unsigned int x,
-                         unsigned int y, bool centered, ...)
+u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u32 waitKeys,
+                        int screen, unsigned int x, unsigned int y, bool centered, ...)
 {
 	char tmp[256];
 
@@ -199,14 +199,14 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 	va_end(args);
 
 	char *ptr = tmp;
-	unsigned int lines = 3, longestLine = 1, curLen = 1;
+	unsigned int lines = 5, longestLine = 2, curLen = 2;
 	while(*ptr)
 	{
 		switch(*ptr)
 		{
 			case '\n':
 				lines++;
-				curLen = 1;
+				curLen = 2;
 				break;
 			default:
 				curLen++;
@@ -225,30 +225,55 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 		x = (windowCon.windowWidth / 2) - (longestLine / 2);
 		y = (windowCon.windowHeight / 2) - (lines / 2);
 	}
-	consoleSetWindow(&windowCon, x, y, longestLine, lines);
+	consoleSetWindow(&windowCon, x, 30 - y - lines, longestLine, lines);
 
-	u8 *fbBackup = (u8*)malloc(screen ? SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 :
-	                                    SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
+	u8 *fbBackup = (u8*)malloc(screen ? SCREEN_SIZE_TOP : SCREEN_SIZE_SUB);
+	u32 keys = 0;
 	if(fbBackup)
 	{
-		// TODO: Optimize to only backup what will be overwritten. I'm lazy.
-		memcpy(fbBackup, windowCon.frameBuffer, screen ? SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 :
-		                                                 SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
+		u16 *fb = consoleGet()->frameBuffer;
 
-		printf("\x1B[30m\x1B[47m\x1B[2J");
-		printf("%s\x1b[%u;%uHOK", tmp, lines - 1, (longestLine - 2) / 2);
+		// TODO: Optimize to only backup what will be overwritten. I'm lazy.
+		memcpy(fbBackup, fb, screen ? SCREEN_SIZE_TOP : SCREEN_SIZE_SUB);
+
+		printf("\x1B[37m\x1B[40m\x1B[2J\n");
+
+		const char *linePtr = tmp;
+		while(1)
+		{
+			unsigned int length = 0;
+			while(linePtr[length] != '\n' && linePtr[length] != '\0') length++;
+			printf(" %.*s\n", length, linePtr);
+			if(*(linePtr + length) == '\0') break;
+			linePtr += length + 1;
+		}
+		printf("\x1b[%u;%uH%s", lines - 2, (longestLine - strlen(lastLine)) / 2, lastLine);
+
+		const u16 color = consoleGetFgColor();
+		for(u32 xx = x * 8 + 1; xx < x * 8 + (longestLine * 8) - 1; xx++)
+		{
+			fb[xx * SCREEN_HEIGHT_SUB + (y * 8)] = color;
+			fb[xx * SCREEN_HEIGHT_SUB + (y * 8) + (lines * 8) - 1] = color;
+		}
+		for(u32 yy = y * 8; yy < y * 8 + (lines * 8); yy++)
+		{
+			fb[x * 8 * SCREEN_HEIGHT_SUB + yy] = color;
+			fb[(x * 8 + (longestLine * 8) - 1) * SCREEN_HEIGHT_SUB + yy] = color;
+		}
+
 		do
 		{
 			hidScanInput();
-		} while(!hidKeysDown());
+		} while(!(keys = hidKeysDown() & waitKeys));
 
-		memcpy(windowCon.frameBuffer, fbBackup, screen ? SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2 :
-		                                                 SCREEN_HEIGHT_SUB * SCREEN_WIDTH_SUB * 2);
+		memcpy(fb, fbBackup, screen ? SCREEN_SIZE_TOP : SCREEN_SIZE_SUB);
 	}
 	free(fbBackup); // free() checks for NULL
 
 	consoleSelect(prevCon);
-}*/
+
+	return keys;
+}
 
 void uiPrintDevModeRequirement()
 {

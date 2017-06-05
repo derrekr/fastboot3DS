@@ -23,7 +23,8 @@ void uiPrintIfVerbose(const char *const format, ...);
 void uiPrint(const char *const format, unsigned int color, bool centered, ...);
 void uiPrintCenteredInLine(unsigned int y, const char *const format, ...);
 void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...);
-//void uiShowMessageWindow(format, args...);
+u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u32 waitKeys,
+                        int screen, unsigned int x, unsigned int y, bool centered, ...);
 void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
                         unsigned int h, unsigned int cur, unsigned int max);
 void uiPrintDevModeRequirement();
