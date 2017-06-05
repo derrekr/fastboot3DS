@@ -94,10 +94,8 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 
 	uint32_t size = ctx->size;
 	u32 *rDataPtr32 = (u32*)ctx->rData;
-	u16 *rDataPtr16 = (u16*)ctx->rData;
 	u8  *rDataPtr8  = ctx->rData;
 	const u32 *tDataPtr32 = (u32*)ctx->tData;
-	const u16 *tDataPtr16 = (u16*)ctx->tData;
 	const u8  *tDataPtr8  = ctx->tData;
 
 	bool rUseBuf = ( NULL != rDataPtr32 );

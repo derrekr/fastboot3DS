@@ -13,19 +13,8 @@
 #include "arm9/partitions.h"
 #include "arm9/firmwriter.h"
 #include "arm9/nandimage.h"
+#include "arm9/fsutils.h"
 
-static u64 getFreeSpace(const char *drive)
-{
-	FATFS *fs;
-	DWORD freeClusters;
-
-	if(f_getfree(drive, &freeClusters, &fs) != FR_OK)
-	{
-		uiPrintError("Failed to get free space for '%s'!\n", drive);
-		return 0;
-	}
-	return ((u64)(freeClusters * fs->csize)) * 512;
-}
 
 bool menuDumpNand(const char *filePath)
 {
@@ -34,6 +23,7 @@ bool menuDumpNand(const char *filePath)
 	FIL file;
 	FRESULT fres;
 	UINT bytesWritten;
+	u64 bytesFree;
 
 	uiClearConsoles();
 	consoleSelect(&con_top);
@@ -49,7 +39,10 @@ bool menuDumpNand(const char *filePath)
 	
 	uiPrintTextAt(0, 3, "Checking free space on SD card...\n");
 	
-	if(getFreeSpace("sdmc:") < sectorCount<<9)
+	if(!fsGetFreeSpaceOnDrive("sdmc:", &bytesFree))
+		uiPrintError("Failed to get free space!\n");
+	
+	if(bytesFree < sectorCount<<9)
 	{
 		uiPrintError("Not enough space on the SD card!\n");
 		goto fail;
@@ -203,7 +196,7 @@ bool menuRestoreNand(const char *filePath)
 	
 	uiPrintTextAt(0, 4, "Unmounting NAND fs...\n");
 
-	unmount_nand_fs();
+	fsUnmountNandFilesystems();
 
 	uiPrintTextAt(0, 5, "Restoring...\n");
 	uiPrintTextAt(0, 22, "Press B to cancel."); 
@@ -263,7 +256,7 @@ bool menuRestoreNand(const char *filePath)
 
 	f_close(&file);
 	free(buf);
-	remount_nand_fs();
+	fsRemountNandFilesystems();
 	
 	uiPrintTextAt(0, 24, "Finished! Press any key to return.");
 	menuWaitForAnyPadkey();
@@ -274,7 +267,7 @@ bool menuRestoreNand(const char *filePath)
 
 fail:
 	free(buf);
-	remount_nand_fs();
+	fsRemountNandFilesystems();
 	
 	uiPrintTextAt(0, 24, "Press any key to return.");
 	menuWaitForAnyPadkey();
@@ -333,7 +326,7 @@ bool menuFlashFirmware(const char *filepath)
 		goto fail;
 	}
 	
-	for(size_t i=1; i<fwSize / 0x200 + 1; )
+	for(size_t i=0; i<fwSize / 0x200; )
 	{
 		if(!firmwriterIsDone())
 		{

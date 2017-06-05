@@ -9,6 +9,7 @@
 #include "arm9/dev.h"
 #include "fatfs/ff.h"
 #include "fatfs/diskio.h"
+#include "arm9/fsutils.h"
 #include "hid.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"
@@ -36,6 +37,14 @@ const menu_state_options menu_nand = {
 		{"Backup NAND", MENU_STATE_NAND_BACKUP},
 		{"Restore NAND", MENU_STATE_NAND_RESTORE},
 		{"Flash Firmware", MENU_STATE_NAND_FLASH_FIRM}
+	}
+};
+
+const menu_state_options menu_load_firmware = {
+	2,
+	{
+		{"Load from SD card", MENU_STATE_NAND_BACKUP},
+		{"Load firm1", MENU_STATE_NAND_RESTORE},
 	}
 };
 
@@ -393,10 +402,10 @@ void menuActState(void)
 			menu_state = menu_next_state;
 			break;
 		case MENU_EVENT_SD_CARD_INSERTED:
-			unmount_nand_fs();
-			if(!f_mount(&sd_fs, "sdmc:", 1)) bootInfo.sd_status = 2;
+			fsUnmountNandFilesystems();
+			if(fsMountSdmc()) bootInfo.sd_status = 2;
 			else bootInfo.sd_status = 1;
-			bootInfo.nand_status = remount_nand_fs();
+			bootInfo.nand_status = fsRemountNandFilesystems();
 			// also try to load saved settings
 			loadConfigFile();
 			break;

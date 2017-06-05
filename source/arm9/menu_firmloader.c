@@ -15,6 +15,7 @@
 #include "arm9/firm.h"
 #include "arm9/config.h"
 #include "arm9/partitions.h"
+#include "arm9/fsutils.h"
 
 static int firmLoaded = 0;
 
@@ -76,7 +77,7 @@ static bool statFirmware(const char *filePath)
 	FILINFO fileStat;
 	u32 fileSize;
 	
-	ensure_mounted(filePath);
+	fsEnsureMounted(filePath);
 
 	if(strncmp(filePath, "sdmc:", 5) == 0)
 	{

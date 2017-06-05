@@ -9,6 +9,7 @@
 #include "arm9/hardware.h"
 #include "fatfs/ff.h"
 #include "arm9/dev.h"
+#include "arm9/fsutils.h"
 #include "arm9/firm.h"
 #include "arm9/config.h"
 #include "arm9/timer.h"
@@ -93,7 +94,7 @@ int main(void)
 
 	uiPrintIfVerbose("Entering menu...\n");
 
-	TIMER_sleep(500);
+	TIMER_sleep(600);
 
 	consoleClear();
 
@@ -104,7 +105,7 @@ finish_firmlaunch:
 
 	uiPrintIfVerbose("Unmounting FS...\n");
 
-	unmount_fs();
+	fsUnmountAll();
 	
 	uiPrintIfVerbose("Closing devices...\n");
 
@@ -124,26 +125,6 @@ void devs_close()
 	dev_decnand->close();
 	dev_rawnand->close();
 	dev_flash->close();
-}
-
-u32 remount_nand_fs()
-{
-	u32 res = 0;
-
-	res |= (f_mount(&nand_twlnfs, "twln:", 1) ? 0 : 1u);
-	res |= (f_mount(&nand_twlpfs, "twlp:", 1) ? 0 : 1u<<1);
-	res |= (f_mount(&nand_fs, "nand:", 1) ? 0 : 1u<<2);
-
-	return res;
-}
-
-void unmount_nand_fs()
-{
-	f_mount(NULL, "twln:", 1);
-	f_mount(NULL, "twlp:", 1);
-	f_mount(NULL, "nand:", 1);
-	dev_decnand->close();
-	dev_rawnand->close();
 }
 
 static void initWifiFlash(void)
@@ -195,34 +176,6 @@ static u32 mount_fs(void)
 	}
 
 	return res;
-}
-
-bool ensure_mounted(const char *path)
-{
-	if(strncmp(path, "sdmc:", 5) == 0)
-	{
-		//if(f_chdrive("sdmc:") != FR_OK)
-		{
-			return f_mount(&sd_fs, "sdmc:", 1) == FR_OK;
-		}
-	}
-	else if(strncmp(path, "nand:", 5) == 0)
-	{
-		//if(f_chdrive("nand:") != FR_OK)
-		{
-			return f_mount(&nand_fs, "nand:", 1) == FR_OK;
-		}
-	}
-	
-	return false;
-}
-
-void unmount_fs()
-{
-	f_mount(NULL, "sdmc:", 1);
-	f_mount(NULL, "twln:", 1);
-	f_mount(NULL, "twlp:", 1);
-	f_mount(NULL, "nand:", 1);
 }
 
 static void screen_init()
@@ -321,7 +274,7 @@ void power_off_safe()
 
 	uiPrintIfVerbose("Attempting to turn off...\n");
 
-	unmount_fs();
+	fsUnmountAll();
 	devs_close();
 	// tell the arm11 we're done
 	PXI_sendWord(PXI_CMD_POWER_OFF);
@@ -337,7 +290,7 @@ void reboot_safe()
 
 	uiPrintIfVerbose("Attempting to reboot...\n");
 
-	unmount_fs();
+	fsUnmountAll();
 	devs_close();
 	
 	PXI_sendWord(PXI_CMD_REBOOT);

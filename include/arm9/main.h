@@ -18,17 +18,7 @@ typedef struct {
 
 bootInfoStruct bootInfo;
 
-// SD card FAT fs instance
-FATFS sd_fs;
-
-// same for all NAND filesystems
-FATFS nand_twlnfs, nand_twlpfs, nand_fs;
-
 void devs_close();
-u32  remount_nand_fs();
-bool ensure_mounted(const char *path);
-void unmount_fs();
-void unmount_nand_fs();
 u8 rng_get_byte();
 void power_off_safe();
 void reboot_safe();

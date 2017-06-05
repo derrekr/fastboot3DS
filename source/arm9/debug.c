@@ -5,6 +5,7 @@
 #include "pxi.h"
 #include "arm9/console.h"
 #include "fatfs/ff.h"
+#include "arm9/fsutils.h"
 #include "arm9/main.h"
 #include "arm9/interrupt.h"
 
@@ -35,7 +36,7 @@ noreturn void panic()
 
 	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	
-	unmount_fs();
+	fsUnmountAll();
 	devs_close();
 	
 	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
@@ -52,7 +53,7 @@ noreturn void panicMsg(const char *msg)
 	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	printf("\nERROR MESSAGE:\n%s\n", msg);
 	
-	unmount_fs();
+	fsUnmountAll();
 	devs_close();
 	
 	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
@@ -118,7 +119,7 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 	if(codeChanged) printf("Attention: RO section data changed!!");
 
 	// avoid fs corruptions
-	unmount_fs();
+	fsUnmountAll();
 	devs_close();
 
 	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
