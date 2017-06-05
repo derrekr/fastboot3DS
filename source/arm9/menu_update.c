@@ -9,7 +9,6 @@
 #include "fatfs/ff.h"
 #include "hid.h"
 #include "util.h"
-#include "version.h"
 #include "arm9/firmwriter.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"
@@ -65,13 +64,13 @@ bool menuUpdateLoader()
 	/* check version */
 	u32 updateVersion = *(u32 *)((void*)updateBuffer + 0x210);
 	
-	if(updateVersion < BOOTLOADER_VERSION)
+	if(updateVersion < ((u32)VER_MAJOR<<16 | VER_MINOR))
 	{
 		uiPrintError("Update version is below current version!\n");
 		goto fail;
 	}
 	
-	if(updateVersion == BOOTLOADER_VERSION)
+	if(updateVersion == ((u32)VER_MAJOR<<16 | VER_MINOR))
 	{
 		uiPrintWarning("You are on this version already.\n");
 		goto fail;
