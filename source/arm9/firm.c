@@ -144,7 +144,7 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	REG_PXI_CNT9 = 0; // Disable PXI
 
 	// go for it!
-	entry9(argc, argv, 0xBEEFu);
+	entry9(argc, argv, 0x1BEEFu);
 	__builtin_unreachable();
 }
 

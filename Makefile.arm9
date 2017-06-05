@@ -62,8 +62,8 @@ else
 endif
 
 VERSION_STR := $(shell git describe --tags --match v[0-9]*)
-DEFINES     += -DVER_MAJOR=$(shell echo $(VERSION_STR) | sed -e 's/v//i' -e 's/\.[0-9]*//')
-DEFINES     += -DVER_MINOR=$(shell echo $(VERSION_STR) | sed 's/v[0-9]*\.//i')
+DEFINES     += -DVER_MAJOR=$(shell echo $(VERSION_STR) | sed -e 's/v//i' -e 's/\.[0-g-]*//i')
+DEFINES     += -DVER_MINOR=$(shell echo $(VERSION_STR) | sed -e 's/v[0-9]*\.//i' -e 's/-[0-g-]*//i')
 
 
 .PHONY: clean release
