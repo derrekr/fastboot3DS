@@ -56,14 +56,14 @@ ifneq ($(strip $(NO_DEBUG)),)
 endif
 
 ifeq ($(strip $(NO_COMMIT_HASH)),)
-	DEFINES += -DCOMMIT_HASH="\"-$(shell git rev-parse --short=8 HEAD)\""
+	VERSION_STR := $(shell git describe --tags --match v[0-9]* --abbrev=8 | sed 's/-[0-9]*-g/-/i')
 else
-	DEFINES += -DCOMMIT_HASH=\"\"
+	VERSION_STR := $(shell git describe --tags --match v[0-9]* --abbrev=8 | sed 's/-.*//')
 endif
 
-VERSION_STR := $(shell git describe --tags --match v[0-9]*)
-DEFINES     += -DVER_MAJOR=$(shell echo $(VERSION_STR) | sed -e 's/v//i' -e 's/\.[0-g-]*//i')
-DEFINES     += -DVER_MINOR=$(shell echo $(VERSION_STR) | sed -e 's/v[0-9]*\.//i' -e 's/-[0-g-]*//i')
+DEFINES     += -DVER_STRING=\"$(VERSION_STR)\"
+DEFINES     += -DVER_MAJOR=$(shell echo "$(VERSION_STR)" | sed 's/v\([0-9]*\)\..*/\1/i')
+DEFINES     += -DVER_MINOR=$(shell echo "$(VERSION_STR)" | sed 's/.*\.\([0-9]*\).*/\1/')
 
 
 .PHONY: clean release
