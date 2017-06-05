@@ -15,3 +15,4 @@ u32 fsMountNandFilesystems();
 void fsUnmountNandFilesystems();
 u32 fsRemountNandFilesystems();
 bool fsMountSdmc();
+bool fsCreateFileWithPath(const char *filepath);

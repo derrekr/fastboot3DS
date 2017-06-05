@@ -8,6 +8,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "fatfs/ff.h"
+#include "arm9/fsutils.h"
 #include "arm9/console.h"
 #include "arm9/main.h"
 #include "arm9/interrupt.h"
@@ -20,7 +21,7 @@
 #define MAX_FILE_SIZE	0x4000 - 1
 
 static const char *SdmcFilepath = "sdmc:/3ds/fastbootcfg.txt";
-static const char *NandFilepath = "nand:/3ds/fastbootcfg.txt";
+static const char *NandFilepath = "nand:/fastbootcfg.txt";
 
 static const char *filepath;
 
@@ -211,7 +212,12 @@ bool writeConfigFile()
 	if(fileSize > MAX_FILE_SIZE)
 		panicMsg("fileSize too large!");
 	
-	if(f_open(&file, filepath, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
+	if(!fsCreateFileWithPath(filepath))
+	{
+		goto fail;
+	}
+	
+	if(f_open(&file, filepath, FA_WRITE) != FR_OK)
 	{
 		goto fail;
 	}

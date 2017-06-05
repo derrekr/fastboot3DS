@@ -84,4 +84,87 @@ bool fsMountSdmc()
 	return f_mount(&sd_fs, "sdmc:", 1) == FR_OK;
 }
 
+bool fsCreateFileWithPath(const char *filepath)
+{
+	const char *p = filepath;
+	const char *subdir;
+	const size_t maxBufSize = 0x1000;
+	char *tempBuf = (char *) malloc(maxBufSize);
+	char *oldPath = (char *) malloc(maxBufSize);
+	FRESULT res;
+	FIL tempFile;
+	size_t copyLen;
+	
+	if(!tempBuf || !oldPath)
+		return false;
+	
+	memset(oldPath, 0, maxBufSize);
+	
+	if(f_getcwd(oldPath, maxBufSize - 1) != FR_OK)
+		goto fail_early;
+	
+	while(*p && *p != '/' && *p != '\\')
+		p++;
+		
+	if(!*p)
+		goto fail;
+	
+	p++;
+	
+	/* create directories */
+	for(;;)
+	{
+		subdir = p;
+		
+		while(*p && *p != '/' && *p != '\\')
+			p++;
+		
+		if(!*p) // not a directory or error
+			break;
+		
+		copyLen = min((size_t)p - (size_t)subdir, maxBufSize - 1);
+		memcpy(tempBuf, subdir, copyLen);
+		tempBuf[copyLen] = '\0';
+		
+		res = f_mkdir(tempBuf);
+		if(res != FR_OK && res != FR_EXIST)
+			goto fail;
+		
+		if(f_chdir(tempBuf) != FR_OK)
+			goto fail;
+		
+		p++;
+	}
+	
+	if(p == subdir + 1)
+		goto fail;
+	
+	/* touch file */
+	res = f_open(&tempFile, filepath, FA_CREATE_NEW);
+	if(res != FR_OK && res != FR_EXIST)
+		goto fail;
+	
+	f_close(&tempFile);
+	
+	
+	if(f_chdir(oldPath) != FR_OK)
+		goto fail;
+	
+	free(tempBuf);
+	free(oldPath);
+	
+	return true;
+	
+fail:
+	
+	// This should never fail
+	f_chdir(oldPath);
+	
+fail_early:
+
+	free(tempBuf);
+	free(oldPath);
+	
+	return false;
+}
 
