@@ -162,8 +162,8 @@ int enter_menu(int initial_state)
 				}
 				else if(keys & KEY_B)	// go back
 				{
-					menuSetReturnToState(STATE_PREVIOUS);
-					cursor_pos = 0;
+					if(menuSetReturnToState(STATE_PREVIOUS))
+						cursor_pos = 0;
 				}
 				break;
 				
@@ -273,14 +273,14 @@ static void menuRunOnce(int state)
 	}
 }
 
-void menuSetReturnToState(int state)
+bool menuSetReturnToState(int state)
 {
 	int i;
 
 	if(state == STATE_PREVIOUS)
 	{
-		if(menu_previous_states_count == 0)
-			return;
+		if(menu_previous_states_count <= 1)
+			return false;
 		state = menu_previous_states[menu_previous_states_count - 1];
 		menu_previous_states_count--;
 	}
@@ -302,6 +302,8 @@ void menuSetReturnToState(int state)
 	menu_next_state = state;
 	// emit event
 	menu_event_state = MENU_EVENT_STATE_CHANGE;
+	
+	return true;
 }
 
 void menuSetEnterNextState(int state)

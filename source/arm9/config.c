@@ -801,3 +801,16 @@ void configRestoreDefaults()
 			configSetKeyData(key, "");
 	}
 }
+
+bool configDevModeEnabled()
+{
+	const bool *enabled;
+	
+	enabled = configGetData(KDevMode);
+	
+	if(!enabled || *enabled == false)
+		return false;
+	
+	return true;
+}
+

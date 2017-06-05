@@ -1,6 +1,6 @@
 .SUFFIXES:
 
-TARGET        := fastboot3ds.firm
+TARGET        := firm.bin
 ENTRY9        := 0x08000054
 ENTRY11       := 0x1FF85040
 SECTION0_ADR  := 0x08000040

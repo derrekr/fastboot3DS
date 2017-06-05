@@ -11,6 +11,7 @@ enum Keys {
 	KBootOption2Buttons,
 	KBootOption3Buttons,
 	KBootMode,
+	KDevMode,
 	// ...
 	KLast
 };
@@ -30,3 +31,5 @@ const void *configGetData(int key);
 bool configDataExist(int key);
 const char *configGetKeyText(int key);
 bool configSetKeyData(int key, const void *data);
+void configRestoreDefaults();
+bool configDevModeEnabled();

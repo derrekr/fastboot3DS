@@ -26,6 +26,7 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 //void uiShowMessageWindow(format, args...);
 void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
                         unsigned int h, unsigned int cur, unsigned int max);
+void uiPrintDevModeRequirement();
 void uiPrintBootWarning();
 void uiPrintBootFailure();
 bool uiCheckHomePressed(u32 msTimeout);

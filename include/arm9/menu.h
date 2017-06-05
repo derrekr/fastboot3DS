@@ -60,7 +60,7 @@ int enter_menu(int initial_state);
 
 // Use this to change to another sub-menu.
 // Call menuUpdateGlobalState and menuActState afterwards.
-void menuSetReturnToState(int state);
+bool menuSetReturnToState(int state);
 // Use this to change back to a previous sub-menu.
 // Call menuUpdateGlobalState and menuActState afterwards.
 void menuSetEnterNextState(int state);

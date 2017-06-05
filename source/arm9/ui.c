@@ -250,6 +250,19 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 	consoleSelect(prevCon);
 }*/
 
+void uiPrintDevModeRequirement()
+{
+	// This should use uiShowMessageWindow some day...
+	uiPrintError("This feature is blocked!");
+	uiPrintError("You must enable Developer Mode to use it.");
+	
+	do {
+		hidScanInput();
+		u32 keys = hidKeysDown() & HID_KEY_MASK_ALL;
+		if(keys == KEY_A)
+			break;
+	} while(1);
+}
 
 void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
                         unsigned int h, unsigned int cur, unsigned int max)
