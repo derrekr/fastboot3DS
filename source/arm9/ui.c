@@ -247,7 +247,9 @@ u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u3
 			if(*(linePtr + length) == '\0') break;
 			linePtr += length + 1;
 		}
-		printf("\x1b[%u;%uH%s", lines - 2, (longestLine - strlen(lastLine)) / 2, lastLine);
+		
+		if(lastLine)
+			printf("\x1b[%u;%uH%s", lines - 2, (longestLine - strlen(lastLine)) / 2, lastLine);
 
 		const u16 color = consoleGetFgColor();
 		for(u32 xx = x * 8 + 1; xx < x * 8 + (longestLine * 8) - 1; xx++)
@@ -261,10 +263,13 @@ u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u3
 			fb[(x * 8 + (longestLine * 8) - 1) * SCREEN_HEIGHT_SUB + yy] = color;
 		}
 
-		do
+		if(waitKeys)
 		{
-			hidScanInput();
-		} while(!(keys = hidKeysDown() & waitKeys));
+			do
+			{
+				hidScanInput();
+			} while(!(keys = hidKeysDown() & waitKeys));
+		}
 
 		memcpy(fb, fbBackup, screen ? SCREEN_SIZE_TOP : SCREEN_SIZE_SUB);
 	}

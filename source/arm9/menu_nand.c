@@ -124,8 +124,7 @@ bool menuDumpNand(const char *filePath)
 	f_close(&file);
 	free(buf);
 	
-	uiPrintTextAt(0, 24, "Finished! Press any key to return.");
-	menuWaitForAnyPadkey();
+	uiShowMessageWindow("Finished!\nPress any key to return.", NULL, HID_KEY_MASK_ALL, 1, 0, 0, true);	
 	
 	menuSetReturnToState(STATE_PREVIOUS);
 	
