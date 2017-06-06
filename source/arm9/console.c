@@ -489,7 +489,7 @@ static const devoptab_t dotab_stdout = {
 };
 
 //---------------------------------------------------------------------------------
-PrintConsole* consoleInit(int screen, PrintConsole* console) {
+PrintConsole* consoleInit(int screen, PrintConsole* console, bool clear) {
 //---------------------------------------------------------------------------------
 
 	static bool firstConsoleInit = true;
@@ -522,7 +522,7 @@ PrintConsole* consoleInit(int screen, PrintConsole* console) {
 	else console->frameBuffer = (u16*)FRAMEBUF_SUB_A_1;
 
 
-	consoleCls('2');
+	if(clear) consoleCls('2');
 
 	return currentConsole;
 

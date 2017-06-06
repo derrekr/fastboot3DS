@@ -29,13 +29,13 @@ static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data);
 static void consoleMainInit()
 {
 	/* Initialize console for both screens using the two different PrintConsole we have defined */
-	consoleInit(SCREEN_TOP, &con_top);
+	consoleInit(SCREEN_TOP, &con_top, true);
 	consoleSetWindow(&con_top, 1, 1, con_top.windowWidth - 2, con_top.windowHeight - 2);
 	
 	// randomize color
 	randomColor = (rng_get_byte() % 6) + 1;
 	
-	consoleInit(SCREEN_LOW, &con_bottom);
+	consoleInit(SCREEN_LOW, &con_bottom, true);
 	
 	consoleSelect(&con_top);
 }
@@ -218,7 +218,7 @@ u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u3
 
 	PrintConsole *prevCon = consoleGet();
 	PrintConsole windowCon;
-	consoleInit(screen, &windowCon);
+	consoleInit(screen, &windowCon, false);
 
 	if(centered)
 	{

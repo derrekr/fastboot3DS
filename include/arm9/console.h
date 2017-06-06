@@ -172,7 +172,7 @@ u16 consoleGetFgColor(void);
  * @param console A pointer to the console data to initialize (if it's NULL, the default console will be used).
  * @return A pointer to the current console.
  */
-PrintConsole* consoleInit(int screen, PrintConsole* console);
+PrintConsole* consoleInit(int screen, PrintConsole* console, bool clear);
 
 /// Clears the screan by using iprintf("\x1b[2J");
 void consoleClear(void);

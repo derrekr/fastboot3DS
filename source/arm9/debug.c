@@ -32,7 +32,7 @@ noreturn void panic()
 {
 	register u32 lr __asm__("lr");
 
-	consoleInit(0, NULL);
+	consoleInit(0, NULL, true);
 
 	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	
@@ -48,7 +48,7 @@ noreturn void panicMsg(const char *msg)
 {
 	register u32 lr __asm__("lr");
 
-	consoleInit(0, NULL);
+	consoleInit(0, NULL, true);
 
 	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	printf("\nERROR MESSAGE:\n%s\n", msg);
@@ -77,7 +77,7 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 	if(prevHash != debugHash)
 		codeChanged = true;
 
-	consoleInit(0, NULL);
+	consoleInit(0, NULL, true);
 
 	if(excStack[0] & 0x20) instSize = 2; // Processor was in Thumb mode?
 	if(type == 2) realPc = excStack[1] - (instSize * 2); // Data abort
