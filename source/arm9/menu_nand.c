@@ -53,7 +53,6 @@ bool menuDumpNand(const char *filePath)
 	if((fres = f_open(&file, filePath, FA_CREATE_ALWAYS | FA_WRITE)) != FR_OK)
 	{
 		uiPrintError("Failed to create '%s'! Error: %X\n", filePath, fres);
-		f_close(&file);
 		goto fail;
 	}
 	
@@ -61,10 +60,15 @@ bool menuDumpNand(const char *filePath)
 	if((fres = f_expand(&file, sectorCount<<9, 0)) != FR_OK)
 	{
 		uiPrintError("Failed to expand file! Error: %X\n", fres);
+		f_sync(&file);
 		f_close(&file);
 		goto fail;
 	}
-	
+
+	uiPrintTextAt(0, 4, "Unmounting NAND fs...\n");
+
+	fsUnmountNandFilesystems();
+
 	uiPrintTextAt(0, 5, "Dumping NAND...\n");
 	uiPrintTextAt(0, 22, "Press B to cancel.");
 
@@ -80,12 +84,14 @@ bool menuDumpNand(const char *filePath)
 		if(!dev_rawnand->read_sector(curSector, curSectorBlkSize, buf))
 		{
 			uiPrintError("\nFailed to read sector 0x%"PRIx32"!\n", curSector);
+			f_sync(&file);
 			f_close(&file);
 			goto fail;
 		}
 		if((f_write(&file, buf, curSectorBlkSize<<9, &bytesWritten) != FR_OK) || (bytesWritten != curSectorBlkSize<<9))
 		{
 			uiPrintError("\nFailed to write to file!\n");
+			f_sync(&file);
 			f_close(&file);
 			goto fail;
 		}
@@ -93,7 +99,8 @@ bool menuDumpNand(const char *filePath)
 		hidScanInput();
 		if(hidKeysDown() & KEY_B)
 		{
-			uiPrintTextAt(0, 22, "... canceled.     "); 
+			uiPrintTextAt(0, 22, "... canceled.     ");
+			f_sync(&file);
 			f_close(&file);
 			goto fail;
 		}
@@ -110,6 +117,7 @@ bool menuDumpNand(const char *filePath)
 		{
 			case MENU_EVENT_HOME_PRESSED:
 			case MENU_EVENT_POWER_PRESSED:
+				f_sync(&file);
 				f_close(&file);
 			case MENU_EVENT_SD_CARD_REMOVED:
 				menuActState();
@@ -121,8 +129,10 @@ bool menuDumpNand(const char *filePath)
 		menuActState();
 	}
 
+	f_sync(&file);
 	f_close(&file);
 	free(buf);
+	fsRemountNandFilesystems();
 	
 	uiDialog("Finished!\nPress any key to return.", NULL, HID_KEY_MASK_ALL, 1, 0, 0, true);	
 	
@@ -132,6 +142,7 @@ bool menuDumpNand(const char *filePath)
 
 fail:
 	free(buf);
+	fsRemountNandFilesystems();
 	
 	uiPrintTextAt(0, 24, "Press any key to return.");
 	menuWaitForAnyPadkey();

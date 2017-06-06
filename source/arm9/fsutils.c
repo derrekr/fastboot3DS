@@ -65,7 +65,6 @@ void fsUnmountNandFilesystems()
 	f_mount(NULL, "twlp:", 1);
 	f_mount(NULL, "nand:", 1);
 	dev_decnand->close();
-	dev_rawnand->close();
 }
 
 u32 fsRemountNandFilesystems()
