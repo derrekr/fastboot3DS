@@ -37,8 +37,8 @@ static const firmProtectedArea firmProtectedAreas[] = {
 	{	// arm9 stack
 		A9_STACK_START, A9_STACK_END - A9_STACK_START
 	},
-	{	// arm9 relocated firm launch stub
-		A9_STUB_ENTRY, A9_STUB_SIZE
+	{	// Console unique data + ARM9 FIRM launch stub + argv data
+		ITCM_BASE + 0x3800, ITCM_SIZE - 0x3800
 	},
 	{	// arm11 exception vector table
 		A11_VECTORS_START, A11_VECTORS_SIZE
@@ -261,7 +261,7 @@ noreturn void firm_launch(int argc, const char **argv)
 	deinitCpu();
 
 	//printf("Relocating FIRM launch stub...\n");
-	NDMA_copy((u32*)A9_STUB_ENTRY, (u32*)firmLaunchStub, A9_STUB_SIZE);
+	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
 
 	//printf("Starting firm launch...\n");
 	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);
