@@ -3,6 +3,7 @@
 #include <sys/iosupport.h>
 #include "types.h"
 #include "gfx.h"
+#include "util.h"
 #include "arm9/console.h"
 
 #include "default_font_bin.h"
@@ -771,4 +772,10 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex) {
 void consoleSetCursor(PrintConsole* console, int x, int y) {
 	console->cursorX = x;
 	console->cursorY = y;
+}
+
+u16 consoleGetRGB565Color(u8 colorIndex) {
+	if(colorIndex >= arrayEntries(colorTable))
+		return 0;
+	return colorTable[colorIndex];
 }

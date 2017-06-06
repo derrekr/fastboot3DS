@@ -181,6 +181,8 @@ void consoleSetCursor(PrintConsole* console, int x, int y);
 
 void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex);
 
+u16 consoleGetRGB565Color(u8 colorIndex);
+
 #ifdef __cplusplus
 }
 #endif

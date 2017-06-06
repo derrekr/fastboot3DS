@@ -25,15 +25,15 @@ bool menuDumpNand(const char *filePath)
 	UINT bytesWritten;
 	u64 bytesFree;
 
-	uiClearConsoles();
-	consoleSelect(&con_top);
-
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
 	{	// this should never happen.
 		uiPrintIfVerbose("Out of memory!");
 		return false;
 	}
+
+	uiClearConsoles();
+	consoleSelect(&con_top);
 
 	uiPrintCenteredInLine(1, "NAND Backup");
 	
@@ -124,7 +124,7 @@ bool menuDumpNand(const char *filePath)
 	f_close(&file);
 	free(buf);
 	
-	uiShowMessageWindow("Finished!\nPress any key to return.", NULL, HID_KEY_MASK_ALL, 1, 0, 0, true);	
+	uiDialog("Finished!\nPress any key to return.", NULL, HID_KEY_MASK_ALL, 1, 0, 0, true);	
 	
 	menuSetReturnToState(STATE_PREVIOUS);
 	
@@ -146,19 +146,18 @@ bool menuRestoreNand(const char *filePath)
 	const u32 sectorBlkSize = 0x400; // 512 KB in sectors
 	FIL file;
 	UINT bytesRead;
-
-	uiClearConsoles();
-	consoleSelect(&con_top);
 	
-	uiPrintCenteredInLine(1, "NAND Restore");
-
 	u8 *buf = (u8*)malloc(sectorBlkSize<<9);
 	if(!buf)
 	{	// this should never happen.
 		uiPrintIfVerbose("Out of memory!");
 		return false;
 	}
-		
+
+	uiClearConsoles();
+	consoleSelect(&con_top);
+	
+	uiPrintCenteredInLine(1, "NAND Restore");
 	
 	uiPrintTextAt(0, 3, "Checking backup file...\n");
 
@@ -312,7 +311,7 @@ bool menuFlashFirmware(const char *filepath)
 	
 	partitionGetSectorOffset(index, &sector);
 	
-	if(!uiDialogYesNo("Proceed", "Cancel", "Flash firmware to %s?", partName))
+	if(!uiDialogYesNo(1, "Proceed", "Cancel", "Flash firmware to %s?", partName))
 	{
 		goto fail;
 	}

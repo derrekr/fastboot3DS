@@ -107,7 +107,7 @@ static bool checkForHIDAbort()
 bool tryLoadFirmwareFromSettings(bool fromMenu)
 {
 	const char *path;
-	int keyBootOption, keyBootMode, keyPad;
+	int keyBootOption, bootMode, keyPad;
 	int i;
 	u32 padValue, expectedPadValue;
 
@@ -136,7 +136,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 	}
 	
 	const u32 *temp = configGetData(KBootMode);
-	keyBootMode = temp? *temp : BootModeNormal;
+	bootMode = temp? *temp : BootModeNormal;
 
 	keyBootOption = KBootOption1;
 	keyPad = KBootOption1Buttons;
@@ -199,7 +199,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 					break;
 				else
 				{
-					if(keyBootMode == BootModeNormal)
+					if(bootMode != BootModeQuiet)
 						uiPrintBootWarning();
 				}
 			}
@@ -219,7 +219,7 @@ try_next:
 	{
 		if(fromMenu)
 			menuSetReturnToState(STATE_PREVIOUS);
-		else if(keyBootMode == BootModeNormal)
+		else if(bootMode != BootModeQuiet)
 			uiPrintBootFailure();
 		return false;
 	}

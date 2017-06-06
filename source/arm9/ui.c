@@ -93,9 +93,10 @@ bool uiGetVerboseMode()
 }
 
 /* TODO: Should look similar to uiShowMessageWindow */
-bool uiDialogYesNo(const char *textYes, const char *textNo, const char *const format, ...)
+bool uiDialogYesNo(int screen, const char *textYes, const char *textNo, const char *const format, ...)
 {
 	char tmp[256];
+	char lastline[256];
 	u32 keys;
 
 	va_list args;
@@ -103,19 +104,17 @@ bool uiDialogYesNo(const char *textYes, const char *textNo, const char *const fo
 	vsnprintf(tmp, 256, format, args);
 	va_end(args);
 	
-	/* Print dialog */
-	uiPrintInfo("\n%s\n", tmp);
-	uiPrintInfo("\t(A): %s\n\t(B): %s\n", textYes, textNo);
+	snprintf(lastline, 256, "(A): %s  (B): %s", textYes, textNo);
 	
-	/* Get user input */
-	do {
-		hidScanInput();
-		keys = hidKeysDown() & HID_KEY_MASK_ALL;
-		if(keys == KEY_A)
-			return true;
-		if(keys & KEY_B)
-			return false;
-	} while(1);
+	/* Print dialog */
+	keys = uiDialog(tmp, lastline, KEY_A | KEY_B, screen, 0, 0, true);
+	
+	/* Evaluate user input */
+	if(keys == KEY_A)
+		return true;
+	
+	// KEY_B
+	return false;
 }
 
 void uiPrintIfVerbose(const char *const format, ...)
@@ -188,8 +187,8 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 /* centered in the middle of the screen. */
 /* Waits for the user to press any button, after that the */
 /* original framebuffer gets restored */
-u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u32 waitKeys,
-                        int screen, unsigned int x, unsigned int y, bool centered, ...)
+u32 uiDialog(const char *const format, const char *const lastLine, u32 waitKeys,
+                    int screen, unsigned int x, unsigned int y, bool centered, ...)
 {
 	char tmp[256];
 
@@ -199,7 +198,7 @@ u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u3
 	va_end(args);
 
 	char *ptr = tmp;
-	unsigned int lines = 5, longestLine = 2, curLen = 2;
+	unsigned int lines = lastLine ? 5 : 3, longestLine = 2, curLen = 2;
 	while(*ptr)
 	{
 		switch(*ptr)
@@ -251,7 +250,7 @@ u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u3
 		if(lastLine)
 			printf("\x1b[%u;%uH%s", lines - 2, (longestLine - strlen(lastLine)) / 2, lastLine);
 
-		const u16 color = consoleGetFgColor();
+		const u16 color = consoleGetRGB565Color(randomColor);
 		for(u32 xx = x * 8 + 1; xx < x * 8 + (longestLine * 8) - 1; xx++)
 		{
 			fb[xx * SCREEN_HEIGHT_SUB + (y * 8)] = color;

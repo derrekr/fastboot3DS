@@ -18,12 +18,12 @@ void uiClearConsoles();
 void clearConsole(int which);
 void uiSetVerboseMode(bool verb);
 bool uiGetVerboseMode();
-bool uiDialogYesNo(const char *textYes, const char *textNo, const char *const format, ...);
+bool uiDialogYesNo(int screen, const char *textYes, const char *textNo, const char *const format, ...);
 void uiPrintIfVerbose(const char *const format, ...);
 void uiPrint(const char *const format, unsigned int color, bool centered, ...);
 void uiPrintCenteredInLine(unsigned int y, const char *const format, ...);
 void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...);
-u32 uiShowMessageWindow(const char *const format, const char *const lastLine, u32 waitKeys,
+u32 uiDialog(const char *const format, const char *const lastLine, u32 waitKeys,
                         int screen, unsigned int x, unsigned int y, bool centered, ...);
 void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
                         unsigned int h, unsigned int cur, unsigned int max);
