@@ -40,11 +40,11 @@ const menu_state_options menu_nand = {
 	}
 };
 
-const menu_state_options menu_load_firmware = {
+const menu_state_options menu_loadfw = {
 	2,
 	{
-		{"Load from SD card", MENU_STATE_NAND_BACKUP},
-		{"Load firm1", MENU_STATE_NAND_RESTORE},
+		{"Load from SD card", MENU_STATE_BROWSER},
+		{"Load firm1", 0},
 	}
 };
 
@@ -52,6 +52,7 @@ const menu_state_options menu_load_firmware = {
 const menu_state_options *options_lookup[] = {
 	&menu_main, // STATE_MAIN
 	&menu_nand, // STATE_NAND_MENU
+	&menu_loadfw, // MENU_STATE_LOAD_FIRM
 };
 
 enum menu_state_type menu_state;
@@ -70,13 +71,14 @@ static void menu_main_draw_top()
 	const char *const sd_res[3]      = {"\x1B[33mNot inserted  ", "\x1B[31mFS init failed", "\x1B[32mOK            "};
 	const char *const nand_res[2]    = {"\x1B[31mInit failed: ", "\x1B[32mOK                         "};
 	const char *const nand_drives[3] = {"twln ", "twlp ", "nand"};
+	const char *const boot_res[4]    = {"Not attempted", "Not found", "Failed", "Skipped"};
 	
 	consoleSelect(&con_top);
 	
 	uiPrintCenteredInLine(1, "fastboot 3DS " VER_STRING);
 	
 	uiPrintTextAt(1, 4, "Model: %s", bootInfo.model);
-	uiPrintTextAt(1, 5, "\x1B[33m%s\e[0m", bootInfo.boot_env);
+	uiPrintTextAt(1, 5, "\x1B[33m%s\e[0m", bootInfo.bootEnv);
 	uiPrintTextAt(1, 6, "\x1B[32m(%s Mode)\x1B[0m", bootInfo.mode);
 	uiPrintTextAt(1, 8, "SD card status: %s\x1B[0m", sd_res[bootInfo.sd_status]);
 	uiPrintTextAt(1, 9, "NAND status: %s\x1B[0m", nand_res[bootInfo.nand_status == 7]);
@@ -88,6 +90,14 @@ static void menu_main_draw_top()
 		}
 	}
 	uiPrintTextAt(1, 10, "Wifi flash status: %s\e[0m", nand_res[bootInfo.wififlash_status]);
+	
+	if(bootInfo.numBootOptionsAttempted != 0)
+	{
+		uiPrintTextAt(1, 15, "Firm launch statistics:");
+		uiPrintTextAt(1, 16, "[Slot1]: %s", boot_res[bootInfo.bootOptionResults[0]]);
+		uiPrintTextAt(1, 17, "[Slot2]: %s", boot_res[bootInfo.bootOptionResults[1]]);
+		uiPrintTextAt(1, 18, "[Slot3]: %s", boot_res[bootInfo.bootOptionResults[2]]);
+	}
 }
 
 void menuSetVBlank(bool enable)

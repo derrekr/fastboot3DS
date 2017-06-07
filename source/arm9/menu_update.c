@@ -76,7 +76,7 @@ bool menuUpdateLoader()
 		goto fail;
 	}
 	
-	if(!uiDialogYesNo("Update", "Cancel", "Update to v%" PRIu16 ".%" PRIu16,
+	if(!uiDialogYesNo(1, "Update", "Cancel", "Update to v%" PRIu16 ".%" PRIu16,
 			updateVersion>>16, updateVersion & 0xFFFFu))
 	{
 		goto fail;

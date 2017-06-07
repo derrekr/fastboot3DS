@@ -280,7 +280,7 @@ bool sdmmc_dnand_init(void)
 					}
 					else if(i == 4)	// CTR NAND partition
 					{
-						if(bootInfo.unit_is_new3ds)
+						if(bootInfo.unitIsNew3DS)
 							partitionSetKeyslot(index, 0x05);
 						else
 							partitionSetKeyslot(index, 0x04);

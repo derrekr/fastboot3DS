@@ -139,7 +139,7 @@ bool fsCreateFileWithPath(const char *filepath)
 		goto fail;
 	
 	/* touch file */
-	res = f_open(&tempFile, filepath, FA_CREATE_NEW);
+	res = f_open(&tempFile, filepath, FA_CREATE_ALWAYS);
 	if(res != FR_OK && res != FR_EXIST)
 		goto fail;
 	

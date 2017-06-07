@@ -136,6 +136,8 @@ void dumpMem(u8 *mem, u32 size, char *filepath)
 		return;
 		
 	f_write(&file, mem, size, &bytesWritten);
+	
+	f_sync(&file);
 
 	f_close(&file);
 }

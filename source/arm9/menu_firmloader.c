@@ -75,7 +75,7 @@ fail:
 static bool statFirmware(const char *filePath)
 {
 	FILINFO fileStat;
-	u32 fileSize;
+	// u32 fileSize;
 	
 	fsEnsureMounted(filePath);
 
@@ -84,10 +84,12 @@ static bool statFirmware(const char *filePath)
 		if(f_stat(filePath, &fileStat) != FR_OK)
 			return false;
 		
+		/*
 		fileSize = fileStat.fsize;
 		
 		if(fileSize == 0 || fileSize > FIRM_MAX_SIZE)
 			return false;
+		*/
 		
 		return true;
 	}
@@ -117,6 +119,11 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 	consoleSelect(&con_top);
 	
 	firmLoaded = 0;
+	
+	bootInfo.numBootOptionsAttempted = 0;
+	bootInfo.bootOptionResults[0]  = BO_NOT_ATTEMPTED;
+	bootInfo.bootOptionResults[1]  = BO_NOT_ATTEMPTED;
+	bootInfo.bootOptionResults[2]  = BO_NOT_ATTEMPTED;
 
 	if(fromMenu)
 		uiPrintCenteredInLine(1, "Loading FIRM from settings\n");
@@ -146,6 +153,8 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 		if(checkForHIDAbort())
 			return false;
 		
+		bootInfo.numBootOptionsAttempted ++;
+		
 		path = (const char *)configGetData(keyBootOption);
 		if(path)
 		{
@@ -157,6 +166,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 			{
 				if(fromMenu)
 					uiPrintInfo("Couldn't find firmware...\n");
+				bootInfo.bootOptionResults[i] = BO_NOT_FOUND;
 				goto try_next;
 			}
 			
@@ -178,6 +188,7 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 							uiPrintInfo("Skipping, right buttons are not pressed.\n");
 							uiPrintInfo("%" PRIX32 " %" PRIX32 "\n", padValue, expectedPadValue);
 						}
+						bootInfo.bootOptionResults[i] = BO_SKIPPED;
 						goto try_next;
 					}
 				}
@@ -203,6 +214,8 @@ bool tryLoadFirmwareFromSettings(bool fromMenu)
 						uiPrintBootWarning();
 				}
 			}
+			
+			bootInfo.bootOptionResults[i] = BO_FAILED;
 		}
 		else
 			continue;

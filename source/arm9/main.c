@@ -191,9 +191,9 @@ static void screen_init()
 
 static void unit_detect()
 {
-	bootInfo.unit_is_new3ds = REG_PDN_MPCORE_CFG & 2;
+	bootInfo.unitIsNew3DS = REG_PDN_MPCORE_CFG & 2;
 
-	sprintf(bootInfo.model, "%s 3DS", bootInfo.unit_is_new3ds ? "New" : "Original");
+	sprintf(bootInfo.model, "%s 3DS", bootInfo.unitIsNew3DS ? "New" : "Original");
 		
 	uiPrintIfVerbose("%s detected!\n", bootInfo.model);
 }
@@ -211,7 +211,7 @@ static void boot_env_detect()
 	
 	sprintf(bootInfo.mode, "%s", CFG_UNITINFO != 0 ? "Dev" : "Retail");
 	
-	strcpy(bootInfo.boot_env, boot_environment[boot_env]);
+	strcpy(bootInfo.bootEnv, boot_environment[boot_env]);
 }
 
 static void fw_detect()
