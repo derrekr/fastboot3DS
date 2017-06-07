@@ -33,8 +33,21 @@ bool isNandImageCompatible(FIL *file)
 	NCSD_header nandHeader;
 	size_t bytesRead;
 	
+	FSIZE_t offset = f_tell(file);
+	
+	if(f_lseek(file, 0) != FR_OK)
+	{
+		return false;
+	}
+	
 	if(f_read(file, &imageHeader, sizeof(NCSD_header), &bytesRead) != FR_OK
 		|| bytesRead != sizeof(NCSD_header))
+	{
+		return false;
+	}
+	
+	// restore original rw pointer
+	if(f_lseek(file, offset) != FR_OK)
 	{
 		return false;
 	}
