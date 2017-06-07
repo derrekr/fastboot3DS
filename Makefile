@@ -31,3 +31,4 @@ release:
 	@firm_builder $(TARGET) $(ENTRY9) $(ENTRY11) $(SECTION0_ADR) $(SECTION0_TYPE) \
 		$(SECTION0_FILE) $(SECTION1_ADR) $(SECTION1_TYPE) $(SECTION1_FILE)
 	@echo built ... $(TARGET)
+	@7z a -mx -m0=ARM -m1=lzma2 fastboot3ds.7z $(TARGET)
