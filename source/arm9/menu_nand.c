@@ -202,6 +202,12 @@ bool menuRestoreNand(const char *filePath)
 		f_close(&file);
 		goto fail;
 	}
+	if(f_lseek(&file, 0) != FR_OK)
+	{
+		uiPrintError("Failed to seek in file!\n");
+		f_close(&file);
+		goto fail;
+	}
 	
 	uiPrintTextAt(0, 4, "Unmounting NAND fs...\n");
 
