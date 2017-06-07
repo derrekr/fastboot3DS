@@ -214,6 +214,9 @@ u32 uiDialog(const char *const format, const char *const lastLine, u32 waitKeys,
 
 		ptr++;
 	}
+	
+	unsigned int lastLineLen = strlen(lastLine) + 2;
+	if(lastLineLen > longestLine) longestLine = lastLineLen;
 
 	PrintConsole *prevCon = consoleGet();
 	PrintConsole windowCon;
