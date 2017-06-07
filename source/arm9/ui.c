@@ -259,10 +259,20 @@ u32 uiDialog(const char *const format, const char *const lastLine, u32 waitKeys,
 			fb[xx * SCREEN_HEIGHT_SUB + (y * 8)] = color;
 			fb[xx * SCREEN_HEIGHT_SUB + (y * 8) + (lines * 8) - 1] = color;
 		}
+		for(u32 xx = x * 8 + 3; xx < x * 8 + (longestLine * 8) - 3; xx++)
+		{
+			fb[xx * SCREEN_HEIGHT_SUB + (y * 8) + 2] = color;
+			fb[xx * SCREEN_HEIGHT_SUB + (y * 8) + (lines * 8) - 3] = color;
+		}
 		for(u32 yy = y * 8; yy < y * 8 + (lines * 8); yy++)
 		{
 			fb[x * 8 * SCREEN_HEIGHT_SUB + yy] = color;
 			fb[(x * 8 + (longestLine * 8) - 1) * SCREEN_HEIGHT_SUB + yy] = color;
+		}
+		for(u32 yy = y * 8 + 2; yy < y * 8 + (lines * 8) - 2; yy++)
+		{
+			fb[(x * 8 + 2) * SCREEN_HEIGHT_SUB + yy] = color;
+			fb[(x * 8 + (longestLine * 8) - 3) * SCREEN_HEIGHT_SUB + yy] = color;
 		}
 
 		if(waitKeys)
