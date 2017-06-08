@@ -31,7 +31,7 @@
 
 __start__:
 	.string "FASTBOOT 3DS   "
-	.word   (VER_MAJOR<<16 | VER_MINOR)
+	.word   (VERS_MAJOR<<16 | VERS_MINOR)
 
 _start:
 	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode

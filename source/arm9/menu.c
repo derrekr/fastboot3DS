@@ -75,7 +75,7 @@ static void menu_main_draw_top()
 	
 	consoleSelect(&con_top);
 	
-	uiPrintCenteredInLine(1, "fastboot 3DS " VER_STRING);
+	uiPrintCenteredInLine(1, "fastboot 3DS " VERS_STRING);
 	
 	uiPrintTextAt(1, 4, "Model: %s", bootInfo.model);
 	uiPrintTextAt(1, 5, "\x1B[33m%s\e[0m", bootInfo.bootEnv);

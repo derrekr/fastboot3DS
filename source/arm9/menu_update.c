@@ -64,13 +64,13 @@ bool menuUpdateLoader()
 	/* check version */
 	u32 updateVersion = *(u32 *)((void*)updateBuffer + 0x210);
 	
-	if(updateVersion < ((u32)VER_MAJOR<<16 | VER_MINOR))
+	if(updateVersion < ((u32)VERS_MAJOR<<16 | VERS_MINOR))
 	{
 		uiPrintError("Update version is below current version!\n");
 		goto fail;
 	}
 	
-	if(updateVersion == ((u32)VER_MAJOR<<16 | VER_MINOR))
+	if(updateVersion == ((u32)VERS_MAJOR<<16 | VERS_MINOR))
 	{
 		uiPrintWarning("You are on this version already.\n");
 		goto fail;

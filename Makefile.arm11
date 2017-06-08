@@ -1,100 +1,142 @@
+#---------------------------------------------------------------------------------
 .SUFFIXES:
-
+#---------------------------------------------------------------------------------
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-# Sources and defines
-TARGET   := code11
-BUILD    := build11
-INCLUDES := include
-SOURCES  := source source/arm11
-DEFINES  := -DARM11 -D_3DS
-DATA     :=
+include $(DEVKITARM)/base_rules
 
-
-# Compiler settings
-ARCH     := -march=armv6k -mtune=mpcore -mfloat-abi=hard -marm -mthumb-interwork
-CFLAGS   := $(ARCH) -std=c11 -O2 -g -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
-			-ffast-math -ffunction-sections -Wall -Wextra
-CXXFLAGS := $(ARCH) -std=c++11 -O2 -g -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
-			-ffast-math -ffunction-sections -Wall -Wextra
-ASFLAGS  :=
-LDFLAGS  := $(CFLAGS) -Wl,--use-blx,--gc-sections -nostartfiles -T arm11.ld
-
-PREFIX   := arm-none-eabi-
-CC       := $(PREFIX)gcc
-CXX      := $(PREFIX)g++
-AS       := $(PREFIX)as
-OBJCOPY  := $(PREFIX)objcopy
-
-
-# Do not change anything after this
-VPATH    := $(DATA) $(SOURCES)
-
-BINFILES := $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
-CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-
-OFILES   := $(foreach file,$(BINFILES),$(BUILD)/$(file).o) \
-			$(foreach file,$(CFILES:.c=.o),$(BUILD)/$(file)) \
-			$(foreach file,$(CPPFILES:.cpp=.o),$(BUILD)/$(file)) \
-			$(foreach file,$(SFILES:.s=.o),$(BUILD)/$(file))
-
-INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -I$(BUILD)
-
-ifeq ($(strip $(CPPFILES)),)
-	LD := $(CC)
-else
-	LD := $(CXX)
-endif
-
+#---------------------------------------------------------------------------------
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# INCLUDES is a list of directories containing extra header files
+# DATA is a list of directories containing binary files
+# all directories are relative to this makefile
+#---------------------------------------------------------------------------------
+BUILD		:= build11
+SOURCES		:= source source/arm11
+INCLUDES	:= include
+DEFINES		:= -DARM11 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
+				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)
+DATA		:=
+LDNAME		:= arm11.ld
 
 ifneq ($(strip $(NO_DEBUG)),)
 	DEFINES += -DNDEBUG
 endif
 
 
-.PHONY: clean release
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH	:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -marm -mthumb-interwork
 
-# Main target
-$(TARGET).bin: $(TARGET).elf
+CFLAGS	:= $(ARCH) -std=c11 -O2 -g -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
+			-ffast-math -ffunction-sections -Wall -Wextra
+CFLAGS	+=	$(INCLUDE) $(DEFINES)
+
+CXXFLAGS	:=	$(ARCH) -std=c11 -O2 -g -fno-rtti -fno-exceptions -fstrict-aliasing \
+				-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections -Wall -Wextra
+CXXFLAGS	+=	$(INCLUDE) $(DEFINES)
+
+ASFLAGS	:=	$(ARCH) -g $(INCLUDE) $(DEFINES)
+
+LDFLAGS	=	$(ARCH) -g -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
+
+#---------------------------------------------------------------------------------
+# any extra libraries we wish to link with the project
+#---------------------------------------------------------------------------------
+LIBS	:=
+ 
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:=
+ 
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+ 
+export OUTPUT	:=	$(CURDIR)/$(TARGET)11
+export DEPSDIR := $(CURDIR)/$(BUILD)
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+ 
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+ 
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+ 
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+ 
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+ 
+.PHONY: $(BUILD) clean
+ 
+#---------------------------------------------------------------------------------
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile.arm11
+ 
+#---------------------------------------------------------------------------------
+clean:
+	@echo clean ...
+	@rm -fr $(BUILD) *.elf *.nds* *.bin 
+ 
+ 
+#---------------------------------------------------------------------------------
+else
+ 
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+$(OUTPUT).bin	:	$(OUTPUT).elf
 	@$(OBJCOPY) -O binary $< $@
 	@echo built ... $(notdir $@)
 
-$(TARGET).elf: $(BUILD) $(OFILES)
+$(OUTPUT).elf	:	$(OFILES)
 
-clean:
-	@echo clean ...
-	@rm -rf $(BUILD) $(TARGET).bin $(TARGET).elf
-
-release:
-	@$(MAKE) --no-print-directory -f Makefile.arm11 NO_DEBUG=1
-
-
-$(BUILD):
-	@mkdir -p $(BUILD)
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data 
+#---------------------------------------------------------------------------------
+%.bin.o	:	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
 
 %.elf:
 	@echo linking $(notdir $@)
-	$(LD) $(LDFLAGS) $(OFILES) -o $@
+	@$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+	@$(NM) -CSn $@ > $(notdir $*.lst)
 
-$(BUILD)/%.bin.o: %.bin
-	@echo $(notdir $<)
-	bin2s $< | $(AS) -o $(@)
-	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > $(BUILD)/`(echo $(<F) | tr . _)`.h
-	echo "extern const u8" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> $(BUILD)/`(echo $(<F) | tr . _)`.h
-	echo "extern const u32" `(echo $(<F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> $(BUILD)/`(echo $(<F) | tr . _)`.h
+-include $(DEPSDIR)/*.d
+ 
+#---------------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------------
 
-$(BUILD)/%.o: %.c
-	@echo $(notdir $<)
-	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
-
-$(BUILD)/%.o: %.cpp
-	@echo $(notdir $<)
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDE) -c $< -o $@
-
-$(BUILD)/%.o: %.s
-	@echo $(notdir $<)
-	$(CC) $(CFLAGS) -x assembler-with-cpp $(DEFINES) $(INCLUDE) -c $< -o $@
