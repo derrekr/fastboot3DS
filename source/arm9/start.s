@@ -60,7 +60,7 @@ _start:
 
 	mov sp, #0                  @ SVC mode sp (Unused, aborts)
 	msr cpsr_cxsf, #0xD2        @ IRQ mode
-	ldr sp, =(A9_STACK_END - 0x2000)
+	ldr sp, =A9_IRQ_STACK_END
 	msr cpsr_cxsf, #0xDF        @ System mode
 	ldr sp, =A9_STACK_END
 
