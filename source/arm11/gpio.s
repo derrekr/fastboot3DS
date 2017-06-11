@@ -1,18 +1,12 @@
+#include "asmfunc.h"
+
 .arm
 .cpu mpcore
 .fpu vfpv2
 
-.global gpio_set_bit
-.global gpio_clear_bit
-
-.type gpio_set_bit STT_FUNC
-.type gpio_clear_bit STT_FUNC
-
-.section ".text"
 
 
-
-gpio_set_bit:
+ASM_FUNC gpio_set_bit
 	ldrh r2, [r0]
 	movs r3, #1
 	movs r1, r3, lsl r1
@@ -21,7 +15,7 @@ gpio_set_bit:
 	bx lr
 
 
-gpio_clear_bit:
+ASM_FUNC gpio_clear_bit
 	ldrh r2, [r0]
 	movs r3, #1
 	movs r1, r3, lsl r1

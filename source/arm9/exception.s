@@ -1,37 +1,25 @@
+#include "asmfunc.h"
 #include "mem_map.h"
 
 .arm
 .cpu arm946e-s
 .fpu softvfp
 
-.global undefInstrHandler
-.global prefetchAbortHandler
-.global dataAbortHandler
-.global irqHandler
-
-.type undefInstrHandler STT_FUNC
-.type prefetchAbortHandler STT_FUNC
-.type dataAbortHandler STT_FUNC
-.type exceptionHandler STT_FUNC
-.type irqHandler STT_FUNC
-
 .extern deinitCpu
 .extern guruMeditation
 .extern irqHandlerTable
 
-.section ".text"
 
 
-
-undefInstrHandler:
+ASM_FUNC undefInstrHandler
 	msr cpsr_f, #(0<<29)        @ Abuse conditional flags in cpsr for temporary exception type storage
 	b exceptionHandler
-prefetchAbortHandler:
+ASM_FUNC prefetchAbortHandler
 	msr cpsr_f, #(1<<29)
 	b exceptionHandler
-dataAbortHandler:
+ASM_FUNC dataAbortHandler
 	msr cpsr_f, #(2<<29)
-exceptionHandler:
+ASM_FUNC exceptionHandler
 	mov sp, #A9_EXC_STACK_END
 	stmfd sp!, {r0-r14}^        @ Save all user/system mode regs except pc
 	mrs r4, cpsr
@@ -45,10 +33,9 @@ exceptionHandler:
 	mov sp, r5
 	mov r1, r5
 	b guruMeditation            @ r0 = exception type, r1 = reg dump ptr {cpsr, pc (unmodified), r0-r14}
-.pool
 
 
-irqHandler:
+ASM_FUNC irqHandler
 	stmfd sp!, {r0-r3, r12, lr}
 	ldr r12, =(IO_MEM_ARM9_ONLY + 0x1000) @ REG_IRQ_IE
 	ldm r12, {r1, r2}
@@ -67,4 +54,3 @@ irqHandler:
 	blxne r0
 	ldmfd sp!, {r0-r3, r12, lr}
 	subs pc, lr, #4
-.pool

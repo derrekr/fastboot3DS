@@ -1,26 +1,8 @@
+#include "asmfunc.h"
+
 .arm
 .cpu arm946e-s
 .fpu softvfp
-
-.global invalidateICache
-.global invalidateICacheRange
-.global flushDCache
-.global flushInvalidateDCache
-.global flushDCacheRange
-.global flushInvalidateDCacheRange
-.global invalidateDCache
-.global invalidateDCacheRange
-
-.type invalidateICache STT_FUNC
-.type invalidateICacheRange STT_FUNC
-.type flushDCache STT_FUNC
-.type flushInvalidateDCache STT_FUNC
-.type flushDCacheRange STT_FUNC
-.type flushInvalidateDCacheRange STT_FUNC
-.type invalidateDCache STT_FUNC
-.type invalidateDCacheRange STT_FUNC
-
-.section ".text"
 
 
 #define ICACHE_SIZE     (0x2000)
@@ -29,13 +11,13 @@
 
 
 
-invalidateICache:
+ASM_FUNC invalidateICache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c5, 0       @ "Flush instruction cache"
 	bx lr
 
 
-invalidateICacheRange:
+ASM_FUNC invalidateICacheRange
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	invalidateICacheRange_lp:
@@ -46,7 +28,7 @@ invalidateICacheRange:
 	bx lr
 
 
-flushDCache:
+ASM_FUNC flushDCache
 	mov r1, #0
 	flushDCache_outer_lp:
 		mov r0, #0
@@ -62,7 +44,7 @@ flushDCache:
 	b drainWriteBufferFlushInvalidate
 
 
-flushInvalidateDCache:
+ASM_FUNC flushInvalidateDCache
 	mov r1, #0
 	flushInvalidateDCache_outer_lp:
 		mov r0, #0
@@ -80,7 +62,7 @@ drainWriteBufferFlushInvalidate:
 	bx lr
 
 
-flushDCacheRange:
+ASM_FUNC flushDCacheRange
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	flushDCacheRange_lp:
@@ -91,7 +73,7 @@ flushDCacheRange:
 	b drainWriteBufferFlushInvalidateRange
 
 
-flushInvalidateDCacheRange:
+ASM_FUNC flushInvalidateDCacheRange
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	flushInvalidateDCacheRange_lp:
@@ -105,13 +87,13 @@ drainWriteBufferFlushInvalidateRange:
 	bx lr
 
 
-invalidateDCache:
+ASM_FUNC invalidateDCache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c6, 0       @ "Flush data cache"
 	bx lr
 
 
-invalidateDCacheRange:
+ASM_FUNC invalidateDCacheRange
 	add r1, r1, r0
 	tst r0, #(CACHE_LINE_SIZE - 1)
 	mcrne p15, 0, r0, c7, c10, 1    @ "Clean data cache entry Address"

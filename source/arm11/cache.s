@@ -1,33 +1,15 @@
+#include "asmfunc.h"
+
 .arm
 .cpu mpcore
 .fpu vfpv2
-
-.global invalidateICache
-.global invalidateICacheRange
-.global flushDCache
-.global flushInvalidateDCache
-.global flushDCacheRange
-.global flushInvalidateDCacheRange
-.global invalidateDCache
-.global invalidateDCacheRange
-
-.type invalidateICache STT_FUNC
-.type invalidateICacheRange STT_FUNC
-.type flushDCache STT_FUNC
-.type flushInvalidateDCache STT_FUNC
-.type flushDCacheRange STT_FUNC
-.type flushInvalidateDCacheRange STT_FUNC
-.type invalidateDCache STT_FUNC
-.type invalidateDCacheRange STT_FUNC
-
-.section ".text"
 
 
 #define CACHE_LINE_SIZE	(32)
 
 
 
-invalidateICache:
+ASM_FUNC invalidateICache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c5, 0       @ Invalidate Entire Instruction Cache, also flushes the branch target cache
 	@mcr p15, 0, r0, c7, c5, 6       @ Flush Entire Branch Target Cache
@@ -36,7 +18,7 @@ invalidateICache:
 	bx lr
 
 
-invalidateICacheRange:
+ASM_FUNC invalidateICacheRange
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	mov r2, #0
@@ -51,21 +33,21 @@ invalidateICacheRange:
 	bx lr
 
 
-flushDCache:
+ASM_FUNC flushDCache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c10, 0      @ "Clean Entire Data Cache"
 	mcr p15, 0, r0, c7, c10, 4      @ Data Synchronization Barrier
 	bx lr
 
 
-flushInvalidateDCache:
+ASM_FUNC flushInvalidateDCache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c14, 0      @ "Clean and Invalidate Entire Data Cache"
 	mcr p15, 0, r0, c7, c10, 4      @ Data Synchronization Barrier
 	bx lr
 
 
-flushDCacheRange:
+ASM_FUNC flushDCacheRange
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	mov r2, #0
@@ -78,7 +60,7 @@ flushDCacheRange:
 	bx lr
 
 
-flushInvalidateDCacheRange:
+ASM_FUNC flushInvalidateDCacheRange
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	mov r2, #0
@@ -91,14 +73,14 @@ flushInvalidateDCacheRange:
 	bx lr
 
 
-invalidateDCache:
+ASM_FUNC invalidateDCache
 	mov r0, #0
 	mcr p15, 0, r0, c7, c6, 0       @ Invalidate Entire Data Cache
 	mcr p15, 0, r0, c7, c10, 4      @ Data Synchronization Barrier
 	bx lr
 
 
-invalidateDCacheRange:
+ASM_FUNC invalidateDCacheRange
 	add r1, r1, r0
 	tst r0, #(CACHE_LINE_SIZE - 1)
 	mcrne p15, 0, r0, c7, c10, 1    @ "Clean Data Cache Line (using MVA)"

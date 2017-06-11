@@ -24,8 +24,12 @@
 .extern fake_heap_end
 .extern __libc_init_array
 .extern main
+.extern irqHandler
+.extern undefInstrHandler
+.extern prefetchAbortHandler
+.extern dataAbortHandler
 
-.section ".crt0"
+.section ".crt0", "ax"
 
 
 
@@ -162,7 +166,6 @@ clearMem_check_zero:
 		subs r1, r1, #4
 		bne clearMem_remaining_lp
 	bx lr
-.pool
 
 
 #define REGION_4KB   (0b01011)
@@ -300,7 +303,6 @@ setupMpu:
 @ Needed by libc
 _init:
 	bx lr
-.pool
 
 
 deinitCpu:

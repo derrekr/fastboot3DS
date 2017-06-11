@@ -23,7 +23,7 @@
 .extern __libc_init_array
 .extern main
 
-.section ".crt0"
+.section ".crt0", "ax"
 
 
 
@@ -110,6 +110,7 @@ stubExceptionVectors:
 		subs r1, r1, #1
 		bne stubExceptionVectors_lp
 	bx lr
+.pool
 
 
 @ void clearMem(u32 *adr, u32 size)
@@ -139,7 +140,6 @@ clearMem_check_zero:
 		subs r1, r1, #4
 		bne clearMem_remaining_lp
 	bx lr
-.pool
 
 
 setupVfp:
@@ -152,12 +152,10 @@ setupVfp:
 	fmxr fpexc, r1              @ Write Floating-point exception register
 	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
 	bx lr
-.pool
 
 
 _init:
 	bx lr
-.pool
 
 
 deinitCpu:
