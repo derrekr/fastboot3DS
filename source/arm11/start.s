@@ -71,6 +71,10 @@ _start:
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
 	mov sp, #0                  @ SVC mode sp (Unused, aborts)
+	cpsid aif, #0x17            @ Abort mode
+	mov sp, #0                  @ Not yet
+	cpsid aif, #0x1B            @ Undefined mode
+	mov sp, #0                  @ Not yet
 	cpsid aif, #0x11            @ FIQ mode
 	mov sp, #0                  @ Not yet
 	cpsid aif, #0x12            @ IRQ mode

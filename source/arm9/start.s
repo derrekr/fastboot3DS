@@ -310,7 +310,7 @@ _init:
 
 
 deinitCpu:
-	msr cpsr_cxsf, #0xDF        @ System mode
+	msr cpsr, #0xDF             @ System mode
 	mov r3, lr
 
 	@ Stub vectors to endless loops
