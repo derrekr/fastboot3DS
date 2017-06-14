@@ -38,7 +38,7 @@ __start__:
 	.word   (VERS_MAJOR<<16 | VERS_MINOR)
 
 _start:
-	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
+	msr cpsr, #0xD3              @ Disable all interrupts, SVC mode
 
 	@ Control register:
 	@ [19] ITCM load mode         : disabled
@@ -63,9 +63,13 @@ _start:
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 
 	mov sp, #0                  @ SVC mode sp (Unused, aborts)
-	msr cpsr_cxsf, #0xD2        @ IRQ mode
+	msr cpsr, #0xD7             @ Abort mode
+	mov sp, #A9_EXC_STACK_END
+	msr cpsr, #0xDB             @ Undefined mode
+	mov sp, #A9_EXC_STACK_END
+	msr cpsr, #0xD2             @ IRQ mode
 	ldr sp, =A9_IRQ_STACK_END
-	msr cpsr_cxsf, #0xDF        @ System mode
+	msr cpsr, #0xDF             @ System mode
 	ldr sp, =A9_STACK_END
 
 	bl setupTcms                @ Setup and enable DTCM and ITCM

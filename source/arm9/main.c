@@ -101,7 +101,7 @@ int main(void)
 	enter_menu(MENU_STATE_MAIN);
 
 	
-finish_firmlaunch:	
+finish_firmlaunch:
 
 	uiPrintIfVerbose("Unmounting FS...\n");
 

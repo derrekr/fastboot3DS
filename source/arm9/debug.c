@@ -62,11 +62,10 @@ noreturn void panicMsg(const char *msg)
 }
 
 // Expects the registers in the exception stack to be in the following order:
-// cpsr, pc (unmodified), r0-r14
-noreturn void guruMeditation(u8 type, u32 *excStack)
+// r0-r14, pc (unmodified), cpsr
+noreturn void guruMeditation(u8 type, const u32 *excStack)
 {
-	const char *typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
-	const size_t maxStackWords = 15 * 2;
+	const char *const typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
 	u32 realPc, instSize = 4;
 	bool codeChanged = false;
 
@@ -79,9 +78,9 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 
 	consoleInit(0, NULL, true);
 
-	if(excStack[0] & 0x20) instSize = 2; // Processor was in Thumb mode?
-	if(type == 2) realPc = excStack[1] - (instSize * 2); // Data abort
-	else realPc = excStack[1] - instSize; // Other
+	if(excStack[16] & 0x20) instSize = 2; // Processor was in Thumb mode?
+	if(type == 2) realPc = excStack[15] - (instSize * 2); // Data abort
+	else realPc = excStack[15] - instSize; // Other
 
 	printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
 	printf("CPSR: 0x%08" PRIX32 "\n"
@@ -93,26 +92,29 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 	       "r5 = 0x%08" PRIX32 " sp  = 0x%08" PRIX32 "\n"
 	       "r6 = 0x%08" PRIX32 " lr  = 0x%08" PRIX32 "\n"
 	       "r7 = 0x%08" PRIX32 " pc  = 0x%08" PRIX32 "\n\n",
-	       excStack[0],
+	       excStack[16],
+	       excStack[0], excStack[8],
+	       excStack[1], excStack[9],
 	       excStack[2], excStack[10],
 	       excStack[3], excStack[11],
 	       excStack[4], excStack[12],
 	       excStack[5], excStack[13],
 	       excStack[6], excStack[14],
-	       excStack[7], excStack[15],
-	       excStack[8], excStack[16],
-	       excStack[9], realPc);
+	       excStack[7], realPc);
 
-	// make sure we can actually dump the stack without triggering another fault.
-	if((excStack[15] >= (u32)A9_STACK_START) && (excStack[15] < (u32)A9_STACK_END) &&
-	   (excStack[15] + maxStackWords * 4 < (u32)A9_STACK_END))
+	puts("Stack dump:");
+
+	u32 sp = excStack[13];
+	if(sp >= DTCM_BASE && sp < DTCM_BASE + DTCM_SIZE && !(sp & 3u))
 	{
-		puts("Stack dump:");
-		for(u32 i = 0; i < maxStackWords / 2; i++)
+		u32 stackWords = ((DTCM_BASE + DTCM_SIZE - sp) / 4 > 45 ? 45 : (DTCM_BASE + DTCM_SIZE - sp) / 4);
+
+		u32 newlineCounter = 0;
+		for(u32 i = 0; i < stackWords; i++)
 		{
-			printf("0x%08" PRIX32 ": %08" PRIX32 " %08" PRIX32 "\n", excStack[15],
-			       ((u32*)excStack[15])[0], ((u32*)excStack[15])[1]);
-			excStack[15] += 8;
+			if(newlineCounter == 3) {printf("\n"); newlineCounter = 0;}
+			printf("0x%08" PRIX32 " ", ((u32*)sp)[i]);
+			newlineCounter++;
 		}
 	}
 
@@ -124,7 +126,7 @@ noreturn void guruMeditation(u8 type, u32 *excStack)
 
 	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	for(;;) waitForIrq();
+	while(1) waitForIrq();
 }
 
 void dumpMem(u8 *mem, u32 size, char *filepath)
