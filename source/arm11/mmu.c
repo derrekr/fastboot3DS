@@ -63,7 +63,7 @@ static void mmuMapSections(u32 va, u32 pa, u32 num, bool shared, u32 access, u8 
  *
  * @param[in]  va       The virtual address base. Must be aligned to 4 KB.
  * @param[in]  pa       The physical address base. Must be aligned to 4 KB.
- * @param[in]  num      The number of sections to map. Must be <= 128.
+ * @param[in]  num      The number of pages to map. Must be <= 128.
  * @param      l2Table  The L2 MMU table address base for this mapping.
  * @param[in]  shared   If the pages are shared memory.
  * @param[in]  access   The access permission bits.
