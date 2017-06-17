@@ -15,6 +15,7 @@
 .type clearMem %function
 .type setupVfp %function
 .type _init %function
+.type tmpExceptionHandler %function
 .type deinitCpu %function
 
 .extern __bss_start__
@@ -29,15 +30,22 @@
 
 __start__:
 vectors:
-	ldr pc, =_start            @ Reset vector
-	ldr pc, =(vectors + 0x04)  @ Undefined instruction vector
-	ldr pc, =(vectors + 0x08)  @ Software interrupt (SVC) vector
-	ldr pc, =(vectors + 0x0C)  @ Prefetch abort vector
-	ldr pc, =(vectors + 0x10)  @ Data abort vector
-	ldr pc, =(vectors + 0x14)  @ Reserved (unused) vector
-	ldr pc, =(vectors + 0x18)  @ Interrupt (IRQ) vector
-	ldr pc, =(vectors + 0x1C)  @ Fast interrupt (FIQ) vector
-.pool
+	ldr pc, resetHandlerPtr         @ Reset vector
+	ldr pc, undefInstrHandlerPtr    @ Undefined instruction vector
+	ldr pc, svcHandlerPtr           @ Software interrupt (SVC) vector
+	ldr pc, prefetchAbortHandlerPtr @ Prefetch abort vector
+	ldr pc, dataAbortHandlerPtr     @ Data abort vector
+	ldr pc, reservedHandlerPtr      @ Reserved (unused) vector
+	ldr pc, irqHandlerPtr           @ Interrupt (IRQ) vector
+	ldr pc, fiqHandlerPtr           @ Fast interrupt (FIQ) vector
+	resetHandlerPtr:         .word _start
+	undefInstrHandlerPtr:    .word tmpExceptionHandler
+	svcHandlerPtr:           .word (vectors + 0x08)
+	prefetchAbortHandlerPtr: .word tmpExceptionHandler
+	dataAbortHandlerPtr:     .word tmpExceptionHandler
+	reservedHandlerPtr:      .word (vectors + 0x14)
+	irqHandlerPtr:           .word (vectors + 0x18)
+	fiqHandlerPtr:           .word (vectors + 0x1C)
 
 
 _start:
@@ -162,6 +170,20 @@ _init:
 	bx lr
 
 
+tmpExceptionHandler:
+	bl deinitCpu
+tmpExceptionHandler_outer_lp:
+	mov r0, #VRAM_BASE
+	ldr r1, =0x54600
+	mov r2, #0xF800             @ red
+	tmpExceptionHandler_inner_lp:
+		strh r2, [r0], #2
+		subs r1, r1, #1
+		bne tmpExceptionHandler_inner_lp
+	b tmpExceptionHandler_outer_lp
+.pool
+
+
 deinitCpu:
 	mov r3, lr
 	cpsid aif, #0x1F            @ System mode
@@ -188,6 +210,5 @@ deinitCpu:
 	mcr p15, 0, r2, c7, c5, 4  @ Flush Prefetch Buffer
 	mcr p15, 0, r2, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r2, c7, c10, 4 @ Data Synchronization Barrier
-	clrex
 	bx r3
 .pool
