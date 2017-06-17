@@ -9,13 +9,13 @@
 .global _init
 .global deinitCpu
 
-.type vectors STT_FUNC
-.type _start STT_FUNC
-.type stubExceptionVectors STT_FUNC
-.type clearMem STT_FUNC
-.type setupVfp STT_FUNC
-.type _init STT_FUNC
-.type deinitCpu STT_FUNC
+.type vectors %function
+.type _start %function
+.type stubExceptionVectors %function
+.type clearMem %function
+.type setupVfp %function
+.type _init %function
+.type deinitCpu %function
 
 .extern __bss_start__
 .extern __bss_end__
@@ -66,7 +66,6 @@ _start:
 	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
 	mcr p15, 0, r0, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
-	clrex
 
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
@@ -90,6 +89,7 @@ _start:
 
 	blx setupMmu
 	bl setupVfp
+	clrex
 	cpsie a
 
 	blx __libc_init_array      @ Initialize ctors and dtors
@@ -151,10 +151,10 @@ setupVfp:
 	mov r1, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
 	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
 	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
-	mov r1, #0x40000000         @ Clear exception bits and enable VFP11
-	mov r2, #0x3C00000          @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
-	fmxr fpexc, r1              @ Write Floating-point exception register
-	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
+	mov r2, #0x40000000         @ Clear exception bits and enable VFP11
+	mov r3, #0x3C00000          @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
+	fmxr fpexc, r2              @ Write Floating-point exception register
+	fmxr fpscr, r3              @ Write Floating-Point Status and Control Register
 	bx lr
 
 
@@ -163,12 +163,16 @@ _init:
 
 
 deinitCpu:
-	cpsid aif, #0x1F            @ System mode
 	mov r3, lr
+	cpsid aif, #0x1F            @ System mode
 
 	bl stubExceptionVectors
 	bl flushDCache
 	mov r2, #0
+	@ Disable VFP11
+	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
+	fmxr fpexc, r2              @ Write Floating-point exception register
+
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0xC03805           @ Disable MMU, D-Cache, Program flow prediction, I-Cache,
 	                            @ high exception vectors, Unaligned data access,
@@ -181,13 +185,9 @@ deinitCpu:
 	                            @ and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
-	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r0, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
-
-	@ Disable VFP11
-	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
-	fmxr fpexc, r2              @ Write Floating-point exception register
+	mcr p15, 0, r2, c7, c5, 4  @ Flush Prefetch Buffer
+	mcr p15, 0, r2, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
+	mcr p15, 0, r2, c7, c10, 4 @ Data Synchronization Barrier
 	clrex
 	bx r3
 .pool

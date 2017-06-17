@@ -37,7 +37,6 @@ exceptionHandler_skip_other_mode:
 	str r2, [sp, #64]              @ Save spsr (cpsr) on exception stack
 	mov r4, r0
 	mov r5, sp
-	msr cpsr_cxsf, #0xDF           @ Disable all interrupts, system mode
 	bl deinitCpu
 	mov r0, r4
 	mov sp, r5
