@@ -1,5 +1,7 @@
+#include <string.h>
 #include "types.h"
 #include "mem_map.h"
+#include "arm11/start.h"
 #include "pxi.h"
 
 
@@ -29,18 +31,12 @@ void NAKED firmLaunchStub(void)
 	}
 
 	((void (*)(void))entry)();
-	__builtin_unreachable();
 }
-
-extern void deinitCpu(void);
 
 noreturn void firm_launch(void)
 {
 	// Relocate ARM11 stub
-	for(u32 i = 0; i < A11_STUB_SIZE>>2; i++)
-	{
-		((u32*)A11_STUB_ENTRY)[i] = ((u32*)firmLaunchStub)[i];
-	}
+	memcpy((void*)A11_STUB_ENTRY, (const void*)firmLaunchStub, A11_STUB_SIZE);
 
 	deinitCpu();
 

@@ -7,6 +7,7 @@
 #include "mem_map.h"
 #undef ARM11
 #include "arm9/firm.h"
+#include "arm9/start.h"
 #include "arm9/crypto.h"
 #include "arm9/ndma.h"
 #include "arm9/ui.h"
@@ -145,7 +146,6 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 
 	// go for it!
 	entry9(argc, argv, 0x2BEEFu);
-	__builtin_unreachable();
 }
 
 bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
@@ -247,8 +247,6 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	
 	return retval;
 }
-
-extern void deinitCpu(void);
 
 noreturn void firm_launch(int argc, const char **argv)
 {

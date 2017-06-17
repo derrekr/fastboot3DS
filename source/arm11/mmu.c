@@ -1,4 +1,5 @@
 #include "types.h"
+#include "arm11/start.h"
 #include "mem_map.h"
 
 
@@ -33,7 +34,6 @@
 
 
 
-extern void clearMem(u32 *adr, u32 size);
 extern u32 __start__[];
 
 /**
