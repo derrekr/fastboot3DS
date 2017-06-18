@@ -172,15 +172,13 @@ _init:
 
 tmpExceptionHandler:
 	bl deinitCpu
-tmpExceptionHandler_outer_lp:
-	mov r0, #VRAM_BASE
-	ldr r1, =0x54600
-	mov r2, #0xF800             @ red
-	tmpExceptionHandler_inner_lp:
-		strh r2, [r0], #2
-		subs r1, r1, #1
-		bne tmpExceptionHandler_inner_lp
-	b tmpExceptionHandler_outer_lp
+	ldr r0, =0x10202A04
+	mov r1, #0xFF
+	orr r1, #0x1000000
+	str r1, [r0]
+tmpExceptionHandler_lp:
+	wfi
+	b tmpExceptionHandler_lp
 .pool
 
 
