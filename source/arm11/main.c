@@ -4,6 +4,7 @@
 #include "arm11/i2c.h"
 #include "gfx.h"
 #include "pxi.h"
+#include "arm11/interrupt.h"
 #include "arm11/firm.h"
 
 extern bool battery_ok(void);
@@ -85,6 +86,8 @@ int main(void)
 
 start_firmlaunch:
 	gfx_deinit(); // TODO: Let ARM9 decide when to deinit gfx
+
+	IRQ_setPriority(IRQ_MPCORE_SW1, 0xE); // Needed by NATIVE_FIRM
 
 	firm_launch();
 

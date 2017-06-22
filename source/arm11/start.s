@@ -15,9 +15,10 @@
 .type clearMem %function
 .type setupVfp %function
 .type _init %function
-.type tmpExceptionHandler %function
 .type deinitCpu %function
 
+.extern tmpExceptionHandler
+.extern irqHandler
 .extern __bss_start__
 .extern __bss_end__
 .extern setupMmu
@@ -44,12 +45,12 @@ vectors:
 	prefetchAbortHandlerPtr: .word tmpExceptionHandler
 	dataAbortHandlerPtr:     .word tmpExceptionHandler
 	reservedHandlerPtr:      .word (vectors + 0x14)
-	irqHandlerPtr:           .word (vectors + 0x18)
+	irqHandlerPtr:           .word irqHandler
 	fiqHandlerPtr:           .word (vectors + 0x1C)
 
 
 _start:
-	cpsid aif, #0x13           @ Disable all interrupts, SVC mode
+	cpsid aif, #19             @ Disable all interrupts, SVC mode
 
 	@ Control register:
 	@ [29] Force AP functionality             : disabled
@@ -71,22 +72,22 @@ _start:
 	mov r0, #0
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
 
-	mcr p15, 0, r0, c7, c5, 4  @ Flush Prefetch Buffer
-	mcr p15, 0, r0, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c10, 4 @ Data Synchronization Barrier
+	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
+	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
+	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
 
 	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
-	mov sp, #0                  @ SVC mode sp (Unused, aborts)
-	cpsid aif, #0x17            @ Abort mode
+	mov sp, #0                  @ SVC mode sp (unused, aborts)
+	cpsid aif, #23              @ Abort mode
 	mov sp, #0                  @ Not yet
-	cpsid aif, #0x1B            @ Undefined mode
+	cpsid aif, #27              @ Undefined mode
 	mov sp, #0                  @ Not yet
-	cpsid aif, #0x11            @ FIQ mode
-	mov sp, #0                  @ Not yet
-	cpsid aif, #0x12            @ IRQ mode
-	mov sp, #0                  @ Not yet
-	cpsid aif, #0x1F            @ System mode
+	cpsid aif, #17              @ FIQ mode
+	mov sp, #0                  @ Unused
+	cpsid aif, #18              @ IRQ mode
+	mov sp, #0                  @ IRQ mode stack is not needed
+	cpsid aif, #31              @ System mode
 	ldr sp, =A11_STACK_END
 
 	@ Clear bss section
@@ -170,21 +171,9 @@ _init:
 	bx lr
 
 
-tmpExceptionHandler:
-	bl deinitCpu
-	ldr r0, =0x10202A04
-	mov r1, #0xFF
-	orr r1, #0x1000000
-	str r1, [r0]
-tmpExceptionHandler_lp:
-	wfi
-	b tmpExceptionHandler_lp
-.pool
-
-
 deinitCpu:
 	mov r3, lr
-	cpsid aif, #0x1F            @ System mode
+	cpsid aif, #31              @ System mode
 
 	bl stubExceptionVectors
 	bl flushDCache

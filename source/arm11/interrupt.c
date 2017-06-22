@@ -1,6 +1,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/interrupt.h"
+#include "arm11/start.h"
 
 
 #define REG_CFG11_FIQ_CNT    *((vu8* )(IO_MEM_ARM9_ARM11 + 0x40000 + 0x0104))
@@ -37,7 +38,8 @@
 #define REG_GID_PRIME_CELL3  *((vu32*)(GID_REGS_BASE + 0xFFC))
 
 
-void (*irqHandlerTable[128])(void); // There are 96 external interrupts (total 128)
+void (*privIrqHandlerTable[4][16])(void) = {0}; // Table for private MPCore interrupts
+void (*irqHandlerTable[112])(void) = {0};       // There are 96 external interrupts (total 128)
 
 
 
@@ -47,9 +49,7 @@ void IRQ_init(void)
 	REG_CPU_II_CNT = 0;
 
 
-	u32 cpuId;
-	__asm__ __volatile__("mrc p15, 0, %0, c0, c0, 5" : "=r" (cpuId) : );
-	if(!(cpuId & 0xF))
+	if(!getCpuId())
 	{
 		// Disable the global interrupt distributor
 		REG_GID_CNT = 0;
@@ -67,8 +67,7 @@ void IRQ_init(void)
 		REGs_GID_PEN_CLR[3] = 0xFFFFFFFFu;
 
 		// Set all 128 interrupts to lowest priority (disabled)
-		REGs_GID_IPRIO[0] = 0xF0F0E0F0u; // Needed by NATIVE_FIRM
-		for(u32 i = 1; i < 32; i++) REGs_GID_IPRIO[i] = 0xF0F0F0F0u;
+		for(u32 i = 0; i < 32; i++) REGs_GID_IPRIO[i] = 0xF0F0F0F0u;
 
 		// Set all 128 interrupts to target no CPU.
 		// Interrupt 0-31 can't be changed
@@ -79,13 +78,6 @@ void IRQ_init(void)
 
 		// Enable the global interrupt distributor
 		REG_GID_CNT = 1;
-
-
-		for(u32 i = 0; i < 128; i += 2)
-		{
-			irqHandlerTable[i + 0] = (void (*)(void))NULL;
-			irqHandlerTable[i + 1] = (void (*)(void))NULL;
-		}
 	}
 	else
 	{
@@ -101,8 +93,8 @@ void IRQ_init(void)
 
 	// Mask no interrupt
 	REG_CPU_II_MASK = 0xF0;
-	// No pre-emption is performed
-	REG_CPU_II_BIN_POI = 7;
+	// All priority bits are compared for pre-emption
+	REG_CPU_II_BIN_POI = 3;
 	// Enable the interrupt interface for this CPU
 	REG_CPU_II_CNT = 1;
 
@@ -114,14 +106,22 @@ void IRQ_init(void)
 		REG_CPU_II_EOI = tmp; // End of interrupt
 	} while(tmp != 1023);
 
-	//__asm__ __volatile__("cpsie i" : :);
+	__asm__ __volatile__("cpsie i" : :);
 }
 
 void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, void (*irqHandler)(void))
 {
 	// TODO: Enter critical section
 
-	if(irqHandler) irqHandlerTable[id] = irqHandler;
+	const u32 cpuId = getCpuId();
+
+	if(!cpuMask) cpuMask = 1u<<cpuId;
+
+	if(irqHandler)
+	{
+		if(id < 16) privIrqHandlerTable[cpuId][id] = irqHandler;
+		else irqHandlerTable[id - 16] = irqHandler;
+	}
 
 	u32 shift = (id % 4 * 8) + 4;
 	u32 tmp = REGs_GID_IPRIO[id>>2] & ~(0xFu<<shift);
@@ -140,14 +140,28 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, 
 	// TODO: Leave critical section
 }
 
-/*void IRQ_unregisterHandler(u8 id)
+void IRQ_unregisterHandler(Interrupt id)
 {
 	// TODO: Enter critical section
 
+	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
+	if(id < 16) privIrqHandlerTable[getCpuId()][id] = (void (*)(void))NULL;
+	else irqHandlerTable[id - 16] = (void (*)(void))NULL;
 
 	// TODO: Leave critical section
-}*/
+}
+
+void IRQ_setPriority(Interrupt id, u8 prio)
+{
+	// TODO: Enter critical section
+
+	u32 shift = (id % 4 * 8) + 4;
+	u32 tmp = REGs_GID_IPRIO[id>>2] & ~(0xFu<<shift);
+	REGs_GID_IPRIO[id>>2] = tmp | (u32)prio<<shift;
+
+	// TODO: Leave critical section
+}
 
 void softwareInterrupt(Interrupt id, u8 cpuMask)
 {

@@ -26,9 +26,36 @@ typedef enum
 
 
 
+/**
+ * @brief      Initializes the generic interrupt controller.
+ */
 void IRQ_init(void);
+
+/**
+ * @brief      Registers a interrupt handler and enables the specified interrupt.
+ *
+ * @param[in]  id             The interrupt ID. Must be <128.
+ * @param[in]  prio           The priority. 0 = highest, 14 = lowest, 15 = disabled
+ * @param[in]  cpuMask        The CPU mask. Each of the 4 bits stands for 1 core. 0 means current CPU.
+ * @param[in]  levHighActive  Set to true to make the interrupt level high active.
+ * @param[in]  irqHandler     The interrupt handler to call.
+ */
 void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, void (*irqHandler)(void));
-//void IRQ_unregisterHandler(Interrupt id);
+
+/**
+ * @brief      Unregisters the interrupt handler and disables the specified interrupt.
+ *
+ * @param[in]  id    The interrupt ID. Must be <128.
+ */
+void IRQ_unregisterHandler(Interrupt id);
+
+/**
+ * @brief      Sets the priority of an interrupt.
+ *
+ * @param[in]  id    The interrupt ID. Must be <128.
+ * @param[in]  prio  The priority. 0 = highest, 14 = lowest, 15 = disabled
+ */
+void IRQ_setPriority(Interrupt id, u8 prio);
 
 /**
  * @brief      Triggers a software interrupt for the specified CPUs.
@@ -37,6 +64,7 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, 
  * @param[in]  cpuMask  The CPU mask. Each of the 4 bits stands for 1 core.
  */
 void softwareInterrupt(Interrupt id, u8 cpuMask);
+
 
 static inline void waitForIrq(void)
 {
