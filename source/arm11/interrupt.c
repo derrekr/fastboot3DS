@@ -106,12 +106,12 @@ void IRQ_init(void)
 		REG_CPU_II_EOI = tmp; // End of interrupt
 	} while(tmp != 1023);
 
-	__asm__ __volatile__("cpsie i" : :);
+	leaveCriticalSection(); // Enables interrupts
 }
 
 void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, void (*irqHandler)(void))
 {
-	// TODO: Enter critical section
+	enterCriticalSection();
 
 	const u32 cpuId = getCpuId();
 
@@ -137,30 +137,30 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, 
 
 	REGs_GID_ENA_SET[id>>5] = 1u<<(id % 32);
 
-	// TODO: Leave critical section
+	leaveCriticalSection();
 }
 
 void IRQ_unregisterHandler(Interrupt id)
 {
-	// TODO: Enter critical section
+	enterCriticalSection();
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
 	if(id < 16) privIrqHandlerTable[getCpuId()][id] = (void (*)(void))NULL;
 	else irqHandlerTable[id - 16] = (void (*)(void))NULL;
 
-	// TODO: Leave critical section
+	leaveCriticalSection();
 }
 
 void IRQ_setPriority(Interrupt id, u8 prio)
 {
-	// TODO: Enter critical section
+	enterCriticalSection();
 
 	u32 shift = (id % 4 * 8) + 4;
 	u32 tmp = REGs_GID_IPRIO[id>>2] & ~(0xFu<<shift);
 	REGs_GID_IPRIO[id>>2] = tmp | (u32)prio<<shift;
 
-	// TODO: Leave critical section
+	leaveCriticalSection();
 }
 
 void softwareInterrupt(Interrupt id, u8 cpuMask)

@@ -5,6 +5,7 @@
 #include "gfx.h"
 #include "pxi.h"
 #include "arm11/interrupt.h"
+#include "arm11/gpio.h"
 #include "arm11/firm.h"
 
 extern bool battery_ok(void);
@@ -17,8 +18,14 @@ int main(void)
 
 	hardwareInit();
 
+	IRQ_registerHandler(IRQ_PXI_SYNC, 14, 0, true, NULL);
+	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, NULL);
+	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
+
 	for(;;)
 	{
+		waitForInterrupt();
+
 		bool successFlag;
 		u32 cmdCode = PXI_tryRecvWord(&successFlag);
 
@@ -79,15 +86,12 @@ int main(void)
 		
 		if(!(hidstate & MCU_HID_HOME_BUTTON_NOT_HELD))
 			PXI_trySendWord(PXI_RPL_HOME_HELD);
-
-		// wait a bit, don't spam the i2c bus
-		wait(0x8000);
 	}
 
 start_firmlaunch:
 	gfx_deinit(); // TODO: Let ARM9 decide when to deinit gfx
 
-	IRQ_setPriority(IRQ_MPCORE_SW1, 0xE); // Needed by NATIVE_FIRM
+	IRQ_setPriority(IRQ_MPCORE_SW1, 14); // Needed by NATIVE_FIRM
 
 	firm_launch();
 

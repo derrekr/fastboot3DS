@@ -6,12 +6,12 @@
 
 
 
-void gpioSetBit(u16 reg, u8 bitNum)
+void GPIO_setBit(u16 reg, u8 bitNum)
 {
 	REGs_GPIO[reg] |= 1u<<bitNum;
 }
 
-void gpioClearBit(u16 reg, u8 bitNum)
+void GPIO_clearBit(u16 reg, u8 bitNum)
 {
 	REGs_GPIO[reg] &= ~(1u<<bitNum);
 }

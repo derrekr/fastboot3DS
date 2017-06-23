@@ -10,7 +10,7 @@
  * @param[in]  reg     The register number.
  * @param[in]  bitNum  The bit number.
  */
-void gpioSetBit(u16 reg, u8 bitNum);
+void GPIO_setBit(u16 reg, u8 bitNum);
 
 /**
  * @brief      Clears a bit in the specified GPIO register.
@@ -18,4 +18,4 @@ void gpioSetBit(u16 reg, u8 bitNum);
  * @param[in]  reg     The register number.
  * @param[in]  bitNum  The bit number.
  */
-void gpioClearBit(u16 reg, u8 bitNum);
+void GPIO_clearBit(u16 reg, u8 bitNum);

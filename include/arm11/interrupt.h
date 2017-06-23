@@ -5,26 +5,33 @@
 
 typedef enum
 {
-	IRQ_MPCORE_SW0  = 0,
-	IRQ_MPCORE_SW1  = 1,
-	IRQ_MPCORE_SW2  = 2,
-	IRQ_MPCORE_SW3  = 3,
-	IRQ_MPCORE_SW4  = 4,
-	IRQ_MPCORE_SW5  = 5,
-	IRQ_MPCORE_SW6  = 6,
-	IRQ_MPCORE_SW7  = 7,
-	IRQ_MPCORE_SW8  = 8,
-	IRQ_MPCORE_SW9  = 9,
-	IRQ_MPCORE_SW10 = 10,
-	IRQ_MPCORE_SW11 = 11,
-	IRQ_MPCORE_SW12 = 12,
-	IRQ_MPCORE_SW13 = 13,
-	IRQ_MPCORE_SW14 = 14,
-	IRQ_MPCORE_SW15 = 15,
-	IRQ_PDC0        = 42, // aka VBlank0
-	IRQ_PDC1        = 43, // aka VBlank1
-	IRQ_PXI_SYNC    = 80,
-	IRQ_MCU_HID     = 113
+	IRQ_MPCORE_SW0    = 0,
+	IRQ_MPCORE_SW1    = 1,
+	IRQ_MPCORE_SW2    = 2,
+	IRQ_MPCORE_SW3    = 3,
+	IRQ_MPCORE_SW4    = 4,
+	IRQ_MPCORE_SW5    = 5,
+	IRQ_MPCORE_SW6    = 6,
+	IRQ_MPCORE_SW7    = 7,
+	IRQ_MPCORE_SW8    = 8,
+	IRQ_MPCORE_SW9    = 9,
+	IRQ_MPCORE_SW10   = 10,
+	IRQ_MPCORE_SW11   = 11,
+	IRQ_MPCORE_SW12   = 12,
+	IRQ_MPCORE_SW13   = 13,
+	IRQ_MPCORE_SW14   = 14,
+	IRQ_MPCORE_SW15   = 15,
+	IRQ_PSC0          = 40, // Unconfirmed
+	IRQ_PSC1          = 41, // Unconfirmed
+	IRQ_PDC0          = 42, // aka VBlank0
+	IRQ_PDC1          = 43, // aka VBlank1
+	IRQ_PPF           = 44, // Unconfirmed
+	IRQ_P3D           = 45, // This is a guess
+	IRQ_PXI_SYNC      = 80,
+	IRQ_PXI_UNK       = 81, // Unknown what this is for
+	IRQ_PXI_NOT_FULL  = 82,
+	IRQ_PXI_NOT_EMPTY = 83,
+	IRQ_MCU_HID       = 113 // HOME/POWER button pressed/released
 } Interrupt;
 
 
@@ -69,15 +76,27 @@ void IRQ_setPriority(Interrupt id, u8 prio);
 void softwareInterrupt(Interrupt id, u8 cpuMask);
 
 
-static inline void waitForIrq(void)
+static inline void waitForInterrupt(void)
 {
 	__asm__ __volatile__("wfi" : :);
 }
 
-/*inline u32 enterCriticalSection(void)
+static inline void enterCriticalSection(void)
 {
+	__asm__ __volatile__("cpsid i" : :);
 }
 
-inline void leaveCriticalSection(u32 oldState)
+static inline void leaveCriticalSection(void)
 {
-}*/
+	__asm__ __volatile__("cpsie i" : :);
+}
+
+static inline void waitForEvent(void)
+{
+	__asm__ __volatile__("wfe" : :);
+}
+
+static inline void signalEvent(void)
+{
+	__asm__ __volatile__("sev" : :);
+}
