@@ -21,7 +21,8 @@ typedef enum
 	IRQ_MPCORE_SW13 = 13,
 	IRQ_MPCORE_SW14 = 14,
 	IRQ_MPCORE_SW15 = 15,
-	IRQ_PXI_SYNC    = 80
+	IRQ_PXI_SYNC    = 80,
+	IRQ_MCU_HID     = 113
 } Interrupt;
 
 
