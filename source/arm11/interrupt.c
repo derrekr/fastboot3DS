@@ -38,8 +38,8 @@
 #define REG_GID_PRIME_CELL3  *((vu32*)(GID_REGS_BASE + 0xFFC))
 
 
-void (*privIrqHandlerTable[4][32])(void) = {0}; // Table for private MPCore interrupts
-void (*irqHandlerTable[96])(void) = {0};        // There are 96 external interrupts (total 128)
+IrqHandler privIrqHandlerTable[4][32] = {0}; // Table for private MPCore interrupts
+IrqHandler irqHandlerTable[96] = {0};        // There are 96 external interrupts (total 128)
 
 
 
@@ -109,7 +109,7 @@ void IRQ_init(void)
 	leaveCriticalSection(); // Enables interrupts
 }
 
-void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, void (*irqHandler)(void))
+void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, IrqHandler handler)
 {
 	enterCriticalSection();
 
@@ -117,10 +117,10 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, 
 
 	if(!cpuMask) cpuMask = 1u<<cpuId;
 
-	if(irqHandler)
+	if(handler)
 	{
-		if(id < 32) privIrqHandlerTable[cpuId][id] = irqHandler;
-		else irqHandlerTable[id - 32] = irqHandler;
+		if(id < 32) privIrqHandlerTable[cpuId][id] = handler;
+		else irqHandlerTable[id - 32] = handler;
 	}
 
 	u32 shift = (id % 4 * 8) + 4;
@@ -146,8 +146,8 @@ void IRQ_unregisterHandler(Interrupt id)
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
-	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (void (*)(void))NULL;
-	else irqHandlerTable[id - 32] = (void (*)(void))NULL;
+	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (void (*)(u32))NULL;
+	else irqHandlerTable[id - 32] = (void (*)(u32))NULL;
 
 	leaveCriticalSection();
 }

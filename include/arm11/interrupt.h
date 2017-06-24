@@ -40,6 +40,12 @@ typedef enum
 } Interrupt;
 
 
+// IRQ handler type.
+// intSource: bit 10-12 CPU source ID (0 except for interrupt ID 0-15),
+// bit 0-9 interrupt ID
+typedef void (*IrqHandler)(u32 intSource);
+
+
 
 /**
  * @brief      Initializes the generic interrupt controller.
@@ -53,9 +59,9 @@ void IRQ_init(void);
  * @param[in]  prio           The priority. 0 = highest, 14 = lowest, 15 = disabled
  * @param[in]  cpuMask        The CPU mask. Each of the 4 bits stands for 1 core. 0 means current CPU.
  * @param[in]  levHighActive  Set to true to make the interrupt level high active.
- * @param[in]  irqHandler     The interrupt handler to call.
+ * @param[in]  handler        The interrupt handler to call.
  */
-void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, void (*irqHandler)(void));
+void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, IrqHandler handler);
 
 /**
  * @brief      Unregisters the interrupt handler and disables the specified interrupt.
