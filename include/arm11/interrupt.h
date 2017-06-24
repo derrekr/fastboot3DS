@@ -21,17 +21,22 @@ typedef enum
 	IRQ_MPCORE_SW13   = 13,
 	IRQ_MPCORE_SW14   = 14,
 	IRQ_MPCORE_SW15   = 15,
-	IRQ_PSC0          = 40, // Unconfirmed
-	IRQ_PSC1          = 41, // Unconfirmed
-	IRQ_PDC0          = 42, // aka VBlank0
-	IRQ_PDC1          = 43, // aka VBlank1
-	IRQ_PPF           = 44, // Unconfirmed
-	IRQ_P3D           = 45, // This is a guess
+	IRQ_PSC0          = 40,  // Unconfirmed
+	IRQ_PSC1          = 41,  // Unconfirmed
+	IRQ_PDC0          = 42,  // aka VBlank0
+	IRQ_PDC1          = 43,  // aka VBlank1
+	IRQ_PPF           = 44,  // Unconfirmed
+	IRQ_P3D           = 45,  // This is a guess
 	IRQ_PXI_SYNC      = 80,
-	IRQ_PXI_UNK       = 81, // Unknown what this is for
+	IRQ_PXI_UNK       = 81,  // Unknown what this is for
 	IRQ_PXI_NOT_FULL  = 82,
 	IRQ_PXI_NOT_EMPTY = 83,
-	IRQ_MCU_HID       = 113 // HOME/POWER button pressed/released
+	IRQ_SHELL_OPENED  = 96,
+	IRQ_SHELL_CLOSED  = 98,
+	IRQ_TOUCHSCREEN   = 99,  // Triggers on hitting the touchscreen.
+	IRQ_HEADPH_JACK   = 100, // Headphone jack. Triggers on both plugging in and out? GPIO reg 9, bit 8.
+	IRQ_MCU_HID       = 113, // HOME/POWER pressed/released or shell opened/closed. GPIO reg 19, bit 9.
+	IRQ_GCRD_INSERTED = 117  // Gamecard inserted
 } Interrupt;
 
 
