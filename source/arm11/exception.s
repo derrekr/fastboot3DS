@@ -33,11 +33,12 @@ ASM_FUNC irqHandler
 	ldr r1, [r0, #0x10C]        @ REG_CPU_II_AKN
 	str r1, [r0, #0x110]        @ REG_CPU_II_EOI
 	and r0, r1, #0x7F
-	cmp r0, #16
+	cmp r0, #32
 	ldrlo r2, =privIrqHandlerTable
-	addlo r2, r2, r1, lsr #8
+	lsrlo r1, r1, #10
+	addlo r2, r2, r1, lsl #7
 	ldrhs r2, =irqHandlerTable
-	subhs r0, r0, #16
+	subhs r0, r0, #32
 	ldr r3, [r2, r0, lsl #2]
 	cmp r3, #0
 	beq irqHandler_skip_processing

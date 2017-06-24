@@ -36,7 +36,7 @@ typedef enum
 	IRQ_TOUCHSCREEN   = 99,  // Triggers on hitting the touchscreen.
 	IRQ_HEADPH_JACK   = 100, // Headphone jack. Triggers on both plugging in and out? GPIO reg 9, bit 8.
 	IRQ_MCU_HID       = 113, // HOME/POWER pressed/released or shell opened/closed. GPIO reg 19, bit 9.
-	IRQ_GCRD_INSERTED = 117  // Gamecard inserted
+	IRQ_GAMECARD      = 117  // Gamecard inserted
 } Interrupt;
 
 
