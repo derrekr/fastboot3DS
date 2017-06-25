@@ -146,8 +146,8 @@ void IRQ_unregisterHandler(Interrupt id)
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
-	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (void (*)(u32))NULL;
-	else irqHandlerTable[id - 32] = (void (*)(u32))NULL;
+	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (IrqHandler)NULL;
+	else irqHandlerTable[id - 32] = (IrqHandler)NULL;
 
 	leaveCriticalSection();
 }

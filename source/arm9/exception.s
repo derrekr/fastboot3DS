@@ -45,29 +45,32 @@ exceptionHandler_skip_other_mode:
 
 
 ASM_FUNC irqHandler
+	sub lr, lr, #4
 	stmfd sp!, {r0-r3, r12, lr}
-	ldr r12, =(IO_MEM_ARM9_ONLY + 0x1000) @ REG_IRQ_IE
+	mov r12, #0x10000000
+	orr r12, #0x1000                 @ REG_IRQ_IE
 	ldm r12, {r1, r2}
 	and r1, r1, r2
 	mov r3, #0x80000000
 	irqHandler_find_first_lp:
-		clz r0, r1
-		bics r1, r1, r3, lsr r0
+		clz r2, r1
+		bics r1, r1, r3, lsr r2
 		bne irqHandler_find_first_lp
-	mov r1, r3, lsr r0
-	str r1, [r12, #4]           @ REG_IRQ_IF
-	rsb r2, r0, #31             @ r2 = 31 - r0
+	mov r1, r3, lsr r2
+	str r1, [r12, #4]                @ REG_IRQ_IF
+	rsb r0, r2, #31                  @ r0 = 31 - r2
 	ldr r1, =irqHandlerTable
-	ldr r0, [r1, r2, lsl #2]
-	mrs r2, spsr
-	str r2, [sp, #-4]!
-	msr cpsr_c, #0x5F           @ Interrupts enabled, system mode
+	ldr r2, [r1, r0, lsl #2]
+	cmp r2, #0
+	beq irqHandler_skip_processing
+	mrs r3, spsr
+	str r3, [sp, #-4]!
+	msr cpsr_c, #0x5F                @ System mode, IRQ enabled
 	str lr, [sp, #-4]!
-	cmp r0, #0
-	blxne r0
+	blx r2
 	ldr lr, [sp], #4
-	msr cpsr_c, #0xD2           @ Interrupts disabled, IRQ mode
-	ldr r2, [sp], #4
-	msr spsr, r2
-	ldmfd sp!, {r0-r3, r12, lr}
-	subs pc, lr, #4
+	msr cpsr_c, #0xD2                @ IRQ mode, IRQ disabled
+	ldr r0, [sp], #4
+	msr spsr_fsxc, r0
+irqHandler_skip_processing:
+	ldmfd sp!, {r0-r3, r12, pc}^

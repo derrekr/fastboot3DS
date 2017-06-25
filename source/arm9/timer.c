@@ -26,7 +26,7 @@ static u32 overflows;
 
 
 
-static void timerSleepHandler(void)
+static void timerSleepHandler(UNUSED u32 id)
 {
 	overflows--;
 	if(!overflows) REG_TIMER3_CNT = 0;

@@ -38,10 +38,15 @@ typedef enum
 } Interrupt;
 
 
+// IRQ handler type.
+// id: contains the interrupt ID
+typedef void (*IrqHandler)(u32 id);
+
+
 
 void IRQ_init(void);
-void IRQ_registerHandler(Interrupt num, void (*irqHandler)(void));
-void IRQ_unregisterHandler(Interrupt num);
+void IRQ_registerHandler(Interrupt id, IrqHandler handler);
+void IRQ_unregisterHandler(Interrupt id);
 
 static inline void waitForIrq(void)
 {
