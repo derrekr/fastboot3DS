@@ -35,7 +35,7 @@ void IRQ_unregisterHandler(Interrupt id)
 	const u32 oldState = enterCriticalSection();
 
 	REG_IRQ_IE &= ~(1u<<id);
-	irqHandlerTable[id] = (void (*)(void))NULL;
+	irqHandlerTable[id] = (IrqHandler)NULL;
 
 	leaveCriticalSection(oldState);
 }
