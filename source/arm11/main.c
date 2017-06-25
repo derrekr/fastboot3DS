@@ -91,8 +91,6 @@ int main(void)
 start_firmlaunch:
 	gfx_deinit(); // TODO: Let ARM9 decide when to deinit gfx
 
-	IRQ_setPriority(IRQ_MPCORE_SW1, 14); // Needed by NATIVE_FIRM
-
 	firm_launch();
 
 	return 0;

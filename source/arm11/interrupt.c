@@ -66,8 +66,8 @@ void IRQ_init(void)
 		REGs_GID_PEN_CLR[2] = 0xFFFFFFFFu;
 		REGs_GID_PEN_CLR[3] = 0xFFFFFFFFu;
 
-		// Set all 128 interrupts to lowest priority (disabled)
-		for(u32 i = 0; i < 32; i++) REGs_GID_IPRIO[i] = 0xF0F0F0F0u;
+		// Set all 128 interrupts to lowest priority
+		for(u32 i = 0; i < 32; i++) REGs_GID_IPRIO[i] = 0xE0E0E0E0u;
 
 		// Set all 128 interrupts to target no CPU.
 		// Interrupt 0-31 can't be changed
@@ -84,7 +84,7 @@ void IRQ_init(void)
 		REGs_GID_PEN_CLR[0] = 0xFFFFFFFFu;
 
 		// TODO: This needs confirmation
-		for(u32 i = 0; i < 8; i++) REGs_GID_IPRIO[i] = 0xF0F0F0F0u;
+		for(u32 i = 0; i < 8; i++) REGs_GID_IPRIO[i] = 0xE0E0E0E0u;
 
 		REGs_GID_ICONF[0] = 0xFFFFFFFFu;
 		REGs_GID_ICONF[1] = 0xFFFFFFFFu;
