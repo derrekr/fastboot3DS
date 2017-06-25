@@ -83,7 +83,6 @@ void IRQ_init(void)
 	{
 		REGs_GID_PEN_CLR[0] = 0xFFFFFFFFu;
 
-		// TODO: This needs confirmation
 		for(u32 i = 0; i < 8; i++) REGs_GID_IPRIO[i] = 0xE0E0E0E0u;
 
 		REGs_GID_ICONF[0] = 0xFFFFFFFFu;

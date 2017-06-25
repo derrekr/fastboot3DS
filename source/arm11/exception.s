@@ -36,6 +36,7 @@ ASM_FUNC irqHandler
 	cmp r1, #32
 	ldrlo r2, =privIrqHandlerTable
 	mrclo p15, 0, r3, c0, c0, 5 @ Get CPU ID
+	andlo r3, r3, #3
 	addlo r2, r2, r3, lsl #7
 	ldrhs r2, =irqHandlerTable
 	subhs r1, r1, #32
