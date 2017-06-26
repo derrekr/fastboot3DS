@@ -24,7 +24,7 @@ bool battery_ok(void)
 	return false;
 }
 
-void power_off(void)
+noreturn void power_off(void)
 {
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
@@ -36,7 +36,7 @@ void power_off(void)
 	}
 }
 
-void power_reboot(void)
+noreturn void power_reboot(void)
 {
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();

@@ -1,64 +1,28 @@
 #include "types.h"
-#include "util.h"
 #include "arm11/hardware.h"
-#include "arm11/i2c.h"
-#include "gfx.h"
-#include "pxi.h"
 #include "arm11/interrupt.h"
-#include "arm11/gpio.h"
-#include "arm11/firm.h"
 #include "arm11/hid.h"
+#include "arm11/power.h"
+#include "arm11/i2c.h"
+#include "pxi.h"
+#include "gfx.h"
+#include "arm11/firm.h"
 
 
+bool g_poweroffAllowed = false;
+bool g_startFirmLaunch = false;
 
-extern bool battery_ok(void);
-extern void power_off(void);
-extern void power_reboot(void);
+
 
 int main(void)
 {
-	bool poweroff_allowed = false;
-
 	hardwareInit();
 
-	IRQ_registerHandler(IRQ_PXI_SYNC, 14, 0, true, NULL);
-
-	for(;;)
+	while(1)
 	{
 		waitForInterrupt();
 
-		bool successFlag;
-		u32 cmdCode = PXI_tryRecvWord(&successFlag);
-
-		// process cmd
-		if(successFlag)
-		{
-
-			switch(cmdCode)
-			{
-				case PXI_CMD_ENABLE_LCDS:
-					gfx_init();
-					PXI_sendWord(PXI_RPL_OK);
-					break;
-				case PXI_CMD_ALLOW_POWER_OFF:
-					poweroff_allowed = true;
-					break;
-				case PXI_CMD_FORBID_POWER_OFF:
-					poweroff_allowed = false;
-					break;
-				case PXI_CMD_POWER_OFF:
-					power_off();
-					break;
-				case PXI_CMD_REBOOT:
-					power_reboot();
-					break;
-				case PXI_CMD_FIRM_LAUNCH:
-					goto start_firmlaunch;
-				default:
-					break;
-			}
-		}
-
+		if(g_startFirmLaunch) break;
 
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
@@ -66,7 +30,7 @@ int main(void)
 
 		if(hidGetPowerButton())
 		{
-			if(poweroff_allowed) power_off();
+			if(g_poweroffAllowed) power_off();
 			PXI_trySendWord(PXI_RPL_POWER_PRESSED);
 		}
 
@@ -85,7 +49,6 @@ int main(void)
 			PXI_trySendWord(PXI_RPL_HOME_HELD);
 	}
 
-start_firmlaunch:
 	gfx_deinit(); // TODO: Let ARM9 decide when to deinit gfx
 
 	firm_launch();

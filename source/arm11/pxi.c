@@ -1,8 +1,13 @@
 #include "types.h"
 #include "pxi.h"
-//#include "interrupt.h"
+#include "arm11/interrupt.h"
+#include "gfx.h"
+#include "arm11/main.h"
+#include "arm11/power.h"
 
 
+
+static void pxiIrqHandler(UNUSED u32 intSource);
 
 void PXI_init(void)
 {
@@ -11,6 +16,37 @@ void PXI_init(void)
 
 	while((REG_PXI_SYNC11 & 0xFFu) != 9u);
 	REG_PXI_SYNC11 |= 11u<<8;
+
+	IRQ_registerHandler(IRQ_PXI_SYNC, 14, 0, true, pxiIrqHandler);
+}
+
+static void pxiIrqHandler(UNUSED u32 intSource)
+{
+	u32 cmdCode = PXI_recvWord();
+
+	switch(cmdCode)
+	{
+		case PXI_CMD_ENABLE_LCDS:
+			gfx_init();
+			PXI_sendWord(PXI_RPL_OK);
+			break;
+		case PXI_CMD_ALLOW_POWER_OFF:
+			g_poweroffAllowed = true;
+			break;
+		case PXI_CMD_FORBID_POWER_OFF:
+			g_poweroffAllowed = false;
+			break;
+		case PXI_CMD_POWER_OFF:
+			power_off();
+			break;
+		case PXI_CMD_REBOOT:
+			power_reboot();
+			break;
+		case PXI_CMD_FIRM_LAUNCH:
+			g_startFirmLaunch = true;
+			break;
+		default: ;
+	}
 }
 
 void PXI_sendWord(u32 val)

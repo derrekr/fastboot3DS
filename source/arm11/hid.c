@@ -16,6 +16,14 @@ static u32 kHeld, kDown, kUp, homeShellState, powerWifiState;
 
 
 
+static void hidIrqHandler(UNUSED u32 intSource);
+
+void hidInit(void)
+{
+	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
+	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
+}
+
 static void hidIrqHandler(UNUSED u32 intSource)
 {
 	const u32 state = (u32)i2cmcu_readreg_hid_irq();
@@ -28,12 +36,6 @@ static void hidIrqHandler(UNUSED u32 intSource)
 
 	homeShellState ^= (state & 8)<<18;
 	homeShellState ^= (state & 0x40)<<16;
-}
-
-void hidInit(void)
-{
-	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
-	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
 }
 
 u32 hidGetPowerButton(void)
