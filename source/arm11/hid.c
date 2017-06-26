@@ -34,8 +34,8 @@ static void hidIrqHandler(UNUSED u32 intSource)
 	homeShellState |= (state & 4)<<19;
 	homeShellState |= (state & 0x20)<<17;
 
-	homeShellState ^= (state & 8)<<18;
-	homeShellState ^= (state & 0x40)<<16;
+	if(homeShellState & 1u<<21) homeShellState ^= (state & 8)<<18;
+	if(homeShellState & 1u<<22) homeShellState ^= (state & 0x40)<<16;
 }
 
 u32 hidGetPowerButton(void)

@@ -26,11 +26,7 @@ static u32 overflows;
 
 
 
-static void timerSleepHandler(UNUSED u32 id)
-{
-	overflows--;
-	if(!overflows) REG_TIMER3_CNT = 0;
-}
+static void timerSleepHandler(UNUSED u32 id);
 
 void TIMER_init(void)
 {
@@ -64,4 +60,10 @@ void TIMER_sleep(u32 ms)
 	{
 		waitForIrq();
 	}
+}
+
+static void timerSleepHandler(UNUSED u32 id)
+{
+	overflows--;
+	if(!overflows) REG_TIMER3_CNT = 0;
 }
