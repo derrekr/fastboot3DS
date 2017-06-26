@@ -3,8 +3,8 @@
 #include "types.h"
 
 
-#define HID_KEY_MASK_ALL  ((KEY_Y << 1) - 1)
-#define HID_VERBOSE_MODE_BUTTONS	(KEY_SELECT | KEY_START)
+#define HID_KEY_MASK_ALL          ((KEY_SHELL << 1) - 1)
+#define HID_VERBOSE_MODE_BUTTONS  (KEY_SELECT | KEY_START)
 
 enum
 {
@@ -20,10 +20,15 @@ enum
 	KEY_L       = (1<<9),
 	KEY_X       = (1<<10),
 	KEY_Y       = (1<<11),
+	KEY_HOME    = (1<<21),
+	KEY_SHELL   = (1<<22)
 };
 
 
 
+void hidInit(void);
+u32 hidGetPowerButton(void);
+u32 hidGetWifiButton(void);
 void hidScanInput(void);
 u32 hidKeysHeld(void);
 u32 hidKeysDown(void);

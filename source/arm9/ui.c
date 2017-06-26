@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include "types.h"
 #include "util.h"
-#include "hid.h"
+#include "arm9/hid.h"
 #include "pxi.h"
 #include "arm9/timer.h"
 #include "arm9/main.h"

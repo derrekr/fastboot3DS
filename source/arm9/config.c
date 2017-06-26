@@ -13,7 +13,7 @@
 #include "arm9/main.h"
 #include "arm9/interrupt.h"
 #include "util.h"
-#include "hid.h"
+#include "arm9/hid.h"
 #include "arm9/debug.h"
 #include "arm9/ui.h"
 #include "arm9/config.h"

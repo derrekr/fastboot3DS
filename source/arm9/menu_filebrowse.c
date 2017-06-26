@@ -10,7 +10,7 @@
 #include "arm9/interrupt.h"
 #include "arm9/dev.h"
 #include "util.h"
-#include "hid.h"
+#include "arm9/hid.h"
 
 
 #define MAX_CACHED_ENTRIES	0x400

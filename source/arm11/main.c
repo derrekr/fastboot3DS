@@ -7,6 +7,9 @@
 #include "arm11/interrupt.h"
 #include "arm11/gpio.h"
 #include "arm11/firm.h"
+#include "arm11/hid.h"
+
+
 
 extern bool battery_ok(void);
 extern void power_off(void);
@@ -19,8 +22,6 @@ int main(void)
 	hardwareInit();
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, 14, 0, true, NULL);
-	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, NULL);
-	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
 
 	for(;;)
 	{
@@ -59,30 +60,26 @@ int main(void)
 		}
 
 
-		/* Update state, check for changes */
-		
-		u8 hidstate = i2cmcu_readreg_hid_irq();
+		hidScanInput();
+		const u32 kDown = hidKeysDown();
+		const u32 kUp = hidKeysUp();
 
-		if(hidstate & MCU_HID_POWER_BUTTON_PRESSED)
+		if(hidGetPowerButton())
 		{
-			if(poweroff_allowed)	// direct power off allowed?
-				power_off();
+			if(poweroff_allowed) power_off();
 			PXI_trySendWord(PXI_RPL_POWER_PRESSED);
 		}
 
-		if(hidstate & MCU_HID_HOME_BUTTON_PRESSED)
-			PXI_trySendWord(PXI_RPL_HOME_PRESSED);
-
-		// handle shell state
-		if(hidstate & MCU_HID_SHELL_GOT_CLOSED)
-			i2cmcu_lcd_poweroff();
-		else if(hidstate & MCU_HID_SHELL_GOT_OPENED)
+		if(kDown & KEY_HOME) PXI_trySendWord(PXI_RPL_HOME_PRESSED);
+		if(kDown & KEY_SHELL) i2cmcu_lcd_poweroff();
+		if(kUp & KEY_SHELL)
 		{
 			i2cmcu_lcd_poweron();
 			i2cmcu_lcd_backlight_poweron();
 		}
-		
-		hidstate = i2cmcu_readreg_hid_held();
+
+
+		u8 hidstate = i2cmcu_readreg_hid_held();
 		
 		if(!(hidstate & MCU_HID_HOME_BUTTON_NOT_HELD))
 			PXI_trySendWord(PXI_RPL_HOME_HELD);

@@ -2,6 +2,8 @@
 #include "util.h"
 #include "arm11/i2c.h"
 
+
+
 bool battery_ok(void)
 {
 	u8 state;

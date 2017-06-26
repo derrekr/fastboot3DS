@@ -4,20 +4,18 @@
 
 #include "mem_map.h"
 #include "types.h"
-#include "hid.h"
 
 
-#define HID_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x00046000)
-#define REG_HID_PAD    ~(*((vu32*)(HID_REGS_BASE)))
+#define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
 
 
-static u32 kOld, kHeld, kDown, kUp;
+static u32 kHeld, kDown, kUp;
 
 
 
 void hidScanInput(void)
 {
-	kOld = kHeld;
+	u32 kOld = kHeld;
 	kHeld = REG_HID_PAD;
 	kDown = (~kOld) & kHeld;
 	kUp = kOld & (~kHeld);

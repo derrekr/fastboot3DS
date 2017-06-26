@@ -5,7 +5,7 @@
 #include "mem_map.h"
 #include "arm9/dev.h"
 #include "fatfs/ff.h"
-#include "hid.h"
+#include "arm9/hid.h"
 #include "util.h"
 #include "arm9/firmwriter.h"
 #include "arm9/main.h"

@@ -5,7 +5,7 @@
 #include "types.h"
 #include "util.h"
 #include "pxi.h"
-#include "hid.h"
+#include "arm9/hid.h"
 #include "arm9/hardware.h"
 #include "fatfs/ff.h"
 #include "arm9/dev.h"

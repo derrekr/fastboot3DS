@@ -10,7 +10,7 @@
 #include "fatfs/ff.h"
 #include "fatfs/diskio.h"
 #include "arm9/fsutils.h"
-#include "hid.h"
+#include "arm9/hid.h"
 #include "arm9/main.h"
 #include "arm9/menu.h"
 #include "arm9/menu_firmloader.h"
