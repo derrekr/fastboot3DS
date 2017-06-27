@@ -40,7 +40,7 @@ void NDMA_copy(u32 *dest, const u32 *source, u32 size)
 
 	while(REG_NDMA7_CNT & NDMA_ENABLE)
 	{
-		waitForIrq();
+		waitForInterrupt();
 	}
 }
 
@@ -61,6 +61,6 @@ void NDMA_fill(u32 *dest, u32 value, u32 size)
 
 	while(REG_NDMA7_CNT & NDMA_ENABLE)
 	{
-		waitForIrq();
+		waitForInterrupt();
 	}
 }

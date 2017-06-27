@@ -44,11 +44,28 @@ typedef void (*IrqHandler)(u32 id);
 
 
 
+/**
+ * @brief      Initializes interrupts.
+ */
 void IRQ_init(void);
+
+/**
+ * @brief      Registers a interrupt handler and enables the specified interrupt.
+ *
+ * @param[in]  id       The interrupt ID. Must be <32.
+ * @param[in]  handler  The interrupt handler to call.
+ */
 void IRQ_registerHandler(Interrupt id, IrqHandler handler);
+
+/**
+ * @brief      Unregisters the interrupt handler and disables the specified interrupt.
+ *
+ * @param[in]  id    The interrupt ID. Must be <32.
+ */
 void IRQ_unregisterHandler(Interrupt id);
 
-static inline void waitForIrq(void)
+
+static inline void waitForInterrupt(void)
 {
 	__asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0));
 }

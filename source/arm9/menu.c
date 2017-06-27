@@ -345,7 +345,7 @@ int menuUpdateGlobalState(void)
 	// Later if PXI interrupts are implemented we need an
 	// interrupt handler here which can tell the timer and
 	// PXI interrupts apart.
-	if(waitForVBlank) waitForIrq();
+	if(waitForVBlank) waitForInterrupt();
 
 
 	/* Check PXI Response register */

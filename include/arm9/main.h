@@ -29,5 +29,5 @@ bootInfoStruct bootInfo;
 
 void devs_close();
 u8 rng_get_byte();
-void power_off_safe();
+noreturn void power_off_safe();
 void reboot_safe();

@@ -7,6 +7,7 @@
 #include "pxi.h"
 #include "arm9/hid.h"
 #include "arm9/hardware.h"
+#include "arm9/interrupt.h"
 #include "fatfs/ff.h"
 #include "arm9/dev.h"
 #include "arm9/fsutils.h"
@@ -268,7 +269,7 @@ u8 rng_get_byte()
 	return (u8)tmp;
 }
 
-void power_off_safe()
+noreturn void power_off_safe()
 {
 	uiClearConsoles();
 
@@ -279,7 +280,7 @@ void power_off_safe()
 	// tell the arm11 we're done
 	PXI_sendWord(PXI_CMD_POWER_OFF);
 
-	for(;;);
+	while(1) waitForInterrupt();
 }
 
 void reboot_safe()

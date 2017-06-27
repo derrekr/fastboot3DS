@@ -58,7 +58,7 @@ void TIMER_sleep(u32 ms)
 
 	while(REG_TIMER3_CNT & TIMER_ENABLE)
 	{
-		waitForIrq();
+		waitForInterrupt();
 	}
 }
 
