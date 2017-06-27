@@ -108,7 +108,7 @@ void IRQ_init(void)
 	leaveCriticalSection(); // Enables interrupts
 }
 
-void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, IrqHandler handler)
+void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, IrqHandler handler)
 {
 	enterCriticalSection();
 
@@ -132,7 +132,7 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, 
 
 	shift = (id % 16 * 2) + 1;
 	tmp = REGs_GID_ICONF[id>>4] & ~(1u<<shift);
-	REGs_GID_ICONF[id>>4] = tmp | (u32)levHighActive<<shift;
+	REGs_GID_ICONF[id>>4] = tmp | (u32)edgeTriggered<<shift;
 
 	REGs_GID_ENA_SET[id>>5] = 1u<<(id % 32);
 

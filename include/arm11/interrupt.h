@@ -58,10 +58,10 @@ void IRQ_init(void);
  * @param[in]  id             The interrupt ID. Must be <128.
  * @param[in]  prio           The priority. 0 = highest, 14 = lowest, 15 = disabled
  * @param[in]  cpuMask        The CPU mask. Each of the 4 bits stands for 1 core. 0 means current CPU.
- * @param[in]  levHighActive  Set to true to make the interrupt level high active.
+ * @param[in]  edgeTriggered  Set to true to make the interrupt edge triggered. false is level triggered.
  * @param[in]  handler        The interrupt handler to call.
  */
-void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool levHighActive, IrqHandler handler);
+void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, IrqHandler handler);
 
 /**
  * @brief      Unregisters the interrupt handler and disables the specified interrupt.
