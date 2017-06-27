@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
+#include <string.h>
 #include "types.h"
 #include "mem_map.h"
 #include "arm9/console.h"

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "types.h"
 #include "pxi.h"
 #include "arm9/interrupt.h"

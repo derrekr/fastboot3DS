@@ -1,7 +1,5 @@
 #pragma once
 
-#include "types.h"
-
 
 #define HID_KEY_MASK_ALL          ((KEY_SHELL << 1) - 1)
 #define HID_VERBOSE_MODE_BUTTONS  (KEY_SELECT | KEY_START)

@@ -4,6 +4,7 @@
  */
 
 #include <assert.h>
+#include <stdalign.h>
 #include <string.h>
 #include "mem_map.h"
 #include "types.h"

@@ -1,5 +1,6 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdnoreturn.h>
+#include <stdlib.h>
 #include <string.h>
 #include "types.h"
 // we need the arm11 mem map information

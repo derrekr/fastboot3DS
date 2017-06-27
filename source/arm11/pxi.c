@@ -1,3 +1,4 @@
+#include <stdnoreturn.h>
 #include "types.h"
 #include "pxi.h"
 #include "arm11/interrupt.h"
@@ -17,7 +18,7 @@ void PXI_init(void)
 	while((REG_PXI_SYNC11 & 0xFFu) != 9u);
 	REG_PXI_SYNC11 |= 11u<<8;
 
-	IRQ_registerHandler(IRQ_PXI_SYNC, 14, 0, true, pxiIrqHandler);
+	IRQ_registerHandler(IRQ_PXI_SYNC, 13, 0, true, pxiIrqHandler);
 }
 
 static void pxiIrqHandler(UNUSED u32 intSource)

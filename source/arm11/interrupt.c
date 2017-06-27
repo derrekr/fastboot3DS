@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/interrupt.h"
@@ -162,7 +163,7 @@ void IRQ_setPriority(Interrupt id, u8 prio)
 	leaveCriticalSection();
 }
 
-void softwareInterrupt(Interrupt id, u8 cpuMask)
+void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask)
 {
 	REG_GID_SW_INT = (u32)cpuMask<<16 | id;
 }

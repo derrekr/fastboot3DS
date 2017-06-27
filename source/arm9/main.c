@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdnoreturn.h>
 #include <stdlib.h>
 #include "mem_map.h"
 #include "types.h"

@@ -1,5 +1,4 @@
 #include "asmfunc.h"
-#include "mem_map.h"
 
 .arm
 .cpu mpcore
@@ -25,8 +24,8 @@ tmpExceptionHandler_lp:
 
 ASM_FUNC irqHandler
 	sub lr, lr, #4
-	srsfd sp!, #31              @ Store lr and spsr on system mode stack
-	cps #31                     @ Switch to system mode
+	srsfd sp!, #31               @ Store lr and spsr on system mode stack
+	cps #31                      @ Switch to system mode
 	stmfd sp!, {r0-r3, r12, lr}
 	mov r12, #0x17000000
 	orr r12, r12, #0xE00000
@@ -34,7 +33,7 @@ ASM_FUNC irqHandler
 	and r1, r0, #0x7F
 	cmp r1, #32
 	ldrlo r2, =privIrqHandlerTable
-	mrclo p15, 0, r3, c0, c0, 5 @ Get CPU ID
+	mrclo p15, 0, r3, c0, c0, 5  @ Get CPU ID
 	andlo r3, r3, #3
 	addlo r2, r2, r3, lsl #7
 	ldrhs r2, =irqHandlerTable
@@ -50,4 +49,4 @@ ASM_FUNC irqHandler
 irqHandler_skip_processing:
 	str r0, [r12, #0x110]        @ REG_CPU_II_EOI
 	ldmfd sp!, {r0-r3, r12, lr}
-	rfefd sp!                   @ Restore lr (pc) and spsr (cpsr)
+	rfefd sp!                    @ Restore lr (pc) and spsr (cpsr)

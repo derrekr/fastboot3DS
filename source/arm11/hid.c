@@ -2,8 +2,9 @@
  *  Original code from ctrulib
  */
 
-#include "mem_map.h"
 #include "types.h"
+#include "mem_map.h"
+#include "arm11/hid.h"
 #include "arm11/i2c.h"
 #include "arm11/interrupt.h"
 #include "arm11/gpio.h"
@@ -34,8 +35,8 @@ static void hidIrqHandler(UNUSED u32 intSource)
 	homeShellState |= (state & 4)<<19;
 	homeShellState |= (state & 0x20)<<17;
 
-	if(homeShellState & 1u<<21) homeShellState ^= (state & 8)<<18;
-	if(homeShellState & 1u<<22) homeShellState ^= (state & 0x40)<<16;
+	if(homeShellState & KEY_HOME) homeShellState ^= (state & 8)<<18;
+	if(homeShellState & KEY_SHELL) homeShellState ^= (state & 0x40)<<16;
 }
 
 u32 hidGetPowerButton(void)

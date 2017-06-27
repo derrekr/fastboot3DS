@@ -1,7 +1,5 @@
 #pragma once
 
-#include "types.h"
-
 
 typedef enum
 {
@@ -84,7 +82,7 @@ void IRQ_setPriority(Interrupt id, u8 prio);
  * @param[in]  id       The interrupt ID. Must be <16.
  * @param[in]  cpuMask  The CPU mask. Each of the 4 bits stands for 1 core.
  */
-void softwareInterrupt(Interrupt id, u8 cpuMask);
+void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask);
 
 
 static inline void waitForInterrupt(void)

@@ -1,15 +1,15 @@
 #pragma once
 
 #include <ctype.h>
-#include "types.h"
+
 
 #define min(a,b)	(u32) a < (u32) b ? (u32) a : (u32) b
 
 #define arrayEntries(array)	sizeof(array)/sizeof(*array)
 
 
-void wait(u32 cycles);
 
+void wait(u32 cycles);
 
 // case insensitive string compare function
 int strnicmp(const char *str1, const char *str2, u32 len);
