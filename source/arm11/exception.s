@@ -28,10 +28,9 @@ ASM_FUNC irqHandler
 	srsfd sp!, #31              @ Store lr and spsr on system mode stack
 	cps #31                     @ Switch to system mode
 	stmfd sp!, {r0-r3, r12, lr}
-	mov r1, #0x17000000
-	orr r1, r1, #0xE00000
-	ldr r0, [r1, #0x10C]        @ REG_CPU_II_AKN
-	str r0, [r1, #0x110]        @ REG_CPU_II_EOI
+	mov r12, #0x17000000
+	orr r12, r12, #0xE00000
+	ldr r0, [r12, #0x10C]        @ REG_CPU_II_AKN
 	and r1, r0, #0x7F
 	cmp r1, #32
 	ldrlo r2, =privIrqHandlerTable
@@ -43,9 +42,12 @@ ASM_FUNC irqHandler
 	ldr r3, [r2, r1, lsl #2]
 	cmp r3, #0
 	beq irqHandler_skip_processing
+	stmfd sp!, {r0, r12}
 	cpsie i
 	blx r3
 	cpsid i
+	ldmfd sp!, {r0, r12}
 irqHandler_skip_processing:
+	str r0, [r12, #0x110]        @ REG_CPU_II_EOI
 	ldmfd sp!, {r0-r3, r12, lr}
 	rfefd sp!                   @ Restore lr (pc) and spsr (cpsr)
