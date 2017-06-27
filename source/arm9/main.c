@@ -17,6 +17,7 @@
 #include "arm9/menu.h"
 #include "arm9/main.h"
 #include "arm9/start.h"
+#include "cache.h"
 
 static void initWifiFlash(void);
 static u32  mount_fs(void);
@@ -278,7 +279,8 @@ noreturn void power_off_safe()
 	fsUnmountAll();
 	devs_close();
 
-	deinitCpu();
+	flushDCache();
+	__asm__ __volatile__("msr cpsr_c, #0xDF" : :); // System mode, interrupts disabled
 
 	// tell the arm11 we're done
 	PXI_sendWord(PXI_CMD_POWER_OFF);
@@ -286,18 +288,18 @@ noreturn void power_off_safe()
 	while(1) waitForInterrupt();
 }
 
-void reboot_safe()
+noreturn void reboot_safe()
 {
-	wait(0x100000);
-	
 	uiClearConsoles();
-
 	uiPrintIfVerbose("Attempting to reboot...\n");
 
 	fsUnmountAll();
 	devs_close();
-	
+
+	flushDCache();
+	__asm__ __volatile__("msr cpsr_c, #0xDF" : :); // System mode, interrupts disabled
+
 	PXI_sendWord(PXI_CMD_REBOOT);
 
-	for(;;);
+	while(1) waitForInterrupt();
 }
