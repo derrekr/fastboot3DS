@@ -1,6 +1,8 @@
 #include "types.h"
 #include "util.h"
 #include "arm11/i2c.h"
+#include "arm11/start.h"
+#include "arm11/interrupt.h"
 
 
 
@@ -28,22 +30,22 @@ noreturn void power_off(void)
 {
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
-	
-	for(;;)
-	{
-		i2c_writeregdata(3, 0x20, 1u);
-		wait(0x200000);
-	}
+
+	deinitCpu();
+
+	i2c_writeregdata(3, 0x20, 1u);
+
+	while(1) waitForInterrupt();
 }
 
 noreturn void power_reboot(void)
 {
 	i2cmcu_lcd_poweroff();
 	i2cmcu_lcd_backlight_poweroff();
-	
-	for(;;)
-	{
-		i2c_writeregdata(3, 0x20, 1u << 2);
-		wait(0x200000);
-	}
+
+	deinitCpu();
+
+	i2c_writeregdata(3, 0x20, 1u << 2);
+
+	while(1) waitForInterrupt();
 }

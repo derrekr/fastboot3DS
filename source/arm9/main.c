@@ -16,6 +16,7 @@
 #include "arm9/timer.h"
 #include "arm9/menu.h"
 #include "arm9/main.h"
+#include "arm9/start.h"
 
 static void initWifiFlash(void);
 static u32  mount_fs(void);
@@ -272,11 +273,13 @@ u8 rng_get_byte()
 noreturn void power_off_safe()
 {
 	uiClearConsoles();
-
 	uiPrintIfVerbose("Attempting to turn off...\n");
 
 	fsUnmountAll();
 	devs_close();
+
+	deinitCpu();
+
 	// tell the arm11 we're done
 	PXI_sendWord(PXI_CMD_POWER_OFF);
 
