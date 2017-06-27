@@ -1,4 +1,5 @@
 #include "asmfunc.h"
+#include "mem_map.h"
 
 .arm
 .cpu mpcore

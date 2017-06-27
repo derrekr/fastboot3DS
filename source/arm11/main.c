@@ -1,4 +1,3 @@
-#include <stdnoreturn.h>
 #include "types.h"
 #include "arm11/hardware.h"
 #include "arm11/interrupt.h"

@@ -1,8 +1,5 @@
-#include <string.h>
-#include "types.h"
 #include "util.h"
-
-
+#include <string.h>
 
 void wait(u32 cycles)
 {

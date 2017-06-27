@@ -1,4 +1,3 @@
-#include <stdnoreturn.h>
 #include "types.h"
 #include "util.h"
 #include "arm11/i2c.h"

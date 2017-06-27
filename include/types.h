@@ -1,8 +1,11 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdalign.h>    // alignas(alignment_in_bytes)
+#include <stdnoreturn.h> // noreturn keyword
 
 
 

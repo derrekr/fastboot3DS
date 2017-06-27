@@ -1,4 +1,3 @@
-#include <stdnoreturn.h>
 #include "types.h"
 #include "pxi.h"
 #include "arm11/interrupt.h"

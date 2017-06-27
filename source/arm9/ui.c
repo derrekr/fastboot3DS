@@ -1,8 +1,7 @@
-#include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdnoreturn.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
 #include "types.h"
 #include "util.h"
 #include "arm9/hid.h"

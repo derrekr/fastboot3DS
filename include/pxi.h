@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mem_map.h"
+#include "types.h"
 
 
 #ifdef ARM9
