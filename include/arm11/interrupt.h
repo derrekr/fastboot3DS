@@ -21,6 +21,7 @@ typedef enum
 	IRQ_MPCORE_SW13   = 13,
 	IRQ_MPCORE_SW14   = 14,
 	IRQ_MPCORE_SW15   = 15,
+	IRQ_TIMER         = 29,  // MPCore timer
 	IRQ_PSC0          = 40,  // Unconfirmed
 	IRQ_PSC1          = 41,  // Unconfirmed
 	IRQ_PDC0          = 42,  // aka VBlank0
@@ -35,7 +36,7 @@ typedef enum
 	IRQ_SHELL_CLOSED  = 98,
 	IRQ_TOUCHSCREEN   = 99,  // Triggers on hitting the touchscreen.
 	IRQ_HEADPH_JACK   = 100, // Headphone jack. Triggers on both plugging in and out? GPIO reg 9, bit 8.
-	IRQ_MCU_HID       = 113, // HOME/POWER pressed/released or shell opened/closed. GPIO reg 19, bit 9.
+	IRQ_MCU_HID       = 113, // HOME/POWER pressed/released, shell opened/closed and WiFi switch pressed. GPIO reg 19, bit 9.
 	IRQ_GAMECARD      = 117  // Gamecard inserted
 } Interrupt;
 
