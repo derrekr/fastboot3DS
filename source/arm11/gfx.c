@@ -5,11 +5,11 @@
  * Credits go to the Luma3DS devs and derrek for reverse engineering boot11.
 */
 
-#include "mem_map.h"
 #include "types.h"
-#include "util.h"
-#include "arm11/i2c.h"
+#include "mem_map.h"
 #include "gfx.h"
+#include "arm11/i2c.h"
+#include "arm11/timer.h"
 
 
 #define PDN_REGS_BASE            (IO_MEM_ARM9_ARM11 + 0x40000)
@@ -156,7 +156,7 @@ void gfx_init(void)
 	//gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB,
 	//                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	i2c_writeregdata(3, 0x22, 0x2A);
-	wait(30000000);
+	TIMER_sleepMs(3);
 }
 
 void gfx_deinit()
