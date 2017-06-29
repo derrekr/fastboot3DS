@@ -10,6 +10,7 @@
 #include "gfx.h"
 #include "arm11/i2c.h"
 #include "arm11/timer.h"
+#include "arm11/interrupt.h"
 
 
 #define PDN_REGS_BASE            (IO_MEM_ARM9_ARM11 + 0x40000)
@@ -156,7 +157,12 @@ void gfx_init(void)
 	//gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB,
 	//                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	i2c_writeregdata(3, 0x22, 0x2A);
+
+	// We must make sure the I2C bus is not used until this finishes
+	// otherwise the screens may not turn on on New 3DS.
+	enterCriticalSection();
 	TIMER_sleepMs(3);
+	leaveCriticalSection();
 }
 
 void gfx_deinit()

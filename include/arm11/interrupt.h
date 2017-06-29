@@ -22,8 +22,8 @@ typedef enum
 	IRQ_MPCORE_SW14   = 14,
 	IRQ_MPCORE_SW15   = 15,
 	IRQ_TIMER         = 29,  // MPCore timer
-	IRQ_PSC0          = 40,  // Unconfirmed
-	IRQ_PSC1          = 41,  // Unconfirmed
+	IRQ_PSC0          = 40,
+	IRQ_PSC1          = 41,
 	IRQ_PDC0          = 42,  // aka VBlank0
 	IRQ_PDC1          = 43,  // aka VBlank1
 	IRQ_PPF           = 44,  // Unconfirmed
