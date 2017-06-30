@@ -113,22 +113,20 @@ static void gfx_setup_framebuf_low()
 	}
 }
 
-void gfx_clear_screens(u64 *framebufs1, u32 framebufs1Size, u64 *framebufs2, u32 framebufs2Size)
+void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 buf1v, u32 buf1Sz, u32 val1)
 {
 	vu32 *REGs_PSC0 = (vu32*)0x10400010;
 	vu32 *REGs_PSC1 = (vu32*)0x10400020;
 
-	REGs_PSC0[0] = (u32)framebufs1>>3; // Start address
-	REGs_PSC0[1] = ((u32)framebufs1 + framebufs1Size)>>3; // End address 
-	REGs_PSC0[2] = 0; // Fill value
-	REGs_PSC0[3] = (2u<<8) | 1u; // 32-bit pattern; start
+	REGs_PSC0[0] = (u32)buf0a>>3;            // Start address
+	REGs_PSC0[1] = ((u32)buf0a + buf0Sz)>>3; // End address 
+	REGs_PSC0[2] = val0;                     // Fill value
+	REGs_PSC0[3] = buf0v | 1u;               // Pattern + start
 
-	REGs_PSC1[0] = (u32)framebufs2>>3; // Start address
-	REGs_PSC1[1] = ((u32)framebufs2 + framebufs2Size)>>3; // End address
-	REGs_PSC1[2] = 0; //Fill value
-	REGs_PSC1[3] = (2u<<8) | 1u; //32-bit pattern; start
-
-	while(!(REGs_PSC0[3] & 2 || REGs_PSC1[3] & 2));
+	REGs_PSC1[0] = (u32)buf1a>>3;            // Start address
+	REGs_PSC1[1] = ((u32)buf1a + buf1Sz)>>3; // End address
+	REGs_PSC1[2] = val1;                     // Fill value
+	REGs_PSC1[3] = buf1v | 1u;               // Pattern + start
 }
 
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
@@ -160,11 +158,11 @@ void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 
 void gfx_swapFramebufs(void)
 {
-	static u32 activeFb = 0;
+	static u8 activeFb = 0;
 	activeFb ^= 1;
 
-	*((vu32*)(0x10400400+0x78)) = (*((vu32*)(0x10400400+0x78)) & 0xFFFFFFFE) | activeFb;
-	*((vu32*)(0x10400500+0x78)) = (*((vu32*)(0x10400500+0x78)) & 0xFFFFFFFE) | activeFb;
+	*((vu32*)(0x10400400+0x78)) = activeFb;
+	*((vu32*)(0x10400500+0x78)) = activeFb;
 }
 
 static void vblankIrqHandler(UNUSED u32 intSource)
@@ -177,6 +175,8 @@ void gfx_init(void)
 	REG_PDN_GPU_CNT = 0x1007F;
 	*((vu32*)0x10202014) = 0x00000001;
 	*((vu32*)0x1020200C) &= 0xFFFEFFFE;
+	REG_LCD_COLORFILL_MAIN = 1u<<24;
+	REG_LCD_COLORFILL_SUB = 1u<<24;
 	REG_LCD_BACKLIGHT_MAIN = 0x30;
 	REG_LCD_BACKLIGHT_SUB = 0x30;
 	*((vu32*)0x10202244) = 0x1023E;
@@ -186,8 +186,8 @@ void gfx_init(void)
 	gfx_setup_framebuf_low();
 
 	// The GPU mem fill races against the console.
-	//gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB,
-	//                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	//GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
+	//              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
 	i2c_writeregdata(3, 0x22, 0x2A);
 
 	// We must make sure the I2C bus is not used until this finishes
@@ -198,6 +198,9 @@ void gfx_init(void)
 
 	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, vblankIrqHandler);
 	gfx_swapFramebufs();
+
+	REG_LCD_COLORFILL_MAIN = 0;
+	REG_LCD_COLORFILL_SUB = 0;
 }
 
 void gfx_deinit()
@@ -215,8 +218,8 @@ void gfx_deinit()
 	IRQ_unregisterHandler(IRQ_PDC0);
 
 	// Temporary Luma workaround
-	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300,
-	                  (u64*)FRAMEBUF_SUB_A_2, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300);
+	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,
+	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0);
 	*((vu32*)(0x10400400+0x70)) = 0x00080341;
 	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;
 	*((vu32*)(0x10400500+0x70)) = 0x00080301;
