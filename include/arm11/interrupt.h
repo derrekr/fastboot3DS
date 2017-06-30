@@ -26,7 +26,7 @@ typedef enum
 	IRQ_PSC1          = 41,
 	IRQ_PDC0          = 42,  // aka VBlank0
 	IRQ_PDC1          = 43,  // aka VBlank1
-	IRQ_PPF           = 44,  // Unconfirmed
+	IRQ_PPF           = 44,
 	IRQ_P3D           = 45,  // This is a guess
 	IRQ_PXI_SYNC      = 80,
 	IRQ_PXI_UNK       = 81,  // Unknown what this is for

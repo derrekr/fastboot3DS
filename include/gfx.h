@@ -22,6 +22,7 @@
 
 #ifdef ARM11
 void gfx_clear_screens(u64 *framebufs1, u32 framebufs1Size, u64 *framebufs2, u32 framebufs2Size);
+void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size, u32 flags);
 void gfx_swapFramebufs(void);
 void gfx_init();
 void gfx_deinit();
