@@ -131,19 +131,30 @@ void gfx_clear_screens(u64 *framebufs1, u32 framebufs1Size, u64 *framebufs2, u32
 	while(!(REGs_PSC0[3] & 2 || REGs_PSC1[3] & 2));
 }
 
-void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size, u32 flags)
+void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
 {
 	vu32 *REGs_TE = (vu32*)0x10400C00;
 
 	REGs_TE[0] = (u32)in>>3;
 	REGs_TE[1] = (u32)out>>3;
-	REGs_TE[4] = flags | 1u<<3;
+	REGs_TE[2] = indim;
+	REGs_TE[3] = outdim;
+	REGs_TE[4] = flags;
 	REGs_TE[5] = 0;
+	REGs_TE[6] = 1;
+}
 
+void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
+{
+	vu32 *REGs_TE = (vu32*)0x10400C00;
+
+	REGs_TE[0] = (u32)in>>3;
+	REGs_TE[1] = (u32)out>>3;
+	REGs_TE[4] = 1u<<3;
+	REGs_TE[5] = 0;
 	REGs_TE[8] = size;
 	REGs_TE[9] = indim;
 	REGs_TE[10] = outdim;
-
 	REGs_TE[6] = 1;
 }
 
@@ -158,7 +169,7 @@ void gfx_swapFramebufs(void)
 
 static void vblankIrqHandler(UNUSED u32 intSource)
 {
-	GX_textureCopy((u64*)FRAMEBUF_TOP_A_1, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
+	GX_textureCopy((u64*)FRAMEBUF_TOP_A_1, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 }
 
 void gfx_init(void)
