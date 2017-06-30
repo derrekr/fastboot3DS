@@ -18,12 +18,9 @@ int main(void)
 {
 	hardwareInit();
 
-	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, NULL);
-
 	while(1)
 	{
 		waitForInterrupt();
-		GX_textureCopy((u64*)FRAMEBUF_TOP_A_1, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
 
 		if(g_startFirmLaunch) break;
 

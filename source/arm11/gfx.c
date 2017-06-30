@@ -128,7 +128,7 @@ void gfx_clear_screens(u64 *framebufs1, u32 framebufs1Size, u64 *framebufs2, u32
 	REGs_PSC1[2] = 0; //Fill value
 	REGs_PSC1[3] = (2u<<8) | 1u; //32-bit pattern; start
 
-	while(REGs_PSC0[3] & 2 || REGs_PSC1[3] & 2);
+	while(!(REGs_PSC0[3] & 2 || REGs_PSC1[3] & 2));
 }
 
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size, u32 flags)
@@ -156,6 +156,11 @@ void gfx_swapFramebufs(void)
 	*((vu32*)(0x10400500+0x78)) = (*((vu32*)(0x10400500+0x78)) & 0xFFFFFFFE) | activeFb;
 }
 
+static void vblankIrqHandler(UNUSED u32 intSource)
+{
+	GX_textureCopy((u64*)FRAMEBUF_TOP_A_1, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
+}
+
 void gfx_init(void)
 {
 	REG_PDN_GPU_CNT = 0x1007F;
@@ -180,6 +185,7 @@ void gfx_init(void)
 	TIMER_sleepMs(3);
 	leaveCriticalSection();
 
+	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, vblankIrqHandler);
 	gfx_swapFramebufs();
 }
 
@@ -194,6 +200,8 @@ void gfx_deinit()
 	*(vu32*)0x10202014 = 0;
 
 	REG_PDN_GPU_CNT = 1;*/
+
+	IRQ_unregisterHandler(IRQ_PDC0);
 
 	// Temporary Luma workaround
 	gfx_clear_screens((u64*)FRAMEBUF_TOP_A_1, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300,
