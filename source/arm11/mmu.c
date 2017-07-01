@@ -1,7 +1,14 @@
 #include "types.h"
-#include "arm11/start.h"
 #include "mem_map.h"
+#include "arm11/start.h"
 
+
+
+#define SCU_REGS_BASE      (MPCORE_PRIV_REG_BASE)
+#define REG_SCU_CNT        *((vu32*)(SCU_REGS_BASE + 0x00))
+#define REG_SCU_CONFIG     *((vu32*)(SCU_REGS_BASE + 0x04))
+#define REG_SCU_CPU_STAT   *((vu32*)(SCU_REGS_BASE + 0x08))
+#define REG_SCU_INVAL_TAG  *((vu32*)(SCU_REGS_BASE + 0x0C))
 
 
 // Mem permissions
@@ -33,8 +40,6 @@
 #define L1_TO_L2(attr)                         ((attr>>6 | attr) & 0x73)
 
 
-
-extern u32 __start__[];
 
 /**
  * @brief      Maps up to 4096 1 MB sections of memory.
@@ -94,34 +99,39 @@ void setupMmu(void)
 	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 1" : : "r" (0u));
 
 
-	// Clear L1 and L2 tables
-	clearMem((u32*)A11_MMU_TABLES_BASE, 0x4C00u);
+	if(!getCpuId())
+	{
+		// Clear L1 and L2 tables
+		clearMem((u32*)A11_MMU_TABLES_BASE, 0x4C00u);
 
-	// IO mem mapping
-	mmuMapSections(IO_MEM_ARM9_ARM11, IO_MEM_ARM9_ARM11, 4, true,
-	               PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_SHARED_DEVICE);
+		// IO mem mapping
+		mmuMapSections(IO_MEM_ARM9_ARM11, IO_MEM_ARM9_ARM11, 4, true,
+		               PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_SHARED_DEVICE);
 
-	// MPCore private region mapping
-	mmuMapPages(MPCORE_PRIV_REG_BASE, MPCORE_PRIV_REG_BASE, 2,
-	            (u32*)(A11_MMU_TABLES_BASE + 0x4000u), false, PERM_PRIV_RW_USR_NO_ACC,
-	            1, true, L1_TO_L2(ATTR_NONSHARED_DEVICE));
+		// MPCore private region mapping
+		mmuMapPages(MPCORE_PRIV_REG_BASE, MPCORE_PRIV_REG_BASE, 2,
+		            (u32*)(A11_MMU_TABLES_BASE + 0x4000u), false, PERM_PRIV_RW_USR_NO_ACC,
+		            1, true, L1_TO_L2(ATTR_NONSHARED_DEVICE));
 
-	// VRAM mapping
-	mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
+		// VRAM mapping
+		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
 
-	// AXIWRAM MMU table mapping
-	mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
-	            PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
+		// AXIWRAM MMU table mapping
+		mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
+		            PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
 
-	// Remaining AXIWRAM pages
-	mmuMapPages(AXIWRAM_BASE + 0x5000u, AXIWRAM_BASE + 0x5000u, 123,
-	            (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
-	            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		// Remaining AXIWRAM pages
+		mmuMapPages(AXIWRAM_BASE + 0x5000u, AXIWRAM_BASE + 0x5000u, 123,
+		            (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
-	// Map boot11 mirror to loader executable start (exception vectors)
-	mmuMapPages(BOOT11_MIRROR2, (u32)__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
-	            PERM_PRIV_RO_USR_NO_ACC, 1, false,
-	            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		extern u32 __start__[];
+
+		// Map fastboot executable start to boot11 mirror (exception vectors)
+		mmuMapPages(BOOT11_MIRROR2, (u32)__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
+		            PERM_PRIV_RO_USR_NO_ACC, 1, false,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+	}
 
 
 	// Invalidate TLB (Unified TLB operation) + Data Synchronization Barrier
@@ -129,11 +139,11 @@ void setupMmu(void)
 	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
 
 
-	// Invalidate tag RAMs before enabling SMP like recommended by the MPCore docs
-	((vu32*)MPCORE_PRIV_REG_BASE)[0] = 0u;      // disable SCU
-	((vu32*)MPCORE_PRIV_REG_BASE)[3] = 0xFFFFu; // Invalidate alll SCU tag RAMs of all CPUs
-	((vu32*)MPCORE_PRIV_REG_BASE)[0] = 0x3FFFu; // Enable SCU and parity checking. All CPUs can access SCU regs
-	                                            // and CPU interrupt/peripheral interfaces.
+	// Invalidate tag RAMs before enabling SMP as recommended by the MPCore doc.
+	// TODO: SMP mode needs to be enabled with all cores running. This is not correct as is.
+	REG_SCU_CNT = 0x1FFE;        // Disable SCU and parity checking. Access to all CPUs interfaces.
+	REG_SCU_INVAL_TAG = 0xFFFF;  // Invalidate SCU tag RAMs of all CPUs.
+	REG_SCU_CNT |= 0x2001u;      // Enable SCU and parity checking.
 
 
 	u32 tmp;
