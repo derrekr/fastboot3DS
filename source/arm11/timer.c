@@ -39,7 +39,7 @@ void TIMER_sleepTicks(u32 ticks)
 
 	while(REG_TIMER_COUNTER)
 	{
-		waitForInterrupt();
+		waitForEvent();
 	}
 
 	REG_TIMER_INT_STAT = 1;

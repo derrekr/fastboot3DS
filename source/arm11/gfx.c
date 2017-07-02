@@ -192,9 +192,7 @@ void gfx_init(void)
 
 	// We must make sure the I2C bus is not used until this finishes
 	// otherwise the screens may not turn on on New 3DS.
-	enterCriticalSection();
 	TIMER_sleepMs(3);
-	leaveCriticalSection();
 
 	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, vblankIrqHandler);
 	gfx_swapFramebufs();
