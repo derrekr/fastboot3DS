@@ -76,7 +76,10 @@ _start:
 	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
 
-	bl stubExceptionVectors     @ Stub the vectors in AXIWRAM bootrom vectors jump to
+	mrc p15, 0, r4, c0, c0, 5   @ Get CPU ID
+	ands r4, r4, #3
+
+	bleq stubExceptionVectors   @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
 	mov sp, #0                  @ SVC mode sp (unused, aborts)
 	cpsid aif, #23              @ Abort mode
@@ -88,7 +91,11 @@ _start:
 	cpsid aif, #18              @ IRQ mode
 	mov sp, #0                  @ IRQ mode stack is not needed
 	cpsid aif, #31              @ System mode
-	ldr sp, =A11_STACK_END
+	adr r2, _sysmode_stacks
+	ldr sp, [r2, r4, lsl #2]
+
+	cmp r4, #0
+	bne _start_skip_bss_init_array
 
 	@ Clear bss section
 	ldr r0, =__bss_start__
@@ -96,20 +103,36 @@ _start:
 	sub r1, r1, r0
 	bl clearMem
 
+	blx __libc_init_array       @ Initialize ctors and dtors
+
+	@ Wakeup core 1.
+	ldr r0, =0x1FFFFFDC
+	ldr r1, =(MPCORE_PRIV_REG_BASE + 0x1F00)
+	adr r2, _start
+	str r2, [r0]
+	mov r3, #1<<17
+	orr r3, r3, #1
+	str r3, [r1]
+
+_start_skip_bss_init_array:
 	blx setupMmu
 	bl setupVfp
 	clrex
 	cpsie a
 
-	blx __libc_init_array      @ Initialize ctors and dtors
-
-	mov r0, #0                 @ argc
-	mov r1, #0                 @ argv
+	mov r0, #0                  @ argc
+	mov r1, #0                  @ argv
 	blx main
-	fail_loop:
+	_start_lp:
 		wfi
-		b fail_loop
+		b _start_lp
 .pool
+_sysmode_stacks:
+	.word A11_STACK_END
+	.word (VRAM_BASE + VRAM_SIZE) @ Stack for core 1 for now.
+	                              @ Since we don't use core 1 this should be ok
+	.word 0
+	.word 0
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))

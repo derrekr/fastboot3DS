@@ -1,7 +1,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/start.h"
-
+#include "arm11/interrupt.h"
 
 
 #define SCU_REGS_BASE      (MPCORE_PRIV_REG_BASE)
@@ -9,6 +9,7 @@
 #define REG_SCU_CONFIG     *((vu32*)(SCU_REGS_BASE + 0x04))
 #define REG_SCU_CPU_STAT   *((vu32*)(SCU_REGS_BASE + 0x08))
 #define REG_SCU_INVAL_TAG  *((vu32*)(SCU_REGS_BASE + 0x0C))
+
 
 
 // Mem permissions
@@ -99,6 +100,7 @@ void setupMmu(void)
 	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 1" : : "r" (0u));
 
 
+	static volatile bool syncFlag = false;
 	if(!getCpuId())
 	{
 		// Clear L1 and L2 tables
@@ -131,19 +133,21 @@ void setupMmu(void)
 		mmuMapPages(BOOT11_MIRROR2, (u32)__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
 		            PERM_PRIV_RO_USR_NO_ACC, 1, false,
 		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+
+		// Invalidate tag RAMs before enabling SMP as recommended by the MPCore doc.
+		REG_SCU_CNT = 0x1FFE;        // Disable SCU and parity checking. Access to all CPUs interfaces.
+		REG_SCU_INVAL_TAG = 0xFFFF;  // Invalidate SCU tag RAMs of all CPUs.
+		REG_SCU_CNT |= 0x2001u;      // Enable SCU and parity checking.
+
+		syncFlag = true;
+		signalEvent();
 	}
+	else while(!syncFlag) waitForEvent();
 
 
 	// Invalidate TLB (Unified TLB operation) + Data Synchronization Barrier
 	__asm__ __volatile__("mcr p15, 0, %0, c8, c7, 0\n\t"
 	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
-
-
-	// Invalidate tag RAMs before enabling SMP as recommended by the MPCore doc.
-	// TODO: SMP mode needs to be enabled with all cores running. This is not correct as is.
-	REG_SCU_CNT = 0x1FFE;        // Disable SCU and parity checking. Access to all CPUs interfaces.
-	REG_SCU_INVAL_TAG = 0xFFFF;  // Invalidate SCU tag RAMs of all CPUs.
-	REG_SCU_CNT |= 0x2001u;      // Enable SCU and parity checking.
 
 
 	u32 tmp;
