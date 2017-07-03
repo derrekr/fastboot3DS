@@ -95,11 +95,11 @@ _start:
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main
-	fail_loop:
+	_start_lp:
 		mov r0, #0
 		@ Wait for interrupt
 		mcr p15, 0, r0, c7, c0, 4
-		b fail_loop
+		b _start_lp
 .pool
 
 

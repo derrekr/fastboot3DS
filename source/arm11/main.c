@@ -18,11 +18,9 @@ int main(void)
 {
 	hardwareInit();
 
-	while(1)
+	while(!g_startFirmLaunch)
 	{
 		waitForInterrupt();
-
-		if(g_startFirmLaunch) break;
 
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
