@@ -9,8 +9,8 @@
 #include "arm11/firm.h"
 
 
-bool g_poweroffAllowed = false;
-bool g_startFirmLaunch = false;
+volatile bool g_poweroffAllowed = false;
+volatile bool g_startFirmLaunch = false;
 
 
 

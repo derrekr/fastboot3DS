@@ -10,6 +10,7 @@
 
 
 #define PACKED   __attribute__((packed))
+#define USED     __attribute__((used))
 #define UNUSED   __attribute__((unused))
 #define NAKED    __attribute__((naked))
 

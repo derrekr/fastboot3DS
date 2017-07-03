@@ -32,17 +32,17 @@ endif
 #---------------------------------------------------------------------------------
 ARCH	:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -marm -mthumb-interwork
 
-CFLAGS	:= $(ARCH) -std=c11 -O2 -g -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
+CFLAGS	:= $(ARCH) -std=c11 -O2 -g -flto -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
 			-ffast-math -ffunction-sections -Wall -Wextra
 CFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-CXXFLAGS	:=	$(ARCH) -std=c11 -O2 -g -fno-rtti -fno-exceptions -fstrict-aliasing \
+CXXFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -fno-rtti -fno-exceptions -fstrict-aliasing \
 				-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections -Wall -Wextra
 CXXFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-ASFLAGS	:=	$(ARCH) -g $(INCLUDE) $(DEFINES)
+ASFLAGS	:=	$(ARCH) -g -flto $(INCLUDE) $(DEFINES)
 
-LDFLAGS	=	$(ARCH) -g -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
+LDFLAGS	=	$(ARCH) -g -flto -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project

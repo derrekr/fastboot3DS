@@ -1,4 +1,4 @@
 #pragma once
 
-extern bool g_poweroffAllowed;
-extern bool g_startFirmLaunch;
+extern volatile bool g_poweroffAllowed;
+extern volatile bool g_startFirmLaunch;
