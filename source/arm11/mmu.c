@@ -166,7 +166,7 @@ void setupMmu(void)
 	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
 
 	// Invalidate all caches + Data Synchronization Barrier
-	__asm__ __volatile__("mcr p15, 0, %0, c7, c5, 4\n\t"
-	                     "mcr p15, 0, %0, c7, c7, 0\n\t"
+	__asm__ __volatile__("mcr p15, 0, %0, c7, c7, 0\n\t"
+	                     "mcr p15, 0, %0, c7, c5, 4\n\t"
 	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
 }
