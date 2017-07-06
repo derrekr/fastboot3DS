@@ -116,7 +116,7 @@ else
 # main targets
 #---------------------------------------------------------------------------------
 $(OUTPUT).bin	:	$(OUTPUT).elf
-	@$(OBJCOPY) -O binary $< $@
+	@$(OBJCOPY) --gap-fill 0xFF -O binary $< $@
 	@echo built ... $(notdir $@)
 
 $(OUTPUT).elf	:	$(OFILES)
