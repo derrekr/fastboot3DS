@@ -115,6 +115,8 @@ _start:
 	str r3, [r1]
 
 _start_skip_bss_init_array:
+	ldr r2, =0xFFFF70F
+	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
 	blx setupMmu
 	bl setupVfp
 	clrex

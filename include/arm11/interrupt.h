@@ -22,6 +22,7 @@ typedef enum
 	IRQ_MPCORE_SW14   = 14,
 	IRQ_MPCORE_SW15   = 15,
 	IRQ_TIMER         = 29,  // MPCore timer
+	IRQ_WATCHDOG      = 30,  // MPCore watchdog
 	IRQ_PSC0          = 40,
 	IRQ_PSC1          = 41,
 	IRQ_PDC0          = 42,  // aka VBlank0
