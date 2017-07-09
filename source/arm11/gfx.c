@@ -188,7 +188,7 @@ void gfx_init(void)
 	// The GPU mem fill races against the console.
 	//GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
 	//              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
-	i2c_writeregdata(3, 0x22, 0x2A);
+	I2C_writeReg(I2C_DEV_MCU, 0x22, 0x2A);
 
 	// We must make sure the I2C bus is not used until this finishes
 	// otherwise the screens may not turn on on New 3DS.
