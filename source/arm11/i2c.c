@@ -19,6 +19,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/i2c.h"
+#include "arm11/interrupt.h"
 
 
 #define I2C1_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x61000)
@@ -152,6 +153,7 @@ void I2C_init(void)
 
 bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 {
+	enterCriticalSection(); // TODO: Instead of blocking other interrupts we need locks.
 	const u8 busId = i2cDevTable[devId].busId;
 	vu8 *const i2cData = i2cGetBusRegsBase(busId);
 	vu8 *const i2cCnt  = i2cData + 1;
@@ -170,11 +172,13 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 	i2cWaitBusy(i2cCnt);
 	*out = *i2cData; // Last byte
 
+	leaveCriticalSection();
 	return true;
 }
 
 bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data)
 {
+	enterCriticalSection(); // TODO: Instead of blocking other interrupts we need locks.
 	const u8 busId = i2cDevTable[devId].busId;
 	vu8 *const i2cData = i2cGetBusRegsBase(busId);
 	vu8 *const i2cCnt  = i2cData + 1;
@@ -192,6 +196,7 @@ bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data)
 		return false;
 	}
 
+	leaveCriticalSection();
 	return true;
 }
 
