@@ -216,17 +216,10 @@ void gfx_deinit()
 	IRQ_unregisterHandler(IRQ_PDC0);
 
 	// Temporary Luma workaround
-	GX_memoryFill((u64*)0x18300000, 1u<<9, (400 * 240 * 3) + (320 * 240 * 3), 0,
-	              (u64*)0x18400000, 1u<<9, (400 * 240 * 3) + (320 * 240 * 3), 0);
-	*((vu32*)(0x10400400+0x68)) = 0x18300000;
-	*((vu32*)(0x10400400+0x6C)) = 0x18400000;
+	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,
+	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0);
 	*((vu32*)(0x10400400+0x70)) = 0x00080341;
 	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;
-	*((vu32*)(0x10400400+0x94)) = 0x18300000;
-	*((vu32*)(0x10400400+0x98)) = 0x18400000;
-
-	*((vu32*)(0x10400500+0x68)) = 0x18346500;
-	*((vu32*)(0x10400500+0x6C)) = 0x18446500;
 	*((vu32*)(0x10400500+0x70)) = 0x00080301;
 	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3;
 }
