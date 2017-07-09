@@ -2,6 +2,7 @@
 #include "arm11/start.h"
 #include "arm11/interrupt.h"
 #include "arm11/timer.h"
+#include "arm11/i2c.h"
 #include "pxi.h"
 #include "arm11/hid.h"
 
@@ -14,6 +15,7 @@ void hardwareInit(void)
 
 	if(!getCpuId())
 	{
+		I2C_init();
 		PXI_init();
 		hidInit();
 	}

@@ -50,6 +50,7 @@ typedef enum
 
 
 
+void I2C_init(void);
 bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size);
 bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data);
 
