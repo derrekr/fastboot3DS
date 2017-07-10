@@ -84,7 +84,7 @@ static vu8* i2cGetBusRegsBase(u8 busId)
 	return base;
 }
 
-static bool i2cStartTransfer(u8 devId, u8 regAddr, bool read, vu8 *regsBase)
+static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, vu8 *regsBase)
 {
 	const u8 devAddr = i2cDevTable[devId].devAddr;
 	vu8 *const i2cData = regsBase;
