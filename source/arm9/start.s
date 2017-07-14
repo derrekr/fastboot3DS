@@ -82,10 +82,6 @@ _start:
 	bl setupMpu
 
 	@ Setup newlib heap
-	ldr r0, =(__end__ + 12)     @ Do not overwrite the value at symbol __end__
-	bic r0, r0, #7              @ Align to 8 bytes
-	ldr r1, =fake_heap_start
-	str r0, [r1]
 	mov r0, #A9_HEAP_END
 	ldr r1, =fake_heap_end
 	str r0, [r1]
