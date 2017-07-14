@@ -1,3 +1,21 @@
+/*
+ *   This file is part of fastboot 3DS
+ *   Copyright (C) 2017 derrek, profi200
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -10,17 +28,17 @@
 #include "arm9/main.h"
 #include "arm9/ui.h"
 #include "arm9/console.h"
-#include "banner_ppm_bin.h"
-#include "bootwarning_ppm_bin.h"
-#include "bootfail_ppm_bin.h"
+#include "banner_ppm.h"
+#include "bootwarning_ppm.h"
+#include "bootfail_ppm.h"
 
 
 static u8 randomColor;
 static bool verbose = false;
 
-static const void *bannerData = banner_ppm_bin;
-static const void *bootWarningData = bootwarning_ppm_bin;
-static const void *bootFailureData = bootfail_ppm_bin;
+static const void *bannerData = banner_ppm;
+static const void *bootWarningData = bootwarning_ppm;
+static const void *bootFailureData = bootfail_ppm;
 
 
 static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height);

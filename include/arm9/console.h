@@ -1,3 +1,9 @@
+#pragma once
+
+/*
+ * This code is part of ctrulib (https://github.com/smealum/ctrulib)
+ */
+
 /**
  * @file console.h
  * @brief 3ds stdio support.
@@ -14,7 +20,6 @@
  * consoleInit()
  * @endcode
  */
-#pragma once
 
 #include "types.h"
 #include "gfx.h"

@@ -1,3 +1,7 @@
+/*
+ * This code is part of ctrulib (https://github.com/smealum/ctrulib)
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/iosupport.h>

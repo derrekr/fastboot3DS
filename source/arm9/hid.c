@@ -1,5 +1,5 @@
 /*
- *  Original code from ctrulib
+ * This code is part of ctrulib (https://github.com/smealum/ctrulib)
  */
 
 #include "mem_map.h"

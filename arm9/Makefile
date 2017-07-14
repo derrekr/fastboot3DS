@@ -14,13 +14,13 @@ include $(DEVKITARM)/base_rules
 # DATA is a list of directories containing binary files
 # all directories are relative to this makefile
 #---------------------------------------------------------------------------------
-BUILD		:= build11
-SOURCES		:= source source/arm11
-INCLUDES	:= include
-DEFINES		:= -DARM11 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
+BUILD		:= build
+SOURCES		:= ../source ../source/arm9 ../thirdparty/fatfs
+INCLUDES	:= ../include ../thirdparty
+DEFINES		:= -DARM9 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
 				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)
-DATA		:=
-LDNAME		:= arm11.ld
+DATA		:= data
+LDNAME		:= arm9.ld
 
 ifneq ($(strip $(NO_DEBUG)),)
 	DEFINES += -DNDEBUG
@@ -30,7 +30,7 @@ endif
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -marm -mthumb-interwork
+ARCH	:= -march=armv5te -mtune=arm946e-s -mfloat-abi=soft -marm -mthumb-interwork
 
 CFLAGS	:= $(ARCH) -std=c11 -O2 -g -flto -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
 			-ffast-math -ffunction-sections -Wall -Wextra
@@ -62,7 +62,7 @@ LIBDIRS	:=
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)11
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export DEPSDIR := $(CURDIR)/$(BUILD)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -101,12 +101,12 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 #---------------------------------------------------------------------------------
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile.arm11
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET)11.elf $(TARGET)11.bin
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).bin
 
 
 #---------------------------------------------------------------------------------
@@ -130,6 +130,12 @@ $(OUTPUT).elf	:	$(OFILES)
 	@$(bin2o)
 
 #---------------------------------------------------------------------------------
+%.ppm.o	:	%.ppm
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
 %.elf:
 #---------------------------------------------------------------------------------
 	@echo linking $(notdir $@)
@@ -141,4 +147,3 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------------
-

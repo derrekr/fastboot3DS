@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+ * This code is part of ctrulib (https://github.com/smealum/ctrulib)
+ */
+
 #include "types.h"
 
 
