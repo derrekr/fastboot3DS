@@ -159,7 +159,11 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 	vu8 *const i2cCnt  = i2cData + 1;
 
 
-	if(!i2cStartTransfer(devId, regAddr, true, i2cData)) return false;
+	if(!i2cStartTransfer(devId, regAddr, true, i2cData))
+	{
+		leaveCriticalSection();
+		return false;
+	}
 
 	while(--size)
 	{
@@ -184,7 +188,11 @@ bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 	vu8 *const i2cCnt  = i2cData + 1;
 
 
-	if(!i2cStartTransfer(devId, regAddr, false, i2cData)) return false;
+	if(!i2cStartTransfer(devId, regAddr, false, i2cData))
+	{
+		leaveCriticalSection();
+		return false;
+	}
 
 	while(--size)
 	{
