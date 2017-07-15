@@ -65,7 +65,7 @@ int main(void)
 			PXI_trySendWord(PXI_RPL_HOME_HELD);
 	}
 
-	gfx_deinit(); // TODO: Let ARM9 decide when to deinit gfx
+	GFX_deinit(); // TODO: Let ARM9 decide when to deinit gfx
 
 	firm_launch();
 

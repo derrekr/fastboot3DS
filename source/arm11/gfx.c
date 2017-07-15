@@ -49,7 +49,7 @@
 
 
 
-static void gfx_setup_framebuf_top()
+static void gfxSetupFramebufTop(void)
 {
 	*((vu32*)(0x10400400+0x00)) = 0x000001C2;
 	*((vu32*)(0x10400400+0x04)) = 0x000000D1;
@@ -91,7 +91,7 @@ static void gfx_setup_framebuf_top()
 	}
 }
 
-static void gfx_setup_framebuf_low()
+static void gfxSetupFramebufLow(void)
 {
 	*((vu32*)(0x10400500+0x00)) = 0x000001C2;
 	*((vu32*)(0x10400500+0x04)) = 0x000000D1;
@@ -174,7 +174,13 @@ void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 	REGs_TE[6] = 1;
 }
 
-void gfx_swapFramebufs(void)
+void GFX_setBrightness(u32 brightness)
+{
+	REG_LCD_BACKLIGHT_MAIN = brightness;
+	REG_LCD_BACKLIGHT_SUB = brightness;
+}
+
+void GFX_swapFramebufs(void)
 {
 	static u8 activeFb = 0;
 	activeFb ^= 1;
@@ -188,7 +194,7 @@ static void vblankIrqHandler(UNUSED u32 intSource)
 	GX_textureCopy((u64*)FRAMEBUF_TOP_A_1, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 }
 
-void gfx_init(void)
+void GFX_init(void)
 {
 	REG_PDN_GPU_CNT = 0x1007F;
 	*((vu32*)0x10202014) = 0x00000001;
@@ -200,8 +206,8 @@ void gfx_init(void)
 	*((vu32*)0x10202244) = 0x1023E;
 	*((vu32*)0x10202A44) = 0x1023E;
 
-	gfx_setup_framebuf_top();
-	gfx_setup_framebuf_low();
+	gfxSetupFramebufTop();
+	gfxSetupFramebufLow();
 
 	// The GPU mem fill races against the console.
 	//GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
@@ -213,13 +219,13 @@ void gfx_init(void)
 	TIMER_sleepMs(3);
 
 	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, vblankIrqHandler);
-	gfx_swapFramebufs();
+	GFX_swapFramebufs();
 
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
 }
 
-void gfx_deinit()
+void GFX_deinit(void)
 {
 	/*i2cmcu_lcd_poweroff();
 

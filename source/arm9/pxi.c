@@ -66,3 +66,13 @@ u32 PXI_tryRecvWord(bool *success)
 	*success = true;
 	return REG_PXI_RECV9;
 }
+
+void PXI_sendBuf(const u32 *const buf, u32 size)
+{
+	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
+	for(u32 i = 0; i < size / 4; i++)
+	{
+		REG_PXI_SEND9 = buf[i];
+	}
+	REG_PXI_SYNC9 |= PXI_NOTIFY_11;
+}

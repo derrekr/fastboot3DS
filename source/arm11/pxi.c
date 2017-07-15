@@ -45,8 +45,12 @@ static void pxiIrqHandler(UNUSED u32 intSource)
 	switch(cmdCode)
 	{
 		case PXI_CMD_ENABLE_LCDS:
-			gfx_init();
+			GFX_init();
 			PXI_sendWord(PXI_RPL_OK);
+			break;
+		case PXI_CMD_SET_BRIGHTNESS:
+			cmdCode = PXI_recvWord();
+			GFX_setBrightness(cmdCode);
 			break;
 		case PXI_CMD_ALLOW_POWER_OFF:
 			g_poweroffAllowed = true;
@@ -99,4 +103,14 @@ u32 PXI_tryRecvWord(bool *success)
 
 	*success = true;
 	return REG_PXI_RECV11;
+}
+
+void PXI_sendBuf(const u32 *const buf, u32 size)
+{
+	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
+	for(u32 i = 0; i < size / 4; i++)
+	{
+		REG_PXI_SEND11 = buf[i];
+	}
+	REG_PXI_SYNC11 |= PXI_NOTIFY_9;
 }
