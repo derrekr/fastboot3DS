@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <sys/iosupport.h>
 #include "types.h"
+#include "arm9/fmt.h"
 #include "gfx.h"
 #include "util.h"
 #include "arm9/console.h"
@@ -221,7 +221,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 					//---------------------------------------
 					case 'A':
 						consumed = 0;
-						assigned = sscanf(escapeseq,"[%dA%n", &parameter, &consumed);
+						assigned = mysscanf(escapeseq,"[%dA%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorY  =  (currentConsole->cursorY  - parameter) < 0 ? 0 : currentConsole->cursorY  - parameter;
@@ -229,7 +229,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						break;
 					case 'B':
 						consumed = 0;
-						assigned = sscanf(escapeseq,"[%dB%n", &parameter, &consumed);
+						assigned = mysscanf(escapeseq,"[%dB%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorY  =  (currentConsole->cursorY  + parameter) > currentConsole->windowHeight - 1 ? currentConsole->windowHeight - 1 : currentConsole->cursorY  + parameter;
@@ -237,7 +237,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						break;
 					case 'C':
 						consumed = 0;
-						assigned = sscanf(escapeseq,"[%dC%n", &parameter, &consumed);
+						assigned = mysscanf(escapeseq,"[%dC%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorX  =  (currentConsole->cursorX  + parameter) > currentConsole->windowWidth - 1 ? currentConsole->windowWidth - 1 : currentConsole->cursorX  + parameter;
@@ -245,7 +245,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						break;
 					case 'D':
 						consumed = 0;
-						assigned = sscanf(escapeseq,"[%dD%n", &parameter, &consumed);
+						assigned = mysscanf(escapeseq,"[%dD%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorX  =  (currentConsole->cursorX  - parameter) < 0 ? 0 : currentConsole->cursorX  - parameter;
@@ -259,7 +259,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 					{
 						int  x, y;
 						char c;
-						if(sscanf(escapeseq,"[%d;%d%c", &y, &x, &c) == 3 && (c == 'f' || c == 'H')) {
+						if(mysscanf(escapeseq,"[%d;%d%c", &y, &x, &c) == 3 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -267,7 +267,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						}
 
 						x = y = 1;
-						if(sscanf(escapeseq,"[%d;%c", &y, &c) == 2 && (c == 'f' || c == 'H')) {
+						if(mysscanf(escapeseq,"[%d;%c", &y, &c) == 2 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -275,7 +275,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						}
 
 						x = y = 1;
-						if(sscanf(escapeseq,"[;%d%c", &x, &c) == 2 && (c == 'f' || c == 'H')) {
+						if(mysscanf(escapeseq,"[;%d%c", &x, &c) == 2 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -283,7 +283,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						}
 
 						x = y = 1;
-						if(sscanf(escapeseq,"[;%c", &c) == 1 && (c == 'f' || c == 'H')) {
+						if(mysscanf(escapeseq,"[;%c", &c) == 1 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -342,9 +342,9 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 							if (escapelen == 1) {
 								consumed = 1;
 							} else if (memchr(escapeseq,';',escapelen)) {
-								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
+								mysscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
-								sscanf(escapeseq,"%dm%n", &parameter, &consumed);
+								mysscanf(escapeseq,"%dm%n", &parameter, &consumed);
 							}
 
 							escapeseq += consumed;
@@ -464,50 +464,9 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 	return count;
 }
 
-static const devoptab_t dotab_stdout = {
-	"con",
-	0,
-	NULL,
-	NULL,
-	con_write,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
-
 //---------------------------------------------------------------------------------
 PrintConsole* consoleInit(int screen, PrintConsole* console, bool clear) {
 //---------------------------------------------------------------------------------
-
-	static bool firstConsoleInit = true;
-
-	if(firstConsoleInit) {
-		devoptab_list[STD_OUT] = &dotab_stdout;
-		devoptab_list[STD_ERR] = &dotab_stdout;
-
-		setvbuf(stdout, NULL , _IONBF, 0);
-		setvbuf(stderr, NULL , _IONBF, 0);
-
-		firstConsoleInit = false;
-	}
 
 	if(console) {
 		currentConsole = console;
@@ -698,6 +657,7 @@ void consolePrintChar(int c) {
 			break;
 		case 10:
 			newRow();
+			// falls through
 		case 13:
 			currentConsole->cursorX  = 0;
 			break;
@@ -711,7 +671,7 @@ void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
 void consoleClear(void) {
 //---------------------------------------------------------------------------------
-	iprintf("\x1b[2J");
+	ee_printf("\x1b[2J");
 }
 
 //---------------------------------------------------------------------------------

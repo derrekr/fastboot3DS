@@ -186,6 +186,7 @@ DRESULT disk_ioctl (
 				break;
 			}
 			res = RES_NOTRDY;
+			break;
 		case GET_SECTOR_SIZE:
 			*(WORD*)buff = 512;
 			break;

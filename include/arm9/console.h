@@ -188,6 +188,8 @@ void drawConsoleWindow(PrintConsole* console, int thickness, u8 colorIndex);
 
 u16 consoleGetRGB565Color(u8 colorIndex);
 
+ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_t len);
+
 #ifdef __cplusplus
 }
 #endif

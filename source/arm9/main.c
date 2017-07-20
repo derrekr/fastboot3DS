@@ -19,8 +19,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "mem_map.h"
 #include "types.h"
+#include "arm9/fmt.h"
+#include "mem_map.h"
 #include "util.h"
 #include "pxi.h"
 #include "arm9/hid.h"
@@ -214,7 +215,7 @@ static void unit_detect()
 {
 	bootInfo.unitIsNew3DS = REG_PDN_MPCORE_CFG & 2;
 
-	sprintf(bootInfo.model, "%s 3DS", bootInfo.unitIsNew3DS ? "New" : "Original");
+	ee_sprintf(bootInfo.model, "%s 3DS", bootInfo.unitIsNew3DS ? "New" : "Original");
 		
 	uiPrintIfVerbose("%s detected!\n", bootInfo.model);
 }
@@ -230,7 +231,7 @@ static void boot_env_detect()
 	u32 boot_env = CFG_BOOTENV;
 	if(boot_env > 3) boot_env = 2;
 	
-	sprintf(bootInfo.mode, "%s", CFG_UNITINFO != 0 ? "Dev" : "Retail");
+	ee_sprintf(bootInfo.mode, "%s", CFG_UNITINFO != 0 ? "Dev" : "Retail");
 	
 	strcpy(bootInfo.bootEnv, boot_environment[boot_env]);
 }

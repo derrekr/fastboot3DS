@@ -17,10 +17,11 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdarg.h>
 #include "types.h"
+#include "arm9/fmt.h"
 #include "util.h"
 #include "arm9/hid.h"
 #include "pxi.h"
@@ -119,10 +120,10 @@ bool uiDialogYesNo(int screen, const char *textYes, const char *textNo, const ch
 
 	va_list args;
 	va_start(args, format);
-	vsnprintf(tmp, 256, format, args);
+	ee_vsnprintf(tmp, 256, format, args);
 	va_end(args);
 	
-	snprintf(lastline, 256, "(A): %s  (B): %s", textYes, textNo);
+	ee_snprintf(lastline, 256, "(A): %s  (B): %s", textYes, textNo);
 	
 	/* Print dialog */
 	keys = uiDialog(tmp, lastline, KEY_A | KEY_B, screen, 0, 0, true);
@@ -143,10 +144,10 @@ void uiPrintIfVerbose(const char *const format, ...)
 
 		va_list args;
 		va_start(args, format);
-		vsnprintf(tmp, 256, format, args);
+		ee_vsnprintf(tmp, 256, format, args);
 		va_end(args);
 		
-		printf(tmp);
+		ee_printf(tmp);
 	}
 }
 
@@ -158,18 +159,18 @@ void uiPrint(const char *const format, unsigned int color, bool centered, ...)
 
 	va_list args;
 	va_start(args, centered);
-	vsnprintf(tmp, 556, format, args);
+	ee_vsnprintf(tmp, 556, format, args);
 	va_end(args);
 
 	if(centered)
 	{
 		// Warning. The string must be <= the console width here!
 		size_t len = strlen(tmp);
-		printf("\x1B[%um%*s%s\x1B[0m", color, (width - len) / 2, "", tmp);
+		ee_printf("\x1B[%um%*s%s\x1B[0m", color, (width - len) / 2, "", tmp);
 	}
 	else
 	{
-		printf("\x1B[%um%s\x1B[0m", color, tmp);
+		ee_printf("\x1B[%um%s\x1B[0m", color, tmp);
 	}
 }
 
@@ -180,12 +181,12 @@ void uiPrintCenteredInLine(unsigned int y, const char *const format, ...)
 
 	va_list args;
 	va_start(args, format);
-	vsnprintf(tmp, width + 1, format, args);
+	ee_vsnprintf(tmp, width + 1, format, args);
 	va_end(args);
 
 	size_t len = strlen(tmp);
-	printf("\x1b[%u;%uH", y, 0);
-	printf("%*s%s\n", (width - len) / 2, "", tmp);
+	ee_printf("\x1b[%u;%uH", y, 0);
+	ee_printf("%*s%s\n", (width - len) / 2, "", tmp);
 }
 
 /* Prints a given text at a certain position in the current window */
@@ -195,10 +196,10 @@ void uiPrintTextAt(unsigned int x, unsigned int y, const char *const format, ...
 
 	va_list args;
 	va_start(args, format);
-	vsnprintf(tmp, 256, format, args);
+	ee_vsnprintf(tmp, 256, format, args);
 	va_end(args);
 
-	printf("\x1b[%u;%uH%s", y, x, tmp);
+	ee_printf("\x1b[%u;%uH%s", y, x, tmp);
 }
 
 /* Prints a given text surrounded by a graphical window */
@@ -212,7 +213,7 @@ u32 uiDialog(const char *const format, const char *const lastLine, u32 waitKeys,
 
 	va_list args;
 	va_start(args, centered);
-	vsnprintf(tmp, 256, format, args);
+	ee_vsnprintf(tmp, 256, format, args);
 	va_end(args);
 
 	char *ptr = tmp;
@@ -259,20 +260,20 @@ u32 uiDialog(const char *const format, const char *const lastLine, u32 waitKeys,
 		// TODO: Optimize to only backup what will be overwritten. I'm lazy.
 		memcpy(fbBackup, fb, screen ? SCREEN_SIZE_TOP : SCREEN_SIZE_SUB);
 
-		printf("\x1B[37m\x1B[40m\x1B[2J\n");
+		ee_printf("\x1B[37m\x1B[40m\x1B[2J\n");
 
 		const char *linePtr = tmp;
 		while(1)
 		{
 			unsigned int length = 0;
 			while(linePtr[length] != '\n' && linePtr[length] != '\0') length++;
-			printf(" %.*s\n", length, linePtr);
+			ee_printf(" %.*s\n", length, linePtr);
 			if(*(linePtr + length) == '\0') break;
 			linePtr += length + 1;
 		}
 		
 		if(lastLine)
-			printf("\x1b[%u;%uH%s", lines - 2, (longestLine - strlen(lastLine)) / 2, lastLine);
+			ee_printf("\x1b[%u;%uH%s", lines - 2, (longestLine - strlen(lastLine)) / 2, lastLine);
 
 		const u16 color = consoleGetRGB565Color(randomColor);
 		for(u32 xx = x * 8 + 1; xx < x * 8 + (longestLine * 8) - 1; xx++)
@@ -368,7 +369,7 @@ static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height)
 		while(*ptr != 0x0A) ptr++;
 	ptr++;
 	
-	sscanf(ptr, "%i %i", width, height);
+	mysscanf(ptr, "%u %u", width, height);
 }
 
 static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)

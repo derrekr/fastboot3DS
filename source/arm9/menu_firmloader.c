@@ -314,8 +314,8 @@ static u32 loadFirmNandPartition(const char *filePath)
 	size_t index;
 	size_t sector;
 	size_t firmSize;
-	
-	sscanf(filePath, "%10s:", partName);
+
+	strncpy_s(partName, filePath, 11, 11);
 	
 	if(!partitionGetIndex(partName, &index))
 		return 0;
@@ -347,7 +347,7 @@ bool tryLoadFirmware(const char *filepath, bool skipHashCheck, bool printInfo)
 	if(!statFirmware(filepath))
 		return false;
 
-	// printf("Loading firmware:\n%s\n\n", filepath);
+	// ee_printf("Loading firmware:\n%s\n\n", filepath);
 
 	/* SD card */
 	if(strncmp(filepath, "sdmc:", 5) == 0)

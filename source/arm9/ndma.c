@@ -16,8 +16,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include "types.h"
+#include "arm9/myassert.h"
 #include "arm9/ndma.h"
 #include "arm9/interrupt.h"
 
@@ -37,8 +37,8 @@ void NDMA_init(void)
 
 void NDMA_copyAsync(u32 *dest, const u32 *source, u32 size)
 {
-	assert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));
-	assert(((u32)source >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)source < DTCM_BASE) || ((u32)source >= DTCM_BASE + DTCM_SIZE)));
+	myassert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));
+	myassert(((u32)source >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)source < DTCM_BASE) || ((u32)source >= DTCM_BASE + DTCM_SIZE)));
 
 	REG_NDMA7_SRC_ADDR = (u32)source;
 	REG_NDMA7_DST_ADDR = (u32)dest;
@@ -59,7 +59,7 @@ void NDMA_copy(u32 *dest, const u32 *source, u32 size)
 
 void NDMA_fillAsync(u32 *dest, u32 value, u32 size)
 {
-	assert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));
+	myassert(((u32)dest >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)dest < DTCM_BASE) || ((u32)dest >= DTCM_BASE + DTCM_SIZE)));
 
 	REG_NDMA7_DST_ADDR = (u32)dest;
 	REG_NDMA7_LOG_BLK_CNT = size / 4;

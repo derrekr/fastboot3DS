@@ -268,18 +268,18 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 
 noreturn void firm_launch(int argc, const char **argv)
 {
-	//printf("Sending PXI_CMD_FIRM_LAUNCH\n");
+	//ee_printf("Sending PXI_CMD_FIRM_LAUNCH\n");
 	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
 
-	//printf("Waiting for ARM11...\n");
+	//ee_printf("Waiting for ARM11...\n");
 	while(PXI_recvWord() != PXI_RPL_OK);
 
 	deinitCpu();
 
-	//printf("Relocating FIRM launch stub...\n");
+	//ee_printf("Relocating FIRM launch stub...\n");
 	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
 
-	//printf("Starting firm launch...\n");
+	//ee_printf("Starting firm launch...\n");
 	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);
 	while(1);
 }

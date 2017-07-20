@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "types.h"
+#include "arm9/fmt.h"
 #include "mem_map.h"
 #include "pxi.h"
 #include "arm9/console.h"
@@ -52,7 +53,7 @@ noreturn void panic()
 
 	consoleInit(0, NULL, true);
 
-	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
+	ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	
 	fsUnmountAll();
 	devs_close();
@@ -68,8 +69,8 @@ noreturn void panicMsg(const char *msg)
 
 	consoleInit(0, NULL, true);
 
-	printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-	printf("\nERROR MESSAGE:\n%s\n", msg);
+	ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
+	ee_printf("\nERROR MESSAGE:\n%s\n", msg);
 	
 	fsUnmountAll();
 	devs_close();
@@ -100,8 +101,8 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	if(type == 2) realPc = excStack[15] - (instSize * 2); // Data abort
 	else realPc = excStack[15] - instSize; // Other
 
-	printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
-	printf("CPSR: 0x%08" PRIX32 "\n"
+	ee_printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
+	ee_printf("CPSR: 0x%08" PRIX32 "\n"
 	       "r0 = 0x%08" PRIX32 " r8  = 0x%08" PRIX32 "\n"
 	       "r1 = 0x%08" PRIX32 " r9  = 0x%08" PRIX32 "\n"
 	       "r2 = 0x%08" PRIX32 " r10 = 0x%08" PRIX32 "\n"
@@ -120,7 +121,7 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	       excStack[6], excStack[14],
 	       excStack[7], realPc);
 
-	puts("Stack dump:");
+	ee_puts("Stack dump:");
 
 	u32 sp = excStack[13];
 	if(sp >= DTCM_BASE && sp < DTCM_BASE + DTCM_SIZE && !(sp & 3u))
@@ -130,13 +131,13 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 		u32 newlineCounter = 0;
 		for(u32 i = 0; i < stackWords; i++)
 		{
-			if(newlineCounter == 3) {printf("\n"); newlineCounter = 0;}
-			printf("0x%08" PRIX32 " ", ((u32*)sp)[i]);
+			if(newlineCounter == 3) {ee_printf("\n"); newlineCounter = 0;}
+			ee_printf("0x%08" PRIX32 " ", ((u32*)sp)[i]);
 			newlineCounter++;
 		}
 	}
 
-	if(codeChanged) printf("Attention: RO section data changed!!");
+	if(codeChanged) ee_printf("Attention: RO section data changed!!");
 
 	// avoid fs corruptions
 	fsUnmountAll();

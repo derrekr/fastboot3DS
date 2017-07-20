@@ -18,7 +18,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ctype.h>
 #include "types.h"
 
 #define min(a,b)	(u32) a < (u32) b ? (u32) a : (u32) b
@@ -28,6 +27,8 @@
 
 void wait(u32 cycles);
 
+
+int mysscanf(const char *s, const char *fmt, ...);
 
 // case insensitive string compare function
 int strnicmp(const char *str1, const char *str2, u32 len);

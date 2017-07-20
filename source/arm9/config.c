@@ -23,6 +23,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "types.h"
+#include "arm9/fmt.h"
 #include "mem_map.h"
 #include "fatfs/ff.h"
 #include "arm9/fsutils.h"
@@ -404,7 +405,7 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 		filebuf[curLen++] = 0x0a;
 	}
 	
-	sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
+	ee_sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
 	
 	return &filebuf[curLen + keyLen + defLen];
 }
@@ -492,7 +493,7 @@ static bool isValidPath(const char *path)
 			return false;
 			
 		// no non ASCII chars
-		if(!isascii(c))
+		if(!((unsigned char)c <= 127))
 			return false;
 	}
 	

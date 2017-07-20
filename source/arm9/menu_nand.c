@@ -137,6 +137,7 @@ bool menuDumpNand(const char *filePath)
 			case MENU_EVENT_POWER_PRESSED:
 				f_sync(&file);
 				f_close(&file);
+				// falls through
 			case MENU_EVENT_SD_CARD_REMOVED:
 				menuActState();
 				goto fail;
@@ -271,6 +272,7 @@ bool menuRestoreNand(const char *filePath)
 			case MENU_EVENT_HOME_PRESSED:
 			case MENU_EVENT_POWER_PRESSED:
 				f_close(&file);
+				// falls through
 			case MENU_EVENT_SD_CARD_REMOVED:
 				menuActState();
 				goto fail;

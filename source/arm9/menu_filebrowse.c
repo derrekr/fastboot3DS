@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "arm9/fmt.h"
 #include "mem_map.h"
 #include "fatfs/ff.h"
 #include "arm9/console.h"
@@ -73,7 +74,7 @@ static bool scanDirectory()
 		dirEntries[curEntriesCount + i].isDir = (fno.fattrib & AM_DIR) != 0;
 		
 		if(fno.fattrib & AM_DIR)	// directory
-			snprintf(dirEntries[curEntriesCount + i].name, FF_MAX_LFN + 1, "/%s", fno.fname);
+			ee_snprintf(dirEntries[curEntriesCount + i].name, FF_MAX_LFN + 1, "/%s", fno.fname);
 		else	// file
 			strncpy_s(dirEntries[curEntriesCount + i].name, fno.fname, FF_MAX_LFN + 1, FF_MAX_LFN + 2);
 	}

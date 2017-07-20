@@ -16,8 +16,12 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "util.h"
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
+#include "types.h"
+#include "util.h"
 
 void wait(u32 cycles)
 {
@@ -27,6 +31,66 @@ void wait(u32 cycles)
 		__asm("nop");
 		cycles--;
 	}
+}
+
+int mysscanf(const char *s, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+
+	int ret = 0;
+	const char *const oldS = s;
+	while(*fmt && *s)
+	{
+		if(*fmt == '%')
+		{
+			bool longInt = false;
+			bool number = false;
+			if(*++fmt == 'l')
+			{
+				longInt = true;
+				fmt++;
+			}
+
+			switch(*fmt)
+			{
+				case 'd':
+					if(!longInt) *va_arg(args, int*) = atoi(s);
+					else *va_arg(args, long int*) = atol(s);
+					number = true;
+					ret++;
+					break;
+				case 'u':
+					if(!longInt) *va_arg(args, unsigned int*) = (unsigned int)strtoul(s, NULL, 0);
+					else *va_arg(args, unsigned long int*) = strtoul(s, NULL, 0);
+					number = true;
+					ret++;
+					break;
+				case 'c':
+					*va_arg(args, char*) = *s++;
+					ret++;
+					break;
+				case 'n':
+					if(!longInt) *va_arg(args, int*) = (int)(s - oldS);
+					else *va_arg(args, long int*) = (long int)(s - oldS);
+					break;
+				default: ;
+			}
+			if(number) while(*s >= '0' && *s <= '9') s++;
+			fmt++;
+		}
+		else
+		{
+			if(*fmt != *s) break;
+			fmt++;
+			s++;
+		}
+	}
+
+	va_end(args);
+
+	return ret;
 }
 
 // case insensitive string compare function
