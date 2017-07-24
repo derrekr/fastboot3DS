@@ -33,7 +33,7 @@ void wait(u32 cycles)
 	}
 }
 
-int mysscanf(const char *s, const char *fmt, ...)
+__attribute__ ((format (scanf, 2, 3))) int mysscanf(const char *s, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

@@ -32,8 +32,8 @@
 
 
 u32 ee_vsprintf(char *buf, const char *fmt, va_list args);
-u32 ee_sprintf(char *buf, const char *fmt, ...);
-u32 ee_snprintf(char *const buf, UNUSED u32 size, const char *const fmt, ...);
+__attribute__ ((format (printf, 2, 3))) u32 ee_sprintf(char *const buf, const char *const fmt, ...);
+__attribute__ ((format (printf, 3, 4))) u32 ee_snprintf(char *const buf, UNUSED u32 size, const char *const fmt, ...);
 u32 ee_vsnprintf(char *const buf, UNUSED u32 size, const char *const fmt, va_list arg);
-u32 ee_printf(const char *const fmt, ...);
+__attribute__ ((format (printf, 1, 2))) u32 ee_printf(const char *const fmt, ...);
 u32 ee_puts(const char *const str);
