@@ -29,17 +29,17 @@
 #include "arm9/main.h"
 #include "arm9/ui.h"
 #include "arm9/console.h"
-#include "banner_ppm.h"
-#include "bootwarning_ppm.h"
-#include "bootfail_ppm.h"
+#include "banner_ppm_lz.h"
+#include "bootwarning_ppm_lz.h"
+#include "bootfail_ppm_lz.h"
 
 
 static u8 randomColor;
 static bool verbose = false;
 
-static const void *bannerData = banner_ppm;
-static const void *bootWarningData = bootwarning_ppm;
-static const void *bootFailureData = bootfail_ppm;
+static const void *bannerData = banner_ppm_lz;
+static const void *bootWarningData = bootwarning_ppm_lz;
+static const void *bootFailureData = bootfail_ppm_lz;
 
 
 static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height);
@@ -59,13 +59,21 @@ static void consoleMainInit()
 	consoleSelect(&con_top);
 }
 
+void lzssDecompress(const void *in, void *out, u32 size);
+
 void uiDrawSplashScreen()
 {
+	u8 *buf = (u8*)malloc(0x3259);
+	if(!buf) return;
+
+	lzssDecompress(bannerData + 4, buf, 0x3259);
 	unsigned width, height;
-	
-	uiGetPPMInfo(bannerData, &width, &height);
+	uiGetPPMInfo(buf, &width, &height);
+
 	// centered draw
-	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, (SCREEN_HEIGHT_TOP - height) / 2, bannerData);
+	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, (SCREEN_HEIGHT_TOP - height) / 2, buf);
+
+	free(buf);
 }
 
 void uiInit()
@@ -414,21 +422,33 @@ static void clearPPM(unsigned start_x, unsigned start_y, const u8 *data)
 
 void uiPrintBootWarning()
 {
+	u8 *buf = (u8*)malloc(0x39CD);
+	if(!buf) return;
+
+	lzssDecompress(bootWarningData + 4, buf, 0x39CD);
 	unsigned width, height;
-	
-	uiGetPPMInfo(bootWarningData, &width, &height);
-	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, bootWarningData);
+	uiGetPPMInfo(buf, &width, &height);
+	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, buf);
+
+	free(buf);
 	TIMER_sleep(400);
 }
 
 void uiPrintBootFailure()
 {
+	u8 *buf = (u8*)malloc(0x39CD);
+	if(!buf) return;
+
+	lzssDecompress(bootWarningData + 4, buf, 0x39CD);
 	unsigned width, height;
-	
-	uiGetPPMInfo(bootWarningData, &width, &height);
-	clearPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, bootWarningData);
-	uiGetPPMInfo(bootFailureData, &width, &height);
-	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, bootFailureData);
+	uiGetPPMInfo(buf, &width, &height);
+	clearPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, buf);
+
+	lzssDecompress(bootFailureData + 4, buf, 0x304F);
+	uiGetPPMInfo(buf, &width, &height);
+	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, buf);
+
+	free(buf);
 	TIMER_sleep(400);
 }
 
