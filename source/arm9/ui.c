@@ -388,7 +388,7 @@ static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
 		for(unsigned y = height; y > 0; y--)
 		{
 			const u8 *pixeldata = &imagedata[(x + (y-1) * width)*3];
-			color = RGB8_to_565(pixeldata[2], pixeldata[0], pixeldata[1]);
+			color = RGB8_to_565(pixeldata[2], pixeldata[1], pixeldata[0]);
 			drawPixel(start_x + x, start_y + height - y, color);
 		}
 	}
