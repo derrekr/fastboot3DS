@@ -348,7 +348,7 @@ u32 ee_vsnprintf(char *const buf, UNUSED u32 size, const char *const fmt, va_lis
 
 __attribute__ ((format (printf, 1, 2))) u32 ee_printf(const char *const fmt, ...)
 {
-    char buf[256];
+    char buf[384];
     va_list args;
     va_start(args, fmt);
     u32 res = ee_vsprintf(buf, fmt, args);
@@ -361,5 +361,7 @@ __attribute__ ((format (printf, 1, 2))) u32 ee_printf(const char *const fmt, ...
 
 u32 ee_puts(const char *const str)
 {
-    return con_write(NULL, NULL, str, strnlen(str, 256));
+    con_write(NULL, NULL, str, strnlen(str, 384));
+    con_write(NULL, NULL, "\n", 1);
+    return 0;
 }
