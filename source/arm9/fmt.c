@@ -146,18 +146,18 @@ static char *processNumber(char *str, const char *const strEnd, s64 num, bool is
 	if(!(type & (ZEROPAD | LEFT)))
 		while(size-- > 0)
 		{
-			if(str == strEnd) goto end;
+			if(str >= strEnd) goto end;
 			*str++ = ' ';
 		}
 	if(sign)
 	{
-		if(str == strEnd) goto end;
+		if(str >= strEnd) goto end;
 		*str++ = sign;
 	}
 
 	if(type & HEX_PREP && isHex)
 	{
-		if(str == strEnd - 2) goto end;
+		if(str + 2 >= strEnd) goto end;
 		*str++ = '0';
 		*str++ = 'x';
 	}
@@ -165,22 +165,22 @@ static char *processNumber(char *str, const char *const strEnd, s64 num, bool is
 	if(type & ZEROPAD)
 		while(size-- > 0)
 		{
-			if(str == strEnd) goto end;
+			if(str >= strEnd) goto end;
 			*str++ = '0';
 		}
 	while(i < precision--)
 	{
-		if(str == strEnd) goto end;
+		if(str >= strEnd) goto end;
 		*str++ = '0';
 	}
 	while(i-- > 0)
 	{
-		if(str == strEnd) goto end;
+		if(str >= strEnd) goto end;
 		*str++ = tmp[i];
 	}
 	while(size-- > 0)
 	{
-		if(str == strEnd) goto end;
+		if(str >= strEnd) goto end;
 		*str++ = ' ';
 	}
 
@@ -190,14 +190,15 @@ end:
 
 u32 ee_vsnprintf(char *buf, u32 size, const char *fmt, va_list args)
 {
-	char *str;
+	if(size == 0) return 0;
 	const char *const strEnd = buf + size - 1;
 
+	char *str;
 	for(str = buf; *fmt; fmt++)
 	{
 		if(*fmt != '%')
 		{
-			if(str == strEnd) break;
+			if(str >= strEnd) break;
 			*str++ = *fmt;
 			continue;
 		}
@@ -280,14 +281,14 @@ u32 ee_vsnprintf(char *buf, u32 size, const char *fmt, va_list args)
 				if(!(flags & LEFT))
 					while(--fieldWidth > 0)
 					{
-						if(str == strEnd) goto end;
+						if(str >= strEnd) goto end;
 						*str++ = ' ';
 					}
-				if(str == strEnd) goto end;
+				if(str >= strEnd) goto end;
 				*str++ = (u8)va_arg(args, s32);
 				while(--fieldWidth > 0)
 				{
-					if(str == strEnd) goto end;
+					if(str >= strEnd) goto end;
 					*str++ = ' ';
 				}
 				continue;
@@ -300,17 +301,17 @@ u32 ee_vsnprintf(char *buf, u32 size, const char *fmt, va_list args)
 				if(!(flags & LEFT))
 					while((s32)len < fieldWidth--)
 					{
-						if(str == strEnd) goto end;
+						if(str >= strEnd) goto end;
 						*str++ = ' ';
 					}
 				for(u32 i = 0; i < len; i++)
 				{
-					if(str == strEnd) goto end;
+					if(str >= strEnd) goto end;
 					*str++ = *s++;
 				}
 				while((s32)len < fieldWidth--)
 				{
-					if(str == strEnd) goto end;
+					if(str >= strEnd) goto end;
 					*str++ = ' ';
 				}
 				continue;
@@ -344,12 +345,12 @@ u32 ee_vsnprintf(char *buf, u32 size, const char *fmt, va_list args)
 			default:
 				if(*fmt != '%')
 				{
-					if(str == strEnd) goto end;
+					if(str >= strEnd) goto end;
 					*str++ = '%';
 				}
 				if(*fmt)
 				{
-					if(str == strEnd) goto end;
+					if(str >= strEnd) goto end;
 					*str++ = *fmt;
 				}
 				else fmt--;
