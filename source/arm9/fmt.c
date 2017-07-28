@@ -35,13 +35,13 @@ This code is based on a file that contains the following:
  are met:
 
  1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+	notice, this list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+	notice, this list of conditions and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
  3. Neither the name of the project nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
+	may be used to endorse or promote products derived from this software
+	without specific prior written permission.
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -77,291 +77,353 @@ This code is based on a file that contains the following:
 
 u32 strnlen(const char *string, u32 maxlen)
 {
-    u32 size;
+	u32 size;
 
-    for(size = 0; size < maxlen && *string; string++, size++);
+	for(size = 0; size < maxlen && *string; string++, size++);
 
-    return size;
+	return size;
 }
 
 static s32 skipAtoi(const char **s)
 {
-    s32 i = 0;
+	s32 i = 0;
 
-    while(IS_DIGIT(**s)) i = i * 10 + *((*s)++) - '0';
+	while(IS_DIGIT(**s)) i = i * 10 + *((*s)++) - '0';
 
-    return i;
+	return i;
 }
 
-static char *processNumber(char *str, s64 num, bool isHex, s32 size, s32 precision, u32 type)
+static char *processNumber(char *str, const char *const strEnd, s64 num, bool isHex, s32 size, s32 precision, u32 type)
 {
-    char sign = 0;
+	char sign = 0;
 
-    if(type & SIGN)
-    {
-        if(num < 0)
-        {
-            sign = '-';
-            num = -num;
-            size--;
-        }
-        else if(type & PLUS)
-        {
-            sign = '+';
-            size--;
-        }
-        else if(type & SPACE)
-        {
-            sign = ' ';
-            size--;
-        }
-    }
+	if(type & SIGN)
+	{
+		if(num < 0)
+		{
+			sign = '-';
+			num = -num;
+			size--;
+		}
+		else if(type & PLUS)
+		{
+			sign = '+';
+			size--;
+		}
+		else if(type & SPACE)
+		{
+			sign = ' ';
+			size--;
+		}
+	}
 
-    static const char *lowerDigits = "0123456789abcdef",
-                      *upperDigits = "0123456789ABCDEF";
+	static const char *lowerDigits = "0123456789abcdef",
+					  *upperDigits = "0123456789ABCDEF";
 
-    s32 i = 0;
-    char tmp[20];
-    const char *dig = (type & UPPERCASE) ? upperDigits : lowerDigits;
+	s32 i = 0;
+	char tmp[20];
+	const char *dig = (type & UPPERCASE) ? upperDigits : lowerDigits;
 
-    if(num == 0)
-    {
-        if(precision != 0) tmp[i++] = '0';
-        type &= ~HEX_PREP;
-    }
-    else
-    {
-        while(num != 0)
-        {
-            u64 base = isHex ? 16ULL : 10ULL;
-            tmp[i++] = dig[(u64)num % base];
-            num = (s64)((u64)num / base);
-        }
-    }
+	if(num == 0)
+	{
+		if(precision != 0) tmp[i++] = '0';
+		type &= ~HEX_PREP;
+	}
+	else
+	{
+		while(num != 0)
+		{
+			u64 base = isHex ? 16ULL : 10ULL;
+			tmp[i++] = dig[(u64)num % base];
+			num = (s64)((u64)num / base);
+		}
+	}
 
-    if(type & LEFT || precision != -1) type &= ~ZEROPAD;
-    if(type & HEX_PREP && isHex) size -= 2;
-    if(i > precision) precision = i;
-    size -= precision;
-    if(!(type & (ZEROPAD | LEFT))) while(size-- > 0) *str++ = ' ';
-    if(sign) *str++ = sign;
+	if(type & LEFT || precision != -1) type &= ~ZEROPAD;
+	if(type & HEX_PREP && isHex) size -= 2;
+	if(i > precision) precision = i;
+	size -= precision;
+	if(!(type & (ZEROPAD | LEFT)))
+		while(size-- > 0)
+		{
+			if(str == strEnd) goto end;
+			*str++ = ' ';
+		}
+	if(sign)
+	{
+		if(str == strEnd) goto end;
+		*str++ = sign;
+	}
 
-    if(type & HEX_PREP && isHex)
-    {
-        *str++ = '0';
-        *str++ = 'x';
-    }
+	if(type & HEX_PREP && isHex)
+	{
+		if(str == strEnd - 2) goto end;
+		*str++ = '0';
+		*str++ = 'x';
+	}
 
-    if(type & ZEROPAD) while(size-- > 0) *str++ = '0';
-    while(i < precision--) *str++ = '0';
-    while(i-- > 0) *str++ = tmp[i];
-    while(size-- > 0) *str++ = ' ';
+	if(type & ZEROPAD)
+		while(size-- > 0)
+		{
+			if(str == strEnd) goto end;
+			*str++ = '0';
+		}
+	while(i < precision--)
+	{
+		if(str == strEnd) goto end;
+		*str++ = '0';
+	}
+	while(i-- > 0)
+	{
+		if(str == strEnd) goto end;
+		*str++ = tmp[i];
+	}
+	while(size-- > 0)
+	{
+		if(str == strEnd) goto end;
+		*str++ = ' ';
+	}
 
-    return str;
+end:
+	return str;
 }
 
-u32 ee_vsprintf(char *buf, const char *fmt, va_list args)
+u32 ee_vsnprintf(char *buf, u32 size, const char *fmt, va_list args)
 {
-    char *str;
+	char *str;
+	const char *const strEnd = buf + size - 1;
 
-    for(str = buf; *fmt; fmt++)
-    {
-        if(*fmt != '%')
-        {
-            *str++ = *fmt;
-            continue;
-        }
+	for(str = buf; *fmt; fmt++)
+	{
+		if(*fmt != '%')
+		{
+			if(str == strEnd) break;
+			*str++ = *fmt;
+			continue;
+		}
 
-        //Process flags
-        u32 flags = 0; //Flags to number()
-        bool loop = true;
+		//Process flags
+		u32 flags = 0; //Flags to number()
+		bool loop = true;
 
-        while(loop)
-        {
-            switch(*++fmt)
-            {
-                case '-': flags |= LEFT; break;
-                case '+': flags |= PLUS; break;
-                case ' ': flags |= SPACE; break;
-                case '#': flags |= HEX_PREP; break;
-                case '0': flags |= ZEROPAD; break;
-                default: loop = false; break;
-            }
-        }
+		while(loop)
+		{
+			switch(*++fmt)
+			{
+				case '-': flags |= LEFT; break;
+				case '+': flags |= PLUS; break;
+				case ' ': flags |= SPACE; break;
+				case '#': flags |= HEX_PREP; break;
+				case '0': flags |= ZEROPAD; break;
+				default: loop = false; break;
+			}
+		}
 
-        //Get field width
-        s32 fieldWidth = -1; //Width of output field
-        if(IS_DIGIT(*fmt)) fieldWidth = skipAtoi(&fmt);
-        else if(*fmt == '*')
-        {
-            fmt++;
+		//Get field width
+		s32 fieldWidth = -1; //Width of output field
+		if(IS_DIGIT(*fmt)) fieldWidth = skipAtoi(&fmt);
+		else if(*fmt == '*')
+		{
+			fmt++;
 
-            fieldWidth = va_arg(args, s32);
+			fieldWidth = va_arg(args, s32);
 
-            if(fieldWidth < 0)
-            {
-                fieldWidth = -fieldWidth;
-                flags |= LEFT;
-            }
-        }
+			if(fieldWidth < 0)
+			{
+				fieldWidth = -fieldWidth;
+				flags |= LEFT;
+			}
+		}
 
-        //Get the precision
-        s32 precision = -1; //Min. # of digits for integers; max number of chars for from string
-        if(*fmt == '.')
-        {
-            fmt++;
+		//Get the precision
+		s32 precision = -1; //Min. # of digits for integers; max number of chars for from string
+		if(*fmt == '.')
+		{
+			fmt++;
 
-            if(IS_DIGIT(*fmt)) precision = skipAtoi(&fmt);
-            else if(*fmt == '*')
-            {
-                fmt++;
-                precision = va_arg(args, s32);
-            }
+			if(IS_DIGIT(*fmt)) precision = skipAtoi(&fmt);
+			else if(*fmt == '*')
+			{
+				fmt++;
+				precision = va_arg(args, s32);
+			}
 
-            if(precision < 0) precision = 0;
-        }
+			if(precision < 0) precision = 0;
+		}
 
-        //Get the conversion qualifier
-        u32 integerType = 0;
-        if(*fmt == 'l')
-        {
-            if(*++fmt == 'l')
-            {
-                fmt++;
-                integerType = 1;
-            }
-            
-        }
-        else if(*fmt == 'h')
-        {
-            if(*++fmt == 'h')
-            {
-                fmt++;
-                integerType = 3;
-            }
-            else integerType = 2;
-        }
+		//Get the conversion qualifier
+		u32 integerType = 0;
+		if(*fmt == 'l')
+		{
+			if(*++fmt == 'l')
+			{
+				fmt++;
+				integerType = 1;
+			}
+			
+		}
+		else if(*fmt == 'h')
+		{
+			if(*++fmt == 'h')
+			{
+				fmt++;
+				integerType = 3;
+			}
+			else integerType = 2;
+		}
 
-        bool isHex;
+		bool isHex;
 
-        switch(*fmt)
-        {
-            case 'c':
-                if(!(flags & LEFT)) while(--fieldWidth > 0) *str++ = ' ';
-                *str++ = (u8)va_arg(args, s32);
-                while(--fieldWidth > 0) *str++ = ' ';
-                continue;
+		switch(*fmt)
+		{
+			case 'c':
+				if(!(flags & LEFT))
+					while(--fieldWidth > 0)
+					{
+						if(str == strEnd) goto end;
+						*str++ = ' ';
+					}
+				if(str == strEnd) goto end;
+				*str++ = (u8)va_arg(args, s32);
+				while(--fieldWidth > 0)
+				{
+					if(str == strEnd) goto end;
+					*str++ = ' ';
+				}
+				continue;
 
-            case 's':
-            {
-                char *s = va_arg(args, char *);
-                if(!s) s = "<NULL>";
-                u32 len = (precision != -1) ? strnlen(s, precision) : strlen(s);
-                if(!(flags & LEFT)) while((s32)len < fieldWidth--) *str++ = ' ';
-                for(u32 i = 0; i < len; i++) *str++ = *s++;
-                while((s32)len < fieldWidth--) *str++ = ' ';
-                continue;
-            }
+			case 's':
+			{
+				char *s = va_arg(args, char *);
+				if(!s) s = "<NULL>";
+				u32 len = (precision != -1) ? strnlen(s, precision) : strlen(s);
+				if(!(flags & LEFT))
+					while((s32)len < fieldWidth--)
+					{
+						if(str == strEnd) goto end;
+						*str++ = ' ';
+					}
+				for(u32 i = 0; i < len; i++)
+				{
+					if(str == strEnd) goto end;
+					*str++ = *s++;
+				}
+				while((s32)len < fieldWidth--)
+				{
+					if(str == strEnd) goto end;
+					*str++ = ' ';
+				}
+				continue;
+			}
 
-            case 'p':
-                if(fieldWidth == -1)
-                {
-                    fieldWidth = 8;
-                    flags |= ZEROPAD;
-                }
-                str = processNumber(str, va_arg(args, u32), true, fieldWidth, precision, flags);
-                continue;
+			case 'p':
+				if(fieldWidth == -1)
+				{
+					fieldWidth = 8;
+					flags |= ZEROPAD;
+				}
+				str = processNumber(str, strEnd, va_arg(args, u32), true, fieldWidth, precision, flags);
+				continue;
 
-            //Integer number formats - set up the flags and "break"
-            case 'X':
-                flags |= UPPERCASE;
-                //Falls through
-            case 'x':
-                isHex = true;
-                break;
+			//Integer number formats - set up the flags and "break"
+			case 'X':
+				flags |= UPPERCASE;
+				//Falls through
+			case 'x':
+				isHex = true;
+				break;
 
-            case 'd':
-            case 'i':
-                flags |= SIGN;
-                //Falls through
-            case 'u':
-                isHex = false;
-                break;
+			case 'd':
+			case 'i':
+				flags |= SIGN;
+				//Falls through
+			case 'u':
+				isHex = false;
+				break;
 
-            default:
-                if(*fmt != '%') *str++ = '%';
-                if(*fmt) *str++ = *fmt;
-                else fmt--;
-                continue;
-        }
+			default:
+				if(*fmt != '%')
+				{
+					if(str == strEnd) goto end;
+					*str++ = '%';
+				}
+				if(*fmt)
+				{
+					if(str == strEnd) goto end;
+					*str++ = *fmt;
+				}
+				else fmt--;
+				continue;
+		}
 
-        s64 num;
+		s64 num;
 
-        if(flags & SIGN)
-        {
-            if(integerType == 1) num = va_arg(args, s64);
-            else num = va_arg(args, s32);
+		if(flags & SIGN)
+		{
+			if(integerType == 1) num = va_arg(args, s64);
+			else num = va_arg(args, s32);
 
-            if(integerType == 2) num = (s16)num;
-            else if(integerType == 3) num = (s8)num;
-        }
-        else
-        {
-            if(integerType == 1) num = va_arg(args, u64);
-            else num = va_arg(args, u32);
+			if(integerType == 2) num = (s16)num;
+			else if(integerType == 3) num = (s8)num;
+		}
+		else
+		{
+			if(integerType == 1) num = va_arg(args, u64);
+			else num = va_arg(args, u32);
 
-            if(integerType == 2) num = (u16)num;
-            else if(integerType == 3) num = (u8)num;
-        }
+			if(integerType == 2) num = (u16)num;
+			else if(integerType == 3) num = (u8)num;
+		}
 
-        str = processNumber(str, num, isHex, fieldWidth, precision, flags);
-    }
+		str = processNumber(str, strEnd, num, isHex, fieldWidth, precision, flags);
+	}
 
-    *str = 0;
-    return str - buf;
+end:
+	*str = 0;
+	return str - buf;
+}
+
+u32 ee_vsprintf(char *const buf, const char *const fmt, va_list arg)
+{
+	return ee_vsnprintf(buf, 0x1000, fmt, arg);
 }
 
 __attribute__ ((format (printf, 2, 3))) u32 ee_sprintf(char *const buf, const char *const fmt, ...)
 {
-    va_list args;
-    va_start(args, fmt);
-    u32 res = ee_vsprintf(buf, fmt, args);
-    va_end(args);
+	va_list args;
+	va_start(args, fmt);
+	u32 res = ee_vsnprintf(buf, 0x1000, fmt, args);
+	va_end(args);
 
-    return res;
+	return res;
 }
 
-__attribute__ ((format (printf, 3, 4))) u32 ee_snprintf(char *const buf, UNUSED u32 size, const char *const fmt, ...)
+__attribute__ ((format (printf, 3, 4))) u32 ee_snprintf(char *const buf, u32 size, const char *const fmt, ...)
 {
-    va_list args;
-    va_start(args, fmt);
-    u32 res = ee_vsprintf(buf, fmt, args);
-    va_end(args);
+	va_list args;
+	va_start(args, fmt);
+	u32 res = ee_vsnprintf(buf, size, fmt, args);
+	va_end(args);
 
-    return res;
-}
-
-u32 ee_vsnprintf(char *const buf, UNUSED u32 size, const char *const fmt, va_list arg)
-{
-    return ee_vsprintf(buf, fmt, arg);
+	return res;
 }
 
 __attribute__ ((format (printf, 1, 2))) u32 ee_printf(const char *const fmt, ...)
 {
-    char buf[384];
-    va_list args;
-    va_start(args, fmt);
-    u32 res = ee_vsprintf(buf, fmt, args);
-    va_end(args);
+	char buf[512];
+	va_list args;
+	va_start(args, fmt);
+	u32 res = ee_vsnprintf(buf, 512, fmt, args);
+	va_end(args);
 
-    con_write(NULL, NULL, buf, res);
+	con_write(NULL, NULL, buf, res);
 
-    return res;
+	return res;
 }
 
 u32 ee_puts(const char *const str)
 {
-    con_write(NULL, NULL, str, strnlen(str, 384));
-    con_write(NULL, NULL, "\n", 1);
-    return 0;
+	con_write(NULL, NULL, str, strnlen(str, 512));
+	con_write(NULL, NULL, "\n", 1);
+	return 0;
 }
