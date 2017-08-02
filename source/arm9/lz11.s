@@ -8,7 +8,7 @@
 
 
 
-ASM_FUNC lzssDecompress
+ASM_FUNC lz11Decompress
   push   {r4-r6}
   ldr    r3, =(0x01010101)
 
@@ -23,8 +23,34 @@ ASM_FUNC lzssDecompress
   beq    .Lcopy_uncompressed @   goto copy_uncompressed
 
   ldrb   r4, [r0], #1        @ r4 = *in++
+  and    r5, r4, #0xF0       @ r5 = r4 & 0xF0
+  cmp    r5, #0x00           @ if(r5 == 0x00)
+  beq    .Lextended          @   goto extended
+  cmp    r5, #0x10           @ if(r5 == 0x10)
+  beq    .LXextended         @   goto Xextended
+
   lsr    r6, r4, #4          @ len = r4>>4
-  add    r6, r6, #3          @ len += 3
+  add    r6, r6, #1          @ len++
+  b      .L1
+
+.Lextended:
+  lsl    r6, r4, #4          @ len = r4<<4
+  ldrb   r4, [r0], #1        @ r4 = *in++
+  orr    r6, r6, r4, lsr #4  @ len = len | (r4>>4)
+  add    r6, r6, #0x11       @ len += 0x11
+  b      .L1
+
+.LXextended:
+  and    r4, r4, #0x0F       @ r4 &= 0x0F
+  lsl    r6, r4, #12         @ len = r4<<12
+  ldrb   r4, [r0], #1        @ r4 = *in++
+  orr    r6, r6, r4, lsl #4  @ len |= r4<<4
+  ldrb   r4, [r0], #1        @ r4 = *in++
+  orr    r6, r6, r4, lsr #4  @ len |= r4>>4
+  add    r6, r6, #0x011      @ len += 0x011
+  add    r6, r6, #0x100      @ len += 0x100
+
+.L1:
   and    r5, r4, #0x0F       @ disp = r4 & 0x0F      note: disp is in r5
   ldrb   r4, [r0], #1        @ r4 = *in++
   orr    r4, r4, r5, lsl #8  @ disp = r4 | (disp<<8) note: disp changes to r4
@@ -35,23 +61,23 @@ ASM_FUNC lzssDecompress
 
 .Lcopy_compressed:
   ldrb   r5, [r1, -r4]       @ r5 = *(out - disp)
-  subs   r6, r6, #1          @ --len
+  subs   r6, r6, #1          @ if(len-- == 1)
   strb   r5, [r1], #1        @ *out++ = r5
   bne    .Lcopy_compressed   @ goto copy_compressed
-  b      .Lloop              @ if(len == 0) goto loop
+  b      .Lloop              @   goto loop
 
 .Lcopy_aligned:
   tst    r1, #0x1            @ if(r1 & 0x1 == 0) // src/dst is aligned
   beq    .Lcopy_hwords       @   goto copy_hwords
   ldrb   r5, [r1, -r4]       @ r5 = *(out - disp) // read a byte to align
-  sub    r6, r6, #1          @ len--
   strb   r5, [r1], #1        @ *out++ = r5
+  sub    r6, r6, #1          @ len--
 .Lcopy_hwords:
   subs   r6, r6, #2          @ len -= 2
   ldrgeh r5, [r1, -r4]       @ if(len >= 0) r5 = *(short*)(out - disp)
   strgeh r5, [r1], #2        @ if(len >= 0) *(short*)out++ = r5
-  bgt    .Lcopy_hwords       @ if(len > 0) goto copy_hwords
   beq    .Lloop              @ if(len == 0) goto loop
+  bgt    .Lcopy_hwords       @ if(len > 0) goto copy_hwords
 @ extra byte
   ldrb   r5, [r1, -r4]       @ r5 = *(out - disp)
   strb   r5, [r1], #1        @ *out++ = r5

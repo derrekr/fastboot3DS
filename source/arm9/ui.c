@@ -29,21 +29,20 @@
 #include "arm9/main.h"
 #include "arm9/ui.h"
 #include "arm9/console.h"
-#include "banner_ppm_lz.h"
-#include "bootwarning_ppm_lz.h"
-#include "bootfail_ppm_lz.h"
+#include "arm9/splash.h"
+#include "banner_spla.h"
+#include "bootwarning_spla.h"
+#include "bootfail_spla.h"
 
 
 static u8 randomColor;
 static bool verbose = false;
 
-static const void *bannerData = banner_ppm_lz;
-static const void *bootWarningData = bootwarning_ppm_lz;
-static const void *bootFailureData = bootfail_ppm_lz;
+static const void *bannerData = banner_spla;
+static const void *bootWarningData = bootwarning_spla;
+static const void *bootFailureData = bootfail_spla;
 
 
-static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height);
-static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data);
 
 static void consoleMainInit()
 {
@@ -59,21 +58,9 @@ static void consoleMainInit()
 	consoleSelect(&con_top);
 }
 
-void lzssDecompress(const void *in, void *out, u32 size);
-
 void uiDrawSplashScreen()
 {
-	u8 *buf = (u8*)malloc(0x3259);
-	if(!buf) return;
-
-	lzssDecompress(bannerData + 4, buf, 0x3259);
-	unsigned width, height;
-	uiGetPPMInfo(buf, &width, &height);
-
-	// centered draw
-	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, (SCREEN_HEIGHT_TOP - height) / 2, buf);
-
-	free(buf);
+	drawSplashscreen(bannerData);
 }
 
 void uiInit()
@@ -364,91 +351,15 @@ void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
 	}
 }
 
-static inline void drawPixel(unsigned x, unsigned y, u16 color)
-{
-	u16 *framebuf = (u16 *) FRAMEBUF_TOP_A_1;
-	framebuf[x * SCREEN_HEIGHT_TOP + y] = color;
-}
-
-static void uiGetPPMInfo(const u8 *data, unsigned *width, unsigned *height)
-{
-	/* get image dimensions */
-	const char *ptr = (const char *) data + 3;
-		while(*ptr != 0x0A) ptr++;
-	ptr++;
-	
-	mysscanf(ptr, "%u %u", width, height);
-}
-
-static void uiDrawPPM(unsigned start_x, unsigned start_y, const u8 *data)
-{
-	unsigned width, height;
-	
-	/* get image dimensions */
-	uiGetPPMInfo(data, &width, &height);
-	
-	const u8 *imagedata = data + 0x26;	// skip ppm header
-	
-	u16 color;
-	
-	for(unsigned x = 0; x < width; x++)
-	{
-		for(unsigned y = height; y > 0; y--)
-		{
-			const u8 *pixeldata = &imagedata[(x + (y-1) * width)*3];
-			color = RGB8_to_565(pixeldata[2], pixeldata[1], pixeldata[0]);
-			drawPixel(start_x + x, start_y + height - y, color);
-		}
-	}
-}
-
-static void clearPPM(unsigned start_x, unsigned start_y, const u8 *data)
-{
-	unsigned width, height;
-	
-	/* get image dimensions */
-	uiGetPPMInfo(data, &width, &height);
-	
-	u16 color = 0;
-	
-	for(unsigned x = 0; x < width; x++)
-	{
-		for(unsigned y = height; y > 0; y--)
-		{
-			drawPixel(start_x + x, start_y + height - y, color);
-		}
-	}
-}
-
 void uiPrintBootWarning()
 {
-	u8 *buf = (u8*)malloc(0x39CD);
-	if(!buf) return;
-
-	lzssDecompress(bootWarningData + 4, buf, 0x39CD);
-	unsigned width, height;
-	uiGetPPMInfo(buf, &width, &height);
-	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, buf);
-
-	free(buf);
+	drawSplashscreen(bootWarningData);
 	TIMER_sleep(400);
 }
 
 void uiPrintBootFailure()
 {
-	u8 *buf = (u8*)malloc(0x39CD);
-	if(!buf) return;
-
-	lzssDecompress(bootWarningData + 4, buf, 0x39CD);
-	unsigned width, height;
-	uiGetPPMInfo(buf, &width, &height);
-	clearPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, buf);
-
-	lzssDecompress(bootFailureData + 4, buf, 0x304F);
-	uiGetPPMInfo(buf, &width, &height);
-	uiDrawPPM((SCREEN_WIDTH_TOP - width) / 2, SCREEN_HEIGHT_TOP + 10, buf);
-
-	free(buf);
+	drawSplashscreen(bootFailureData);
 	TIMER_sleep(400);
 }
 
