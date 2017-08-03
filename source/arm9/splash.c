@@ -33,7 +33,8 @@ static bool validateSplashHeader(SplashHeader *header)
 	if(memcmp(&header->magic, "SPLA", 4)) return false;
 
 	const u16 width = header->width, height = header->height;
-	if(width > SCREEN_WIDTH_TOP || height > SCREEN_HEIGHT_TOP) return false;
+	if(width == 0 || width > SCREEN_WIDTH_TOP || height == 0 || height > SCREEN_HEIGHT_TOP)
+		return false;
 
 	const u32 flags = header->flags;
 	if((flags & FORMAT_INVALID) != FORMAT_RGB565) return false;
