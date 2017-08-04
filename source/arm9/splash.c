@@ -32,7 +32,7 @@ static bool validateSplashHeader(SplashHeader *header)
 {
 	if(memcmp(&header->magic, "SPLA", 4)) return false;
 
-	const u16 width = header->width, height = header->height;
+	const u32 width = header->width, height = header->height;
 	if(width == 0 || width > SCREEN_WIDTH_TOP || height == 0 || height > SCREEN_HEIGHT_TOP)
 		return false;
 
@@ -49,7 +49,7 @@ bool drawSplashscreen(const void *const data)
 	memcpy(&header, data, sizeof(SplashHeader));
 	if(!validateSplashHeader(&header)) return false;
 
-	const u16 width = header.width, height = header.height;
+	const u32 width = header.width, height = header.height;
 	const u32 flags = header.flags;
 	const bool isCompressed = flags & FLAG_COMPRESSED;
 
