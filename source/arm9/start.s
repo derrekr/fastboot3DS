@@ -218,29 +218,29 @@ clearMem_check_zero:
 
 setupMpu:
 	@ Region 0: ITCM kernel mirror 32 KB
-	@ Region 1: ARM9 internal mem 1 MB
+	@ Region 1: ARM9 internal mem + N3DS extension 2 MB
 	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
 	@ Region 3: VRAM 8 MB
-	@ Region 4: DTCM 16 KB
-	@ Region 5: Exception vectors + ARM9 bootrom 32 KB
-	@ Region 6: - (reserved)
+	@ Region 4: DSP mem and AXIWRAM 1 MB
+	@ Region 5: DTCM 16 KB
+	@ Region 6: Exception vectors + ARM9 bootrom 64 KB
 	@ Region 7: - (reserved)
 	ldr r0, =MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
 	mcr p15, 0, r0, c6, c0, 0
-	ldr r1, =MAKE_REGION(A9_RAM_BASE,        REGION_1MB)
+	ldr r1, =MAKE_REGION(A9_RAM_BASE,        REGION_2MB)
 	mcr p15, 0, r1, c6, c1, 0
 	ldr r2, =MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
 	mcr p15, 0, r2, c6, c2, 0
 	ldr r3, =MAKE_REGION(VRAM_BASE,          REGION_8MB)
 	mcr p15, 0, r3, c6, c3, 0
-	ldr r0, =MAKE_REGION(DTCM_BASE,          REGION_16KB)
+	ldr r0, =MAKE_REGION(DSP_MEM_BASE,       REGION_1MB)
 	mcr p15, 0, r0, c6, c4, 0
-	ldr r1, =MAKE_REGION(BOOT9_BASE,         REGION_32KB)
+	ldr r1, =MAKE_REGION(DTCM_BASE,          REGION_16KB)
 	mcr p15, 0, r1, c6, c5, 0
-	mov r2, #0
+	ldr r2, =MAKE_REGION(BOOT9_BASE,         REGION_64KB)
 	mcr p15, 0, r2, c6, c6, 0
-	@mov r3, #0
-	mcr p15, 0, r2, c6, c7, 0
+	mov r3, #0
+	mcr p15, 0, r3, c6, c7, 0
 
 	@ Data access permissions:
 	@ Region 0: User = --, Privileged = RW
@@ -248,13 +248,13 @@ setupMpu:
 	@ Region 2: User = --, Privileged = RW
 	@ Region 3: User = --, Privileged = RW
 	@ Region 4: User = --, Privileged = RW
-	@ Region 5: User = --, Privileged = RO
-	@ Region 6: User = --, Privileged = --
+	@ Region 5: User = --, Privileged = RW
+	@ Region 6: User = --, Privileged = RO
 	@ Region 7: User = --, Privileged = --
 	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
                               PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
-                              PER_NO_ACC            , PER_NO_ACC)
+                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
+                              PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
 	mcr p15, 0, r0, c5, c0, 2   @ Write data access permissions
 
 	@ Instruction access permissions:
@@ -263,13 +263,13 @@ setupMpu:
 	@ Region 2: User = --, Privileged = --
 	@ Region 3: User = --, Privileged = --
 	@ Region 4: User = --, Privileged = --
-	@ Region 5: User = --, Privileged = RO
-	@ Region 6: User = --, Privileged = --
+	@ Region 5: User = --, Privileged = --
+	@ Region 6: User = --, Privileged = RO
 	@ Region 7: User = --, Privileged = --
 	ldr r1, =MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
                               PER_NO_ACC,             PER_NO_ACC,
-                              PER_NO_ACC,             PER_PRIV_RO_USR_NO_ACC,
-                              PER_NO_ACC,             PER_NO_ACC)
+                              PER_NO_ACC,             PER_NO_ACC,
+                              PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
 	mcr p15, 0, r1, c5, c0, 3   @ Write instruction access permissions
 
 	@ Data cachable bits:
@@ -278,10 +278,10 @@ setupMpu:
 	@ Region 2 = no  <-- Never cache IO regs
 	@ Region 3 = yes
 	@ Region 4 = no
-	@ Region 5 = yes
-	@ Region 6 = no
+	@ Region 5 = no
+	@ Region 6 = yes
 	@ Region 7 = no
-	mov r0, #0b00101010
+	mov r0, #0b01001010
 	mcr p15, 0, r0, c2, c0, 0   @ Data cachable bits
 
 	@ Instruction cachable bits:
@@ -290,10 +290,10 @@ setupMpu:
 	@ Region 2 = no
 	@ Region 3 = no
 	@ Region 4 = no
-	@ Region 5 = yes
-	@ Region 6 = no
+	@ Region 5 = no
+	@ Region 6 = yes
 	@ Region 7 = no
-	mov r1, #0b00100010
+	mov r1, #0b01000010
 	mcr p15, 0, r1, c2, c0, 1   @ Instruction cachable bits
 
 	@ Write bufferable bits:
@@ -302,10 +302,10 @@ setupMpu:
 	@ Region 2 = no  <-- Never buffer IO regs
 	@ Region 3 = yes
 	@ Region 4 = no
-	@ Region 5 = yes
-	@ Region 6 = no
+	@ Region 5 = no
+	@ Region 6 = yes
 	@ Region 7 = no
-	mov r2, #0b00101010
+	mov r2, #0b01001010
 	mcr p15, 0, r2, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
