@@ -82,7 +82,7 @@ static void mmuMapSections(u32 va, u32 pa, u32 num, bool shared, u32 access, u8 
 }
 
 /**
- * @brief      Maps up to 128 4 KB pages of memory.
+ * @brief      Maps up to 256 4 KB pages of memory.
  * @brief      The mapped range must not cross the next section.
  *
  * @param[in]  va       The virtual address base. Must be aligned to 4 KB.
@@ -135,6 +135,11 @@ void setupMmu(void)
 
 		// VRAM mapping
 		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
+
+		// DSP mem mapping
+		mmuMapPages(DSP_MEM_BASE, DSP_MEM_BASE, 128, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
+		            PERM_PRIV_RW_USR_NO_ACC, 1, true,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 		// AXIWRAM MMU table mapping
 		mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
