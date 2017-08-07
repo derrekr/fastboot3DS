@@ -136,8 +136,8 @@ void setupMmu(void)
 		// VRAM mapping
 		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
 
-		// DSP mem mapping
-		mmuMapPages(DSP_MEM_BASE, DSP_MEM_BASE, 128, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
+		// DSP mem mapping to extend AXIWRAM
+		mmuMapPages(AXIWRAM_BASE + AXIWRAM_SIZE, DSP_MEM_BASE, 128, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
 		            PERM_PRIV_RW_USR_NO_ACC, 1, true,
 		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
