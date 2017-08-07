@@ -22,10 +22,10 @@
 
 
 
-noreturn void __myassert(const char *const str, u32 line);
+noreturn void __fb_assert(const char *const str, u32 line);
 
 #ifdef NDEBUG
-#define myassert(c) ((void)0)
+#define fb_assert(c) ((void)0)
 #else
-#define myassert(c) ((c) ? ((void)0) : __myassert(#c ", " __FILE__, __LINE__))
+#define fb_assert(c) ((c) ? ((void)0) : __fb_assert(#c ", " __FILE__, __LINE__))
 #endif

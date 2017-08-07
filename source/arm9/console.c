@@ -221,7 +221,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 					//---------------------------------------
 					case 'A':
 						consumed = 0;
-						assigned = mysscanf(escapeseq,"[%dA%n", &parameter, &consumed);
+						assigned = fb_sscanf(escapeseq,"[%dA%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorY  =  (currentConsole->cursorY  - parameter) < 0 ? 0 : currentConsole->cursorY  - parameter;
@@ -229,7 +229,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						break;
 					case 'B':
 						consumed = 0;
-						assigned = mysscanf(escapeseq,"[%dB%n", &parameter, &consumed);
+						assigned = fb_sscanf(escapeseq,"[%dB%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorY  =  (currentConsole->cursorY  + parameter) > currentConsole->windowHeight - 1 ? currentConsole->windowHeight - 1 : currentConsole->cursorY  + parameter;
@@ -237,7 +237,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						break;
 					case 'C':
 						consumed = 0;
-						assigned = mysscanf(escapeseq,"[%dC%n", &parameter, &consumed);
+						assigned = fb_sscanf(escapeseq,"[%dC%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorX  =  (currentConsole->cursorX  + parameter) > currentConsole->windowWidth - 1 ? currentConsole->windowWidth - 1 : currentConsole->cursorX  + parameter;
@@ -245,7 +245,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						break;
 					case 'D':
 						consumed = 0;
-						assigned = mysscanf(escapeseq,"[%dD%n", &parameter, &consumed);
+						assigned = fb_sscanf(escapeseq,"[%dD%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
 						if (consumed)
 							currentConsole->cursorX  =  (currentConsole->cursorX  - parameter) < 0 ? 0 : currentConsole->cursorX  - parameter;
@@ -259,7 +259,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 					{
 						int  x, y;
 						char c;
-						if(mysscanf(escapeseq,"[%d;%d%c", &y, &x, &c) == 3 && (c == 'f' || c == 'H')) {
+						if(fb_sscanf(escapeseq,"[%d;%d%c", &y, &x, &c) == 3 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -267,7 +267,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						}
 
 						x = y = 1;
-						if(mysscanf(escapeseq,"[%d;%c", &y, &c) == 2 && (c == 'f' || c == 'H')) {
+						if(fb_sscanf(escapeseq,"[%d;%c", &y, &c) == 2 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -275,7 +275,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						}
 
 						x = y = 1;
-						if(mysscanf(escapeseq,"[;%d%c", &x, &c) == 2 && (c == 'f' || c == 'H')) {
+						if(fb_sscanf(escapeseq,"[;%d%c", &x, &c) == 2 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -283,7 +283,7 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 						}
 
 						x = y = 1;
-						if(mysscanf(escapeseq,"[;%c", &c) == 1 && (c == 'f' || c == 'H')) {
+						if(fb_sscanf(escapeseq,"[;%c", &c) == 1 && (c == 'f' || c == 'H')) {
 							currentConsole->cursorX = x;
 							currentConsole->cursorY = y;
 							escaping = false;
@@ -342,9 +342,9 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 							if (escapelen == 1) {
 								consumed = 1;
 							} else if (memchr(escapeseq,';',escapelen)) {
-								mysscanf(escapeseq,"%d;%n", &parameter, &consumed);
+								fb_sscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
-								mysscanf(escapeseq,"%dm%n", &parameter, &consumed);
+								fb_sscanf(escapeseq,"%dm%n", &parameter, &consumed);
 							}
 
 							escapeseq += consumed;

@@ -17,7 +17,7 @@
  */
 
 #include <string.h>
-#include "arm9/myassert.h"
+#include "arm9/fb_assert.h"
 #include "mem_map.h"
 #include "types.h"
 #include "arm9/crypto.h"
@@ -200,8 +200,8 @@ void AES_deinit(void)
 
 void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScrambler, const u32 key[4])
 {
-	myassert(keyslot < 0x40);
-	myassert(key != NULL);
+	fb_assert(keyslot < 0x40);
+	fb_assert(key != NULL);
 
 
 	REG_AESCNT = (u32)orderEndianess<<23;
@@ -237,7 +237,7 @@ void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScramble
 
 void AES_selectKeyslot(u8 keyslot)
 {
-	myassert(keyslot < 0x40);
+	fb_assert(keyslot < 0x40);
 
 	REG_AESKEYSEL = keyslot;
 	REG_AESCNT |= AES_UPDATE_KEYSLOT;
@@ -245,8 +245,8 @@ void AES_selectKeyslot(u8 keyslot)
 
 void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3])
 {
-	myassert(ctx != NULL);
-	myassert(nonce != NULL);
+	fb_assert(ctx != NULL);
+	fb_assert(nonce != NULL);
 
 
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
@@ -269,8 +269,8 @@ void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3])
 
 void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 {
-	myassert(ctx != NULL);
-	myassert(ctrIv != NULL);
+	fb_assert(ctx != NULL);
+	fb_assert(ctrIv != NULL);
 
 
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
@@ -296,7 +296,7 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 // TODO: Handle endianess!
 void AES_addCounter(u32 ctr[4], u32 val)
 {
-	myassert(ctr != NULL);
+	fb_assert(ctr != NULL);
 
 	u32 carry, i = 1;
 	u64 sum;
@@ -318,7 +318,7 @@ void AES_addCounter(u32 ctr[4], u32 val)
 
 void AES_subCounter(u32 ctr[4], u32 val)
 {
-	myassert(ctr != NULL);
+	fb_assert(ctr != NULL);
 
 	u32 carry, i = 1;
 	u32 sum;
@@ -338,7 +338,7 @@ void AES_subCounter(u32 ctr[4], u32 val)
 
 void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianessOrder)
 {
-	myassert(ctx != NULL);
+	fb_assert(ctx != NULL);
 
 	ctx->aesParams = (u32)inEndianessOrder<<23 | (u32)outEndianessOrder<<22;
 }
@@ -368,8 +368,8 @@ static void aesProcessBlocksCpu(const u32 *in, u32 *out, u32 blocks)
 static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 {
 	// DMA can't reach TCMs
-	myassert(((u32)in >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)in < DTCM_BASE) || ((u32)in >= DTCM_BASE + DTCM_SIZE)));
-	myassert(((u32)out >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)out < DTCM_BASE) || ((u32)out >= DTCM_BASE + DTCM_SIZE)));
+	fb_assert(((u32)in >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)in < DTCM_BASE) || ((u32)in >= DTCM_BASE + DTCM_SIZE)));
+	fb_assert(((u32)out >= ITCM_BOOT9_MIRROR + ITCM_SIZE) && (((u32)out < DTCM_BASE) || ((u32)out >= DTCM_BASE + DTCM_SIZE)));
 
 
 	// Check block alignment
@@ -413,9 +413,9 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 
 void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 {
-	myassert(ctx != NULL);
-	myassert(in != NULL);
-	myassert(out != NULL);
+	fb_assert(ctx != NULL);
+	fb_assert(in != NULL);
+	fb_assert(out != NULL);
 
 	const u32 ctrParams = ctx->ctrIvNonceParams;
 	u32 *const ctr = ctx->ctrIvNonce;
@@ -448,9 +448,9 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 
 /*void AES_cbc(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma)
 {
-	myassert(ctx != NULL);
-	myassert(in != NULL);
-	myassert(out != NULL);
+	fb_assert(ctx != NULL);
+	fb_assert(in != NULL);
+	fb_assert(out != NULL);
 
 	const u32 ivParams = ctx->ctrIvNonceParams;
 	u32 *const iv = ctx->ctrIvNonce;
@@ -519,9 +519,9 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 
 void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, bool dma)
 {
-	myassert(ctx != NULL);
-	myassert(in != NULL);
-	myassert(out != NULL);
+	fb_assert(ctx != NULL);
+	fb_assert(in != NULL);
+	fb_assert(out != NULL);
 
 	const u32 aesParams =  (enc ? AES_MODE_ECB_ENCRYPT : AES_MODE_ECB_DECRYPT) | ctx->aesParams;
 
@@ -546,12 +546,12 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
 bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 macSize,
              u32 mac[4], u16 blocks, bool enc)
 {
-	myassert(ctx != NULL);
-	myassert(in != NULL);
-	myassert(out != NULL);
-	myassert(macSize != 0);
-	myassert(mac != NULL);
-	myassert(blocks != 0);
+	fb_assert(ctx != NULL);
+	fb_assert(in != NULL);
+	fb_assert(out != NULL);
+	fb_assert(macSize != 0);
+	fb_assert(mac != NULL);
+	fb_assert(blocks != 0);
 
 
 	REG_AESCNT = ctx->ctrIvNonceParams;

@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
-#include "arm9/myassert.h"
+#include "arm9/fb_assert.h"
 #include "mem_map.h"
 #include "arm9/main.h"
 #include "arm9/ncsd.h"
@@ -171,8 +171,8 @@ bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf)
 {
 	if(!dev_sd.initialized) return false;
 
-	myassert(count != 0);
-	myassert(buf != NULL);
+	fb_assert(count != 0);
+	fb_assert(buf != NULL);
 
 	return !sdmmc_sdcard_readsectors(sector, count, buf);
 }
@@ -181,8 +181,8 @@ bool sdmmc_sd_write_sector(u32 sector, u32 count, const void *buf)
 {
 	if(!dev_sd.initialized) return false;
 
-	myassert(count != 0);
-	myassert(buf != NULL);
+	fb_assert(count != 0);
+	fb_assert(buf != NULL);
 
 	return !sdmmc_sdcard_writesectors(sector, count, buf);
 }
@@ -225,8 +225,8 @@ bool sdmmc_rnand_read_sector(u32 sector, u32 count, void *buf)
 {
 	if(!dev_rnand.initialized) return false;
 
-	myassert(count != 0);
-	myassert(buf != NULL);
+	fb_assert(count != 0);
+	fb_assert(buf != NULL);
 
 	return !sdmmc_nand_readsectors(sector, count, buf);
 }
@@ -235,8 +235,8 @@ bool sdmmc_rnand_write_sector(u32 sector, u32 count, const void *buf)
 {
 	if(!dev_rnand.initialized) return false;
 
-	myassert(count != 0);
-	myassert(buf != NULL);
+	fb_assert(count != 0);
+	fb_assert(buf != NULL);
 
 	return !sdmmc_nand_writesectors(sector, count, buf);
 }
@@ -352,8 +352,8 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	
 	if(!dev_dnand.dev.initialized) return false;
 
-	myassert(count != 0);
-	myassert(buf != NULL);
+	fb_assert(count != 0);
+	fb_assert(buf != NULL);
 
 	if(!partitionFind(sector, count, &index)) return false;
 		
@@ -390,7 +390,7 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 	
 	if(!dev_dnand.dev.initialized) return false;
 
-	myassert(count != 0);
+	fb_assert(count != 0);
 
 	if(!partitionFind(sector, count, &index)) return false;
 		
