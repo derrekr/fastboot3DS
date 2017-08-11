@@ -51,7 +51,7 @@ void menuCredits(void)
 	uiPrintCenteredInLine(i++, "smea");
 	uiPrintCenteredInLine(i++, "Normmatt (for sdmmc code)");
 	uiPrintCenteredInLine(i++, "WinterMute (for console code)");
-	uiPrintCenteredInLine(i+=2, "... everyone who contriubted to 3dbrew.org");
+	uiPrintCenteredInLine(i+=2, "... everyone who contributed to 3dbrew.org");
 
 	for(;;)
 	{
