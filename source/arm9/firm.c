@@ -274,10 +274,10 @@ noreturn void firm_launch(int argc, const char **argv)
 	//ee_printf("Waiting for ARM11...\n");
 	while(PXI_recvWord() != PXI_RPL_OK);
 
-	deinitCpu();
-
 	//ee_printf("Relocating FIRM launch stub...\n");
 	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
+
+	deinitCpu();
 
 	//ee_printf("Starting firm launch...\n");
 	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);

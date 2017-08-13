@@ -121,7 +121,7 @@
 #ifdef ARM9
 #define	A9_VECTORS_START     (A9_RAM_BASE)
 #define	A9_VECTORS_SIZE      (0x40)
-#define	A9_STUB_ENTRY        (ITCM_BASE + ITCM_SIZE - 0x200)
+#define	A9_STUB_ENTRY        (ITCM_KERNEL_MIRROR + ITCM_SIZE - 0x200)
 #define	A9_STUB_SIZE         (0x200)
 #define A9_HEAP_END          (A9_RAM_BASE + A9_RAM_SIZE)
 #define A9_STACK_START       (DTCM_BASE)
