@@ -28,7 +28,15 @@
 
 void lz11Decompress(const void *in, void *out, u32 size);
 
-static bool validateSplashHeader(SplashHeader *header)
+void getSplashDimensions(const void *const data, u32 *const width, u32 *const height)
+{
+	const SplashHeader *const header = (const SplashHeader *const)data;
+
+	if(width) *width = header->width;
+	if(height) *height = header->height;
+}
+
+static bool validateSplashHeader(const SplashHeader *const header)
 {
 	if(memcmp(&header->magic, "SPLA", 4)) return false;
 
@@ -43,14 +51,13 @@ static bool validateSplashHeader(SplashHeader *header)
 	return true;
 }
 
-bool drawSplashscreen(const void *const data)
+bool drawSplashscreen(const void *const data, s32 startX, s32 startY)
 {
-	SplashHeader header;
-	memcpy(&header, data, sizeof(SplashHeader));
-	if(!validateSplashHeader(&header)) return false;
+	const SplashHeader *const header = (const SplashHeader *const)data;
+	if(!validateSplashHeader(header)) return false;
 
-	const u32 width = header.width, height = header.height;
-	const u32 flags = header.flags;
+	const u32 width = header->width, height = header->height;
+	const u32 flags = header->flags;
 	const bool isCompressed = flags & FLAG_COMPRESSED;
 
 	u16 *imgData;
@@ -62,9 +69,13 @@ bool drawSplashscreen(const void *const data)
 	}
 	else imgData = (u16*)(data + sizeof(SplashHeader));
 
+	u32 xx, yy;
+	if(startX < 0 || (u32)startX > SCREEN_WIDTH_TOP - width) xx = (SCREEN_WIDTH_TOP - width) / 2;
+	else xx = (u32)startX;
+	if(startY < 0 || (u32)startY > SCREEN_HEIGHT_TOP - height) yy = (SCREEN_HEIGHT_TOP - height) / 2;
+	else yy = (u32)startY;
+
 	u16 *fb = (u16*)FRAMEBUF_TOP_A_1;
-	const u32 yy = (SCREEN_HEIGHT_TOP - height) / 2;
-	const u32 xx = (SCREEN_WIDTH_TOP - width) / 2;
 	for(u32 x = 0; x < width; x++)
 	{
 		for(u32 y = 0; y < height; y++)

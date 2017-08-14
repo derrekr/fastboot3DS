@@ -60,7 +60,7 @@ static void consoleMainInit()
 
 void uiDrawSplashScreen()
 {
-	drawSplashscreen(bannerData);
+	drawSplashscreen(bannerData, -1, -1);
 	TIMER_sleep(600);
 }
 
@@ -354,13 +354,13 @@ void uiPrintProgressBar(unsigned int x, unsigned int y, unsigned int w,
 
 void uiPrintBootWarning()
 {
-	drawSplashscreen(bootWarningData);
+	drawSplashscreen(bootWarningData, -1, 10);
 	TIMER_sleep(400);
 }
 
 void uiPrintBootFailure()
 {
-	drawSplashscreen(bootFailureData);
+	drawSplashscreen(bootFailureData, -1, 10);
 	TIMER_sleep(400);
 }
 
