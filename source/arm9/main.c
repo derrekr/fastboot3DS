@@ -116,7 +116,9 @@ int main(void)
 
 	uiPrintIfVerbose("Entering menu...\n");
 
-	TIMER_sleep(600);
+	/* In verbose mode wait before we clear all debug messages */
+	if(uiGetVerboseMode())
+		TIMER_sleep(600);
 
 	consoleClear();
 

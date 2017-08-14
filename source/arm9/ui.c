@@ -61,6 +61,7 @@ static void consoleMainInit()
 void uiDrawSplashScreen()
 {
 	drawSplashscreen(bannerData);
+	TIMER_sleep(600);
 }
 
 void uiInit()
