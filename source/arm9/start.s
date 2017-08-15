@@ -91,13 +91,13 @@ _start:
 	msr cpsr_fsxc, #0xDF        @ System mode
 	ldr sp, =A9_STACK_END
 
+	bl setupMpu
+
 	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
 	bl clearMem
-
-	bl setupMpu
 
 	@ Setup newlib heap
 	mov r0, #A9_HEAP_END
