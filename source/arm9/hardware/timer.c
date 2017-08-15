@@ -18,8 +18,8 @@
 
 #include "mem_map.h"
 #include "types.h"
-#include "arm9/timer.h"
-#include "arm9/interrupt.h"
+#include "arm9/hardware/timer.h"
+#include "arm9/hardware/interrupt.h"
 
 
 #define TIMER_REGS_BASE   (IO_MEM_ARM9_ONLY + 0x3000)

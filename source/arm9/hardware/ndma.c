@@ -18,8 +18,8 @@
 
 #include "types.h"
 #include "arm9/fb_assert.h"
-#include "arm9/ndma.h"
-#include "arm9/interrupt.h"
+#include "arm9/hardware/ndma.h"
+#include "arm9/hardware/interrupt.h"
 
 
 

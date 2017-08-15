@@ -21,12 +21,12 @@
 #include "types.h"
 #include "arm9/fmt.h"
 #include "mem_map.h"
-#include "pxi.h"
+#include "hardware/pxi.h"
 #include "arm9/console.h"
 #include "fatfs/ff.h"
 #include "arm9/fsutils.h"
 #include "arm9/main.h"
-#include "arm9/interrupt.h"
+#include "arm9/hardware/interrupt.h"
 
 static u32 debugHash = 0;
 

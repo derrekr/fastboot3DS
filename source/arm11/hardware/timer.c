@@ -18,8 +18,8 @@
 
 #include "types.h"
 #include "mem_map.h"
-#include "arm11/timer.h"
-#include "arm11/interrupt.h"
+#include "arm11/hardware/timer.h"
+#include "arm11/hardware/interrupt.h"
 
 #define TIMER_REGS_BASE     (MPCORE_PRIV_REG_BASE + 0x600)
 #define REG_TIMER_LOAD      *((vu32*)(TIMER_REGS_BASE + 0x00))

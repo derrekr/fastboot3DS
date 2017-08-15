@@ -15,7 +15,7 @@ include $(DEVKITARM)/base_rules
 # all directories are relative to this makefile
 #---------------------------------------------------------------------------------
 BUILD		:= build
-SOURCES		:= ../source ../source/arm9 ../source/arm9/gui ../thirdparty/fatfs
+SOURCES		:= ../source ../source/arm9 ../source/arm9/gui ../source/arm9/hardware ../thirdparty/fatfs
 INCLUDES	:= ../include ../thirdparty
 DEFINES		:= -DARM9 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
 				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)

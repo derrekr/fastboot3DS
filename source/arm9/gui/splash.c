@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
-#include "arm9/splash.h"
+#include "arm9/gui/splash.h"
 #include "arm9/fmt.h"
-#include "gfx.h"
+#include "hardware/gfx.h"
 
 
 

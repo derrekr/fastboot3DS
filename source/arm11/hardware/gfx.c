@@ -25,10 +25,10 @@
 
 #include "types.h"
 #include "mem_map.h"
-#include "gfx.h"
-#include "arm11/i2c.h"
-#include "arm11/timer.h"
-#include "arm11/interrupt.h"
+#include "hardware/gfx.h"
+#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/timer.h"
+#include "arm11/hardware/interrupt.h"
 
 
 #define PDN_REGS_BASE            (IO_MEM_ARM9_ARM11 + 0x40000)

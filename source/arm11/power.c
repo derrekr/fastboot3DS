@@ -18,9 +18,9 @@
 
 #include "types.h"
 #include "util.h"
-#include "arm11/i2c.h"
-#include "cache.h"
-#include "arm11/interrupt.h"
+#include "arm11/hardware/i2c.h"
+#include "hardware/cache.h"
+#include "arm11/hardware/interrupt.h"
 
 
 

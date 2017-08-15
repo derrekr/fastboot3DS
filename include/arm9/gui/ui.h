@@ -19,7 +19,7 @@
  */
 
 #include "arm9/console.h"
-#include "arm9/hid.h"
+#include "arm9/hardware/hid.h"
 
 
 #define uiPrintInfo(format, ...)    uiPrint(format, 0, false, ##__VA_ARGS__)

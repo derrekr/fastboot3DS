@@ -25,12 +25,12 @@
 #include "arm9/dev.h"
 #include "arm9/partitions.h"
 #include "fatfs/ff.h"
-#include "arm9/hid.h"
+#include "arm9/hardware/hid.h"
 #include "util.h"
 #include "arm9/firmwriter.h"
 #include "arm9/main.h"
 #include "arm9/gui/menu.h"
-#include "arm9/timer.h"
+#include "arm9/hardware/timer.h"
 
 #define MIN_UPDATE_SIZE	0x1000
 

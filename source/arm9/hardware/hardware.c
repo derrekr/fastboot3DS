@@ -17,34 +17,26 @@
  */
 
 #include "types.h"
-#include "arm11/start.h"
-#include "arm11/interrupt.h"
-#include "arm11/timer.h"
-#include "arm11/i2c.h"
-#include "pxi.h"
-#include "arm11/hid.h"
+#include "arm9/hardware/interrupt.h"
+#include "arm9/hardware/ndma.h"
+#include "arm9/hardware/timer.h"
+#include "hardware/pxi.h"
+#include "arm9/hardware/crypto.h"
 
 
 
 void hardwareInit(void)
 {
 	IRQ_init();
+	NDMA_init();
 	TIMER_init();
-
-	if(!getCpuId())
-	{
-		I2C_init();
-		PXI_init();
-		hidInit();
-	}
-	else
-	{
-		// We don't need core 1 yet so back it goes into boot11.
-		deinitCpu();
-		((void (*)(void))0x0001004C)();
-	}
+	PXI_init();
+	AES_init();
 }
 
-/*void hardwareDeinit(void)
+void hardwareDeinit(void)
 {
-}*/
+	// New 3DS K9L doesn't like FIFO counts >4 and hangs.
+	// Thx Nintendo
+	AES_deinit();
+}

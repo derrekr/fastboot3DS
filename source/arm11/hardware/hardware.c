@@ -17,43 +17,34 @@
  */
 
 #include "types.h"
-#include "mem_map.h"
-#include "arm9/interrupt.h"
-
-
-#define IRQ_REGS_BASE  (IO_MEM_ARM9_ONLY + 0x1000)
-#define REG_IRQ_IE     *((vu32*)(IRQ_REGS_BASE + 0x00))
-#define REG_IRQ_IF     *((vu32*)(IRQ_REGS_BASE + 0x04))
-
-
-IrqHandler irqHandlerTable[32] = {0};
+#include "arm11/start.h"
+#include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/timer.h"
+#include "arm11/hardware/i2c.h"
+#include "hardware/pxi.h"
+#include "arm11/hardware/hid.h"
 
 
 
-void IRQ_init(void)
+void hardwareInit(void)
 {
-	REG_IRQ_IE = 0;
-	REG_IRQ_IF = 0xFFFFFFFFu;
+	IRQ_init();
+	TIMER_init();
 
-	leaveCriticalSection(0u); // Abuse it to enable IRQ
+	if(!getCpuId())
+	{
+		I2C_init();
+		PXI_init();
+		hidInit();
+	}
+	else
+	{
+		// We don't need core 1 yet so back it goes into boot11.
+		deinitCpu();
+		((void (*)(void))0x0001004C)();
+	}
 }
 
-void IRQ_registerHandler(Interrupt id, IrqHandler handler)
+/*void hardwareDeinit(void)
 {
-	const u32 oldState = enterCriticalSection();
-
-	irqHandlerTable[id] = handler;
-	REG_IRQ_IE |= 1u<<id;
-
-	leaveCriticalSection(oldState);
-}
-
-void IRQ_unregisterHandler(Interrupt id)
-{
-	const u32 oldState = enterCriticalSection();
-
-	REG_IRQ_IE &= ~(1u<<id);
-	irqHandlerTable[id] = (IrqHandler)NULL;
-
-	leaveCriticalSection(oldState);
-}
+}*/

@@ -17,13 +17,13 @@
  */
 
 #include "types.h"
-#include "arm11/hardware.h"
-#include "arm11/interrupt.h"
-#include "arm11/hid.h"
+#include "arm11/hardware/hardware.h"
+#include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/hid.h"
 #include "arm11/power.h"
-#include "arm11/i2c.h"
-#include "pxi.h"
-#include "gfx.h"
+#include "arm11/hardware/i2c.h"
+#include "hardware/pxi.h"
+#include "hardware/gfx.h"
 #include "arm11/firm.h"
 
 

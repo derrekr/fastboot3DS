@@ -22,10 +22,10 @@
 
 #include "types.h"
 #include "mem_map.h"
-#include "arm11/hid.h"
-#include "arm11/i2c.h"
-#include "arm11/interrupt.h"
-#include "arm11/gpio.h"
+#include "arm11/hardware/hid.h"
+#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/gpio.h"
 
 
 #define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)

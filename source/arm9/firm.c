@@ -26,12 +26,12 @@
 #undef ARM11
 #include "arm9/firm.h"
 #include "arm9/start.h"
-#include "arm9/crypto.h"
-#include "arm9/ndma.h"
+#include "arm9/hardware/crypto.h"
+#include "arm9/hardware/ndma.h"
 #include "arm9/gui/ui.h"
-#include "cache.h"
+#include "hardware/cache.h"
 #include "util.h"
-#include "pxi.h"
+#include "hardware/pxi.h"
 
 
 

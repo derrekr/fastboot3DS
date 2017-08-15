@@ -18,7 +18,7 @@
 
 #include "types.h"
 #include "arm9/fmt.h"
-#include "arm9/interrupt.h"
+#include "arm9/hardware/interrupt.h"
 
 
 

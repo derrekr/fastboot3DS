@@ -17,8 +17,8 @@
  */
 
 #include "types.h"
-#include "pxi.h"
-#include "arm9/interrupt.h"
+#include "hardware/pxi.h"
+#include "arm9/hardware/interrupt.h"
 
 
 

@@ -17,26 +17,43 @@
  */
 
 #include "types.h"
-#include "arm9/interrupt.h"
-#include "arm9/ndma.h"
-#include "arm9/timer.h"
-#include "pxi.h"
-#include "arm9/crypto.h"
+#include "mem_map.h"
+#include "arm9/hardware/interrupt.h"
+
+
+#define IRQ_REGS_BASE  (IO_MEM_ARM9_ONLY + 0x1000)
+#define REG_IRQ_IE     *((vu32*)(IRQ_REGS_BASE + 0x00))
+#define REG_IRQ_IF     *((vu32*)(IRQ_REGS_BASE + 0x04))
+
+
+IrqHandler irqHandlerTable[32] = {0};
 
 
 
-void hardwareInit(void)
+void IRQ_init(void)
 {
-	IRQ_init();
-	NDMA_init();
-	TIMER_init();
-	PXI_init();
-	AES_init();
+	REG_IRQ_IE = 0;
+	REG_IRQ_IF = 0xFFFFFFFFu;
+
+	leaveCriticalSection(0u); // Abuse it to enable IRQ
 }
 
-void hardwareDeinit(void)
+void IRQ_registerHandler(Interrupt id, IrqHandler handler)
 {
-	// New 3DS K9L doesn't like FIFO counts >4 and hangs.
-	// Thx Nintendo
-	AES_deinit();
+	const u32 oldState = enterCriticalSection();
+
+	irqHandlerTable[id] = handler;
+	REG_IRQ_IE |= 1u<<id;
+
+	leaveCriticalSection(oldState);
+}
+
+void IRQ_unregisterHandler(Interrupt id)
+{
+	const u32 oldState = enterCriticalSection();
+
+	REG_IRQ_IE &= ~(1u<<id);
+	irqHandlerTable[id] = (IrqHandler)NULL;
+
+	leaveCriticalSection(oldState);
 }

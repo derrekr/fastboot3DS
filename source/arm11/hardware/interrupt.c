@@ -18,7 +18,7 @@
 
 #include "types.h"
 #include "mem_map.h"
-#include "arm11/interrupt.h"
+#include "arm11/hardware/interrupt.h"
 #include "arm11/start.h"
 
 

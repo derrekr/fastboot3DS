@@ -35,7 +35,7 @@
 #include "types.h"
 #include "util.h"
 #include "arm9/dev.h"
-#include "arm9/sdmmc.h"
+#include "arm9/hardware/sdmmc.h"
 
 #define DATA32_SUPPORT
 

@@ -18,8 +18,8 @@
 
 #include "types.h"
 #include "mem_map.h"
-#include "arm11/i2c.h"
-#include "arm11/interrupt.h"
+#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/interrupt.h"
 
 
 #define I2C1_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x61000)

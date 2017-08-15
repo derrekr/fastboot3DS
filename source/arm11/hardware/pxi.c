@@ -17,9 +17,9 @@
  */
 
 #include "types.h"
-#include "pxi.h"
-#include "arm11/interrupt.h"
-#include "gfx.h"
+#include "hardware/pxi.h"
+#include "arm11/hardware/interrupt.h"
+#include "hardware/gfx.h"
 #include "arm11/main.h"
 #include "arm11/power.h"
 

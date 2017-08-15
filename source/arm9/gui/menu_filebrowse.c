@@ -26,10 +26,10 @@
 #include "arm9/console.h"
 #include "arm9/main.h"
 #include "arm9/gui/menu.h"
-#include "arm9/interrupt.h"
+#include "arm9/hardware/interrupt.h"
 #include "arm9/dev.h"
 #include "util.h"
-#include "arm9/hid.h"
+#include "arm9/hardware/hid.h"
 
 
 #define MAX_CACHED_ENTRIES	0x400

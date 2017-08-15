@@ -22,7 +22,7 @@
  */
 
 #include "types.h"
-#include "gfx.h"
+#include "hardware/gfx.h"
 
 #ifdef __cplusplus
 extern "C" {

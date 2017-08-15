@@ -6,7 +6,7 @@
 #include <string.h>
 #include "types.h"
 #include "arm9/fmt.h"
-#include "gfx.h"
+#include "hardware/gfx.h"
 #include "util.h"
 #include "arm9/console.h"
 

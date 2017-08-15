@@ -20,7 +20,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/start.h"
-#include "pxi.h"
+#include "hardware/pxi.h"
 
 
 

@@ -18,7 +18,7 @@
 
 #include "mem_map.h"
 #include "types.h"
-#include "arm9/spiflash.h"
+#include "arm9/hardware/spiflash.h"
 
 
 #define SPI_REGS_BUS2_BASE  (IO_MEM_ARM9_ARM11 + 0x60000)
