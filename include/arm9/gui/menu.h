@@ -18,13 +18,13 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "arm9/ui.h"
-#include "arm9/menu_firmloader.h"
-#include "arm9/menu_nand.h"
-#include "arm9/menu_options.h"
-#include "arm9/menu_filebrowse.h"
-#include "arm9/menu_update.h"
-#include "arm9/menu_credits.h"
+#include "arm9/gui/ui.h"
+#include "arm9/gui/menu_firmloader.h"
+#include "arm9/gui/menu_nand.h"
+#include "arm9/gui/menu_options.h"
+#include "arm9/gui/menu_filebrowse.h"
+#include "arm9/gui/menu_update.h"
+#include "arm9/gui/menu_credits.h"
 
 
 enum menu_state_type {

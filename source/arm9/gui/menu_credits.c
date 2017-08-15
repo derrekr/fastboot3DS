@@ -29,8 +29,8 @@
 #include "util.h"
 #include "arm9/main.h"
 #include "arm9/timer.h"
-#include "arm9/menu.h"
-#include "arm9/ui.h"
+#include "arm9/gui/menu.h"
+#include "arm9/gui/ui.h"
 
 void menuCredits(void)
 {

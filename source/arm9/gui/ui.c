@@ -27,7 +27,7 @@
 #include "pxi.h"
 #include "arm9/timer.h"
 #include "arm9/main.h"
-#include "arm9/ui.h"
+#include "arm9/gui/ui.h"
 #include "arm9/console.h"
 #include "arm9/splash.h"
 #include "banner_spla.h"

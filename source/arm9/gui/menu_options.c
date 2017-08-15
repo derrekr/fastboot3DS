@@ -29,7 +29,7 @@
 #include "util.h"
 #include "arm9/main.h"
 #include "arm9/timer.h"
-#include "arm9/menu.h"
+#include "arm9/gui/menu.h"
 #include "arm9/nandimage.h"
 #include "arm9/config.h"
 

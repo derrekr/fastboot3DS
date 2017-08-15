@@ -25,7 +25,7 @@
 #include "fatfs/ff.h"
 #include "arm9/console.h"
 #include "arm9/main.h"
-#include "arm9/menu.h"
+#include "arm9/gui/menu.h"
 #include "arm9/interrupt.h"
 #include "arm9/dev.h"
 #include "util.h"

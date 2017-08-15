@@ -20,7 +20,7 @@
 
 #include "arm9/debug.h"
 #include "fatfs/ff.h"
-#include "arm9/ui.h"
+#include "arm9/gui/ui.h"
 
 
 enum bootOptionResultTypes {

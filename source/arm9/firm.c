@@ -28,7 +28,7 @@
 #include "arm9/start.h"
 #include "arm9/crypto.h"
 #include "arm9/ndma.h"
-#include "arm9/ui.h"
+#include "arm9/gui/ui.h"
 #include "cache.h"
 #include "util.h"
 #include "pxi.h"

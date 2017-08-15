@@ -33,7 +33,7 @@
 #include "util.h"
 #include "arm9/hid.h"
 #include "arm9/debug.h"
-#include "arm9/ui.h"
+#include "arm9/gui/ui.h"
 #include "arm9/config.h"
 
 #define MAX_FILE_SIZE	0x4000 - 1
