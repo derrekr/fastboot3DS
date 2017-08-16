@@ -80,6 +80,7 @@ bool menuDumpNand(const char *filePath)
 		uiPrintError("Failed to expand file! Error: %X\n", fres);
 		f_sync(&file);
 		f_close(&file);
+		f_unlink(filePath);
 		goto fail;
 	}
 
@@ -104,6 +105,7 @@ bool menuDumpNand(const char *filePath)
 			uiPrintError("\nFailed to read sector 0x%"PRIx32"!\n", curSector);
 			f_sync(&file);
 			f_close(&file);
+			f_unlink(filePath);
 			goto fail;
 		}
 		if((f_write(&file, buf, curSectorBlkSize<<9, &bytesWritten) != FR_OK) || (bytesWritten != curSectorBlkSize<<9))
@@ -111,6 +113,7 @@ bool menuDumpNand(const char *filePath)
 			uiPrintError("\nFailed to write to file!\n");
 			f_sync(&file);
 			f_close(&file);
+			f_unlink(filePath);
 			goto fail;
 		}
 
@@ -120,6 +123,7 @@ bool menuDumpNand(const char *filePath)
 			uiPrintTextAt(0, 22, "... canceled.     ");
 			f_sync(&file);
 			f_close(&file);
+			f_unlink(filePath);
 			goto fail;
 		}
 
