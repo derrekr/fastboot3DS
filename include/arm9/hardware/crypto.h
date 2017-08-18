@@ -252,3 +252,62 @@ void SHA_finish(u32 *const hash, u8 endianess);
  * @param[in]  hashEndianess  Endianess bitmask for the hash.
  */
 void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess);
+
+
+
+//////////////////////////////////
+//             RSA              //
+//////////////////////////////////
+
+// REG_RSA_CNT
+#define RSA_ENABLE          (1u)
+#define RSA_UNK_BIT1        (1u<<1)
+#define RSA_KEYSLOT(k)      ((k)<<4)
+#define RSA_INPUT_BIG       (1u<<8)
+#define RSA_INPUT_LITTLE    (0u)
+#define RSA_INPUT_NORMAL    (1u<<9)
+#define RSA_INPUT_REVERSED  (0u)
+
+// RSA_SLOTCNT
+#define RSA_KEY_STAT_SET    (1u)
+#define RSA_KEY_WR_PROT     (1u<<1)
+#define RSA_KEY_UNK_BIT31   (1u<<31)
+
+// RSA_SLOTSIZE
+#define RSA_SLOTSIZE_2048   (0x40u)
+
+
+/**
+ * @brief      Initializes the RSA hardware.
+ */
+void RSA_init(void);
+
+/**
+ * @brief      Selects the given keyslot for all following RSA operations.
+ *
+ * @param[in]  keyslot  The keyslot to select.
+ */
+void RSA_selectKeyslot(u8 keyslot);
+
+/**
+ * @brief      Sets a RSA modulus + exponent in the specified keyslot.
+ *
+ * @param[in]  keyslot  The keyslot this key will be set for.
+ * @param[in]  mod      Pointer to 2048-bit RSA modulus data.
+ * @param[in]  exp      The exponent to set.
+ *
+ * @return     Returns true on success, false otherwise.
+ */
+bool RSA_setKey2048(u8 keyslot, const u8 *const mod, u32 exp);
+
+/**
+ * @brief      Decrypts a RSA 2048 signature.
+ *
+ * @param      decSig  Pointer to decrypted destination signature.
+ * @param[in]  encSig  Pointer to encrypted source signature.
+ *
+ * @return     Returns true on success, false otherwise.
+ */
+bool RSA_decrypt2048(void *const decSig, const void *const encSig);
+
+//bool RSA_verify2048(const void *const encSig, const void *const data, u32 size);
