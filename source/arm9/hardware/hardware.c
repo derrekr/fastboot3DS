@@ -32,6 +32,7 @@ void hardwareInit(void)
 	TIMER_init();
 	PXI_init();
 	AES_init();
+	RSA_init();
 }
 
 void hardwareDeinit(void)

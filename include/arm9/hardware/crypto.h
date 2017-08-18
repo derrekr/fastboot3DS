@@ -310,4 +310,14 @@ bool RSA_setKey2048(u8 keyslot, const u8 *const mod, u32 exp);
  */
 bool RSA_decrypt2048(void *const decSig, const void *const encSig);
 
-//bool RSA_verify2048(const void *const encSig, const void *const data, u32 size);
+/**
+ * @brief      Verifies a RSA 2048 SHA 256 signature.
+ *
+ * @param[in]  encSig   Pointer to encrypted source signature.
+ * @param[in]  data     Pointer to the data to hash.
+ * @param[in]  size     The hash data size.
+ * @param[in]  keyslot  The RSA keyslot to use. Must be <4.
+ *
+ * @return     Returns true if the signature is valid, false otherwise.
+ */
+bool RSA_verify2048(const u32 *const encSig, const u32 *const data, u32 size, u8 keyslot);
