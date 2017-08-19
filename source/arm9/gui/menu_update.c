@@ -34,7 +34,7 @@
 
 #define MIN_UPDATE_SIZE	0x1000
 
-static const char *updateFilePath = "sdmc:/fastboot3ds.bin";
+static const char *updateFilePath = "sdmc:/fastboot3DS.firm";
 static const char *installPath = "firm0";
 
 bool menuUpdateLoader()

@@ -312,6 +312,7 @@ bool RSA_decrypt2048(void *const decSig, const void *const encSig);
 
 /**
  * @brief      Verifies a RSA 2048 SHA 256 signature.
+ * @brief      Note: This function skips the ASN.1 data and is therefore not safe.
  *
  * @param[in]  encSig   Pointer to encrypted source signature.
  * @param[in]  data     Pointer to the data to hash.
