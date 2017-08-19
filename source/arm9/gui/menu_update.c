@@ -31,6 +31,8 @@
 #include "arm9/main.h"
 #include "arm9/gui/menu.h"
 #include "arm9/hardware/timer.h"
+#include "arm9/hardware/crypto.h"
+#include "fastboot3DS_pubkey_bin.h"
 
 #define MIN_UPDATE_SIZE	0x1000
 
@@ -62,6 +64,14 @@ bool menuUpdateLoader()
 	if(!tryLoadFirmware(updateFilePath, false, false))
 	{
 		uiPrintError("Update file is corrupted!\n");
+		goto fail;
+	}
+
+	// Verify signature
+	if(!RSA_setKey2048(3, fastboot3DS_pubkey_bin, 0x01000100) ||
+	   !RSA_verify2048(updateBuffer + 0x40, updateBuffer, 0x100))
+	{
+		uiPrintError("Update file signature verification failed!\n");
 		goto fail;
 	}
 

@@ -761,14 +761,12 @@ bool RSA_decrypt2048(void *const decSig, const void *const encSig)
 	return true;
 }
 
-bool RSA_verify2048(const u32 *const encSig, const u32 *const data, u32 size, u8 keyslot)
+bool RSA_verify2048(const u32 *const encSig, const u32 *const data, u32 size)
 {
 	fb_assert(encSig != NULL);
 	fb_assert(data != NULL);
-	fb_assert(keyslot < 4);
 
 	u8 decSig[0x100];
-	RSA_selectKeyslot(keyslot);
 	if(!RSA_decrypt2048(decSig, encSig)) return false;
 
 	if(decSig[0] != 0x00 || decSig[1] != 0x01) return false;
