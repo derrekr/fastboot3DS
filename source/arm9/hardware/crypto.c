@@ -23,7 +23,6 @@
 #include "arm9/hardware/crypto.h"
 #include "arm9/hardware/interrupt.h"
 #include "arm9/hardware/ndma.h"
-#include "arm9/fmt.h"
 
 
 
@@ -764,6 +763,10 @@ bool RSA_decrypt2048(void *const decSig, const void *const encSig)
 
 bool RSA_verify2048(const u32 *const encSig, const u32 *const data, u32 size, u8 keyslot)
 {
+	fb_assert(encSig != NULL);
+	fb_assert(data != NULL);
+	fb_assert(keyslot < 4);
+
 	u8 decSig[0x100];
 	RSA_selectKeyslot(keyslot);
 	if(!RSA_decrypt2048(decSig, encSig)) return false;
