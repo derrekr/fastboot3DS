@@ -67,6 +67,7 @@ bool menuUpdateLoader()
 		goto fail;
 	}
 
+#ifdef NDEBUG
 	// Verify signature
 	if(!RSA_setKey2048(3, fastboot3DS_pubkey_bin, 0x01000100) ||
 	   !RSA_verify2048(updateBuffer + 0x40, updateBuffer, 0x100))
@@ -74,6 +75,7 @@ bool menuUpdateLoader()
 		uiPrintError("Update file signature verification failed!\n");
 		goto fail;
 	}
+#endif
 
 	if(!firm_size(&fwSize) || fwSize < MIN_UPDATE_SIZE || fwSize % 0x200)
 	{
