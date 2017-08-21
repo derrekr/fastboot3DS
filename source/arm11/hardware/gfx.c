@@ -31,12 +31,12 @@
 #include "arm11/hardware/interrupt.h"
 
 
-#define PDN_REGS_BASE            (IO_MEM_ARM9_ARM11 + 0x40000)
-#define REG_PDN_GPU_CNT          *((vu32*)(PDN_REGS_BASE + 0x1200))
-#define REG_PDN_GPU_CNT2         *((vu32*)(PDN_REGS_BASE + 0x1204))
-#define REG_PDN_GPU_CNT2_8BIT    *((vu8* )(PDN_REGS_BASE + 0x1204))
-#define REG_PDN_GPU_CNT4         *((vu8* )(PDN_REGS_BASE + 0x1208))
-#define REG_PDN_GPU_CNT3         *((vu16*)(PDN_REGS_BASE + 0x1210))
+#define PDN_REGS_BASE           (IO_MEM_ARM9_ARM11 + 0x40000)
+#define REG_PDN_GPU_CNT         *((vu32*)(PDN_REGS_BASE + 0x1200))
+#define REG_PDN_GPU_CNT2        *((vu32*)(PDN_REGS_BASE + 0x1204))
+#define REG_PDN_GPU_CNT2_8BIT   *((vu8* )(PDN_REGS_BASE + 0x1204))
+#define REG_PDN_GPU_CNT4        *((vu8* )(PDN_REGS_BASE + 0x1208))
+#define REG_PDN_GPU_CNT3        *((vu16*)(PDN_REGS_BASE + 0x1210))
 
 #define LCD_REGS_BASE           (IO_MEM_ARM11_ONLY + 0x2000)
 #define REG_LCD_COLORFILL_MAIN  *((vu32*)(LCD_REGS_BASE + 0x204))
@@ -45,7 +45,12 @@
 #define REG_LCD_BACKLIGHT_SUB   *((vu32*)(LCD_REGS_BASE + 0xA40))
 
 #define GPU_EXT_REGS_BASE       (IO_MEM_ARM11_ONLY + 0x200000)
-#define REG_GPU_EXT_CNT         *((vu32*)(GPU_EXT_REGS_BASE + 0x04))
+#define REG_GPU_EXT_CNT         *((vu32*)(GPU_EXT_REGS_BASE + 0x0004))
+
+#define REGs_PSC0                ((vu32*)(GPU_EXT_REGS_BASE + 0x0010))
+#define REGs_PSC1                ((vu32*)(GPU_EXT_REGS_BASE + 0x0020))
+
+#define REGs_TRANS_ENGINE        ((vu32*)(GPU_EXT_REGS_BASE + 0x0C00))
 
 
 
@@ -154,9 +159,6 @@ static void gfxSetupFramebuffers(void)
 
 void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 buf1v, u32 buf1Sz, u32 val1)
 {
-	vu32 *REGs_PSC0 = (vu32*)0x10400010;
-	vu32 *REGs_PSC1 = (vu32*)0x10400020;
-
 	REGs_PSC0[0] = (u32)buf0a>>3;            // Start address
 	REGs_PSC0[1] = ((u32)buf0a + buf0Sz)>>3; // End address 
 	REGs_PSC0[2] = val0;                     // Fill value
@@ -170,29 +172,25 @@ void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 
 
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
 {
-	vu32 *REGs_TE = (vu32*)0x10400C00;
-
-	REGs_TE[0] = (u32)in>>3;
-	REGs_TE[1] = (u32)out>>3;
-	REGs_TE[2] = indim;
-	REGs_TE[3] = outdim;
-	REGs_TE[4] = flags;
-	REGs_TE[5] = 0;
-	REGs_TE[6] = 1;
+	REGs_TRANS_ENGINE[0] = (u32)in>>3;
+	REGs_TRANS_ENGINE[1] = (u32)out>>3;
+	REGs_TRANS_ENGINE[2] = indim;
+	REGs_TRANS_ENGINE[3] = outdim;
+	REGs_TRANS_ENGINE[4] = flags;
+	REGs_TRANS_ENGINE[5] = 0;
+	REGs_TRANS_ENGINE[6] = 1;
 }
 
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 {
-	vu32 *REGs_TE = (vu32*)0x10400C00;
-
-	REGs_TE[0] = (u32)in>>3;
-	REGs_TE[1] = (u32)out>>3;
-	REGs_TE[4] = 1u<<3;
-	REGs_TE[5] = 0;
-	REGs_TE[8] = size;
-	REGs_TE[9] = indim;
-	REGs_TE[10] = outdim;
-	REGs_TE[6] = 1;
+	REGs_TRANS_ENGINE[0] = (u32)in>>3;
+	REGs_TRANS_ENGINE[1] = (u32)out>>3;
+	REGs_TRANS_ENGINE[4] = 1u<<3;
+	REGs_TRANS_ENGINE[5] = 0;
+	REGs_TRANS_ENGINE[8] = size;
+	REGs_TRANS_ENGINE[9] = indim;
+	REGs_TRANS_ENGINE[10] = outdim;
+	REGs_TRANS_ENGINE[6] = 1;
 }
 
 void GFX_setBrightness(u32 brightness)
@@ -222,10 +220,10 @@ void GFX_init(void)
 		REG_PDN_GPU_CNT = 0x1007F;
 		*((vu32*)0x10202014) = 0x00000001;
 		*((vu32*)0x1020200C) &= 0xFFFEFFFE;
-		REG_LCD_COLORFILL_MAIN = 1u<<24;
-		REG_LCD_COLORFILL_SUB = 1u<<24;
-		REG_LCD_BACKLIGHT_MAIN = 0x30;
-		REG_LCD_BACKLIGHT_SUB = 0x30;
+		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
+		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
+		REG_LCD_BACKLIGHT_MAIN = DEFAULT_BRIGHTNESS;
+		REG_LCD_BACKLIGHT_SUB = DEFAULT_BRIGHTNESS;
 		*((vu32*)0x10202244) = 0x1023E;
 		*((vu32*)0x10202A44) = 0x1023E;
 
@@ -243,10 +241,10 @@ void GFX_init(void)
 	}
 	else
 	{
-		REG_LCD_COLORFILL_MAIN = 1u<<24;
-		REG_LCD_COLORFILL_SUB = 1u<<24;
-		REG_LCD_BACKLIGHT_MAIN = 0x30;
-		REG_LCD_BACKLIGHT_SUB = 0x30;
+		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
+		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
+		REG_LCD_BACKLIGHT_MAIN = DEFAULT_BRIGHTNESS;
+		REG_LCD_BACKLIGHT_SUB = DEFAULT_BRIGHTNESS;
 		gfxSetupFramebuffers();
 	}
 

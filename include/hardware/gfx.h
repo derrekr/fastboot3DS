@@ -34,8 +34,11 @@
 #define FRAMEBUF_TOP_A_2    (VRAM_BASE + 0x100000)
 #define FRAMEBUF_SUB_A_2    (FRAMEBUF_TOP_A_2 + (SCREEN_WIDTH_TOP * SCREEN_HEIGHT_TOP * 2))
 
+#define DEFAULT_BRIGHTNESS  (0x30)
+
 /// Converts packed RGB8 to packed RGB565.
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
+
 
 
 #ifdef ARM11
