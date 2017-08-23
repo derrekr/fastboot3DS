@@ -10,7 +10,7 @@
 #include "util.h"
 #include "arm11/console.h"
 
-#include "default_font_bin.h"
+#include "arm11/font_6x10.h"
 
 //set up the palette for color printing
 static u16 colorTable[] = {
@@ -46,19 +46,19 @@ PrintConsole defaultConsole =
 {
 	//Font:
 	{
-		default_font_bin, //font gfx
+		default_font, //font gfx
 		0, //first ascii character in the set
 		256 //number of characters in the font set
 	},
 	(u16*)NULL,
 	0,0,	//cursorX cursorY
 	0,0,	//prevcursorX prevcursorY
-	40,		//console width
-	30,		//console height
+	53,		//console width
+	24,		//console height
 	0,		//window x
 	0,		//window y
-	40,		//window width
-	30,		//window height
+	53,		//window width
+	24,		//window height
 	3,		//tab size
 	7,		// foreground color
 	0,		// background color
@@ -480,8 +480,8 @@ PrintConsole* consoleInit(int screen, PrintConsole* console, bool clear) {
 
 	if(screen==1) {
 		console->frameBuffer = (u16*)FRAMEBUF_TOP_A_1;
-		console->consoleWidth = 50;
-		console->windowWidth = 50;
+		console->consoleWidth = 66;
+		console->windowWidth = 66;
 	}
 	else console->frameBuffer = (u16*)FRAMEBUF_SUB_A_1;
 
@@ -532,15 +532,15 @@ static void newRow() {
 
 	if(currentConsole->cursorY  >= currentConsole->windowHeight)  {
 		currentConsole->cursorY --;
-		u16 *dst = &currentConsole->frameBuffer[(currentConsole->windowX * 8 * 240) + (239 - (currentConsole->windowY * 8))];
-		u16 *src = dst - 8;
+		u16 *dst = &currentConsole->frameBuffer[(currentConsole->windowX * 6 * 240) + (239 - (currentConsole->windowY * 10))];
+		u16 *src = dst - 10;
 
 		int i,j;
 
-		for (i=0; i<currentConsole->windowWidth*8; i++) {
+		for (i=0; i<currentConsole->windowWidth*6; i++) {
 			u32 *from = (u32*)((int)src & ~3);
 			u32 *to = (u32*)((int)dst & ~3);
-			for (j=0;j<(((currentConsole->windowHeight-1)*8)/2);j++) *(to--) = *(from--);
+			for (j=0;j<(((currentConsole->windowHeight-1)*10)/2);j++) *(to--) = *(from--);
 			dst += 240;
 			src += 240;
 		}
@@ -554,7 +554,7 @@ void consoleDrawChar(int c) {
 	c -= currentConsole->font.asciiOffset;
 	if ( c < 0 || c > currentConsole->font.numChars ) return;
 
-	const u8 *fontdata = currentConsole->font.gfx + (8 * c);
+	const u8 *fontdata = currentConsole->font.gfx + (10 * c);
 
 	int writingColor = currentConsole->fg;
 	int screenColor = currentConsole->bg;
@@ -582,22 +582,26 @@ void consoleDrawChar(int c) {
 	u8 b6 = *(fontdata++);
 	u8 b7 = *(fontdata++);
 	u8 b8 = *(fontdata++);
+	u8 b9 = *(fontdata++);
+	u8 b10 = *(fontdata++);
 
-	if (currentConsole->flags & CONSOLE_UNDERLINE) b8 = 0xff;
+	if (currentConsole->flags & CONSOLE_UNDERLINE) b10 = 0xff;
 
-	if (currentConsole->flags & CONSOLE_CROSSED_OUT) b4 = 0xff;
+	if (currentConsole->flags & CONSOLE_CROSSED_OUT) b5 = 0xff;
 
 	u8 mask = 0x80;
 
 
 	int i;
 
-	int x = (currentConsole->cursorX + currentConsole->windowX) * 8;
-	int y = ((currentConsole->cursorY + currentConsole->windowY) *8 );
+	int x = (currentConsole->cursorX + currentConsole->windowX) * 6;
+	int y = ((currentConsole->cursorY + currentConsole->windowY) * 10);
 
-	u16 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
+	u16 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 9))];
 
-	for (i=0;i<8;i++) {
+	for (i=0;i<6;i++) {
+		if (b10 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
+		if (b9 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
 		if (b8 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
 		if (b7 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
 		if (b6 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
@@ -607,7 +611,7 @@ void consoleDrawChar(int c) {
 		if (b2 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
 		if (b1 & mask) { *(screen++) = fg; }else{ *(screen++) = bg; }
 		mask >>= 1;
-		screen += 240 - 8;
+		screen += 240 - 10;
 	}
 
 }

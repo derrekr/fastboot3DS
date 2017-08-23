@@ -41,7 +41,9 @@ int main(void)
 	GFX_init();
 	PrintConsole topCon;
 	consoleInit(SCREEN_TOP, &topCon, true);
-	ee_puts("Hello from ARM11!");
+	ee_puts("Hello from ARM11! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 	while(!g_startFirmLaunch)
 	{
