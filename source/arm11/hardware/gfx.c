@@ -181,12 +181,13 @@ void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
 	REGs_TRANS_ENGINE[6] = 1;
 }
 
+// Example: GX_textureCopy(in, (240 * 2)<<12 | (240 * 2)>>4, out, (240 * 2)<<12 | (240 * 2)>>4, 240 * 400);
+// Copies every second line of a 240x400 framebuffer.
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 {
 	REGs_TRANS_ENGINE[0] = (u32)in>>3;
 	REGs_TRANS_ENGINE[1] = (u32)out>>3;
 	REGs_TRANS_ENGINE[4] = 1u<<3;
-	REGs_TRANS_ENGINE[5] = 0;
 	REGs_TRANS_ENGINE[8] = size;
 	REGs_TRANS_ENGINE[9] = indim;
 	REGs_TRANS_ENGINE[10] = outdim;
@@ -210,7 +211,8 @@ void GFX_swapFramebufs(void)
 
 static void vblankIrqHandler(UNUSED u32 intSource)
 {
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4,
+	               (u64*)FRAMEBUF_TOP_A_2, (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 }
 
 void GFX_init(void)
