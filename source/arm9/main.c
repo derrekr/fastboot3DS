@@ -63,7 +63,7 @@ int main(void)
 	
 	uiPrintIfVerbose("\x1B[32mGood morning\nHello !\e[0m\n\n");*/
 	
-	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
+	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 	
 	/*uiPrintIfVerbose("Detecting unit...\n");
 
