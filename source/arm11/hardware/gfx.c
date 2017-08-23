@@ -210,7 +210,7 @@ void GFX_swapFramebufs(void)
 
 static void vblankIrqHandler(UNUSED u32 intSource)
 {
-	GX_textureCopy((u64*)FRAMEBUF_TOP_A_1, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)FRAMEBUF_TOP_A_2, 0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 }
 
 void GFX_init(void)

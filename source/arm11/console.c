@@ -479,11 +479,11 @@ PrintConsole* consoleInit(int screen, PrintConsole* console, bool clear) {
 	console->consoleInitialised = 1;
 
 	if(screen==1) {
-		console->frameBuffer = (u16*)FRAMEBUF_TOP_A_1;
+		console->frameBuffer = (u16*)RENDERBUF_TOP;
 		console->consoleWidth = 66;
 		console->windowWidth = 66;
 	}
-	else console->frameBuffer = (u16*)FRAMEBUF_SUB_A_1;
+	else console->frameBuffer = (u16*)RENDERBUF_SUB;
 
 
 	if(clear) consoleCls('2');
