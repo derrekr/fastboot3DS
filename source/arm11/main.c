@@ -25,6 +25,8 @@
 #include "hardware/pxi.h"
 #include "hardware/gfx.h"
 #include "arm11/firm.h"
+#include "arm11/console.h"
+#include "arm11/fmt.h"
 
 
 volatile bool g_poweroffAllowed = false;
@@ -35,6 +37,11 @@ volatile bool g_startFirmLaunch = false;
 int main(void)
 {
 	hardwareInit();
+
+	GFX_init();
+	PrintConsole topCon;
+	consoleInit(SCREEN_TOP, &topCon, true);
+	ee_puts("Hello from ARM11!");
 
 	while(!g_startFirmLaunch)
 	{

@@ -19,7 +19,7 @@ SOURCES		:= ../source ../source/arm11 ../source/arm11/hardware
 INCLUDES	:= ../include
 DEFINES		:= -DARM11 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
 				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)
-DATA		:=
+DATA		:= data
 LDNAME		:= arm11.ld
 
 ifneq ($(strip $(NO_DEBUG)),)

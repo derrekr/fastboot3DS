@@ -49,32 +49,32 @@ static void checkSetVerboseMode();
 
 int main(void)
 {
-	int mode = BootModeNormal;
+	//int mode = BootModeNormal;
 
 	hardwareInit();
 
 	debugHashCodeRoData();
 	
-	uiInit();
+	/*uiInit();
 	
 	checkSetVerboseMode();
 	
 	consoleSelect(&con_bottom);
 	
-	uiPrintIfVerbose("\x1B[32mGood morning\nHello !\e[0m\n\n");
+	uiPrintIfVerbose("\x1B[32mGood morning\nHello !\e[0m\n\n");*/
 	
 	PXI_sendWord(PXI_CMD_FORBID_POWER_OFF);
 	
-	uiPrintIfVerbose("Detecting unit...\n");
+	/*uiPrintIfVerbose("Detecting unit...\n");
 
 	unit_detect();
 
 	initWifiFlash();
 
-	uiPrintIfVerbose("Filesystem init...\n");
+	uiPrintIfVerbose("Filesystem init...\n");*/
 	
 	/* Try to read the settings file ASAP. */
-	if(mount_fs() > 0) // We got at least 1 drive mounted
+	/*if(mount_fs() > 0) // We got at least 1 drive mounted
 	{
 		uiPrintIfVerbose("Loading settings...\n");
 	
@@ -86,14 +86,14 @@ int main(void)
 			{
 				case BootModeQuick:
 					screen_init();
-					uiDrawSplashScreen();
+					uiDrawSplashScreen();*/
 					/* fallthrough */
-				case BootModeQuiet:
+				/*case BootModeQuiet:
 					tryLoadFirmwareFromSettings(false);
 					if(isFirmLoaded())
-						goto finish_firmlaunch;
+						goto finish_firmlaunch;*/
 					/* else fallthrough */
-				case BootModeNormal:
+				/*case BootModeNormal:
 					screen_init();
 					break;
 				default:
@@ -114,10 +114,10 @@ int main(void)
 
 	fw_detect();
 
-	uiPrintIfVerbose("Entering menu...\n");
+	uiPrintIfVerbose("Entering menu...\n");*/
 
 	/* In verbose mode wait before we clear all debug messages */
-	if(uiGetVerboseMode())
+	/*if(uiGetVerboseMode())
 		TIMER_sleep(600);
 
 	consoleClear();
@@ -138,7 +138,7 @@ finish_firmlaunch:
 	hardwareDeinit();
 
 	// TODO: Proper argc/v passing needs to be implemented.
-	firm_launch(1, (const char**)(ITCM_KERNEL_MIRROR + 0x7470));
+	firm_launch(1, (const char**)(ITCM_KERNEL_MIRROR + 0x7470));*/
 
 	return 0;
 }
