@@ -25,6 +25,8 @@
 #include "hardware/pxi.h"
 #include "hardware/gfx.h"
 #include "arm11/firm.h"
+#include "arm11/menu.h"
+#include "arm11/menu_fb3ds.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
 
@@ -39,11 +41,10 @@ int main(void)
 	hardwareInit();
 
 	GFX_init();
-	PrintConsole topCon;
-	consoleInit(SCREEN_TOP, &topCon, true);
-	ee_puts("Hello from ARM11! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	menuProcess(menu_fb3ds);
+	/* ee_puts("Hello from ARM11! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"); */
 
 	while(!g_startFirmLaunch)
 	{
