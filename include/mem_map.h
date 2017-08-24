@@ -119,10 +119,10 @@
 
 /* Custom mappings */
 #ifdef ARM9
-#define	A9_VECTORS_START     (A9_RAM_BASE)
-#define	A9_VECTORS_SIZE      (0x40)
-#define	A9_STUB_ENTRY        (ITCM_KERNEL_MIRROR + ITCM_SIZE - 0x200)
-#define	A9_STUB_SIZE         (0x200)
+#define A9_VECTORS_START     (A9_RAM_BASE)
+#define A9_VECTORS_SIZE      (0x40)
+#define A9_STUB_ENTRY        (ITCM_KERNEL_MIRROR + ITCM_SIZE - 0x200)
+#define A9_STUB_SIZE         (0x200)
 #define A9_HEAP_END          (A9_RAM_BASE + A9_RAM_SIZE)
 #define A9_STACK_START       (DTCM_BASE)
 #define A9_STACK_END         (DTCM_BASE + DTCM_SIZE - 0x400)
@@ -137,7 +137,7 @@
 #ifdef ARM11
 #define A11_MMU_TABLES_BASE  (AXIWRAM_BASE)
 #define	A11_VECTORS_START    (AXIWRAM_BASE + AXIWRAM_SIZE - 0x60)
-#define	A11_VECTORS_SIZE     (0x60)
+#define A11_VECTORS_SIZE     (0x60)
 #define A11_FALLBACK_ENTRY   (AXIWRAM_BASE + AXIWRAM_SIZE - 0x4)
 #define A11_STUB_ENTRY       (AXIWRAM_BASE + AXIWRAM_SIZE - 0x200)
 #define	A11_STUB_SIZE        (0x1A0) // Don't overwrite the vectors

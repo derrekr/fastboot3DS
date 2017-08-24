@@ -28,9 +28,6 @@
 extern "C" {
 #endif
 
-#define SCREEN_TOP 1
-#define SCREEN_LOW 0
-
 #define CONSOLE_ESC(x) "\x1b[" #x
 #define CONSOLE_RESET   CONSOLE_ESC(0m)
 #define CONSOLE_BLACK   CONSOLE_ESC(30m)

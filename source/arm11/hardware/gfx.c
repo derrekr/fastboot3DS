@@ -53,7 +53,8 @@
 #define REGs_TRANS_ENGINE        ((vu32*)(GPU_EXT_REGS_BASE + 0x0C00))
 
 
-static u32 activeFb = 0;
+static vu32 activeFb = 0;
+static volatile bool eventTable[6] = {0};
 
 
 
@@ -207,13 +208,13 @@ void* GFX_getFramebuffer(u8 screen)
 {
 	if(!activeFb)
 	{
-		if(!screen) return (void*)FRAMEBUF_TOP_A_2;
-		else        return (void*)FRAMEBUF_SUB_A_2;
+		if(screen) return (void*)FRAMEBUF_TOP_A_2;
+		else       return (void*)FRAMEBUF_SUB_A_2;
 	}
 	else
 	{
-		if(!screen) return (void*)FRAMEBUF_TOP_A_1;
-		else        return (void*)FRAMEBUF_SUB_A_1;
+		if(screen) return (void*)FRAMEBUF_TOP_A_1;
+		else       return (void*)FRAMEBUF_SUB_A_1;
 	}
 }
 
@@ -225,10 +226,16 @@ void GFX_swapFramebufs(void)
 	*((vu32*)(0x10400500+0x78)) = activeFb;
 }
 
-static void vblankIrqHandler(UNUSED u32 intSource)
+static void gfxIrqHandler(u32 intSource)
 {
-	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4,
-	               (u64*)FRAMEBUF_TOP_A_2, (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	eventTable[intSource - IRQ_PSC0] = true;
+}
+
+void GFX_waitForEvent(GfxEvent event, bool discard)
+{
+	if(discard) eventTable[event] = false;
+	while(!eventTable[event]) waitForEvent();
+	eventTable[event] = false;
 }
 
 void GFX_init(void)
@@ -266,7 +273,11 @@ void GFX_init(void)
 		gfxSetupFramebuffers();
 	}
 
-	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, vblankIrqHandler);
+	IRQ_registerHandler(IRQ_PSC0, 14, 0, true, gfxIrqHandler);
+	IRQ_registerHandler(IRQ_PSC1, 14, 0, true, gfxIrqHandler);
+	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, gfxIrqHandler);
+	IRQ_registerHandler(IRQ_PPF, 14, 0, true, gfxIrqHandler);
+	IRQ_registerHandler(IRQ_P3D, 14, 0, true, gfxIrqHandler);
 	GFX_swapFramebufs();
 
 	REG_LCD_COLORFILL_MAIN = 0;

@@ -22,6 +22,9 @@
 #include "types.h"
 
 
+#define SCREEN_TOP          (1)
+#define SCREEN_SUB          (0)
+
 #define SCREEN_HEIGHT_TOP   (240)
 #define SCREEN_WIDTH_TOP    (400)
 #define SCREEN_SIZE_TOP     (SCREEN_HEIGHT_TOP * SCREEN_WIDTH_TOP * 2)
@@ -43,6 +46,17 @@
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 
+typedef enum
+{
+	GFX_EVENT_PSC0   = 0,
+	GFX_EVENT_PSC1   = 1,
+	GFX_EVENT_PDC0   = 2,
+	GFX_EVENT_PDC1   = 3,
+	GFX_EVENT_PPF    = 4,
+	GFX_EVENT_P3D    = 5
+} GfxEvent;
+
+
 
 #ifdef ARM11
 void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 buf1v, u32 buf1Sz, u32 val1);
@@ -51,6 +65,7 @@ void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size);
 void GFX_setBrightness(u32 brightness);
 void* GFX_getFramebuffer(u8 screen);
 void GFX_swapFramebufs(void);
+void GFX_waitForEvent(GfxEvent event, bool discard);
 void GFX_init(void);
 void GFX_deinit(void);
 #endif
