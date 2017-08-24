@@ -277,8 +277,7 @@ void GFX_init(void)
 	IRQ_registerHandler(IRQ_PSC1, 14, 0, true, gfxIrqHandler);
 	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, gfxIrqHandler);
 	IRQ_registerHandler(IRQ_PPF, 14, 0, true, gfxIrqHandler);
-	IRQ_registerHandler(IRQ_P3D, 14, 0, true, gfxIrqHandler);
-	GFX_swapFramebufs();
+	//IRQ_registerHandler(IRQ_P3D, 14, 0, true, gfxIrqHandler);
 
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
