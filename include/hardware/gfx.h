@@ -49,6 +49,7 @@ void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags);
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size);
 void GFX_setBrightness(u32 brightness);
+void* GFX_getFramebuffer(u8 screen);
 void GFX_swapFramebufs(void);
 void GFX_init(void);
 void GFX_deinit(void);

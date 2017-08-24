@@ -53,6 +53,9 @@
 #define REGs_TRANS_ENGINE        ((vu32*)(GPU_EXT_REGS_BASE + 0x0C00))
 
 
+static u32 activeFb = 0;
+
+
 
 static void gfxSetupLcdTop(void)
 {
@@ -200,9 +203,22 @@ void GFX_setBrightness(u32 brightness)
 	REG_LCD_BACKLIGHT_SUB = brightness;
 }
 
+void* GFX_getFramebuffer(u8 screen)
+{
+	if(!activeFb)
+	{
+		if(!screen) return (void*)FRAMEBUF_TOP_A_2;
+		else        return (void*)FRAMEBUF_SUB_A_2;
+	}
+	else
+	{
+		if(!screen) return (void*)FRAMEBUF_TOP_A_1;
+		else        return (void*)FRAMEBUF_SUB_A_1;
+	}
+}
+
 void GFX_swapFramebufs(void)
 {
-	static u32 activeFb = 0;
 	activeFb ^= 1;
 
 	*((vu32*)(0x10400400+0x78)) = activeFb;
