@@ -141,6 +141,7 @@
 #define A11_FALLBACK_ENTRY   (AXIWRAM_BASE + AXIWRAM_SIZE - 0x4)
 #define A11_STUB_ENTRY       (AXIWRAM_BASE + AXIWRAM_SIZE - 0x200)
 #define	A11_STUB_SIZE        (0x1A0) // Don't overwrite the vectors
+#define A11_HEAP_END         (AXIWRAM_BASE + AXIWRAM_SIZE + DSP_MEM_SIZE)
 #define A11_STACK_START      (A11_STUB_ENTRY - 0xE00)
 #define A11_STACK_END        (A11_STUB_ENTRY)
 #endif

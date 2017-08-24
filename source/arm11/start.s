@@ -39,6 +39,9 @@
 .extern irqHandler
 .extern __bss_start__
 .extern __bss_end__
+.extern __end__
+.extern fake_heap_start
+.extern fake_heap_end
 .extern setupMmu
 .extern __libc_init_array
 .extern main
@@ -120,6 +123,11 @@ _start:
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
 	bl clearMem
+
+	@ Setup newlib heap
+	ldr r0, =A11_HEAP_END
+	ldr r1, =fake_heap_end
+	str r0, [r1]
 
 	blx __libc_init_array       @ Initialize ctors and dtors
 
