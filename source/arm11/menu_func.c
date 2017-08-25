@@ -29,6 +29,11 @@ u32 DummyFunc(u32 param)
 	
 	// print something
 	ee_printf("Hello! I'm a dummy function.\nparam was %lu\n\nPress B to quit.", param);
+
+	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+				   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GFX_swapFramebufs();
+	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 	
 	// wait for A button
 	do {

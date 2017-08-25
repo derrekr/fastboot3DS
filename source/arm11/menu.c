@@ -26,14 +26,14 @@
 
 
 
-void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index, bool clear)
+void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 {
 	MenuEntry* entry = &(curr_menu->entries[index]);
 	char* desc = entry->desc;
 	
 	// select and clear description console
 	consoleSelect(desc_con);
-	if (clear) consoleClear();
+	consoleClear();
 	
 	// done if no description available
 	if (!desc)
@@ -58,15 +58,15 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index, bool c
  * @param index Current placement of the cursor.
  * @param is_sub_menu True if this is not the main menu.
  */
-void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool clear, bool is_sub_menu)
+void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_sub_menu)
 {
 	const u32 menu_block_height = curr_menu->n_entries + 5;
 	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
 	int menu_y = (menu_con->consoleHeight - menu_block_height) >> 1;
 	
-	// select and clear menu console
+	// select menu console
 	consoleSelect(menu_con);
-	if (clear) consoleClear();
+	consoleClear();
 	
 	// menu title
 	consoleSetCursor(menu_con, menu_x, menu_y++);
@@ -126,8 +126,8 @@ u32 menuProcess(MenuInfo* info)
 	consoleInit(SCREEN_SUB, &desc_con, true);
 	
 	// draw menu & description for the first time
-	menuDraw(curr_menu, &menu_con, 0, false, true);
-	menuShowDesc(curr_menu, &desc_con, 0, true);
+	menuDraw(curr_menu, &menu_con, 0, false);
+	menuShowDesc(curr_menu, &desc_con, 0);
 	
 	// main menu processing loop
 	while (true) {
@@ -149,16 +149,12 @@ u32 menuProcess(MenuInfo* info)
 			// enter submenu
 			curr_menu = info + curr_menu->entries[index].param;
 			index = 0;
-			// menu & desc redraw
-			redraw_desc = redraw_menu = true;
 		}
 		else if (kDown & KEY_A)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
 			(*(entry->function))(entry->param);
-			// menu redraw
-			redraw_menu = true;
 		}
 		else if ((kDown & KEY_B) && (menu_lvl > 0))
 		{
@@ -166,22 +162,16 @@ u32 menuProcess(MenuInfo* info)
 			menu_lvl--;
 			curr_menu = prev_menu[menu_lvl];
 			index = prev_index[menu_lvl];
-			// menu & desc redraw
-			redraw_desc = redraw_menu = true;
 		}
 		else if (kDown & KEY_DDOWN)
 		{
 			// cursor down
 			index = (index == curr_menu->n_entries - 1) ? 0 : index + 1;
-			// description redraw
-			redraw_desc = true;
 		}
 		else if (kDown & KEY_DUP)
 		{
 			// cursor up
 			index = (index == 0) ? curr_menu->n_entries - 1 : index - 1;
-			// description redraw
-			redraw_desc = true;
 		} 
 		if (kDown & KEY_START)
 		{
@@ -190,8 +180,8 @@ u32 menuProcess(MenuInfo* info)
 		}
 
 		// update menu and description
-		menuDraw(curr_menu, &menu_con, index, redraw_menu, menu_lvl);
-		menuShowDesc(curr_menu, &desc_con, index, redraw_desc);
+		menuDraw(curr_menu, &menu_con, index, menu_lvl);
+		menuShowDesc(curr_menu, &desc_con, index);
 
 
 		GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
