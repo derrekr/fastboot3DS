@@ -24,6 +24,7 @@
 #define MENU_MAX_DEPTH		4
 
 #define MENU_WIDTH			34
+#define WORDWRAP_WIDTH		34
 	
 #define MENU_EXIT_REBOOT	0
 #define MENU_EXIT_POWEROFF	1

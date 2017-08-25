@@ -26,6 +26,46 @@
 
 
 
+u32 stringGetHeight(const char* str) {
+	u32 height = 1;
+	for (char* lf = strchr(str, '\n'); (lf != NULL); lf = strchr(lf + 1, '\n'))
+		height++;
+	return height;
+}
+
+u32 stringGetWidth(const char* str) {
+	u32 width = 0;
+	char* old_lf = (char*) str;
+	char* str_end = (char*) str + strlen(str);
+	for (char* lf = strchr(str, '\n'); lf != NULL; lf = strchr(lf + 1, '\n')) {
+		if ((u32) (lf - old_lf) > width) width = lf - old_lf;
+		old_lf = lf;
+	}
+	if ((u32) (str_end - old_lf) > width)
+		width = str_end - old_lf;
+	return width;
+}
+
+void stringWordWrap(char* str, int llen) {
+	char* last_brk = str - 1;
+	char* last_spc = str - 1;
+	for (char* str_ptr = str;; str_ptr++) {
+		if (!*str_ptr || (*str_ptr == ' ')) { // on space or string_end
+			if (str_ptr - last_brk > llen) { // if maximum line lenght is exceeded
+				if (last_spc > last_brk) { // put a line_brk at the last space
+					*last_spc = '\n';
+					last_brk = last_spc;
+					last_spc = str_ptr;
+				} else if (*str_ptr) { // if we have no applicable space
+					*str_ptr = '\n';
+					last_brk = str_ptr;
+				}
+			} else if (*str_ptr) last_spc = str_ptr;
+		} else if (*str_ptr == '\n') last_brk = str_ptr;
+		if (!*str_ptr) break;
+	}
+}
+
 void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 {
 	MenuEntry* entry = &(curr_menu->entries[index]);
@@ -41,14 +81,24 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 		return;
 	}
 	
-	const u32 desc_width = strlen(desc); // needs improvement (could be too large!)
-	const u32 desc_height = 1; // need improvement
+	// word wrap description string
+	char desc_ww[512];
+	strncpy(desc_ww, desc, 512);
+	stringWordWrap(desc_ww, WORDWRAP_WIDTH);
+	
+	// get width, height
+	int desc_width = stringGetWidth(desc_ww);
+	int desc_height = stringGetHeight(desc_ww);
+	desc_width = (desc_width > desc_con->consoleWidth) ? desc_con->consoleWidth : desc_width;
+	desc_height = (desc_height > desc_con->consoleHeight) ? desc_con->consoleHeight : desc_height;
+	
+	// write to console
 	int desc_x = (desc_con->consoleWidth - desc_width) >> 1;
 	int desc_y = (desc_con->consoleHeight - desc_height) >> 1;
-	
-	// show description on screen
-	consoleSetCursor(desc_con, desc_x, desc_y++);
-	ee_printf(desc);
+	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
+		consoleSetCursor(desc_con, desc_x, desc_y++);
+		ee_printf(str);
+	}
 }
 
 /**
@@ -134,8 +184,6 @@ u32 menuProcess(MenuInfo* info)
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
 		const u32 kHeld = hidKeysHeld();
-		bool redraw_menu = false;
-		bool redraw_desc = false;
 		
 		if ((kDown & KEY_A) && (curr_menu->entries[index].function == NULL))
 		{
@@ -185,7 +233,7 @@ u32 menuProcess(MenuInfo* info)
 
 
 		GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-		               (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+					   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 		GFX_swapFramebufs();
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 	}

@@ -22,12 +22,14 @@
 #include "menu.h"
 #include "menu_func.h"
 
+#define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
+
 MenuInfo menu_fb3ds[] =
 {
 	{
 		"FastBoot3DS Main Menu", 4,
 		{
-			{ "Continue Boot...",			"Dummy description (0)",	&DummyFunc,				0 },
+			{ "Continue Boot...",			LOREM,						&DummyFunc,				0 },
 			{ "Enter Submenu",				"Dummy description (1)",	NULL,					1 },
 			{ "Dummy Entry (A)",			"Dummy description (A)",	&DummyFunc,				1 },
 			{ "Dummy Entry (B)",			"Dummy description (B)",	&DummyFunc,				2 }
