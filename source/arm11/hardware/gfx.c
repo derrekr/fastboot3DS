@@ -53,7 +53,7 @@
 #define REGs_TRANS_ENGINE        ((vu32*)(GPU_EXT_REGS_BASE + 0x0C00))
 
 
-static vu32 activeFb = 0;
+static u32 activeFb = 0;
 static volatile bool eventTable[6] = {0};
 
 
@@ -255,9 +255,6 @@ void GFX_init(void)
 		gfxSetupLcdTop();
 		gfxSetupLcdLow();
 
-		// The GPU mem fill races against the console.
-		//GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
-		//              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
 		I2C_writeReg(I2C_DEV_MCU, 0x22, 0x2A);
 
 		// We must make sure the I2C bus is not used until this finishes
@@ -278,6 +275,13 @@ void GFX_init(void)
 	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, gfxIrqHandler);
 	IRQ_registerHandler(IRQ_PPF, 14, 0, true, gfxIrqHandler);
 	//IRQ_registerHandler(IRQ_P3D, 14, 0, true, gfxIrqHandler);
+
+	// Warning. The GPU mem fill races against the console.
+	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
+	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
+	GFX_waitForEvent(GFX_EVENT_PSC1, true);
+	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
+	GFX_waitForEvent(GFX_EVENT_PSC1, true);
 
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
