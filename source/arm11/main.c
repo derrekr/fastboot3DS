@@ -54,7 +54,7 @@ int main(void)
 		const u32 kDown = hidKeysDown();
 		const u32 kUp = hidKeysUp();
 
-		if(hidGetPowerButton())
+		if(hidGetPowerButton(true))
 		{
 			if(g_poweroffAllowed) power_off();
 			PXI_trySendWord(PXI_RPL_POWER_PRESSED);

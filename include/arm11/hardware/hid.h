@@ -49,8 +49,8 @@ enum
 
 
 void hidInit(void);
-u32 hidGetPowerButton(void);
-u32 hidGetWifiButton(void);
+u32 hidGetPowerButton(bool resetState);
+u32 hidGetWifiButton(bool resetState);
 void hidScanInput(void);
 u32 hidKeysHeld(void);
 u32 hidKeysDown(void);

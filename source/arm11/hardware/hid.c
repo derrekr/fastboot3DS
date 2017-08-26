@@ -57,17 +57,17 @@ static void hidIrqHandler(UNUSED u32 intSource)
 	if(homeShellState & KEY_SHELL) homeShellState ^= (state & 0x40)<<16;
 }
 
-u32 hidGetPowerButton(void)
+u32 hidGetPowerButton(bool resetState)
 {
 	u32 tmp = powerWifiState;
-	powerWifiState &= ~3;
+	if(resetState) powerWifiState &= ~3;
 	return tmp & 3;
 }
 
-u32 hidGetWifiButton(void)
+u32 hidGetWifiButton(bool resetState)
 {
 	u32 tmp = powerWifiState;
-	powerWifiState &= ~4;
+	if(resetState) powerWifiState &= ~4;
 	return tmp>>2;
 }
 
