@@ -171,11 +171,11 @@ u32 menuProcess(MenuInfo* info)
 	
 	// init menu console
 	PrintConsole menu_con;
-	consoleInit(SCREEN_TOP, &menu_con, true);
+	consoleInit(SCREEN_SUB, &menu_con, true);
 	
 	// init description console
 	PrintConsole desc_con;
-	consoleInit(SCREEN_SUB, &desc_con, true);
+	consoleInit(SCREEN_TOP, &desc_con, true);
 	
 	// main menu processing loop
 	while (true) {
