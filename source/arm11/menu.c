@@ -161,10 +161,12 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_su
 u32 menuProcess(MenuInfo* info)
 {
 	MenuInfo* curr_menu = info;
+	MenuInfo* last_menu = NULL;
 	MenuInfo* prev_menu[MENU_MAX_DEPTH];
 	u32 prev_index[MENU_MAX_DEPTH];
 	u32 menu_lvl = 0;
 	u32 index = 0;
+	u32 last_index = (u32) -1;
 	u32 result = MENU_EXIT_REBOOT;
 	
 	// init menu console
@@ -175,12 +177,21 @@ u32 menuProcess(MenuInfo* info)
 	PrintConsole desc_con;
 	consoleInit(SCREEN_SUB, &desc_con, true);
 	
-	// draw menu & description for the first time
-	menuDraw(curr_menu, &menu_con, 0, false);
-	menuShowDesc(curr_menu, &desc_con, 0);
-	
 	// main menu processing loop
 	while (true) {
+		// update menu and description (on demand)
+		if ((index != last_index) || (curr_menu != last_menu)) {
+			menuDraw(curr_menu, &menu_con, index, menu_lvl);
+			menuShowDesc(curr_menu, &desc_con, index);
+			last_index = index;
+			last_menu = curr_menu;
+
+			GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+						   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+			GFX_swapFramebufs();
+		}
+		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
 		const u32 kHeld = hidKeysHeld();
@@ -203,6 +214,8 @@ u32 menuProcess(MenuInfo* info)
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
 			(*(entry->function))(entry->param);
+			// force redraw (somewhat hacky)
+			last_menu = NULL;
 		}
 		else if ((kDown & KEY_B) && (menu_lvl > 0))
 		{
@@ -226,16 +239,6 @@ u32 menuProcess(MenuInfo* info)
 			result = (kHeld & KEY_DLEFT) ? MENU_EXIT_POWEROFF : MENU_EXIT_REBOOT;
 			break;
 		}
-
-		// update menu and description
-		menuDraw(curr_menu, &menu_con, index, menu_lvl);
-		menuShowDesc(curr_menu, &desc_con, index);
-
-
-		GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-					   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-		GFX_swapFramebufs();
-		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 	}
 
 	return result;
