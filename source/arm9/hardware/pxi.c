@@ -55,7 +55,7 @@ static void pxiIrqHandler(UNUSED u32 id)
 		buf[i] = REG_PXI_RECV9;
 	}
 
-	REG_PXI_SEND9 = IPC_handleCmd(cmdCode>>24, buf);
+	REG_PXI_SEND9 = IPC_handleCmd(IPC_CMD_MASK(cmdCode), buf);
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
