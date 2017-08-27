@@ -19,12 +19,14 @@
  */
 
 #include "types.h"
+#include "arm11/console.h"
 
 #define MENU_MAX_ENTRIES	12
 #define MENU_MAX_DEPTH		4
 
-#define MENU_WIDTH			34
-#define WORDWRAP_WIDTH		34
+#define MENU_DISP_Y			-2
+#define MENU_WIDTH			28
+#define WORDWRAP_WIDTH		58
 	
 #define MENU_EXIT_REBOOT	0
 #define MENU_EXIT_POWEROFF	1
@@ -35,7 +37,7 @@
 typedef struct {
     char* name;					///< Displayed name of the menu entry.
     char* desc;					///< Description for menu entry.
-    u32 (*function)(u32 param);	///< Function called by menu entry.
+    u32 (*function)(PrintConsole *con, u32 param);	///< Function called by menu entry.
     u32 param;					///< Paramater for menu entry function / if function == NULL, offset to is_sub_menu.
 } MenuEntry;
 
@@ -48,4 +50,4 @@ typedef struct {
     MenuEntry entries[MENU_MAX_ENTRIES];	///< An array of menu entries.
 } MenuInfo;
 
-u32 menuProcess(MenuInfo* info);
+u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info);

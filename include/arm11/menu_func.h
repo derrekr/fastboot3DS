@@ -20,4 +20,4 @@
 
 #include "types.h"
 
-u32 DummyFunc(u32 param);
+u32 DummyFunc(PrintConsole* con, u32 param);

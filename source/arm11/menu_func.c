@@ -21,25 +21,53 @@
 #include "arm11/console.h"
 #include "arm11/fmt.h"
 
-u32 DummyFunc(u32 param)
+// we need a better solution for this later (!!!)
+void updateScreens(void)
 {
-	// init top console
-	PrintConsole top_con;
-	consoleInit(SCREEN_TOP, &top_con, true);
-	
-	// print something
-	ee_printf("Hello! I'm a dummy function.\nparam was %lu\n\nPress B to quit.", param);
-
 	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
 				   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+}
+
+u32 DummyFunc(PrintConsole* con, u32 param)
+{
+	// clear console
+	consoleSelect(con);
+	consoleClear();
 	
-	// wait for A button
-	do {
+	// print something
+	ee_printf("Hello! I'm a dummy function.\nparam was %lu\n\nPress B to quit.\n\n", param);
+	updateScreens();
+	
+	// wait for B button
+	do
+	{
+		if(hidGetPowerButton(false)) // handle power button
+		{
+			ee_printf("POWER button pressed.\nPress A to confirm cancel & poweroff.\n");
+			updateScreens();
+			
+			do
+			{
+				hidScanInput();
+			}
+			while (!(hidKeysDown() & (KEY_A|KEY_B)));
+			
+			if (hidKeysDown() & KEY_B)
+			{
+				ee_printf("POWER off canceled, continuing...\n\n");
+				updateScreens();
+				hidGetPowerButton(true);
+			}
+			else
+			{
+				return 1;
+			}
+		}
 		hidScanInput();
 	}
-	while (!(hidKeysHeld() & KEY_B));
+	while (!(hidKeysDown() & KEY_B));
 	
 	return 0;
 }

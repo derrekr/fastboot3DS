@@ -41,12 +41,22 @@ int main(void)
 	hardwareInit();
 
 	GFX_init();
-	menuProcess(menu_fb3ds);
-	/* ee_puts("Hello from ARM11! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"); */
+	
+	// init menu console
+	PrintConsole menu_con;
+	consoleInit(SCREEN_SUB, &menu_con, false);
+	
+	// init description console
+	PrintConsole desc_con;
+	consoleInit(SCREEN_TOP, &desc_con, false);
+	
+	// run menu
+	menuProcess(&menu_con, &desc_con, menu_fb3ds);
+	
+	// power off
+	if(g_poweroffAllowed) power_off();
 
-	while(!g_startFirmLaunch)
+	/*while(!g_startFirmLaunch)
 	{
 		waitForInterrupt();
 
@@ -77,7 +87,7 @@ int main(void)
 
 	GFX_deinit(); // TODO: Let ARM9 decide when to deinit gfx
 
-	firm_launch();
+	firm_launch();*/
 
 	return 0;
 }

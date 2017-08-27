@@ -22,6 +22,7 @@
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+#include "arm11/power.h"
 #include "hardware/gfx.h"
 
 
@@ -68,18 +69,26 @@ void stringWordWrap(char* str, int llen) {
 
 void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 {
-	MenuEntry* entry = &(curr_menu->entries[index]);
-	char* desc = entry->desc;
-	
 	// select and clear description console
 	consoleSelect(desc_con);
 	consoleClear();
 	
+	// print title at the top
+	const char* title = "fastboot 3DS " VERS_STRING;
+	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
+	ee_printf(title);
+	
+	// get description, check if available
+	MenuEntry* entry = &(curr_menu->entries[index]);
+	char* name = entry->name;
+	char* desc = entry->desc;
+	
 	// done if no description available
-	if (!desc)
+	if (!name || !desc)
 	{
 		return;
 	}
+	
 	
 	// word wrap description string
 	char desc_ww[512];
@@ -94,7 +103,11 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// write to console
 	int desc_x = (desc_con->consoleWidth - desc_width) >> 1;
-	int desc_y = (desc_con->consoleHeight - desc_height) >> 1;
+	int desc_y = (desc_con->consoleHeight - 2 - desc_height);
+	
+	consoleSetCursor(desc_con, desc_x, desc_y++);
+	ee_printf("[%s]", name);
+	
 	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
 		consoleSetCursor(desc_con, desc_x, desc_y++);
 		ee_printf(str);
@@ -110,9 +123,9 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
  */
 void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_sub_menu)
 {
-	const u32 menu_block_height = curr_menu->n_entries + 5;
+	const u32 menu_block_height = curr_menu->n_entries + 2; // +2 for title and separator
 	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
-	int menu_y = (menu_con->consoleHeight - menu_block_height) >> 1;
+	int menu_y = MENU_DISP_Y + ((menu_con->consoleHeight - menu_block_height) >> 1);
 	
 	// select menu console
 	consoleSelect(menu_con);
@@ -139,26 +152,27 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_su
 	
 	// second separator
 	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
+	// ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
+	
 	
 	// button descriptions (A/B)
-	consoleSetCursor(menu_con, menu_x, menu_y++);
+	/*consoleSetCursor(menu_con, menu_x, menu_y++);
 	ee_printf(is_sub_menu ? "A: Choose  B: Return" : "A: Choose");
 	
 	// button descriptions (START)
 	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf("START:  Reboot / [+\x1B] Poweroff");
+	ee_printf("POWER for poweroff");*/
 	
 	
 }
 
 /**
  * @brief Processes and displays the menu and user input.
- * @param info A complete description of the menu.
  * @param menu_con Console that the menu is displayed on.
  * @param desc_con Console that the description is displayed on.
+ * @param info A complete description of the menu.
  */
-u32 menuProcess(MenuInfo* info)
+u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 {
 	MenuInfo* curr_menu = info;
 	MenuInfo* last_menu = NULL;
@@ -169,20 +183,12 @@ u32 menuProcess(MenuInfo* info)
 	u32 last_index = (u32) -1;
 	u32 result = MENU_EXIT_REBOOT;
 	
-	// init menu console
-	PrintConsole menu_con;
-	consoleInit(SCREEN_SUB, &menu_con, false);
-	
-	// init description console
-	PrintConsole desc_con;
-	consoleInit(SCREEN_TOP, &desc_con, false);
-	
 	// main menu processing loop
 	while (true) {
 		// update menu and description (on demand)
 		if ((index != last_index) || (curr_menu != last_menu)) {
-			menuDraw(curr_menu, &menu_con, index, menu_lvl);
-			menuShowDesc(curr_menu, &desc_con, index);
+			menuDraw(curr_menu, menu_con, index, menu_lvl);
+			menuShowDesc(curr_menu, desc_con, index);
 			last_index = index;
 			last_menu = curr_menu;
 
@@ -191,6 +197,11 @@ u32 menuProcess(MenuInfo* info)
 			GFX_swapFramebufs();
 		}
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+		
+		if(hidGetPowerButton(true)) // handle power button
+		{
+			power_off();
+		}
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
@@ -213,7 +224,7 @@ u32 menuProcess(MenuInfo* info)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
-			(*(entry->function))(entry->param);
+			(*(entry->function))(desc_con, entry->param);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
 		}
