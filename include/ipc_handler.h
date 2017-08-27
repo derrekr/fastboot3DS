@@ -21,7 +21,8 @@
 #include "types.h"
 
 
-#define IPC_CMD_MASK(cmd)  ((cmd) & 0xFFu)
+#define IPC_CMD_MASK(cmd)    ((cmd) & 0xFFu)
+#define IPC_PARAM_MASK(cmd)  ((cmd)>>16 & 0xFFu)
 
 #define CMD_PARAMS(n)  ((n)<<16)
 typedef enum

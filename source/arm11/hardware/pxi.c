@@ -45,7 +45,7 @@ void PXI_init(void)
 static void pxiIrqHandler(UNUSED u32 intSource)
 {
 	const u32 cmdCode = REG_PXI_RECV11;
-	const u8 params = cmdCode>>16 & 0xFFu;
+	const u8 params = IPC_PARAM_MASK(cmdCode);
 
 	if(params > 16 || params != PXI_DATA_RECEIVED(REG_PXI_SYNC11))
 	{
