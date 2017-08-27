@@ -17,7 +17,12 @@
  */
 
 #include "types.h"
+#ifdef ARM9
 #include "arm9/hardware/interrupt.h"
+#endif
+#ifdef ARM11
+#include "arm11/hardware/interrupt.h"
+#endif
 
 
 

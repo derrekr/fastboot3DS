@@ -20,6 +20,7 @@
 #include "hardware/pxi.h"
 #include "arm9/hardware/interrupt.h"
 #include "arm9/debug.h"
+#include "fb_assert.h"
 #include "ipc_handler.h"
 
 
@@ -42,22 +43,31 @@ static void pxiIrqHandler(UNUSED u32 id)
 	const u32 cmdCode = REG_PXI_RECV9;
 	const u8 params = cmdCode>>16 & 0xFFu;
 
-	if(params != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
+	if(params > 16 || params != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
 	{
 		panic();
 	}
 
-	REG_PXI_SEND9 = IPC_handleCmd(cmdCode>>24, params);
+	u32 buf[16];
+	for(u32 i = 0; i < params; i++)
+	{
+		if(REG_PXI_SYNC9 & PXI_EMPTY_FULL_ERROR) panic();
+		buf[i] = REG_PXI_RECV9;
+	}
+
+	REG_PXI_SEND9 = IPC_handleCmd(cmdCode>>24, buf);
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 {
 	if(!buf) words = 0;
+	fb_assert(words < 17);
 
 	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND9 = cmd | words<<16;
+	REG_PXI_SEND9 = cmd;
 	for(u32 i = 0; i < words; i++)
 	{
+		if(REG_PXI_SYNC9 & PXI_EMPTY_FULL_ERROR) panic();
 		REG_PXI_SEND9 = buf[i];
 	}
 

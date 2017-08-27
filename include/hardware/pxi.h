@@ -46,7 +46,7 @@
 #define PXI_NOTIFY_9                (1u<<30)
 #define PXI_IRQ_ENABLE              (1u<<31)
 
-// Defines for PX_CNT regs
+// Defines for PXI_CNT regs
 #define PXI_SEND_FIFO_EMPTY         (1u<<0)
 #define PXI_SEND_FIFO_FULL          (1u<<1)
 #define PXI_SEND_FIFO_EMPTY_IRQ     (1u<<2)
@@ -61,13 +61,3 @@
 
 void PXI_init(void);
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words);
-
-static inline u32 PXI_recvWord(void)
-{
-#ifdef ARM9
-	return REG_PXI_RECV9;
-#endif
-#ifdef ARM11
-	return REG_PXI_RECV11;
-#endif
-}

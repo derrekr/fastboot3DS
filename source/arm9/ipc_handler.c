@@ -25,53 +25,51 @@
 
 
 
-u32 IPC_handleCmd(u8 cmd, u8 params)
+u32 IPC_handleCmd(u8 cmd, const u32 *buf)
 {
 	u32 result = 0;
 
 	switch(cmd)
 	{
-		case IPC_CMD9_FMOUNT:
+		case IPC_CMD_MASK(IPC_CMD9_FMOUNT):
 			break;
-		case IPC_CMD9_FUNMOUNT:
+		case IPC_CMD_MASK(IPC_CMD9_FUNMOUNT):
 			break;
-		case IPC_CMD9_FOPEN:
+		case IPC_CMD_MASK(IPC_CMD9_FOPEN):
 			break;
-		case IPC_CMD9_FCLOSE:
+		case IPC_CMD_MASK(IPC_CMD9_FCLOSE):
 			break;
-		case IPC_CMD9_FREAD:
+		case IPC_CMD_MASK(IPC_CMD9_FREAD):
 			break;
-		case IPC_CMD9_FWRITE:
+		case IPC_CMD_MASK(IPC_CMD9_FWRITE):
 			break;
-		case IPC_CMD9_FOPEN_DIR:
+		case IPC_CMD_MASK(IPC_CMD9_FOPEN_DIR):
 			break;
-		case IPC_CMD9_FREAD_DIR:
+		case IPC_CMD_MASK(IPC_CMD9_FREAD_DIR):
 			break;
-		case IPC_CMD9_FCLOSE_DIR:
+		case IPC_CMD_MASK(IPC_CMD9_FCLOSE_DIR):
 			break;
-		case IPC_CMD9_FUNLINK:
+		case IPC_CMD_MASK(IPC_CMD9_FUNLINK):
 			break;
-		case IPC_CMD9_FGETFREE:
+		case IPC_CMD_MASK(IPC_CMD9_FGETFREE):
 			break;
-		case IPC_CMD9_READ_SECTORS:
+		case IPC_CMD_MASK(IPC_CMD9_READ_SECTORS):
 			break;
-		case IPC_CMD9_WRITE_SECTORS:
+		case IPC_CMD_MASK(IPC_CMD9_WRITE_SECTORS):
 			break;
-		case IPC_CMD9_MALLOC:
-			if(params != 1) panic();
-			result = (u32)malloc(PXI_recvWord());
+		case IPC_CMD_MASK(IPC_CMD9_MALLOC):
+			result = (u32)malloc(buf[0]);
 			break;
-		case IPC_CMD9_FREE:
-			if(params != 1) panic();
-			free((void*)PXI_recvWord());
+		case IPC_CMD_MASK(IPC_CMD9_FREE):
+			free((void*)buf[0]);
 			break;
-		case IPC_CMD9_LOAD_VERIFY_FIRM:
+		case IPC_CMD_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			break;
-		case IPC_CMD9_FIRM_LAUNCH:
+		case IPC_CMD_MASK(IPC_CMD9_FIRM_LAUNCH):
 			break;
-		case IPC_CMD9_PREPA_POWER:
-		case IPC_CMD9_PANIC:
-		case IPC_CMD9_EXCEPTION:
+		case IPC_CMD_MASK(IPC_CMD9_PREPA_POWER):
+		case IPC_CMD_MASK(IPC_CMD9_PANIC):
+		case IPC_CMD_MASK(IPC_CMD9_EXCEPTION):
 			// Close and deinitalize everything.
 			break;
 		default:

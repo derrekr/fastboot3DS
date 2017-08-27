@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
-#include "arm9/fb_assert.h"
+#include "fb_assert.h"
 #include "mem_map.h"
 #include "arm9/ncsd.h"
 #include "arm9/hardware/sdmmc.h"

@@ -17,7 +17,7 @@
  */
 
 #include <string.h>
-#include "arm9/fb_assert.h"
+#include "fb_assert.h"
 #include "mem_map.h"
 #include "types.h"
 #include "arm9/hardware/crypto.h"

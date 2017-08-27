@@ -22,21 +22,25 @@
 //#include "arm11/debug.h"
 
 
+// Temporary until we have a panic() function.
+#define panic()  *((vu32*)4) = 0xDEADBEEF
 
-u32 IPC_handleCmd(u8 cmd, UNUSED u8 params)
+
+
+u32 IPC_handleCmd(u8 cmd, UNUSED const u32 *buf)
 {
 	u32 result = 0;
 
 	switch(cmd)
 	{
-		case IPC_CMD11_PRINT_MSG:
+		case IPC_CMD_MASK(IPC_CMD11_PRINT_MSG):
 			break;
-		case IPC_CMD11_PANIC:
+		case IPC_CMD_MASK(IPC_CMD11_PANIC):
 			break;
-		case IPC_CMD11_EXCEPTION:
+		case IPC_CMD_MASK(IPC_CMD11_EXCEPTION):
 			break;
-		default: ;
-			//panic();
+		default:
+			panic();
 	}
 
 	return result;

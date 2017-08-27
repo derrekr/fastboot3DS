@@ -20,7 +20,12 @@
 #include "hardware/pxi.h"
 #include "arm11/hardware/interrupt.h"
 //#include "arm11/debug.h"
+#include "fb_assert.h"
 #include "ipc_handler.h"
+
+
+// Temporary until we have a panic() function.
+#define panic()  *((vu32*)4) = 0xDEADBEEF
 
 
 
@@ -42,22 +47,31 @@ static void pxiIrqHandler(UNUSED u32 intSource)
 	const u32 cmdCode = REG_PXI_RECV11;
 	const u8 params = cmdCode>>16 & 0xFFu;
 
-	if(params != PXI_DATA_RECEIVED(REG_PXI_SYNC11))
+	if(params > 16 || params != PXI_DATA_RECEIVED(REG_PXI_SYNC11))
 	{
-		//panic();
+		panic();
 	}
 
-	REG_PXI_SEND11 = IPC_handleCmd(cmdCode>>24, params);
+	u32 buf[16];
+	for(u32 i = 0; i < params; i++)
+	{
+		if(REG_PXI_SYNC11 & PXI_EMPTY_FULL_ERROR) panic();
+		buf[i] = REG_PXI_RECV11;
+	}
+
+	REG_PXI_SEND11 = IPC_handleCmd(cmdCode>>24, buf);
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 {
 	if(!buf) words = 0;
+	fb_assert(words < 17);
 
 	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = cmd | words<<16;
+	REG_PXI_SEND11 = cmd;
 	for(u32 i = 0; i < words; i++)
 	{
+		if(REG_PXI_SYNC11 & PXI_EMPTY_FULL_ERROR) panic();
 		REG_PXI_SEND11 = buf[i];
 	}
 
