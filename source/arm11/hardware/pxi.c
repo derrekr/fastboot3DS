@@ -19,9 +19,7 @@
 #include "types.h"
 #include "hardware/pxi.h"
 #include "arm11/hardware/interrupt.h"
-#include "hardware/gfx.h"
-#include "arm11/main.h"
-#include "arm11/power.h"
+//#include "arm11/debug.h"
 
 
 
@@ -32,7 +30,7 @@ void PXI_init(void)
 	REG_PXI_SYNC11 = PXI_IRQ_ENABLE;
 	REG_PXI_CNT11 = PXI_FLUSH_SEND_FIFO | PXI_EMPTY_FULL_ERROR | PXI_ENABLE_SEND_RECV_FIFO;
 
-	while((REG_PXI_SYNC11 & 0xFFu) != 9u);
+	while(PXI_DATA_RECEIVED(REG_PXI_SYNC11) != 9u);
 	REG_PXI_SYNC11 |= 11u<<8;
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, 13, 0, true, pxiIrqHandler);
@@ -40,77 +38,42 @@ void PXI_init(void)
 
 static void pxiIrqHandler(UNUSED u32 intSource)
 {
-	u32 cmdCode = PXI_recvWord();
+	u32 result = 0;
+	const u32 cmdCode = REG_PXI_RECV11;
 
-	switch(cmdCode)
+	if((cmdCode>>16 & 0xFFu) != PXI_DATA_RECEIVED(REG_PXI_SYNC11))
 	{
-		case PXI_CMD_ENABLE_LCDS:
-			GFX_init();
-			PXI_sendWord(PXI_RPL_OK);
+		//panic();
+	}
+
+	switch(cmdCode>>24)
+	{
+		case PXI_CMD11_PRINT_MSG:
 			break;
-		case PXI_CMD_SET_BRIGHTNESS:
-			cmdCode = PXI_recvWord();
-			GFX_setBrightness(cmdCode);
+		case PXI_CMD11_PANIC:
 			break;
-		case PXI_CMD_ALLOW_POWER_OFF:
-			g_poweroffAllowed = true;
-			break;
-		case PXI_CMD_FORBID_POWER_OFF:
-			g_poweroffAllowed = false;
-			break;
-		case PXI_CMD_POWER_OFF:
-			power_off();
-			break;
-		case PXI_CMD_REBOOT:
-			power_reboot();
-			break;
-		case PXI_CMD_FIRM_LAUNCH:
-			g_startFirmLaunch = true;
+		case PXI_CMD11_EXCEPTION:
 			break;
 		default: ;
-	}
-}
-
-void PXI_sendWord(u32 val)
-{
-	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = val;
-	REG_PXI_SYNC11 |= PXI_NOTIFY_9;
-}
-
-bool PXI_trySendWord(u32 val)
-{
-	if(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL)
-		return false;
-	REG_PXI_SEND11 = val;
-	REG_PXI_SYNC11 |= PXI_NOTIFY_9;
-	return true;
-}
-
-u32 PXI_recvWord(void)
-{
-	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
-	return REG_PXI_RECV11;
-}
-
-u32 PXI_tryRecvWord(bool *success)
-{
-	if(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY)
-	{
-		*success = false;
-		return 0;
+			//panic();
 	}
 
-	*success = true;
-	return REG_PXI_RECV11;
+	REG_PXI_SEND11 = result;
 }
 
-void PXI_sendBuf(const u32 *const buf, u32 size)
+u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 {
+	if(!buf) words = 0;
+
 	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	for(u32 i = 0; i < size / 4; i++)
+	REG_PXI_SEND11 = cmd | words<<16;
+	for(u32 i = 0; i < words; i++)
 	{
 		REG_PXI_SEND11 = buf[i];
 	}
-	REG_PXI_SYNC11 |= PXI_NOTIFY_9;
+
+	REG_PXI_SYNC11 = PXI_DATA_SENT(REG_PXI_SYNC11, words) | PXI_NOTIFY_9;
+
+	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
+	return REG_PXI_RECV11;
 }

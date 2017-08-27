@@ -17,14 +17,13 @@
  */
 
 #include "types.h"
-#include "arm9/fmt.h"
 #include "arm9/hardware/interrupt.h"
 
 
 
-noreturn void __fb_assert(const char *const str, u32 line)
+noreturn void __fb_assert(UNUSED const char *const str, UNUSED u32 line)
 {
-	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
+	//ee_printf("Assertion failed: %s:%" PRIu32, str, line);
 
 	while(1) waitForInterrupt();
 }

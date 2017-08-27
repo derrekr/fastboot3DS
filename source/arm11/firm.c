@@ -24,7 +24,7 @@
 
 
 
-void NAKED firmLaunchStub(void)
+/*void NAKED firmLaunchStub(void)
 {
 	*((vu32*)A11_FALLBACK_ENTRY) = 0;
 
@@ -49,15 +49,15 @@ void NAKED firmLaunchStub(void)
 	}
 
 	((void (*)(void))entry)();
-}
+}*/
 
 noreturn void firm_launch(void)
 {
 	// Relocate ARM11 stub
-	memcpy((void*)A11_STUB_ENTRY, (const void*)firmLaunchStub, A11_STUB_SIZE);
+	/*memcpy((void*)A11_STUB_ENTRY, (const void*)firmLaunchStub, A11_STUB_SIZE);
 
 	deinitCpu();
 
-	((void (*)(void))A11_STUB_ENTRY)();
+	((void (*)(void))A11_STUB_ENTRY)();*/
 	while(1);
 }

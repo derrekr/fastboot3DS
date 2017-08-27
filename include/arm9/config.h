@@ -19,7 +19,7 @@
  */
 
 
-enum Keys {
+/*enum Keys {
 	KBootOption1 = 0,
 	KBootOption2,
 	KBootOption3,
@@ -51,4 +51,4 @@ bool configDataExist(int key);
 const char *configGetKeyText(int key);
 bool configSetKeyData(int key, const void *data);
 void configRestoreDefaults();
-bool configDevModeEnabled();
+bool configDevModeEnabled();*/

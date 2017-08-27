@@ -19,13 +19,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "types.h"
-#include "arm9/fmt.h"
 #include "mem_map.h"
 #include "hardware/pxi.h"
-#include "arm9/console.h"
 #include "fatfs/ff.h"
 #include "arm9/fsutils.h"
-#include "arm9/main.h"
 #include "arm9/hardware/interrupt.h"
 
 static u32 debugHash = 0;
@@ -51,14 +48,14 @@ noreturn void panic()
 {
 	register u32 lr __asm__("lr");
 
-	consoleInit(0, NULL, true);
+	//consoleInit(0, NULL, true);
 
-	ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
+	//ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	
 	fsUnmountAll();
-	devs_close();
+	//devs_close();
 	
-	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
+	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
 	while(1) waitForInterrupt();
 }
@@ -67,15 +64,15 @@ noreturn void panicMsg(const char *msg)
 {
 	register u32 lr __asm__("lr");
 
-	consoleInit(0, NULL, true);
+	/*consoleInit(0, NULL, true);
 
 	ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-	ee_printf("\nERROR MESSAGE:\n%s\n", msg);
-	
+	ee_printf("\nERROR MESSAGE:\n%s\n", msg);*/
+
 	fsUnmountAll();
-	devs_close();
+	//devs_close();
 	
-	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
+	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
 	while(1) waitForInterrupt();
 }
@@ -95,13 +92,13 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	if(prevHash != debugHash)
 		codeChanged = true;
 
-	consoleInit(0, NULL, true);
+	//consoleInit(0, NULL, true);
 
 	if(excStack[16] & 0x20) instSize = 2; // Processor was in Thumb mode?
 	if(type == 2) realPc = excStack[15] - (instSize * 2); // Data abort
 	else realPc = excStack[15] - instSize; // Other
 
-	ee_printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
+	/*ee_printf("\x1b[41m\x1b[0J\x1b[9CGuru Meditation Error!\n\n%s:\n", typeStr[type]);
 	ee_printf("CPSR: 0x%08" PRIX32 "\n"
 	       "r0 = 0x%08" PRIX32 " r8  = 0x%08" PRIX32 "\n"
 	       "r1 = 0x%08" PRIX32 " r9  = 0x%08" PRIX32 "\n"
@@ -137,13 +134,13 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 		}
 	}
 
-	if(codeChanged) ee_printf("Attention: RO section data changed!!");
+	if(codeChanged) ee_printf("Attention: RO section data changed!!");*/
 
 	// avoid fs corruptions
 	fsUnmountAll();
-	devs_close();
+	//devs_close();
 
-	PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
+	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
 	while(1) waitForInterrupt();
 }

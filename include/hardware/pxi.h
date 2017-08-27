@@ -40,8 +40,8 @@
 
 
 // Defines for PX_SYNC regs
-#define PXI_DATA_RECEIVED(reg)      (reg & 0xFF)
-#define PXI_DATA_SENT(reg)          (reg>>8 & 0xFF)
+#define PXI_DATA_RECEIVED(reg)      ((reg) & 0xFFu)
+#define PXI_DATA_SENT(reg, sent)    (((reg) & ~(0xFFu<<8)) | sent<<8)
 #define PXI_NOTIFY_11               (1u<<29)
 #define PXI_NOTIFY_9                (1u<<30)
 #define PXI_IRQ_ENABLE              (1u<<31)
@@ -57,24 +57,39 @@
 #define PXI_EMPTY_FULL_ERROR        (1u<<14)
 #define PXI_ENABLE_SEND_RECV_FIFO   (1u<<15)
 
-// Custom PXI Command/Reply Definitions
-#define PXI_CMD_ENABLE_LCDS        (0x4C434453)
-#define PXI_CMD_SET_BRIGHTNESS     (0x78D28107)
-#define PXI_CMD_POWER_OFF          (0x504F4646)
-#define PXI_CMD_REBOOT             (0x48326482)
-#define PXI_CMD_ALLOW_POWER_OFF    (0x504F4F4B)
-#define PXI_CMD_FORBID_POWER_OFF   (0x504F4E4F)
-#define PXI_CMD_FIRM_LAUNCH        (0x544F4F42)
-#define PXI_RPL_FIRM_LAUNCH_READY  (0x4F4B6666)
-#define PXI_RPL_OK                 (0x4F4B4F4B)
-#define PXI_RPL_HOME_PRESSED       (0x484F4D45)
-#define PXI_RPL_HOME_HELD          (0x484F4D22)
-#define PXI_RPL_POWER_PRESSED      (0x504F5752)
+
+typedef enum
+{
+	PXI_CMD9_FMOUNT            = 0,
+	PXI_CMD9_FUNMOUNT          = 1,
+	PXI_CMD9_FOPEN             = 2,
+	PXI_CMD9_FCLOSE            = 3,
+	PXI_CMD9_FREAD             = 4,
+	PXI_CMD9_FWRITE            = 5,
+	PXI_CMD9_FOPEN_DIR         = 6,
+	PXI_CMD9_FREAD_DIR         = 7,
+	PXI_CMD9_FCLOSE_DIR        = 8,
+	PXI_CMD9_FUNLINK           = 9,
+	PXI_CMD9_FGETFREE          = 10,
+	PXI_CMD9_READ_SECTORS      = 11,
+	PXI_CMD9_WRITE_SECTORS     = 12,
+	PXI_CMD9_MALLOC            = 13,
+	PXI_CMD9_FREE              = 14,
+	PXI_CMD9_LOAD_VERIFY_FIRM  = 15,
+	PXI_CMD9_FIRM_LAUNCH       = 16,
+	PXI_CMD9_PREPA_POWER       = 17,
+	PXI_CMD9_PANIC             = 18,
+	PXI_CMD9_EXCEPTION         = 19
+} PxiCmd9;
+
+typedef enum
+{
+	PXI_CMD11_PRINT_MSG = 0,
+	PXI_CMD11_PANIC     = 1,
+	PXI_CMD11_EXCEPTION = 2
+} PxiCmd11;
+
 
 
 void PXI_init(void);
-void PXI_sendWord(u32 val);
-bool PXI_trySendWord(u32 val);
-u32  PXI_recvWord(void);
-u32 PXI_tryRecvWord(bool *success);
-void PXI_sendBuf(const u32 *const buf, u32 size);
+u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words);

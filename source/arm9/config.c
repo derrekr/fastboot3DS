@@ -18,22 +18,18 @@
 
 /* This is a parser/writer for the fastbootcfg.txt file. It's not vulnerable, I swear. */ 
 
-#include <stdio.h>
+/*#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "types.h"
-#include "arm9/fmt.h"
 #include "mem_map.h"
 #include "fatfs/ff.h"
 #include "arm9/fsutils.h"
-#include "arm9/console.h"
-#include "arm9/main.h"
 #include "arm9/hardware/interrupt.h"
 #include "util.h"
 #include "arm9/hardware/hid.h"
 #include "arm9/debug.h"
-#include "arm9/gui/ui.h"
 #include "arm9/config.h"
 
 #define MAX_FILE_SIZE	0x4000 - 1
@@ -87,9 +83,9 @@ static const char *keyStrings[] = {
 static FunctionsEntryType keyFunctions[] = {
 	{ parseBootOption,		writeBootOption },
 	{ parseBootOption,		writeBootOption },
-	{ parseBootOption,		writeBootOption },
+	{ parseBootOption,		writeBootOption },*/
 	/* use the same functions for nand image option */
-	{ parseBootOption,		writeBootOption },
+	/*{ parseBootOption,		writeBootOption },
 	{ parseBootOption,		writeBootOption },
 	{ parseBootOption,		writeBootOption },
 	{ parseBootOptionPad,	writeBootOptionPad },
@@ -103,10 +99,10 @@ static AttributeEntryType attributes[numKeys];
 
 static char *filebuf = NULL;
 
-static bool configLoaded = false;
+static bool configLoaded = false;*/
 
 /* This loads the config file from SD card or eMMC and parses it */
-bool loadConfigFile()
+/*bool loadConfigFile()
 {
 	FILINFO fileStat;
 	u32 fileSize;
@@ -195,10 +191,10 @@ fail:
 static void unloadConfigFile()
 {
 	configLoaded = false;
-	AttributeEntryType *curAttr;
+	AttributeEntryType *curAttr;*/
 	
 	/* Free all data */
-	for(u32 i=0; i<numKeys; i++)
+	/*for(u32 i=0; i<numKeys; i++)
 	{
 		curAttr = &attributes[i];
 		
@@ -281,10 +277,10 @@ static bool createConfigFile()
 	filebuf = NULL;
 	
 	return ret;
-}
+}*/
 
 /* returns the start of an attribute's data. */
-static char *findDefinition(const char *attrName)
+/*static char *findDefinition(const char *attrName)
 {
 	char *start;
 	char c;
@@ -292,9 +288,9 @@ static char *findDefinition(const char *attrName)
 	start = strstr(filebuf, attrName);
 	
 	if(start)
-	{
+	{*/
 		/* verify definition char */
-		start = start + strlen(attrName);
+		/*start = start + strlen(attrName);
 		
 		while(*start == ' ') start++;
 		
@@ -309,10 +305,10 @@ static char *findDefinition(const char *attrName)
 	}
 	
 	return start;
-}
+}*/
 
 /* returns the length of an attribute's data. */
-static u32 parseDefinition(char *attrData)
+/*static u32 parseDefinition(char *attrData)
 {
 	static const char LF = 0x0A, CR = 0x0D, NEL = 0x15;
 	u32 len = 0;
@@ -836,5 +832,4 @@ bool configDevModeEnabled()
 		return false;
 	
 	return true;
-}
-
+}*/

@@ -26,8 +26,6 @@
 #include "arm9/hardware/hid.h"
 #include "util.h"
 #include "arm9/firmwriter.h"
-#include "arm9/main.h"
-#include "arm9/gui/menu.h"
 #include "arm9/hardware/timer.h"
 
 

@@ -22,7 +22,6 @@
 #include "types.h"
 #include "arm9/fb_assert.h"
 #include "mem_map.h"
-#include "arm9/main.h"
 #include "arm9/ncsd.h"
 #include "arm9/hardware/sdmmc.h"
 #include "arm9/hardware/spiflash.h"
@@ -298,9 +297,9 @@ bool sdmmc_dnand_init(void)
 					}
 					else if(i == 4)	// CTR NAND partition
 					{
-						if(bootInfo.unitIsNew3DS)
+						/*if(bootInfo.unitIsNew3DS)
 							partitionSetKeyslot(index, 0x05);
-						else
+						else*/
 							partitionSetKeyslot(index, 0x04);
 						
 						partitionSetName(index, "nand");

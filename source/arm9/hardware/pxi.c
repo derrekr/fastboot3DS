@@ -19,8 +19,11 @@
 #include "types.h"
 #include "hardware/pxi.h"
 #include "arm9/hardware/interrupt.h"
+#include "arm9/debug.h"
 
 
+
+static void pxiIrqHandler(UNUSED u32 id);
 
 void PXI_init(void)
 {
@@ -28,51 +31,83 @@ void PXI_init(void)
 	REG_PXI_CNT9 = PXI_FLUSH_SEND_FIFO | PXI_EMPTY_FULL_ERROR | PXI_ENABLE_SEND_RECV_FIFO;
 
 	REG_PXI_SYNC9 |= 9u<<8;
-	while((REG_PXI_SYNC9 & 0xFFu) != 11u);
+	while(PXI_DATA_RECEIVED(REG_PXI_SYNC9) != 11u);
 
-	IRQ_registerHandler(IRQ_PXI_SYNC, NULL);
+	IRQ_registerHandler(IRQ_PXI_SYNC, pxiIrqHandler);
 }
 
-void PXI_sendWord(u32 val)
+static void pxiIrqHandler(UNUSED u32 id)
 {
-	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND9 = val;
-	REG_PXI_SYNC9 |= PXI_NOTIFY_11;
-}
+	u32 result = 0;
+	const u32 cmdCode = REG_PXI_RECV9;
 
-bool PXI_trySendWord(u32 val)
-{
-	if(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL)
-		return false;
-	REG_PXI_SEND9 = val;
-	REG_PXI_SYNC9 |= PXI_NOTIFY_11;
-	return true;
-}
-
-u32 PXI_recvWord(void)
-{
-	while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
-	return REG_PXI_RECV9;
-}
-
-u32 PXI_tryRecvWord(bool *success)
-{
-	if(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY)
+	if((cmdCode>>16 & 0xFFu) != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
 	{
-		*success = false;
-		return 0;
+		panic();
 	}
 
-	*success = true;
-	return REG_PXI_RECV9;
+	switch(cmdCode>>24)
+	{
+		case PXI_CMD9_FMOUNT:
+			break;
+		case PXI_CMD9_FUNMOUNT:
+			break;
+		case PXI_CMD9_FOPEN:
+			break;
+		case PXI_CMD9_FCLOSE:
+			break;
+		case PXI_CMD9_FREAD:
+			break;
+		case PXI_CMD9_FWRITE:
+			break;
+		case PXI_CMD9_FOPEN_DIR:
+			break;
+		case PXI_CMD9_FREAD_DIR:
+			break;
+		case PXI_CMD9_FCLOSE_DIR:
+			break;
+		case PXI_CMD9_FUNLINK:
+			break;
+		case PXI_CMD9_FGETFREE:
+			break;
+		case PXI_CMD9_READ_SECTORS:
+			break;
+		case PXI_CMD9_WRITE_SECTORS:
+			break;
+		case PXI_CMD9_MALLOC:
+			break;
+		case PXI_CMD9_FREE:
+			break;
+		case PXI_CMD9_LOAD_VERIFY_FIRM:
+			break;
+		case PXI_CMD9_FIRM_LAUNCH:
+			break;
+		case PXI_CMD9_PREPA_POWER:
+			break;
+		case PXI_CMD9_PANIC:
+			break;
+		case PXI_CMD9_EXCEPTION:
+			break;
+		default:
+			panic();
+	}
+
+	REG_PXI_SEND9 = result;
 }
 
-void PXI_sendBuf(const u32 *const buf, u32 size)
+u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 {
+	if(!buf) words = 0;
+
 	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
-	for(u32 i = 0; i < size / 4; i++)
+	REG_PXI_SEND9 = cmd | words<<16;
+	for(u32 i = 0; i < words; i++)
 	{
 		REG_PXI_SEND9 = buf[i];
 	}
-	REG_PXI_SYNC9 |= PXI_NOTIFY_11;
+
+	REG_PXI_SYNC9 = PXI_DATA_SENT(REG_PXI_SYNC9, words) | PXI_NOTIFY_11;
+
+	while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
+	return REG_PXI_RECV9;
 }
