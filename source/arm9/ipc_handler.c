@@ -58,7 +58,7 @@ u32 IPC_handleCmd(u8 cmd, const u32 *buf)
 		case IPC_CMD_MASK(IPC_CMD9_WRITE_SECTORS):
 			break;
 		case IPC_CMD_MASK(IPC_CMD9_MALLOC):
-			result = (u32)malloc(buf[0]);
+			//result = (u32)malloc(buf[0]);
 			break;
 		case IPC_CMD_MASK(IPC_CMD9_FREE):
 			/*{
