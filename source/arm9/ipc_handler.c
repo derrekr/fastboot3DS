@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include "types.h"
-#include "mem_map.h"
 #include "ipc_handler.h"
 #include "hardware/pxi.h"
 #include "arm9/debug.h"
@@ -63,8 +62,9 @@ u32 IPC_handleCmd(u8 cmd, const u32 *buf)
 			break;
 		case IPC_CMD_MASK(IPC_CMD9_FREE):
 			{
-				extern u32 __end__[];
-				if(buf[0] > A9_HEAP_END || buf[0] < (u32)__end__) panic();
+				extern char* fake_heap_start;
+				extern char* fake_heap_end;
+				if(buf[0] > (u32)fake_heap_end || buf[0] < (u32)fake_heap_start) panic();
 				free((void*)buf[0]);
 			}
 			break;
