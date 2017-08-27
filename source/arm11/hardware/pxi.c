@@ -20,6 +20,7 @@
 #include "hardware/pxi.h"
 #include "arm11/hardware/interrupt.h"
 //#include "arm11/debug.h"
+#include "ipc_handler.h"
 
 
 
@@ -38,27 +39,15 @@ void PXI_init(void)
 
 static void pxiIrqHandler(UNUSED u32 intSource)
 {
-	u32 result = 0;
 	const u32 cmdCode = REG_PXI_RECV11;
+	const u8 params = cmdCode>>16 & 0xFFu;
 
-	if((cmdCode>>16 & 0xFFu) != PXI_DATA_RECEIVED(REG_PXI_SYNC11))
+	if(params != PXI_DATA_RECEIVED(REG_PXI_SYNC11))
 	{
 		//panic();
 	}
 
-	switch(cmdCode>>24)
-	{
-		case PXI_CMD11_PRINT_MSG:
-			break;
-		case PXI_CMD11_PANIC:
-			break;
-		case PXI_CMD11_EXCEPTION:
-			break;
-		default: ;
-			//panic();
-	}
-
-	REG_PXI_SEND11 = result;
+	REG_PXI_SEND11 = IPC_handleCmd(cmdCode>>24, params);
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)

@@ -58,38 +58,16 @@
 #define PXI_ENABLE_SEND_RECV_FIFO   (1u<<15)
 
 
-typedef enum
-{
-	PXI_CMD9_FMOUNT            = 0,
-	PXI_CMD9_FUNMOUNT          = 1,
-	PXI_CMD9_FOPEN             = 2,
-	PXI_CMD9_FCLOSE            = 3,
-	PXI_CMD9_FREAD             = 4,
-	PXI_CMD9_FWRITE            = 5,
-	PXI_CMD9_FOPEN_DIR         = 6,
-	PXI_CMD9_FREAD_DIR         = 7,
-	PXI_CMD9_FCLOSE_DIR        = 8,
-	PXI_CMD9_FUNLINK           = 9,
-	PXI_CMD9_FGETFREE          = 10,
-	PXI_CMD9_READ_SECTORS      = 11,
-	PXI_CMD9_WRITE_SECTORS     = 12,
-	PXI_CMD9_MALLOC            = 13,
-	PXI_CMD9_FREE              = 14,
-	PXI_CMD9_LOAD_VERIFY_FIRM  = 15,
-	PXI_CMD9_FIRM_LAUNCH       = 16,
-	PXI_CMD9_PREPA_POWER       = 17,
-	PXI_CMD9_PANIC             = 18,
-	PXI_CMD9_EXCEPTION         = 19
-} PxiCmd9;
-
-typedef enum
-{
-	PXI_CMD11_PRINT_MSG = 0,
-	PXI_CMD11_PANIC     = 1,
-	PXI_CMD11_EXCEPTION = 2
-} PxiCmd11;
-
-
 
 void PXI_init(void);
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words);
+
+static inline u32 PXI_recvWord(void)
+{
+#ifdef ARM9
+	return REG_PXI_RECV9;
+#endif
+#ifdef ARM11
+	return REG_PXI_RECV11;
+#endif
+}

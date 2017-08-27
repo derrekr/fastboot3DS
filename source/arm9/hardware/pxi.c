@@ -20,6 +20,7 @@
 #include "hardware/pxi.h"
 #include "arm9/hardware/interrupt.h"
 #include "arm9/debug.h"
+#include "ipc_handler.h"
 
 
 
@@ -38,61 +39,15 @@ void PXI_init(void)
 
 static void pxiIrqHandler(UNUSED u32 id)
 {
-	u32 result = 0;
 	const u32 cmdCode = REG_PXI_RECV9;
+	const u8 params = cmdCode>>16 & 0xFFu;
 
-	if((cmdCode>>16 & 0xFFu) != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
+	if(params != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
 	{
 		panic();
 	}
 
-	switch(cmdCode>>24)
-	{
-		case PXI_CMD9_FMOUNT:
-			break;
-		case PXI_CMD9_FUNMOUNT:
-			break;
-		case PXI_CMD9_FOPEN:
-			break;
-		case PXI_CMD9_FCLOSE:
-			break;
-		case PXI_CMD9_FREAD:
-			break;
-		case PXI_CMD9_FWRITE:
-			break;
-		case PXI_CMD9_FOPEN_DIR:
-			break;
-		case PXI_CMD9_FREAD_DIR:
-			break;
-		case PXI_CMD9_FCLOSE_DIR:
-			break;
-		case PXI_CMD9_FUNLINK:
-			break;
-		case PXI_CMD9_FGETFREE:
-			break;
-		case PXI_CMD9_READ_SECTORS:
-			break;
-		case PXI_CMD9_WRITE_SECTORS:
-			break;
-		case PXI_CMD9_MALLOC:
-			break;
-		case PXI_CMD9_FREE:
-			break;
-		case PXI_CMD9_LOAD_VERIFY_FIRM:
-			break;
-		case PXI_CMD9_FIRM_LAUNCH:
-			break;
-		case PXI_CMD9_PREPA_POWER:
-			break;
-		case PXI_CMD9_PANIC:
-			break;
-		case PXI_CMD9_EXCEPTION:
-			break;
-		default:
-			panic();
-	}
-
-	REG_PXI_SEND9 = result;
+	REG_PXI_SEND9 = IPC_handleCmd(cmdCode>>24, params);
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
