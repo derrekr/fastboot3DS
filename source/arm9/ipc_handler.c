@@ -61,12 +61,12 @@ u32 IPC_handleCmd(u8 cmd, const u32 *buf)
 			result = (u32)malloc(buf[0]);
 			break;
 		case IPC_CMD_MASK(IPC_CMD9_FREE):
-			{
+			/*{
 				extern char* fake_heap_start;
 				extern char* fake_heap_end;
 				if(buf[0] > (u32)fake_heap_end || buf[0] < (u32)fake_heap_start) panic();
 				free((void*)buf[0]);
-			}
+			}*/
 			break;
 		case IPC_CMD_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			break;
