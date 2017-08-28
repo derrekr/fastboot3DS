@@ -106,7 +106,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	int desc_y = (desc_con->consoleHeight - 2 - desc_height);
 	
 	consoleSetCursor(desc_con, desc_x, desc_y++);
-	ee_printf("[%s]", name);
+	ee_printf("%s:", name);
 	
 	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
 		consoleSetCursor(desc_con, desc_x, desc_y++);
@@ -123,9 +123,10 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
  */
 void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_sub_menu)
 {
-	const u32 menu_block_height = curr_menu->n_entries + 2; // +2 for title and separator
+	// const u32 menu_block_height = curr_menu->n_entries + 5; // +5 for title and button instructions
 	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
-	int menu_y = MENU_DISP_Y + ((menu_con->consoleHeight - menu_block_height) >> 1);
+	// int menu_y = MENU_DISP_Y + ((menu_con->consoleHeight - menu_block_height) >> 1);
+	int menu_y = MENU_OFFSET_TITLE;
 	
 	// select menu console
 	consoleSelect(menu_con);
@@ -134,10 +135,11 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_su
 	// menu title
 	consoleSetCursor(menu_con, menu_x, menu_y++);
 	ee_printf(curr_menu->name);
+	menu_y++;
 	
 	// first separator
-	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
+	// consoleSetCursor(menu_con, menu_x, menu_y++);
+	// ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
 	
 	// menu entries
 	for (u32 i = 0; i < curr_menu->n_entries; i++)
@@ -147,11 +149,16 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_su
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		ee_printf(is_selected ? "[%s]" : " %s ", name);
+		ee_printf(is_selected ? "\x1b[47;30m%2lu.%-*.*s\x1b[0m" : "%2lu.%-*.*s", i+1, MENU_WIDTH-3, MENU_WIDTH-3, name);
 	}
 	
-	// second separator
+	// button instructions
+	menu_y = MENU_OFFSET_BUTTONS;
 	consoleSetCursor(menu_con, menu_x, menu_y++);
+	ee_printf("%-*.*s", MENU_WIDTH, MENU_WIDTH, "[A]:Choose [B]:Back");
+	
+	// second separator
+	// consoleSetCursor(menu_con, menu_x, menu_y++);
 	// ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
 	
 	

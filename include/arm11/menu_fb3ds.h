@@ -24,7 +24,7 @@
 
 #define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
 
-#define DESC_CONTINUE		"Continue booting the first available boot slot.\nNo function if boot slots are not set up or firmware not found."
+#define DESC_CONTINUE		"Continue booting the first available boot slot.\nNo function if boot slots are not set up."
 #define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from."
 #define DESC_NAND_TOOLS		"Enter NAND tools submenu, including tools for NAND backup, NAND restore and firmware flash."
 #define DESC_OPTIONS		"Enter fastboot3ds options submenu."
@@ -61,7 +61,7 @@
 MenuInfo menu_fb3ds[] =
 {
 	{
-		"fastboot3ds Main Menu", 5,
+		"Main Menu", 5,
 		{
 			{ "Continue boot",				DESC_CONTINUE,				&DummyFunc,				0 },
 			{ "Boot menu..",				DESC_BOOT_MENU,				NULL,					6 },
@@ -71,7 +71,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{
-		"fastboot3ds NAND tools", 5,
+		"NAND Tools", 5,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&DummyFunc,				3 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&DummyFunc,				4 },
@@ -81,16 +81,16 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{
-		"fastboot3ds options", 4,
+		"Options", 4,
 		{
 			{ "Change boot mode",			DESC_CHANGE_BOOT,			NULL,					3 },
 			{ "Setup boot slot",			DESC_CHANGE_SLOT,			NULL,					4 },
 			{ "Change brightness",			DESC_CHANGE_BRIGHT,			&DummyFunc,				6 },
-			{ "Force contiguous backups",	DESC_SET_CONTIG,			NULL,					5 }
+			{ "Set contiguous backups",		DESC_SET_CONTIG,			NULL,					5 }
 		}
 	},
 	{
-		"fastboot3ds boot mode", 3,
+		"Boot Mode Setup", 3,
 		{
 			{ "Set normal boot",			DESC_BOOT_NORMAL,			&DummyFunc,				0 },
 			{ "Set quick boot",				DESC_BOOT_QUICK,			&DummyFunc,				1 },
@@ -98,7 +98,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{
-		"fastboot3ds boot slots", 3,
+		"Boot Slot Setup", 3,
 		{
 			{ "Setup [slot 1]...",			DESC_SET_SLOT_1,			&DummyFunc,				0 },
 			{ "Setup [slot 2]...",			DESC_SET_SLOT_2,			&DummyFunc,				1 },
@@ -106,14 +106,14 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{
-		"fastboot3ds backup setting", 2,
+		"Backup Setup", 2,
 		{
 			{ "Enable contiguous backups",	DESC_ENABLE_CONTIG,			&DummyFunc,				1 },
 			{ "Disable contiguous backups",	DESC_DISABLE_CONTIG,		&DummyFunc,				0 }
 		}
 	},
 	{
-		"fastboot3ds boot menu", 4,
+		"Boot Menu", 4,
 		{
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT_1,			&DummyFunc,				0 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT_2,			&DummyFunc,				1 },
