@@ -180,12 +180,12 @@ void AES_init(void)
 
 	REG_NDMA0_DST_ADDR = REG_AESWRFIFO;
 	REG_NDMA0_INT_CNT = NDMA_INT_SYS_FREQ;
-	REG_NDMA0_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_IN |
+	REG_NDMA0_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_IN |
 	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
 
 	REG_NDMA1_SRC_ADDR = REG_AESRDFIFO;
 	REG_NDMA1_INT_CNT = NDMA_INT_SYS_FREQ;
-	REG_NDMA1_CNT = NDMA_REPEATING_MODE | NDMA_STARTUP_AES_OUT |
+	REG_NDMA1_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_OUT |
 	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 
 	IRQ_registerHandler(IRQ_AES, NULL);
@@ -391,10 +391,12 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 	}
 
 	REG_NDMA0_SRC_ADDR = (u32)in;
+	REG_NDMA0_TOTAL_CNT = blocks<<2;
 	REG_NDMA0_LOG_BLK_CNT = aesFifoSize * 4 + 4;
 	REG_NDMA0_CNT = (REG_NDMA0_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
 
 	REG_NDMA1_DST_ADDR = (u32)out;
+	REG_NDMA1_TOTAL_CNT = blocks<<2;
 	REG_NDMA1_LOG_BLK_CNT = aesFifoSize * 4 + 4;
 	REG_NDMA1_CNT = (REG_NDMA1_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
 
@@ -405,10 +407,6 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 	{
 		waitForInterrupt();
 	}
-
-	// Disable the NDMA channels
-	REG_NDMA0_CNT = (REG_NDMA0_CNT<<1)>>1;
-	REG_NDMA1_CNT = (REG_NDMA1_CNT<<1)>>1;
 }
 
 void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)

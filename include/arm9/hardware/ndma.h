@@ -118,31 +118,32 @@
 #define NDMA_SRC_ADDR_RELOAD   (1u<<15)
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
 #define NDMA_BURST_SIZE(n)     ((u32)log2(n)<<16)
+#define NDMA_IMMEDIATE_MODE    (16<<24)
+#define NDMA_TOTAL_CNT_MODE    (0u)
 #define NDMA_REPEATING_MODE    (1u<<29)
 #define NDMA_IRQ_ENABLE        (1u<<30)
 #define NDMA_ENABLE            (1u<<31)
 
 
- enum
- {
- 	NDMA_STARTUP_TIMER0    = (0<<24), // Unconfirmed
- 	NDMA_STARTUP_TIMER1    = (1<<24), // Unconfirmed
- 	NDMA_STARTUP_TIMER2    = (2<<24), // Unconfirmed
- 	NDMA_STARTUP_TIMER3    = (3<<24), // Unconfirmed
- 	NDMA_STARTUP_CTRCARD0  = (4<<24),
- 	NDMA_STARTUP_CTRCARD1  = (5<<24),
- 	NDMA_STARTUP_UNK_6     = (6<<24),
- 	NDMA_STARTUP_EMMC      = (7<<24),
- 	NDMA_STARTUP_AES_IN    = (8<<24),  // AES write fifo
- 	NDMA_STARTUP_AES_OUT   = (9<<24),  // AES read fifo
- 	NDMA_STARTUP_SHA       = (10<<24),
- 	NDMA_STARTUP_UNK_11    = (11<<24),
- 	NDMA_STARTUP_UNK_12    = (12<<24),
- 	NDMA_STARTUP_UNK_13    = (13<<24),
- 	NDMA_STARTUP_UNK_14    = (14<<24),
- 	NDMA_STARTUP_AES_SHA   = (15<<24), // Unconfirmed
- 	NDMA_STARTUP_IMMEDIATE = (16<<24)
- };
+enum
+{
+	NDMA_STARTUP_TIMER0    = 0<<24,
+	NDMA_STARTUP_TIMER1    = 1<<24,
+	NDMA_STARTUP_TIMER2    = 2<<24,
+	NDMA_STARTUP_TIMER3    = 3<<24,
+	NDMA_STARTUP_CTRCARD0  = 4<<24,
+	NDMA_STARTUP_CTRCARD1  = 5<<24,
+	NDMA_STARTUP_UNK_6     = 6<<24,
+	NDMA_STARTUP_EMMC      = 7<<24,
+	NDMA_STARTUP_AES_IN    = 8<<24,  // AES write fifo
+	NDMA_STARTUP_AES_OUT   = 9<<24,  // AES read fifo
+	NDMA_STARTUP_SHA       = 10<<24,
+	NDMA_STARTUP_UNK_11    = 11<<24,
+	NDMA_STARTUP_UNK_12    = 12<<24,
+	NDMA_STARTUP_UNK_13    = 13<<24,
+	NDMA_STARTUP_UNK_14    = 14<<24,
+	NDMA_STARTUP_AES_SHA   = 15<<24  // Unconfirmed
+};
 
 
 
