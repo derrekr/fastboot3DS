@@ -18,7 +18,7 @@
 
 #include "types.h"
 #include "ipc_handler.h"
-#include "hardware/pxi.h"
+#include "hardware/cache.h"
 //#include "arm11/debug.h"
 
 
@@ -27,17 +27,22 @@
 
 
 
-u32 IPC_handleCmd(u8 cmd, UNUSED const u32 *buf)
+u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *buf)
 {
-	u32 result = 0;
+	for(u32 i = 0; i < inBufs; i++)
+		invalidateDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
 
-	switch(cmd)
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
+		flushDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+
+	u32 result = 0;
+	switch(cmdId)
 	{
-		case IPC_CMD_MASK(IPC_CMD11_PRINT_MSG):
+		case IPC_CMD_ID_MASK(IPC_CMD11_PRINT_MSG):
 			break;
-		case IPC_CMD_MASK(IPC_CMD11_PANIC):
+		case IPC_CMD_ID_MASK(IPC_CMD11_PANIC):
 			break;
-		case IPC_CMD_MASK(IPC_CMD11_EXCEPTION):
+		case IPC_CMD_ID_MASK(IPC_CMD11_EXCEPTION):
 			break;
 		default:
 			panic();

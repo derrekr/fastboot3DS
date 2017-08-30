@@ -19,48 +19,53 @@
 #include <stdlib.h>
 #include "types.h"
 #include "ipc_handler.h"
-#include "hardware/pxi.h"
+#include "hardware/cache.h"
 #include "arm9/debug.h"
 #include "fatfs/ff.h"
 
 
 
-u32 IPC_handleCmd(u8 cmd, const u32 *buf)
+u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *buf)
 {
-	u32 result = 0;
+	for(u32 i = 0; i < inBufs; i++)
+		invalidateDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
 
-	switch(cmd)
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
+		flushDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+
+	u32 result = 0;
+	switch(cmdId)
 	{
-		case IPC_CMD_MASK(IPC_CMD9_FMOUNT):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FMOUNT):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FUNMOUNT):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FUNMOUNT):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FOPEN):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FCLOSE):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FREAD):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FWRITE):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FWRITE):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FOPEN_DIR):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN_DIR):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FREAD_DIR):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD_DIR):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FCLOSE_DIR):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE_DIR):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FUNLINK):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FUNLINK):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FGETFREE):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FGETFREE):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_READ_SECTORS):
+		case IPC_CMD_ID_MASK(IPC_CMD9_READ_SECTORS):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_WRITE_SECTORS):
+		case IPC_CMD_ID_MASK(IPC_CMD9_WRITE_SECTORS):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_MALLOC):
+		case IPC_CMD_ID_MASK(IPC_CMD9_MALLOC):
 			//result = (u32)malloc(buf[0]);
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FREE):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FREE):
 			/*{
 				extern char* fake_heap_start;
 				extern char* fake_heap_end;
@@ -68,13 +73,13 @@ u32 IPC_handleCmd(u8 cmd, const u32 *buf)
 				free((void*)buf[0]);
 			}*/
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
+		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_FIRM_LAUNCH):
+		case IPC_CMD_ID_MASK(IPC_CMD9_FIRM_LAUNCH):
 			break;
-		case IPC_CMD_MASK(IPC_CMD9_PREPA_POWER):
-		case IPC_CMD_MASK(IPC_CMD9_PANIC):
-		case IPC_CMD_MASK(IPC_CMD9_EXCEPTION):
+		case IPC_CMD_ID_MASK(IPC_CMD9_PREPA_POWER):
+		case IPC_CMD_ID_MASK(IPC_CMD9_PANIC):
+		case IPC_CMD_ID_MASK(IPC_CMD9_EXCEPTION):
 			// Close and deinitalize everything.
 			break;
 		default:

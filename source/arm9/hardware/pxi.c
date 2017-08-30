@@ -41,21 +41,21 @@ void PXI_init(void)
 static void pxiIrqHandler(UNUSED u32 id)
 {
 	const u32 cmdCode = REG_PXI_RECV9;
-	const u8 params = IPC_PARAM_MASK(cmdCode);
+	const u8 inBufs = IPC_CMD_IN_BUFS_MASK(cmdCode);
+	const u8 outBufs = IPC_CMD_OUT_BUFS_MASK(cmdCode);
+	const u8 params = IPC_CMD_PARAMS_MASK(cmdCode);
+	const u32 cmdBufSize = (inBufs * 2) + (outBufs * 2) + params;
 
-	if(params > IPC_MAX_PARAMS || params != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
+	if(cmdBufSize > IPC_MAX_PARAMS || params != PXI_DATA_RECEIVED(REG_PXI_SYNC9))
 	{
 		panic();
 	}
 
 	u32 buf[IPC_MAX_PARAMS];
-	for(u32 i = 0; i < params; i++)
-	{
-		if(REG_PXI_SYNC9 & PXI_EMPTY_FULL_ERROR) panic();
-		buf[i] = REG_PXI_RECV9;
-	}
+	for(u32 i = 0; i < cmdBufSize; i++) buf[i] = REG_PXI_RECV9;
+	if(REG_PXI_SYNC9 & PXI_EMPTY_FULL_ERROR) panic();
 
-	REG_PXI_SEND9 = IPC_handleCmd(IPC_CMD_MASK(cmdCode), buf);
+	REG_PXI_SEND9 = IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf);
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
@@ -65,11 +65,8 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 
 	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND9 = cmd;
-	for(u32 i = 0; i < words; i++)
-	{
-		if(REG_PXI_SYNC9 & PXI_EMPTY_FULL_ERROR) panic();
-		REG_PXI_SEND9 = buf[i];
-	}
+	for(u32 i = 0; i < words; i++) REG_PXI_SEND9 = buf[i];
+	if(REG_PXI_SYNC9 & PXI_EMPTY_FULL_ERROR) panic();
 
 	REG_PXI_SYNC9 = PXI_DATA_SENT(REG_PXI_SYNC9, words) | PXI_NOTIFY_11;
 
