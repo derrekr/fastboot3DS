@@ -42,12 +42,6 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 		invalidateDCacheRange(inBuf->ptr, inBuf->size);
 	}
 
-	for(u32 i = inBufs; i < inBufs + outBufs; i++)
-	{
-		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
-		flushDCacheRange(outBuf->ptr, outBuf->size);
-	}
-
 	u32 result = 0;
 	switch(cmdId)
 	{
@@ -101,6 +95,12 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 			panic();
 	}
 
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
+	{
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		flushDCacheRange(outBuf->ptr, outBuf->size);
+	}
+
 	return result;
 }
 
@@ -114,12 +114,6 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *const buf)
 		invalidateDCacheRange(inBuf->ptr, inBuf->size);
 	}
 
-	for(u32 i = inBufs; i < inBufs + outBufs; i++)
-	{
-		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
-		flushDCacheRange(outBuf->ptr, outBuf->size);
-	}
-
 	u32 result = 0;
 	switch(cmdId)
 	{
@@ -131,6 +125,12 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *const buf)
 			break;
 		default:
 			panic();
+	}
+
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
+	{
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		flushDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
 	return result;
