@@ -34,13 +34,19 @@
 
 
 #ifdef ARM9
-u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *buf)
+u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 {
 	for(u32 i = 0; i < inBufs; i++)
-		invalidateDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+	{
+		const IpcBuffer *const inBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		invalidateDCacheRange(inBuf->ptr, inBuf->size);
+	}
 
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
-		flushDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+	{
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		flushDCacheRange(outBuf->ptr, outBuf->size);
+	}
 
 	u32 result = 0;
 	switch(cmdId)
@@ -100,13 +106,19 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *buf)
 
 #elif ARM11
 
-u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *buf)
+u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *const buf)
 {
 	for(u32 i = 0; i < inBufs; i++)
-		invalidateDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+	{
+		const IpcBuffer *const inBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		invalidateDCacheRange(inBuf->ptr, inBuf->size);
+	}
 
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
-		flushDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+	{
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		flushDCacheRange(outBuf->ptr, outBuf->size);
+	}
 
 	u32 result = 0;
 	switch(cmdId)

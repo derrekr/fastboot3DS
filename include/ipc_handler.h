@@ -69,6 +69,12 @@ typedef enum
 #undef CMD_OUT_BUFS
 #undef CMD_PARAMS
 
+typedef struct
+{
+	void *ptr;
+	u32 size;
+} IpcBuffer;
 
 
-u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *buf);
+
+u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf);
