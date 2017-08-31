@@ -118,7 +118,7 @@
 #define NDMA_SRC_ADDR_RELOAD   (1u<<15)
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
 #define NDMA_BURST_SIZE(n)     ((u32)log2(n)<<16)
-#define NDMA_IMMEDIATE_MODE    (16<<24)
+#define NDMA_IMMEDIATE_MODE    (16u<<24)
 #define NDMA_TOTAL_CNT_MODE    (0u)
 #define NDMA_REPEATING_MODE    (1u<<29)
 #define NDMA_IRQ_ENABLE        (1u<<30)
