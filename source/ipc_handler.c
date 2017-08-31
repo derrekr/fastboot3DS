@@ -20,11 +20,20 @@
 #include "types.h"
 #include "ipc_handler.h"
 #include "hardware/cache.h"
-#include "arm9/debug.h"
-#include "fatfs/ff.h"
+#ifdef ARM9
+	#include "arm9/debug.h"
+	#include "fatfs/ff.h"
+#endif
+
+
+#ifdef ARM11
+// Temporary until we have a panic() function.
+#define panic()  *((vu32*)4) = 0xDEADBEEF
+#endif
 
 
 
+#ifdef ARM9
 u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *buf)
 {
 	for(u32 i = 0; i < inBufs; i++)
@@ -88,3 +97,30 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *buf)
 
 	return result;
 }
+
+#elif ARM11
+
+u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *buf)
+{
+	for(u32 i = 0; i < inBufs; i++)
+		invalidateDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
+		flushDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+
+	u32 result = 0;
+	switch(cmdId)
+	{
+		case IPC_CMD_ID_MASK(IPC_CMD11_PRINT_MSG):
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD11_PANIC):
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD11_EXCEPTION):
+			break;
+		default:
+			panic();
+	}
+
+	return result;
+}
+#endif
