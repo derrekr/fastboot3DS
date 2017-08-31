@@ -97,7 +97,7 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
-		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
 		flushDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
@@ -129,7 +129,7 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *const buf)
 
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
-		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer)];
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
 		flushDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
