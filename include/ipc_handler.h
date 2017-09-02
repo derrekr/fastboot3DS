@@ -69,6 +69,7 @@ typedef enum
 #undef CMD_OUT_BUFS
 #undef CMD_PARAMS
 
+
 typedef struct
 {
 	void *ptr;
