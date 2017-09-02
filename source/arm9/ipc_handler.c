@@ -43,6 +43,7 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 			result = (u32)fUnmount(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN):
+			result = (u32)fOpen((const char *const)buf[0], buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE):
 			break;

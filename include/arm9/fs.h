@@ -19,10 +19,12 @@
  */
 
 #include "types.h"
-#include "fatfs/ffconf.h"
+#include "fatfs/ff.h"
 
 
 #define FS_MAX_DRIVES  (FF_VOLUMES)
+#define FS_MAX_FILES   (5)
+
 
 typedef enum
 {
@@ -32,7 +34,19 @@ typedef enum
 	FS_DRIVE_NAND = 3
 } FsDrive;
 
+typedef enum
+{
+	FS_OPEN_READ          = FA_READ,
+	FS_OPEN_WRITE         = FA_WRITE,
+	FS_OPEN_EXISTING      = FA_OPEN_EXISTING,
+	FS_OPEN_CREATE_NEW    = FA_CREATE_NEW,
+	FS_OPEN_CREATE_ALWAYS = FA_CREATE_ALWAYS,
+	FS_OPEN_ALWAYS        = FA_OPEN_ALWAYS,
+	FS_OPEN_APPEND        = FA_OPEN_APPEND
+} FsOpenMode;
+
 
 
 s32 fMount(FsDrive drive);
 s32 fUnmount(FsDrive drive);
+s32 fOpen(const char *const path, FsOpenMode mode);

@@ -25,6 +25,10 @@ static FATFS fsTable[FS_MAX_DRIVES] = {0};
 static const char *const fsPathTable[FS_MAX_DRIVES] = {"sdmc:/", "twln:/", "twlp:/", "nand:/"};
 static bool fsStatTable[FS_MAX_DRIVES] = {0};
 
+static FIL fTable[FS_MAX_FILES] = {0};
+static bool fStatTable[FS_MAX_FILES] = {0};
+static u32 fHandles = 0;
+
 
 
 s32 fMount(FsDrive drive)
@@ -53,6 +57,35 @@ s32 fUnmount(FsDrive drive)
 	{
 		fsStatTable[drive] = false;
 		return FR_OK;
+	}
+	else return -res;
+}
+
+static s32 findUnusedFileSlot(void)
+{
+	if(fHandles >= FS_MAX_FILES) return -1;
+
+	s32 i;
+	for(i = 0; i < FS_MAX_FILES; i++)
+	{
+		if(!fStatTable[i]) break;
+	}
+	if(i == FS_MAX_FILES) return -1;
+
+	return i;
+}
+
+s32 fOpen(const char *const path, FsOpenMode mode)
+{
+	const s32 i = findUnusedFileSlot();
+	if(i < 0) return -30;
+
+	FRESULT res = f_open(&fTable[i], path, mode);
+	if(res == FR_OK)
+	{
+		fStatTable[i] = true;
+		fHandles++;
+		return i;
 	}
 	else return -res;
 }
