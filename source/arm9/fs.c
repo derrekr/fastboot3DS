@@ -29,7 +29,7 @@ static bool fsStatTable[FS_MAX_DRIVES] = {0};
 
 s32 fMount(FsDrive drive)
 {
-	if(drive > FS_MAX_DRIVES) return -30;
+	if(drive >= FS_MAX_DRIVES) return -30;
 
 	if(fsStatTable[drive]) return -30;
 
@@ -44,7 +44,7 @@ s32 fMount(FsDrive drive)
 
 s32 fUnmount(FsDrive drive)
 {
-	if(drive > FS_MAX_DRIVES) return -30;
+	if(drive >= FS_MAX_DRIVES) return -30;
 
 	if(!fsStatTable[drive]) return -30;
 

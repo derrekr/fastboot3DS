@@ -35,7 +35,7 @@
 
 typedef enum
 {
-	IPC_CMD9_FMOUNT            = CMD_ID(0)  | CMD_IN_BUFS(1)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(1),
+	IPC_CMD9_FMOUNT            = CMD_ID(0)  | CMD_IN_BUFS(0)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(1),
 	IPC_CMD9_FUNMOUNT          = CMD_ID(1)  | CMD_IN_BUFS(0)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(1),
 	IPC_CMD9_FOPEN             = CMD_ID(2)  | CMD_IN_BUFS(1)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(2),
 	IPC_CMD9_FCLOSE            = CMD_ID(3)  | CMD_IN_BUFS(0)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(1),
