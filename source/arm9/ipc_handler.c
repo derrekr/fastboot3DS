@@ -21,6 +21,7 @@
 #include "ipc_handler.h"
 #include "hardware/cache.h"
 #include "arm9/debug.h"
+#include "arm9/fs.h"
 
 
 
@@ -36,8 +37,10 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 	switch(cmdId)
 	{
 		case IPC_CMD_ID_MASK(IPC_CMD9_FMOUNT):
+			result = (u32)fMount(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FUNMOUNT):
+			result = (u32)fUnmount(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN):
 			break;
