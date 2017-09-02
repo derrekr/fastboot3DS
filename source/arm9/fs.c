@@ -65,14 +65,21 @@ static s32 findUnusedFileSlot(void)
 {
 	if(fHandles >= FS_MAX_FILES) return -1;
 
-	s32 i;
-	for(i = 0; i < FS_MAX_FILES; i++)
+	s32 i = 0;
+	while(i < FS_MAX_FILES)
 	{
 		if(!fStatTable[i]) break;
+		i++;
 	}
 	if(i == FS_MAX_FILES) return -1;
 
 	return i;
+}
+
+static bool isHandleValid(s32 handle)
+{
+	if((u32)handle > fHandles) return false;
+	else return true;
 }
 
 s32 fOpen(const char *const path, FsOpenMode mode)
@@ -88,4 +95,44 @@ s32 fOpen(const char *const path, FsOpenMode mode)
 		return i;
 	}
 	else return -res;
+}
+
+s32 fClose(s32 handle)
+{
+	if(fHandles == 0 || !isHandleValid(handle)) return -30;
+
+	FRESULT res = f_close(&fTable[handle]);
+	if(res == FR_OK)
+	{
+		fStatTable[handle] = false;
+		fHandles--;
+		return FR_OK;
+	}
+	else return -res;
+}
+
+s32 fRead(s32 handle, void *const buf, u32 size)
+{
+	if(!isHandleValid(handle)) return -30;
+
+	UINT bytesRead;
+	FRESULT res = f_read(&fTable[handle], buf, size, &bytesRead);
+
+	if(bytesRead != size) return -30;
+	if(res == FR_OK) return FR_OK;
+
+	return -res;
+}
+
+s32 fWrite(s32 handle, const void *const buf, u32 size)
+{
+	if(!isHandleValid(handle)) return -30;
+
+	UINT bytesWritten;
+	FRESULT res = f_write(&fTable[handle], buf, size, &bytesWritten);
+
+	if(bytesWritten != size) return -30;
+	if(res == FR_OK) return FR_OK;
+
+	return -res;
 }

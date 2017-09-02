@@ -46,10 +46,13 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 			result = (u32)fOpen((const char *const)buf[0], buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE):
+			result = (u32)fClose(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD):
+			result = (u32)fRead(buf[2], (void *const)buf[0], buf[3]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FWRITE):
+			result = (u32)fWrite(buf[2], (const void *const)buf[0], buf[3]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN_DIR):
 			break;

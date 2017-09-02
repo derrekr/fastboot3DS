@@ -50,3 +50,6 @@ typedef enum
 s32 fMount(FsDrive drive);
 s32 fUnmount(FsDrive drive);
 s32 fOpen(const char *const path, FsOpenMode mode);
+s32 fClose(s32 handle);
+s32 fRead(s32 handle, void *const buf, u32 size);
+s32 fWrite(s32 handle, const void *const buf, u32 size);
