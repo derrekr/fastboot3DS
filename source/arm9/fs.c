@@ -17,7 +17,7 @@
  */
 
 #include "types.h"
-#include "arm9/fs.h"
+#include "fs.h"
 #include "fatfs/ff.h"
 
 
@@ -71,9 +71,9 @@ static s32 findUnusedFileSlot(void)
 		if(!fStatTable[i]) break;
 		i++;
 	}
-	if(i == FS_MAX_FILES) return -1;
 
-	return i;
+	if(i == FS_MAX_FILES) return -1;
+	else return i;
 }
 
 static bool isHandleValid(s32 handle)
@@ -120,8 +120,7 @@ s32 fRead(s32 handle, void *const buf, u32 size)
 
 	if(bytesRead != size) return -30;
 	if(res == FR_OK) return FR_OK;
-
-	return -res;
+	else return -res;
 }
 
 s32 fWrite(s32 handle, const void *const buf, u32 size)
@@ -133,6 +132,5 @@ s32 fWrite(s32 handle, const void *const buf, u32 size)
 
 	if(bytesWritten != size) return -30;
 	if(res == FR_OK) return FR_OK;
-
-	return -res;
+	else return -res;
 }

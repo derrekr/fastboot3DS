@@ -21,7 +21,7 @@
 #include "ipc_handler.h"
 #include "hardware/cache.h"
 #include "arm9/debug.h"
-#include "arm9/fs.h"
+#include "fs.h"
 
 
 
