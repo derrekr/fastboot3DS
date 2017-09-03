@@ -29,6 +29,7 @@
 #include "arm11/menu_fb3ds.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+#include "fs.h"
 
 
 volatile bool g_poweroffAllowed = false;
@@ -49,7 +50,34 @@ int main(void)
 	// init description console
 	PrintConsole desc_con;
 	consoleInit(SCREEN_TOP, &desc_con, false);
-	
+
+	/*ee_puts("fs test...");
+	s32 fs = fMount(FS_DRIVE_SDMC);
+	if(fs < 0)
+	{
+		ee_printf("Failed to mount SD! %d\n", fs);
+		return 1;
+	}
+
+	s32 f = fOpen("sdmc:/_testFile_.txt", FS_OPEN_CREATE_ALWAYS | FS_OPEN_WRITE);
+	if(f < 0)
+	{
+		ee_printf("Failed to open file! %d\n", f);
+		fUnmount(fs);
+		return 1;
+	}
+
+	s32 res = fWrite(f, "It worked!!!", 13);
+	if(res < 0)
+	{
+		ee_printf("Failed to write to file! %d\n", res);
+		fClose(f);
+		fUnmount(fs);
+		return 1;
+	}
+	fClose(f);
+	fUnmount(fs);*/
+
 	// run menu
 	menuProcess(&menu_con, &desc_con, menu_fb3ds);
 	

@@ -48,28 +48,26 @@ s32 fOpen(const char *const path, FsOpenMode mode)
 
 s32 fClose(s32 handle)
 {
-	const u32 cmdBuf = (u32)handle;
+	const u32 cmdBuf = handle;
 	return (s32)PXI_sendCmd(IPC_CMD9_FCLOSE, &cmdBuf, 1);
 }
 
 s32 fRead(s32 handle, void *const buf, u32 size)
 {
-	u32 cmdBuf[4];
+	u32 cmdBuf[3];
 	cmdBuf[0] = (u32)buf;
 	cmdBuf[1] = size;
-	cmdBuf[2] = (u32)handle;
-	cmdBuf[3] = size;
+	cmdBuf[2] = handle;
 
-	return (s32)PXI_sendCmd(IPC_CMD9_FREAD, cmdBuf, 4);
+	return (s32)PXI_sendCmd(IPC_CMD9_FREAD, cmdBuf, 3);
 }
 
 s32 fWrite(s32 handle, const void *const buf, u32 size)
 {
-	u32 cmdBuf[4];
+	u32 cmdBuf[3];
 	cmdBuf[0] = (u32)buf;
 	cmdBuf[1] = size;
-	cmdBuf[2] = (u32)handle;
-	cmdBuf[3] = size;
+	cmdBuf[2] = handle;
 
-	return (s32)PXI_sendCmd(IPC_CMD9_FWRITE, cmdBuf, 4);
+	return (s32)PXI_sendCmd(IPC_CMD9_FWRITE, cmdBuf, 3);
 }

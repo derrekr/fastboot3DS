@@ -49,10 +49,10 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 			result = (u32)fClose(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD):
-			result = (u32)fRead(buf[2], (void *const)buf[0], buf[3]);
+			result = (u32)fRead(buf[2], (void *const)buf[0], buf[1]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FWRITE):
-			result = (u32)fWrite(buf[2], (const void *const)buf[0], buf[3]);
+			result = (u32)fWrite(buf[2], (const void *const)buf[0], buf[1]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN_DIR):
 			break;
@@ -69,15 +69,8 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_WRITE_SECTORS):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_MALLOC):
-			//result = (u32)malloc(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FREE):
-			/*{
-				extern char* fake_heap_start;
-				extern char* fake_heap_end;
-				if(buf[0] > (u32)fake_heap_end || buf[0] < (u32)fake_heap_start) panic();
-				free((void*)buf[0]);
-			}*/
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			break;

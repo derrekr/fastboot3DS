@@ -84,10 +84,15 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 	const u8 inBufs = IPC_CMD_IN_BUFS_MASK(cmd);
 	const u8 outBufs = IPC_CMD_OUT_BUFS_MASK(cmd);
 	for(u32 i = 0; i < inBufs; i++)
-		flushDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
-
+	{
+		const IpcBuffer *const inBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
+		flushDCacheRange(inBuf->ptr, inBuf->size);
+	}
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
-		invalidateDCacheRange((void*)buf[i * 2], buf[i * 2 + 1]);
+	{
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
+		invalidateDCacheRange(outBuf->ptr, outBuf->size);
+	}
 
 	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = cmd;
