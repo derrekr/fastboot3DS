@@ -78,7 +78,7 @@ static void pxiIrqHandler(UNUSED u32 id)
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 {
-	if(!buf) words = 0;
+	fb_assert(buf != NULL);
 	fb_assert(words <= IPC_MAX_PARAMS);
 
 	const u8 inBufs = IPC_CMD_IN_BUFS_MASK(cmd);
@@ -91,7 +91,7 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
 		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
-		invalidateDCacheRange(outBuf->ptr, outBuf->size);
+		flushInvalidateDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
 	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);

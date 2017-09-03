@@ -27,13 +27,13 @@
 s32 fMount(FsDrive drive)
 {
 	const u32 cmdBuf = drive;
-	return (s32)PXI_sendCmd(IPC_CMD9_FMOUNT, &cmdBuf, 1);
+	return PXI_sendCmd(IPC_CMD9_FMOUNT, &cmdBuf, 1);
 }
 
 s32 fUnmount(FsDrive drive)
 {
 	const u32 cmdBuf = drive;
-	return (s32)PXI_sendCmd(IPC_CMD9_FUNMOUNT, &cmdBuf, 1);
+	return PXI_sendCmd(IPC_CMD9_FUNMOUNT, &cmdBuf, 1);
 }
 
 s32 fOpen(const char *const path, FsOpenMode mode)
@@ -43,13 +43,13 @@ s32 fOpen(const char *const path, FsOpenMode mode)
 	cmdBuf[1] = strlen(path);
 	cmdBuf[2] = mode;
 
-	return (s32)PXI_sendCmd(IPC_CMD9_FOPEN, cmdBuf, 3);
+	return PXI_sendCmd(IPC_CMD9_FOPEN, cmdBuf, 3);
 }
 
 s32 fClose(s32 handle)
 {
 	const u32 cmdBuf = handle;
-	return (s32)PXI_sendCmd(IPC_CMD9_FCLOSE, &cmdBuf, 1);
+	return PXI_sendCmd(IPC_CMD9_FCLOSE, &cmdBuf, 1);
 }
 
 s32 fRead(s32 handle, void *const buf, u32 size)
@@ -59,7 +59,7 @@ s32 fRead(s32 handle, void *const buf, u32 size)
 	cmdBuf[1] = size;
 	cmdBuf[2] = handle;
 
-	return (s32)PXI_sendCmd(IPC_CMD9_FREAD, cmdBuf, 3);
+	return PXI_sendCmd(IPC_CMD9_FREAD, cmdBuf, 3);
 }
 
 s32 fWrite(s32 handle, const void *const buf, u32 size)
@@ -69,5 +69,5 @@ s32 fWrite(s32 handle, const void *const buf, u32 size)
 	cmdBuf[1] = size;
 	cmdBuf[2] = handle;
 
-	return (s32)PXI_sendCmd(IPC_CMD9_FWRITE, cmdBuf, 3);
+	return PXI_sendCmd(IPC_CMD9_FWRITE, cmdBuf, 3);
 }
