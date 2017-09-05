@@ -41,16 +41,16 @@ static void pxiIrqHandler(UNUSED u32 id);
 void PXI_init(void)
 {
 	REG_PXI_SYNC = PXI_IRQ_ENABLE;
-	REG_PXI_CNT = PXI_FLUSH_SEND_FIFO | PXI_EMPTY_FULL_ERROR | PXI_ENABLE_SEND_RECV_FIFO;
+	REG_PXI_CNT = PXI_ENABLE_SEND_RECV_FIFO | PXI_EMPTY_FULL_ERROR | PXI_FLUSH_SEND_FIFO;
 
 #ifdef ARM9
-	REG_PXI_SYNC |= 9u<<8;
-	while(PXI_DATA_RECEIVED(REG_PXI_SYNC) != 11u);
+	REG_PXI_DATA_SENT = 9;
+	while(REG_PXI_DATA_RECEIVED != 11);
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, pxiIrqHandler);
 #elif ARM11
-	while(PXI_DATA_RECEIVED(REG_PXI_SYNC) != 9u);
-	REG_PXI_SYNC |= 11u<<8;
+	while(REG_PXI_DATA_RECEIVED != 9);
+	REG_PXI_DATA_SENT = 11;
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, 13, 0, true, pxiIrqHandler);
 #endif
@@ -64,14 +64,14 @@ static void pxiIrqHandler(UNUSED u32 id)
 	const u8 params = IPC_CMD_PARAMS_MASK(cmdCode);
 	const u32 cmdBufSize = ((u32)inBufs * 2) + ((u32)outBufs * 2) + params;
 
-	if(cmdBufSize > IPC_MAX_PARAMS || cmdBufSize != PXI_DATA_RECEIVED(REG_PXI_SYNC))
+	if(cmdBufSize > IPC_MAX_PARAMS || cmdBufSize != REG_PXI_DATA_RECEIVED)
 	{
 		panic();
 	}
 
 	u32 buf[IPC_MAX_PARAMS];
 	for(u32 i = 0; i < cmdBufSize; i++) buf[i] = REG_PXI_RECV;
-	if(REG_PXI_SYNC & PXI_EMPTY_FULL_ERROR) panic();
+	if(REG_PXI_CNT & PXI_EMPTY_FULL_ERROR) panic();
 
 	REG_PXI_SEND = IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf);
 }
@@ -80,6 +80,7 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 {
 	fb_assert(buf != NULL);
 	fb_assert(words <= IPC_MAX_PARAMS);
+
 
 	const u8 inBufs = IPC_CMD_IN_BUFS_MASK(cmd);
 	const u8 outBufs = IPC_CMD_OUT_BUFS_MASK(cmd);
@@ -97,13 +98,9 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = cmd;
 	for(u32 i = 0; i < words; i++) REG_PXI_SEND = buf[i];
-	if(REG_PXI_SYNC & PXI_EMPTY_FULL_ERROR) panic();
+	if(REG_PXI_CNT & PXI_EMPTY_FULL_ERROR) panic();
 
-#ifdef ARM9
-	REG_PXI_SYNC = PXI_DATA_SENT(REG_PXI_SYNC, words) | PXI_NOTIFY_11;
-#elif ARM11
-	REG_PXI_SYNC = PXI_DATA_SENT(REG_PXI_SYNC, words) | PXI_NOTIFY_9;
-#endif
+	REG_PXI_SYNC = PXI_DATA_SENT(words) | PXI_TRIGGER_SYNC_IRQ;
 
 	while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
 	return REG_PXI_RECV;

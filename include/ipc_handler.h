@@ -21,7 +21,7 @@
 #include "types.h"
 
 
-#define IPC_MAX_PARAMS              (16)
+#define IPC_MAX_PARAMS              (15)
 #define IPC_CMD_ID_MASK(cmd)        ((cmd)>>24)
 #define IPC_CMD_IN_BUFS_MASK(cmd)   ((cmd)>>20 & 0xFu)
 #define IPC_CMD_OUT_BUFS_MASK(cmd)  ((cmd)>>26 & 0xFu)

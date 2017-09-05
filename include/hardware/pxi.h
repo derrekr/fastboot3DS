@@ -27,17 +27,22 @@
 #elif ARM11
 #define PXI_REGS_BASE                (IO_MEM_ARM9_ARM11 + 0x63000)
 #endif
+#define REG_PXI_DATA_RECEIVED        *((vu8 *)(PXI_REGS_BASE + 0x00))
+#define REG_PXI_DATA_SENT            *((vu8 *)(PXI_REGS_BASE + 0x01))
 #define REG_PXI_SYNC                 *((vu32*)(PXI_REGS_BASE + 0x00))
-#define REG_PXI_CNT                  *((vu32*)(PXI_REGS_BASE + 0x04))
+#define REG_PXI_CNT                  *((vu16*)(PXI_REGS_BASE + 0x04))
 #define REG_PXI_SEND                 *((vu32*)(PXI_REGS_BASE + 0x08))
 #define REG_PXI_RECV                 *((vu32*)(PXI_REGS_BASE + 0x0C))
 
 
 // Defines for PX_SYNC regs
-#define PXI_DATA_RECEIVED(reg)       ((reg) & 0xFFu)
-#define PXI_DATA_SENT(reg, sent)     (((reg) & ~(0xFFu<<8)) | sent<<8)
-#define PXI_NOTIFY_11                (1u<<29)
-#define PXI_NOTIFY_9                 (1u<<30)
+#define PXI_DATA_RECEIVED            (REG_PXI_SYNC & 0xFFu)
+#define PXI_DATA_SENT(sent)          ((REG_PXI_SYNC & ~(0xFFu<<8)) | sent<<8)
+#ifdef ARM9
+#define PXI_TRIGGER_SYNC_IRQ         (1u<<29)
+#elif ARM11
+#define PXI_TRIGGER_SYNC_IRQ         (1u<<30)
+#endif
 #define PXI_IRQ_ENABLE               (1u<<31)
 
 // Defines for PXI_CNT regs

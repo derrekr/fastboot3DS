@@ -29,6 +29,7 @@
 #include "arm11/menu_fb3ds.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+ #include "fs.h"
 
 
 volatile bool g_poweroffAllowed = false;
