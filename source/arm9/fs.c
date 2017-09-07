@@ -41,7 +41,7 @@ s32 fMount(FsDrive drive)
 	if(res == FR_OK)
 	{
 		fsStatTable[drive] = true;
-		return drive; // Handle
+		return FR_OK;
 	}
 	else return -res;
 }

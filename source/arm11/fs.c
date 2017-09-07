@@ -40,7 +40,7 @@ s32 fOpen(const char *const path, FsOpenMode mode)
 {
 	u32 cmdBuf[3];
 	cmdBuf[0] = (u32)path;
-	cmdBuf[1] = strlen(path);
+	cmdBuf[1] = strlen(path) + 1;
 	cmdBuf[2] = mode;
 
 	return PXI_sendCmd(IPC_CMD9_FOPEN, cmdBuf, 3);

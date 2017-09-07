@@ -277,11 +277,11 @@ setupMpu:
 	@ Region 1 = yes
 	@ Region 2 = no  <-- Never cache IO regs
 	@ Region 3 = yes
-	@ Region 4 = no
+	@ Region 4 = yes
 	@ Region 5 = no
 	@ Region 6 = yes
 	@ Region 7 = no
-	mov r0, #0b01001010
+	mov r0, #0b01011010
 	mcr p15, 0, r0, c2, c0, 0   @ Data cachable bits
 
 	@ Instruction cachable bits:
@@ -301,11 +301,11 @@ setupMpu:
 	@ Region 1 = yes
 	@ Region 2 = no  <-- Never buffer IO regs
 	@ Region 3 = yes
-	@ Region 4 = no
+	@ Region 4 = yes
 	@ Region 5 = no
 	@ Region 6 = yes
 	@ Region 7 = no
-	mov r2, #0b01001010
+	mov r2, #0b01011010
 	mcr p15, 0, r2, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
