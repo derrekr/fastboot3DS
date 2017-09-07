@@ -27,7 +27,6 @@
 #include "fb_assert.h"
 #include "ipc_handler.h"
 #include "hardware/cache.h"
- #include "arm11/fmt.h"
 
 
 #ifdef ARM11
@@ -88,13 +87,11 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
 	for(u32 i = 0; i < inBufs; i++)
 	{
 		const IpcBuffer *const inBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
-		ee_printf("In buf: %lu %p %lX\n", i, inBuf->ptr, inBuf->size);
 		flushDCacheRange(inBuf->ptr, inBuf->size);
 	}
 	for(u32 i = inBufs; i < (u32)inBufs + outBufs; i++)
 	{
 		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
-		ee_printf("Out buf: %lu %p %lX\n", i, outBuf->ptr, outBuf->size);
 		invalidateDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
