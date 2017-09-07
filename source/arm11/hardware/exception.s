@@ -23,21 +23,43 @@
 .fpu vfpv2
 
 .extern deinitCpu
+.extern guruMeditation
 .extern privIrqHandlerTable
 .extern irqHandlerTable
 
 
 
-ASM_FUNC tmpExceptionHandler
+ASM_FUNC undefInstrHandler
+	msr cpsr_f, #(0<<29)        @ Abuse conditional flags in cpsr for temporary exception type storage
+	b exceptionHandler
+ASM_FUNC prefetchAbortHandler
+	msr cpsr_f, #(1<<29)
+	b exceptionHandler
+ASM_FUNC dataAbortHandler
+	msr cpsr_f, #(2<<29)
+ASM_FUNC exceptionHandler
+	sub sp, #68
+	stmia sp, {r0-r14}^            @ Save all user/system mode regs except pc
+	mrs r2, spsr                   @ Get saved cpsr
+	mrs r3, cpsr
+	lsr r0, r3, #29                @ Get back the exception type from cpsr
+	and r1, r2, #0x1F
+	cmp r1, #0x10                  @ User mode
+	beq exceptionHandler_skip_other_mode
+	add r4, sp, #32
+	msr cpsr_c, r2
+	stmia r4!, {r8-r14}            @ Some regs are written twice but we don't care
+	msr cpsr_c, r3
+exceptionHandler_skip_other_mode:
+	str lr, [sp, #60]              @ Save lr (pc) on exception stack
+	str r2, [sp, #64]              @ Save spsr (cpsr) on exception stack
+	mov r4, r0
+	mov r5, sp
 	bl deinitCpu
-	ldr r0, =0x10202A04
-	mov r1, #0xFF
-	orr r1, #0x1000000
-	str r1, [r0]
-tmpExceptionHandler_lp:
-	wfi
-	b tmpExceptionHandler_lp
-.pool
+	mov r0, r4
+	mov sp, r5
+	mov r1, r5
+	b guruMeditation               @ r0 = exception type, r1 = reg dump ptr {r0-r14, pc (unmodified), cpsr}
 
 
 ASM_FUNC irqHandler

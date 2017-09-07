@@ -29,7 +29,6 @@
 #include "arm11/menu_fb3ds.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
- #include "fs.h"
 
 
 volatile bool g_poweroffAllowed = false;
@@ -42,18 +41,18 @@ int main(void)
 	hardwareInit();
 
 	GFX_init();
-	
+
 	// init menu console
 	PrintConsole menu_con;
 	consoleInit(SCREEN_SUB, &menu_con, false);
-	
+
 	// init description console
 	PrintConsole desc_con;
 	consoleInit(SCREEN_TOP, &desc_con, false);
 
 	// run menu
 	menuProcess(&menu_con, &desc_con, menu_fb3ds);
-	
+
 	// power off
 	if(g_poweroffAllowed) power_off();
 

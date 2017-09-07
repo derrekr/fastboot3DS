@@ -35,8 +35,10 @@
 .type _init %function
 .type deinitCpu %function
 
-.extern tmpExceptionHandler
 .extern irqHandler
+.extern undefInstrHandler
+.extern prefetchAbortHandler
+.extern dataAbortHandler
 .extern __bss_start__
 .extern __bss_end__
 .extern __end__
@@ -61,10 +63,10 @@ vectors:
 	ldr pc, irqHandlerPtr           @ Interrupt (IRQ) vector
 	ldr pc, fiqHandlerPtr           @ Fast interrupt (FIQ) vector
 	resetHandlerPtr:         .word _start
-	undefInstrHandlerPtr:    .word tmpExceptionHandler
+	undefInstrHandlerPtr:    .word undefInstrHandler
 	svcHandlerPtr:           .word (vectors + 0x08)
-	prefetchAbortHandlerPtr: .word tmpExceptionHandler
-	dataAbortHandlerPtr:     .word tmpExceptionHandler
+	prefetchAbortHandlerPtr: .word prefetchAbortHandler
+	dataAbortHandlerPtr:     .word dataAbortHandler
 	reservedHandlerPtr:      .word (vectors + 0x14)
 	irqHandlerPtr:           .word irqHandler
 	fiqHandlerPtr:           .word (vectors + 0x1C)
@@ -104,9 +106,9 @@ _start:
 
 	mov sp, #0                  @ SVC mode sp (unused, aborts)
 	cpsid aif, #23              @ Abort mode
-	mov sp, #0                  @ Not yet
+	ldr sp, =A11_EXC_STACK_END
 	cpsid aif, #27              @ Undefined mode
-	mov sp, #0                  @ Not yet
+	ldr sp, =A11_EXC_STACK_END
 	cpsid aif, #17              @ FIQ mode
 	mov sp, #0                  @ Unused
 	cpsid aif, #18              @ IRQ mode
