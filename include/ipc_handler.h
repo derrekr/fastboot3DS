@@ -78,4 +78,4 @@ typedef struct
 
 
 
-u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, const u32 *const buf);
+u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf);

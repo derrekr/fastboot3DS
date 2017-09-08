@@ -59,4 +59,4 @@
 
 
 void PXI_init(void);
-u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words);
+u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words);

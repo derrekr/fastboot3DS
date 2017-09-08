@@ -18,17 +18,19 @@
 
 #include "types.h"
 #ifdef ARM9
-#include "arm9/hardware/interrupt.h"
-#endif
-#ifdef ARM11
-#include "arm11/hardware/interrupt.h"
+	#include "arm9/hardware/interrupt.h"
+#elif ARM11
+	#include "arm11/fmt.h"
+	#include "arm11/hardware/interrupt.h"
 #endif
 
 
 
 noreturn void __fb_assert(UNUSED const char *const str, UNUSED u32 line)
 {
-	//ee_printf("Assertion failed: %s:%" PRIu32, str, line);
+#ifdef ARM11
+	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
+#endif
 
 	while(1) waitForInterrupt();
 }

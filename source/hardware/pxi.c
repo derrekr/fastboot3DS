@@ -23,16 +23,11 @@
 	#include "arm9/debug.h"
 #elif ARM11
 	#include "arm11/hardware/interrupt.h"
+	#include "arm11/debug.h"
 #endif
-#include "fb_assert.h"
 #include "ipc_handler.h"
+#include "fb_assert.h"
 #include "hardware/cache.h"
-
-
-#ifdef ARM11
-// Temporary until we have a panic() function.
-#define panic()  *((vu32*)4) = 0xDEADBEEF
-#endif
 
 
 
@@ -59,11 +54,10 @@ void PXI_init(void)
 static void pxiIrqHandler(UNUSED u32 id)
 {
 	const u32 cmdCode = REG_PXI_RECV;
-	const u8 inBufs = IPC_CMD_IN_BUFS_MASK(cmdCode);
-	const u8 outBufs = IPC_CMD_OUT_BUFS_MASK(cmdCode);
-	const u8 params = IPC_CMD_PARAMS_MASK(cmdCode);
-	const u32 cmdBufSize = ((u32)inBufs * 2) + ((u32)outBufs * 2) + params;
-
+	const u32 inBufs = IPC_CMD_IN_BUFS_MASK(cmdCode);
+	const u32 outBufs = IPC_CMD_OUT_BUFS_MASK(cmdCode);
+	const u32 params = IPC_CMD_PARAMS_MASK(cmdCode);
+	const u32 cmdBufSize = (inBufs * 2) + (outBufs * 2) + params;
 	if(cmdBufSize > IPC_MAX_PARAMS || cmdBufSize != REG_PXI_DATA_RECEIVED)
 	{
 		panic();
@@ -76,20 +70,20 @@ static void pxiIrqHandler(UNUSED u32 id)
 	REG_PXI_SEND = IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf);
 }
 
-u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u8 words)
+u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
 {
 	fb_assert(buf != NULL);
 	fb_assert(words <= IPC_MAX_PARAMS);
 
 
-	const u8 inBufs = IPC_CMD_IN_BUFS_MASK(cmd);
-	const u8 outBufs = IPC_CMD_OUT_BUFS_MASK(cmd);
+	const u32 inBufs = IPC_CMD_IN_BUFS_MASK(cmd);
+	const u32 outBufs = IPC_CMD_OUT_BUFS_MASK(cmd);
 	for(u32 i = 0; i < inBufs; i++)
 	{
 		const IpcBuffer *const inBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
 		flushDCacheRange(inBuf->ptr, inBuf->size);
 	}
-	for(u32 i = inBufs; i < (u32)inBufs + outBufs; i++)
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
 		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
 		invalidateDCacheRange(outBuf->ptr, outBuf->size);

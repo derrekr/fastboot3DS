@@ -20,15 +20,11 @@
 #include "types.h"
 #include "ipc_handler.h"
 #include "hardware/cache.h"
-//#include "arm11/debug.h"
-
-
-// Temporary until we have a panic() function.
-#define panic()  *((vu32*)4) = 0xDEADBEEF
+#include "arm11/debug.h"
 
 
 
-u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *const buf)
+u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, UNUSED const u32 *const buf)
 {
 	for(u32 i = 0; i < inBufs; i++)
 	{
@@ -49,7 +45,7 @@ u32 IPC_handleCmd(u8 cmdId, u8 inBufs, u8 outBufs, UNUSED const u32 *const buf)
 			panic();
 	}
 
-	for(u32 i = inBufs; i < (u32)inBufs + outBufs; i++)
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
 		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
 		flushDCacheRange(outBuf->ptr, outBuf->size);
