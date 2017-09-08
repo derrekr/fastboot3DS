@@ -22,7 +22,7 @@
 
 
 static FATFS fsTable[FS_MAX_DRIVES] = {0};
-static const char *const fsPathTable[FS_MAX_DRIVES] = {"sdmc:/", "twln:/", "twlp:/", "nand:/"};
+static const char *const fsPathTable[FS_MAX_DRIVES] = {FF_VOLUME_STRS};
 static bool fsStatTable[FS_MAX_DRIVES] = {0};
 
 static FIL fTable[FS_MAX_FILES] = {0};
@@ -34,8 +34,7 @@ static u32 fHandles = 0;
 s32 fMount(FsDrive drive)
 {
 	if(drive >= FS_MAX_DRIVES) return -30;
-
-	if(fsStatTable[drive]) return -30;
+	if(fsStatTable[drive]) return -31;
 
 	FRESULT res = f_mount(&fsTable[drive], fsPathTable[drive], 1);
 	if(res == FR_OK)
@@ -49,10 +48,9 @@ s32 fMount(FsDrive drive)
 s32 fUnmount(FsDrive drive)
 {
 	if(drive >= FS_MAX_DRIVES) return -30;
+	if(!fsStatTable[drive]) return -31;
 
-	if(!fsStatTable[drive]) return -30;
-
-	FRESULT res = f_mount(NULL, fsPathTable[drive], 1);
+	FRESULT res = f_mount(NULL, fsPathTable[drive], 0);
 	if(res == FR_OK)
 	{
 		fsStatTable[drive] = false;
@@ -118,7 +116,7 @@ s32 fRead(s32 handle, void *const buf, u32 size)
 	UINT bytesRead;
 	FRESULT res = f_read(&fTable[handle], buf, size, &bytesRead);
 
-	if(bytesRead != size) return -30;
+	if(bytesRead != size) return -31;
 	if(res == FR_OK) return FR_OK;
 	else return -res;
 }
@@ -130,7 +128,7 @@ s32 fWrite(s32 handle, const void *const buf, u32 size)
 	UINT bytesWritten;
 	FRESULT res = f_write(&fTable[handle], buf, size, &bytesWritten);
 
-	if(bytesWritten != size) return -30;
+	if(bytesWritten != size) return -31;
 	if(res == FR_OK) return FR_OK;
 	else return -res;
 }
