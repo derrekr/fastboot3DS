@@ -26,9 +26,13 @@
 
 
 
-noreturn void __fb_assert(UNUSED const char *const str, UNUSED u32 line)
+noreturn void __fb_assert(const char *const str, u32 line)
 {
-#ifdef ARM11
+#ifdef ARM9
+	// Get rid of the warnings.
+	(void)str;
+	(void)line;
+#elif ARM11
 	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
 #endif
 
