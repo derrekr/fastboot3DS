@@ -132,3 +132,28 @@ s32 fWrite(s32 handle, const void *const buf, u32 size)
 	if(res == FR_OK) return FR_OK;
 	else return -res;
 }
+
+s32 fSync(s32 handle)
+{
+	if(!isHandleValid(handle)) return -30;
+
+	FRESULT res = f_sync(&fTable[handle]);
+	if(res == FR_OK) return res;
+	else return -res;
+}
+
+s32 fLseek(s32 handle, u32 offset)
+{
+	if(!isHandleValid(handle)) return -30;
+
+	FRESULT res = f_lseek(&fTable[handle], offset);
+	if(res == FR_OK) return res;
+	else return -res;
+}
+
+s32 fUnlink(const char *const path)
+{
+	FRESULT res = f_unlink(path);
+	if(res == FR_OK) return res;
+	else return -res;
+}

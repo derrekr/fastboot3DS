@@ -54,6 +54,12 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FWRITE):
 			result = fWrite(buf[2], (const void *const)buf[0], buf[1]);
 			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FSYNC):
+			result = fSync(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FLSEEK):
+			result = fLseek(buf[0], buf[1]);
+			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN_DIR):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD_DIR):
@@ -61,6 +67,7 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE_DIR):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FUNLINK):
+			result = fUnlink((const char *const)buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FGETFREE):
 			break;

@@ -53,3 +53,6 @@ s32 fOpen(const char *const path, FsOpenMode mode);
 s32 fClose(s32 handle);
 s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);
+s32 fSync(s32 handle);
+s32 fLseek(s32 handle, u32 offset);
+s32 fUnlink(const char *const path);

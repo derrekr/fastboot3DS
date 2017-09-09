@@ -71,3 +71,27 @@ s32 fWrite(s32 handle, const void *const buf, u32 size)
 
 	return PXI_sendCmd(IPC_CMD9_FWRITE, cmdBuf, 3);
 }
+
+s32 fSync(s32 handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FSYNC, &cmdBuf, 1);
+}
+
+s32 fLseek(s32 handle, u32 offset)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = handle;
+	cmdBuf[1] = offset;
+
+	return PXI_sendCmd(IPC_CMD9_FLSEEK, cmdBuf, 2);
+}
+
+s32 fUnlink(const char *const path)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+
+	return PXI_sendCmd(IPC_CMD9_FUNLINK, cmdBuf, 2);
+}
