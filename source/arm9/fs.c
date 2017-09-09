@@ -33,7 +33,7 @@ static u32 fHandles = 0;
 
 s32 fMount(FsDrive drive)
 {
-	if(drive >= FS_MAX_DRIVES) return -30;
+	if((u32)drive >= FS_MAX_DRIVES) return -30;
 	if(fsStatTable[drive]) return -31;
 
 	FRESULT res = f_mount(&fsTable[drive], fsPathTable[drive], 1);
@@ -47,7 +47,7 @@ s32 fMount(FsDrive drive)
 
 s32 fUnmount(FsDrive drive)
 {
-	if(drive >= FS_MAX_DRIVES) return -30;
+	if((u32)drive >= FS_MAX_DRIVES) return -30;
 	if(!fsStatTable[drive]) return -31;
 
 	FRESULT res = f_mount(NULL, fsPathTable[drive], 0);

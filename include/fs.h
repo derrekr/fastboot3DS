@@ -55,4 +55,10 @@ s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);
 s32 fSync(s32 handle);
 s32 fLseek(s32 handle, u32 offset);
+// fTell
+// fSize
+// fExpand
+// fMkdir
+// fRename
+// fStat
 s32 fUnlink(const char *const path);
