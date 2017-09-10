@@ -87,6 +87,47 @@ s32 fLseek(s32 handle, u32 offset)
 	return PXI_sendCmd(IPC_CMD9_FLSEEK, cmdBuf, 2);
 }
 
+u32 fTell(s32 handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FTELL, &cmdBuf, 1);
+}
+
+u32 fSize(s32 handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FSIZE, &cmdBuf, 1);
+}
+
+s32 fExpand(s32 handle, u32 size)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = handle;
+	cmdBuf[1] = size;
+
+	return PXI_sendCmd(IPC_CMD9_FEXPAND, cmdBuf, 2);
+}
+
+s32 fMkdir(const char *const path)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+
+	return PXI_sendCmd(IPC_CMD9_FMKDIR, cmdBuf, 2);
+}
+
+s32 fRename(const char *const old, const char *const new)
+{
+	u32 cmdBuf[4];
+	cmdBuf[0] = (u32)old;
+	cmdBuf[1] = strlen(old) + 1;
+	cmdBuf[2] = (u32)new;
+	cmdBuf[3] = strlen(new) + 1;
+
+	return PXI_sendCmd(IPC_CMD9_FRENAME, cmdBuf, 4);
+}
+
 s32 fUnlink(const char *const path)
 {
 	u32 cmdBuf[2];

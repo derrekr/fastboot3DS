@@ -60,11 +60,26 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FLSEEK):
 			result = fLseek(buf[0], buf[1]);
 			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FTELL):
+			result = fTell(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FSIZE):
+			result = fSize(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FEXPAND):
+			result = fExpand(buf[0], buf[1]);
+			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN_DIR):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD_DIR):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE_DIR):
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FMKDIR):
+			result = fMkdir((const char *const)buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FRENAME):
+			result = fRename((const char *const)buf[0], (const char *const)buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FUNLINK):
 			result = fUnlink((const char *const)buf[0]);

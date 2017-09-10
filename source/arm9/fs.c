@@ -22,7 +22,7 @@
 
 
 static FATFS fsTable[FS_MAX_DRIVES] = {0};
-static const char *const fsPathTable[FS_MAX_DRIVES] = {FF_VOLUME_STRS};
+static const char *const fsPathTable[FS_MAX_DRIVES] = {FS_DRIVE_NAMES};
 static bool fsStatTable[FS_MAX_DRIVES] = {0};
 
 static FIL fTable[FS_MAX_FILES] = {0};
@@ -147,6 +147,41 @@ s32 fLseek(s32 handle, u32 offset)
 	if(!isHandleValid(handle)) return -30;
 
 	FRESULT res = f_lseek(&fTable[handle], offset);
+	if(res == FR_OK) return res;
+	else return -res;
+}
+
+u32 fTell(s32 handle)
+{
+	if(!isHandleValid(handle)) return 0;
+	return f_tell(&fTable[handle]);
+}
+
+u32 fSize(s32 handle)
+{
+	if(!isHandleValid(handle)) return 0;
+	return f_size(&fTable[handle]);
+}
+
+s32 fExpand(s32 handle, u32 size)
+{
+	if(!isHandleValid(handle)) return -30;
+
+	FRESULT res = f_expand(&fTable[handle], size, 1);
+	if(res == FR_OK) return res;
+	else return -res;
+}
+
+s32 fMkdir(const char *const path)
+{
+	FRESULT res = f_mkdir(path);
+	if(res == FR_OK) return res;
+	else return -res;
+}
+
+s32 fRename(const char *const old, const char *const new)
+{
+	FRESULT res = f_rename(old, new);
 	if(res == FR_OK) return res;
 	else return -res;
 }

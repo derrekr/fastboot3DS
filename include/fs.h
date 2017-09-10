@@ -22,8 +22,12 @@
 #include "fatfs/ff.h"
 
 
-#define FS_MAX_DRIVES  (FF_VOLUMES)
-#define FS_MAX_FILES   (5)
+#define FS_MAX_DRIVES   (FF_VOLUMES)
+#define FS_DRIVE_NAMES  FF_VOLUME_STRS
+
+#define FS_MAX_FILES    (5)
+
+#define FS_MAX_DIRS     (3)
 
 
 typedef enum
@@ -55,10 +59,10 @@ s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);
 s32 fSync(s32 handle);
 s32 fLseek(s32 handle, u32 offset);
-// fTell
-// fSize
-// fExpand
-// fMkdir
-// fRename
+u32 fTell(s32 handle);
+u32 fSize(s32 handle);
+s32 fExpand(s32 handle, u32 size);
+s32 fMkdir(const char *const path);
+s32 fRename(const char *const old, const char *const new);
 // fStat
 s32 fUnlink(const char *const path);
