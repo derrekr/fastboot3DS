@@ -46,12 +46,6 @@ s32 fOpen(const char *const path, FsOpenMode mode)
 	return PXI_sendCmd(IPC_CMD9_FOPEN, cmdBuf, 3);
 }
 
-s32 fClose(s32 handle)
-{
-	const u32 cmdBuf = handle;
-	return PXI_sendCmd(IPC_CMD9_FCLOSE, &cmdBuf, 1);
-}
-
 s32 fRead(s32 handle, void *const buf, u32 size)
 {
 	u32 cmdBuf[3];
@@ -99,6 +93,23 @@ u32 fSize(s32 handle)
 	return PXI_sendCmd(IPC_CMD9_FSIZE, &cmdBuf, 1);
 }
 
+s32 fClose(s32 handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FCLOSE, &cmdBuf, 1);
+}
+
+s32 fStat(const char *const path, FsFileInfo *fi)
+{
+	u32 cmdBuf[4];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+	cmdBuf[2] = (u32)fi;
+	cmdBuf[3] = sizeof(FsFileInfo);
+
+	return PXI_sendCmd(IPC_CMD9_FSTAT, cmdBuf, 4);
+}
+
 s32 fExpand(s32 handle, u32 size)
 {
 	u32 cmdBuf[2];
@@ -106,6 +117,32 @@ s32 fExpand(s32 handle, u32 size)
 	cmdBuf[1] = size;
 
 	return PXI_sendCmd(IPC_CMD9_FEXPAND, cmdBuf, 2);
+}
+
+s32 fOpenDir(const char *const path)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+
+	return PXI_sendCmd(IPC_CMD9_FOPEN_DIR, cmdBuf, 2);
+}
+
+s32 fReadDir(s32 handle, FsFileInfo *fi, u32 num)
+{
+	u32 cmdBuf[4];
+	cmdBuf[0] = (u32)fi;
+	cmdBuf[1] = sizeof(FsFileInfo) * num;
+	cmdBuf[2] = handle;
+	cmdBuf[3] = num;
+
+	return PXI_sendCmd(IPC_CMD9_FREAD_DIR, cmdBuf, 4);
+}
+
+s32 fCloseDir(s32 handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FCLOSE_DIR, &cmdBuf, 1);
 }
 
 s32 fMkdir(const char *const path)
