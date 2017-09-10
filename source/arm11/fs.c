@@ -36,6 +36,16 @@ s32 fUnmount(FsDrive drive)
 	return PXI_sendCmd(IPC_CMD9_FUNMOUNT, &cmdBuf, 1);
 }
 
+s32 fGetFree(FsDrive drive, u64 *size)
+{
+	u32 cmdBuf[3];
+	cmdBuf[0] = (u32)size;
+	cmdBuf[1] = 8;
+	cmdBuf[2] = drive;
+
+	return PXI_sendCmd(IPC_CMD9_FGETFREE, cmdBuf, 3);
+}
+
 s32 fOpen(const char *const path, FsOpenMode mode)
 {
 	u32 cmdBuf[3];
@@ -99,6 +109,15 @@ s32 fClose(s32 handle)
 	return PXI_sendCmd(IPC_CMD9_FCLOSE, &cmdBuf, 1);
 }
 
+s32 fExpand(s32 handle, u32 size)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = handle;
+	cmdBuf[1] = size;
+
+	return PXI_sendCmd(IPC_CMD9_FEXPAND, cmdBuf, 2);
+}
+
 s32 fStat(const char *const path, FsFileInfo *fi)
 {
 	u32 cmdBuf[4];
@@ -108,15 +127,6 @@ s32 fStat(const char *const path, FsFileInfo *fi)
 	cmdBuf[3] = sizeof(FsFileInfo);
 
 	return PXI_sendCmd(IPC_CMD9_FSTAT, cmdBuf, 4);
-}
-
-s32 fExpand(s32 handle, u32 size)
-{
-	u32 cmdBuf[2];
-	cmdBuf[0] = handle;
-	cmdBuf[1] = size;
-
-	return PXI_sendCmd(IPC_CMD9_FEXPAND, cmdBuf, 2);
 }
 
 s32 fOpenDir(const char *const path)

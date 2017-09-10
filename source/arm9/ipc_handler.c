@@ -42,6 +42,9 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FUNMOUNT):
 			result = fUnmount(buf[0]);
 			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FGETFREE):
+			result = fGetFree(buf[2], (u64*)buf[0]);
+			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN):
 			result = fOpen((const char *const)buf[0], buf[2]);
 			break;
@@ -66,11 +69,11 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FCLOSE):
 			result = fClose(buf[0]);
 			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_FSTAT):
-			result = fStat((const char *const)buf[0], (FsFileInfo*)buf[2]);
-			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FEXPAND):
 			result = fExpand(buf[0], buf[1]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FSTAT):
+			result = fStat((const char *const)buf[0], (FsFileInfo*)buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN_DIR):
 			result = fOpenDir((const char *const)buf[0]);
@@ -89,8 +92,6 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FUNLINK):
 			result = fUnlink((const char *const)buf[0]);
-			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_FGETFREE):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_READ_SECTORS):
 			break;

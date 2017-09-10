@@ -55,6 +55,7 @@ typedef FILINFO FsFileInfo;
 
 s32 fMount(FsDrive drive);
 s32 fUnmount(FsDrive drive);
+s32 fGetFree(FsDrive drive, u64 *size);
 s32 fOpen(const char *const path, FsOpenMode mode);
 s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);
@@ -63,8 +64,8 @@ s32 fLseek(s32 handle, u32 offset);
 u32 fTell(s32 handle);
 u32 fSize(s32 handle);
 s32 fClose(s32 handle);
-s32 fStat(const char *const path, FsFileInfo *fi);
 s32 fExpand(s32 handle, u32 size);
+s32 fStat(const char *const path, FsFileInfo *fi);
 s32 fOpenDir(const char *const path);
 s32 fReadDir(s32 handle, FsFileInfo *fi, u32 num);
 s32 fCloseDir(s32 handle);

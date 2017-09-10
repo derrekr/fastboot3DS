@@ -63,6 +63,22 @@ s32 fUnmount(FsDrive drive)
 	else return -res;
 }
 
+s32 fGetFree(FsDrive drive, u64 *size)
+{
+	if((u32)drive >= FS_MAX_DRIVES) return -30;
+	if(!fsStatTable[drive]) return -31;
+
+	DWORD freeClusters;
+	FATFS *fs;
+	FRESULT res = f_getfree(fsPathTable[drive], &freeClusters, &fs);
+	if(res == FR_OK)
+	{
+		if(size) *size = ((u64)(freeClusters * fs->csize)) * 512;
+		return FR_OK;
+	}
+	else return -res;
+}
+
 static s32 findUnusedFileSlot(void)
 {
 	if(fHandles >= FS_MAX_FILES) return -1;
@@ -167,18 +183,18 @@ s32 fClose(s32 handle)
 	else return -res;
 }
 
-s32 fStat(const char *const path, FsFileInfo *fi)
-{
-	FRESULT res = f_stat(path, fi);
-	if(res == FR_OK) return res;
-	else return -res;
-}
-
 s32 fExpand(s32 handle, u32 size)
 {
 	if(!isFileHandleValid(handle)) return -30;
 
 	FRESULT res = f_expand(&fTable[handle], size, 1);
+	if(res == FR_OK) return res;
+	else return -res;
+}
+
+s32 fStat(const char *const path, FsFileInfo *fi)
+{
+	FRESULT res = f_stat(path, fi);
 	if(res == FR_OK) return res;
 	else return -res;
 }
