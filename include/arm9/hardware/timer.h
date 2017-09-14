@@ -69,6 +69,15 @@ void TIMER_init(void);
 void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIrq);
 
 /**
+ * @brief      Returns the current number of ticks of the timer.
+ *
+ * @param[in]  timer  The timer get the ticks from.
+ *
+ * @return     The number of ticks.
+ */
+u16 TIMER_getTicks(Timer timer);
+
+/**
  * @brief      Stops a timer.
  *
  * @param[in]  timer  The timer to stop.

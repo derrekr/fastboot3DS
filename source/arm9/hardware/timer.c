@@ -62,6 +62,11 @@ void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIr
 	REG_TIMER_CNT(timer) = TIMER_ENABLE | (enableIrq ? TIMER_IRQ_ENABLE : 0) | prescaler;
 }
 
+u16 TIMER_getTicks(Timer timer)
+{
+	return REG_TIMER_VAL(timer);
+}
+
 void TIMER_stop(Timer timer)
 {
 	REG_TIMER_CNT(timer) = 0;

@@ -50,6 +50,13 @@ void TIMER_init(void);
 void TIMER_start(u8 prescaler, u32 ticks, bool autoReload, bool enableIrq);
 
 /**
+ * @brief      Returns the current number of ticks of the timer.
+ *
+ * @return     The number of ticks.
+ */
+u32 TIMER_getTicks(void);
+
+/**
  * @brief      Stops the timer.
  */
 void TIMER_stop(void);

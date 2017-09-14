@@ -45,6 +45,11 @@ void TIMER_start(u8 prescaler, u32 ticks, bool autoReload, bool enableIrq)
 	                (autoReload ? TIMER_AUTO_RELOAD : TIMER_SINGLE_SHOT) | TIMER_ENABLE;
 }
 
+u32 TIMER_getTicks(void)
+{
+	return REG_TIMER_COUNTER;
+}
+
 void TIMER_stop(void)
 {
 	REG_TIMER_CNT = 0;
@@ -56,10 +61,7 @@ void TIMER_sleepTicks(u32 ticks)
 	REG_TIMER_LOAD = ticks;
 	REG_TIMER_CNT = 0u<<8 | TIMER_IRQ_ENABLE | TIMER_SINGLE_SHOT | TIMER_ENABLE;
 
-	while(REG_TIMER_COUNTER)
-	{
-		__wfe();
-	}
+	while(REG_TIMER_COUNTER) __wfe();
 
 	REG_TIMER_INT_STAT = 1;
 }
