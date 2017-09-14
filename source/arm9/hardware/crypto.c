@@ -405,7 +405,7 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 	              AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
 	while(REG_AESCNT & AES_ENABLE)
 	{
-		waitForInterrupt();
+		__wfi();
 	}
 }
 

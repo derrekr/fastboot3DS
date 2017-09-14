@@ -29,6 +29,7 @@
 #include "arm11/hardware/i2c.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/event.h"
 
 
 #define PDN_REGS_BASE           (IO_MEM_ARM9_ARM11 + 0x40000)
@@ -100,7 +101,7 @@ static void gfxSetupLcdTop(void)
 	}
 }
 
-static void gfxSetupLcdLow(void)
+static void gfxSetupLcdSub(void)
 {
 	*((vu32*)(0x10400500+0x00)) = 0x000001C2;
 	*((vu32*)(0x10400500+0x04)) = 0x000000D1;
@@ -234,7 +235,7 @@ static void gfxIrqHandler(u32 intSource)
 void GFX_waitForEvent(GfxEvent event, bool discard)
 {
 	if(discard) eventTable[event] = false;
-	while(!eventTable[event]) waitForEvent();
+	while(!eventTable[event]) __wfe();
 	eventTable[event] = false;
 }
 
@@ -253,7 +254,7 @@ void GFX_init(void)
 		*((vu32*)0x10202A44) = 0x1023E;
 
 		gfxSetupLcdTop();
-		gfxSetupLcdLow();
+		gfxSetupLcdSub();
 
 		I2C_writeReg(I2C_DEV_MCU, 0x22, 0x2A);
 
@@ -281,7 +282,7 @@ void GFX_init(void)
 	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
 	GFX_waitForEvent(GFX_EVENT_PSC1, true);
 	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
-	GFX_waitForEvent(GFX_EVENT_PSC1, true);
+	GFX_waitForEvent(GFX_EVENT_PSC0, true);
 
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;

@@ -83,7 +83,7 @@ void IRQ_registerHandler(Interrupt id, IrqHandler handler);
 void IRQ_unregisterHandler(Interrupt id);
 
 
-static inline void waitForInterrupt(void)
+static inline void __wfi(void)
 {
 	__asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0));
 }

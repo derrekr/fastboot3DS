@@ -57,7 +57,7 @@ noreturn void panic()
 	
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 noreturn void panicMsg(const char *msg)
@@ -74,7 +74,7 @@ noreturn void panicMsg(const char *msg)
 	
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 // Expects the registers in the exception stack to be in the following order:
@@ -142,7 +142,7 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 void dumpMem(u8 *mem, u32 size, char *filepath)

@@ -20,6 +20,7 @@
 #include "mem_map.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/event.h"
 
 #define TIMER_REGS_BASE     (MPCORE_PRIV_REG_BASE + 0x600)
 #define REG_TIMER_LOAD      *((vu32*)(TIMER_REGS_BASE + 0x00))
@@ -57,7 +58,7 @@ void TIMER_sleepTicks(u32 ticks)
 
 	while(REG_TIMER_COUNTER)
 	{
-		waitForEvent();
+		__wfe();
 	}
 
 	REG_TIMER_INT_STAT = 1;

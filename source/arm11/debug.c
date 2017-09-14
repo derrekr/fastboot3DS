@@ -57,11 +57,11 @@ noreturn void panic()
 	//fsUnmountAll();
 	//devs_close();
 
-	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-				   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 noreturn void panicMsg(const char *msg)
@@ -76,11 +76,11 @@ noreturn void panicMsg(const char *msg)
 	//fsUnmountAll();
 	//devs_close();
 
-	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-				   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 // Expects the registers in the exception stack to be in the following order:
@@ -89,7 +89,7 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 {
 	const char *const typeStr[3] = {"Undefined instruction", "Prefetch abort", "Data abort"};
 	u32 realPc, instSize = 4;
-	bool codeChanged = false;
+	//bool codeChanged = false;
 
 
 	// verify text and rodata
@@ -141,11 +141,11 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	//fsUnmountAll();
 	//devs_close();
 
-	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-				   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 /*void dumpMem(u8 *mem, u32 size, char *filepath)

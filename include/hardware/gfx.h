@@ -46,6 +46,7 @@
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 
+#ifdef ARM11
 typedef enum
 {
 	GFX_EVENT_PSC0   = 0,
@@ -58,7 +59,6 @@ typedef enum
 
 
 
-#ifdef ARM11
 void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 buf1v, u32 buf1Sz, u32 val1);
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags);
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size);

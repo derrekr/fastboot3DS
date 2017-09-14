@@ -24,8 +24,8 @@
 // we need a better solution for this later (!!!)
 void updateScreens(void)
 {
-	GX_textureCopy((u64*)RENDERBUF_TOP, (240 * 2)>>4, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-				   (240 * 2)>>4, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 }

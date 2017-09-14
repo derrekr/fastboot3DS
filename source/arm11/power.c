@@ -53,7 +53,7 @@ noreturn void power_off(void)
 
 	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }
 
 noreturn void power_reboot(void)
@@ -65,5 +65,5 @@ noreturn void power_reboot(void)
 
 	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u << 2);
 
-	while(1) waitForInterrupt();
+	while(1) __wfi();
 }

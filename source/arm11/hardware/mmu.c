@@ -19,7 +19,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/start.h"
-#include "arm11/hardware/interrupt.h"
+#include "arm11/event.h"
 
 
 #define SCU_REGS_BASE      (MPCORE_PRIV_REG_BASE)
@@ -165,9 +165,9 @@ void setupMmu(void)
 		REG_SCU_CNT |= 0x2001u;      // Enable SCU and parity checking.
 
 		syncFlag = true;
-		signalEvent();
+		__sev();
 	}
-	else while(!syncFlag) waitForEvent();
+	else while(!syncFlag) __wfe();
 
 
 	// Invalidate TLB (Unified TLB operation) + Data Synchronization Barrier

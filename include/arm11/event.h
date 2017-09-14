@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -16,25 +18,14 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "types.h"
-#ifdef ARM9
-	#include "arm9/hardware/interrupt.h"
-#elif ARM11
-	#include "arm11/fmt.h"
-	#include "arm11/hardware/interrupt.h"
-#endif
 
 
-
-noreturn void __fb_assert(const char *const str, u32 line)
+static inline void __wfe(void)
 {
-#ifdef ARM9
-	// Get rid of the warnings.
-	(void)str;
-	(void)line;
-#elif ARM11
-	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
-#endif
+	__asm__ __volatile__("wfe" : :);
+}
 
-	while(1) __wfi();
+static inline void __sev(void)
+{
+	__asm__ __volatile__("sev" : :);
 }

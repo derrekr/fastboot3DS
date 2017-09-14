@@ -107,7 +107,7 @@ void IRQ_setPriority(Interrupt id, u8 prio);
 void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask);
 
 
-static inline void waitForInterrupt(void)
+static inline void __wfi(void)
 {
 	__asm__ __volatile__("wfi" : :);
 }
@@ -120,14 +120,4 @@ static inline void enterCriticalSection(void)
 static inline void leaveCriticalSection(void)
 {
 	__asm__ __volatile__("cpsie i" : :);
-}
-
-static inline void waitForEvent(void)
-{
-	__asm__ __volatile__("wfe" : :);
-}
-
-static inline void signalEvent(void)
-{
-	__asm__ __volatile__("sev" : :);
 }
