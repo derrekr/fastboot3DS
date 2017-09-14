@@ -79,10 +79,7 @@ void TIMER_sleep(u32 ms)
 
 	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_PRESCALER_1024;
 
-	while(REG_TIMER3_CNT & TIMER_ENABLE)
-	{
-		__wfi();
-	}
+	while(REG_TIMER3_CNT & TIMER_ENABLE) __wfi();
 }
 
 static void timerSleepHandler(UNUSED u32 id)

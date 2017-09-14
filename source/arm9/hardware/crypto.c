@@ -403,10 +403,7 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | AES_IRQ_ENABLE | aesFifoSize<<14 | (3 - aesFifoSize)<<12 |
 	              AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
-	while(REG_AESCNT & AES_ENABLE)
-	{
-		__wfi();
-	}
+	while(REG_AESCNT & AES_ENABLE) __wfi();
 }
 
 void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)

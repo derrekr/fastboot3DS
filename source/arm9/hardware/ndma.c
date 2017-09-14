@@ -51,10 +51,7 @@ void NDMA_copy(u32 *dest, const u32 *source, u32 size)
 {
 	NDMA_copyAsync(dest, source, size);
 
-	while(REG_NDMA7_CNT & NDMA_ENABLE)
-	{
-		__wfi();
-	}
+	while(REG_NDMA7_CNT & NDMA_ENABLE) __wfi();
 }
 
 void NDMA_fillAsync(u32 *dest, u32 value, u32 size)
@@ -72,8 +69,5 @@ void NDMA_fill(u32 *dest, u32 value, u32 size)
 {
 	NDMA_fillAsync(dest, value, size);
 
-	while(REG_NDMA7_CNT & NDMA_ENABLE)
-	{
-		__wfi();
-	}
+	while(REG_NDMA7_CNT & NDMA_ENABLE) __wfi();
 }
