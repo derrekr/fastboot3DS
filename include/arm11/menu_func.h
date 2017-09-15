@@ -21,3 +21,4 @@
 #include "types.h"
 
 u32 DummyFunc(PrintConsole* con, u32 param);
+u32 ShowCredits(PrintConsole* con, u32 param);

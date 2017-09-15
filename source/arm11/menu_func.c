@@ -15,7 +15,8 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
+#include <string.h>
 #include "types.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
@@ -28,6 +29,23 @@ void updateScreens(void)
 	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+}
+
+// doesn't belong in here, either
+u32 ee_printf_line_center(const char *const fmt, ...)
+{
+	char buf[64];
+	va_list args;
+	va_start(args, fmt);
+	ee_vsnprintf(buf, 64, fmt, args);
+	va_end(args);
+	
+	PrintConsole* con = consoleGet();
+	int pad = (con->consoleWidth - strlen(buf)) / 2;
+	if (pad < 0) pad = 0;
+	con->cursorX = 0;
+	
+	return ee_printf("%*.*s%s\n", pad, pad, "", buf);
 }
 
 u32 DummyFunc(PrintConsole* con, u32 param)
@@ -64,6 +82,33 @@ u32 DummyFunc(PrintConsole* con, u32 param)
 			{
 				return 1;
 			}
+		}
+		hidScanInput();
+	}
+	while (!(hidKeysDown() & KEY_B));
+	
+	return 0;
+}
+
+u32 ShowCredits(PrintConsole* con, u32 param)
+{
+	(void) param;
+	
+	// clear console
+	consoleSelect(con);
+	consoleClear();
+	
+	// credits
+	con->cursorY = 4;
+	ee_printf_line_center("Fastboot3D Credits");	ee_printf_line_center("==================");	ee_printf_line_center("");	ee_printf_line_center("Main developers:");	ee_printf_line_center("derrek");	ee_printf_line_center("profi200");	ee_printf_line_center("");	ee_printf_line_center("Thanks to:");	ee_printf_line_center("yellows8");	ee_printf_line_center("plutoo");	ee_printf_line_center("smea");	ee_printf_line_center("Normmatt (for sdmmc code)");	ee_printf_line_center("WinterMute (for console code)");	ee_printf_line_center("d0k3 (for menu code)");	ee_printf_line_center("");	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
+	updateScreens();
+
+	// wait for B button
+	do
+	{
+		if(hidGetPowerButton(false)) // handle power button
+		{
+			return 1;
 		}
 		hidScanInput();
 	}

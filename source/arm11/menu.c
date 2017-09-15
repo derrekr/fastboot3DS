@@ -119,9 +119,8 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
  * @param curr_menu A struct containing info about the current menu.
  * @param menu_con Console that the menu is displayed on.
  * @param index Current placement of the cursor.
- * @param is_sub_menu True if this is not the main menu.
  */
-void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_sub_menu)
+void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 {
 	// const u32 menu_block_height = curr_menu->n_entries + 5; // +5 for title and button instructions
 	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
@@ -137,10 +136,6 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_su
 	ee_printf(curr_menu->name);
 	menu_y++;
 	
-	// first separator
-	// consoleSetCursor(menu_con, menu_x, menu_y++);
-	// ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
-	
 	// menu entries
 	for (u32 i = 0; i < curr_menu->n_entries; i++)
 	{
@@ -149,28 +144,13 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index, bool is_su
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		ee_printf(is_selected ? "\x1b[47;30m%2lu.%-*.*s\x1b[0m" : "%2lu.%-*.*s", i+1, MENU_WIDTH-3, MENU_WIDTH-3, name);
+		ee_printf(is_selected ? "\x1b[47;30m%2lu.%-*.*s\x1b[0m" : "%2lu.%-*.*s", i + 1, MENU_WIDTH-3, MENU_WIDTH-3, name);
 	}
 	
 	// button instructions
 	menu_y = MENU_OFFSET_BUTTONS;
 	consoleSetCursor(menu_con, menu_x, menu_y++);
 	ee_printf("%-*.*s", MENU_WIDTH, MENU_WIDTH, "[A]:Choose [B]:Back");
-	
-	// second separator
-	// consoleSetCursor(menu_con, menu_x, menu_y++);
-	// ee_printf("%*.*s", MENU_WIDTH, MENU_WIDTH, "============================================================");
-	
-	
-	// button descriptions (A/B)
-	/*consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf(is_sub_menu ? "A: Choose  B: Return" : "A: Choose");
-	
-	// button descriptions (START)
-	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf("POWER for poweroff");*/
-	
-	
 }
 
 /**
@@ -194,7 +174,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	while (true) {
 		// update menu and description (on demand)
 		if ((index != last_index) || (curr_menu != last_menu)) {
-			menuDraw(curr_menu, menu_con, index, menu_lvl);
+			menuDraw(curr_menu, menu_con, index);
 			menuShowDesc(curr_menu, desc_con, index);
 			last_index = index;
 			last_menu = curr_menu;
@@ -252,11 +232,11 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			// cursor up
 			index = (index == 0) ? curr_menu->n_entries - 1 : index - 1;
 		} 
-		if (kDown & KEY_START)
+		/*if (kDown & KEY_START)
 		{
 			result = (kHeld & KEY_DLEFT) ? MENU_EXIT_POWEROFF : MENU_EXIT_REBOOT;
 			break;
-		}
+		}*/
 	}
 
 	return result;
