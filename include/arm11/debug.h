@@ -26,3 +26,27 @@ void debugHashCodeRoData();
 noreturn void panic();
 noreturn void panicMsg(const char *msg);
 void dumpMem(u8 *mem, u32 size, char *filepath);
+
+// Exception tests
+/*static inline regTest(void)
+{
+	__asm__ __volatile__("mov r0, #1\n\tmov r1, #2\n\tmov r2, #3\n\tmov r3, #4\n\tmov r4, #5\n\t"
+	                     "mov r5, #6\n\tmov r6, #7\n\tmov r7, #8\n\tmov r8, #9\n\tmov r9, #10\n\t"
+	                     "mov r10, #11\n\tmov r11, #12\n\tmov r12, #13\n\tmov r13, #14\n\t"
+	                     "mov r14, #15\n\tmov r15, #16\n\t" : :);
+}
+
+static inline breakpointTest(void)
+{
+	__asm__ __volatile__("bkpt #0xCAFE" : :);
+}
+
+static inline dataAbortTest(void)
+{
+	__asm__ __volatile__("mov r0, #4\n\tmov r1, #0xEF\n\tstr r1, [r0]" : :);
+}
+
+static inline undefInstrTest(void)
+{
+	__asm__ __volatile__(".word 0xFFFFFFFF" : :);
+}*/
