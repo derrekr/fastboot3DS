@@ -192,7 +192,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
-		const u32 kHeld = hidKeysHeld();
+		// const u32 kHeld = hidKeysHeld();
 		
 		if ((kDown & KEY_A) && (curr_menu->entries[index].function == NULL))
 		{
