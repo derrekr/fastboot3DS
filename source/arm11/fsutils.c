@@ -86,16 +86,20 @@ bool fsCreateFileWithPath(const char *filepath)
 	s32 fhandle;
 	FILINFO fno;
 	
+	/* memory check */
+	if (!tempBuf)
+	{
+		return false; // out of memory
+	}
+	
 	/* create directories */
 	for (char *p = (char*) filepath; *p; p++)
 	{
 		if ((*p == '/') || (*p == '\\'))
 		{
 			*tempPtr = '\0';
-			if (fStat(tempBuf, &fno) == 0)
-			{
-				if (!(fno.fattrib & AM_DIR)) goto fail;
-			}
+			s32 dhandle = fOpenDir(tempBuf);
+			if (dhandle >= 0) fCloseDir(dhandle);
 			else if (fMkdir(tempBuf) != 0) goto fail;
 		}
 		*(tempPtr++) = *p;
@@ -108,7 +112,7 @@ bool fsCreateFileWithPath(const char *filepath)
 		if (fno.fattrib & AM_DIR) goto fail;
 	}
 	
-	fhandle = fOpen(tempPtr, FS_CREATE_ALWAYS);
+	fhandle = fOpen(tempBuf, FS_CREATE_ALWAYS);
 	if (fhandle < 0) goto fail;
 	fClose(fhandle);
 	
@@ -117,7 +121,7 @@ bool fsCreateFileWithPath(const char *filepath)
 	return true;
 	
 fail:
-
+	
 	free(tempBuf);
 	
 	return false;

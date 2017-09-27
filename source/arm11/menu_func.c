@@ -16,10 +16,13 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "types.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
+#include "arm11/config.h"
 #include "arm11/fmt.h"
 
 // we need a better solution for this later (!!!)
@@ -82,6 +85,45 @@ u32 DummyFunc(PrintConsole* con, u32 param)
 			{
 				return 1;
 			}
+		}
+		hidScanInput();
+	}
+	while (!(hidKeysDown() & KEY_B));
+	
+	return 0;
+}
+
+u32 SetView(PrintConsole* con, u32 param)
+{
+	(void) param;
+	
+	// clear console
+	consoleSelect(con);
+	consoleClear();
+	
+	ee_printf("Load config: %s\n", loadConfigFile() ? "success" : "failed");
+	
+	// show settings
+	for (int key; key < KLast; key++)
+	{
+		const char* kText = configGetKeyText(key);
+		const bool kExist = configDataExist(key);
+		ee_printf("%02i %s: %s\n", key, kText, kExist ? "exists" : "not found");
+		if (configDataExist(key))
+		{
+			char* text = (char*) configCopyText(key);
+			ee_printf("text: %s / u32: %lu\n", text, *(u32*) configGetData(key));
+			if (text) free(text);
+		}
+	}
+	updateScreens();
+	
+	// wait for B button
+	do
+	{
+		if(hidGetPowerButton(false)) // handle power button
+		{
+			return 1;
 		}
 		hidScanInput();
 	}

@@ -125,10 +125,11 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 7
-		"Miscellaneous", 2,
+		"Miscellaneous", 3,
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&DummyFunc,				1 },
-			{ "Credits",					DESC_CREDITS,				&ShowCredits,			0 }
+			{ "Credits",					DESC_CREDITS,				&ShowCredits,			0 },
+			{ "View current settings",		"View current settings",	&SetView,				0 }
 		}
 	}
 };

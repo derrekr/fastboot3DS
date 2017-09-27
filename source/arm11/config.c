@@ -148,7 +148,7 @@ bool loadConfigFile()
 	
 	if(fileSize > MAX_FILE_SIZE)
 	{
-		//uiPrintIfVerbose("Invalid config-file size!\n");
+		ee_printf("Invalid config-file size!\n");
 		goto fail;
 	}
 	
@@ -156,19 +156,19 @@ bool loadConfigFile()
 	
 	if(!filebuf)
 	{
-		//uiPrintIfVerbose("Out of memory!\n");
+		ee_printf("Out of memory!\n");
 		goto fail;
 	}
 	
 	if((file = fOpen(filepath, FS_OPEN_READ)) < 0)
 	{
-		//uiPrintIfVerbose("Failed to open config-file for reading!\n");
+		ee_printf("Failed to open config-file for reading!\n");
 		goto fail;
 	}
 	
-	if(fRead(file, filebuf, fileSize) != (s32) fileSize)
+	if(fRead(file, filebuf, fileSize) != FR_OK)
 	{
-		//uiPrintIfVerbose("Failed to read from config-file!\n");
+		ee_printf("Failed to read from config-file!\n");
 		fClose(file);
 		goto fail;
 	}
@@ -237,7 +237,7 @@ bool writeConfigFile()
 	
 	if(fileSize)
 	{
-		if(fWrite(file, filebuf, fileSize) != (s32) fileSize)
+		if(fWrite(file, filebuf, fileSize) != 0)
 		{
 			fClose(file);
 			goto fail;
@@ -361,7 +361,7 @@ static bool parseConfigFile()
 		}
 		else
 		{	// TODO: what to do if ret == false ?
-			////uiPrintIfVerbose("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
+			//ee_printf("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
 			keyFunctions[i].parse(curAttr);
 		}
 	}

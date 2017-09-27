@@ -29,9 +29,11 @@
 #include "arm11/menu_fb3ds.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+#include "arm11/fsutils.h"
+#include "arm11/config.h"
 
 
-volatile bool g_poweroffAllowed = false;
+volatile bool g_poweroffAllowed = true;
 volatile bool g_startFirmLaunch = false;
 
 
@@ -39,6 +41,11 @@ volatile bool g_startFirmLaunch = false;
 int main(void)
 {
 	hardwareInit();
+	
+	fsMountSdmc();
+	fsMountNandFilesystems();
+	loadConfigFile();
+	// configRestoreDefaults();
 
 	GFX_init();
 
@@ -52,6 +59,9 @@ int main(void)
 
 	// run menu
 	menuProcess(&menu_con, &desc_con, menu_fb3ds);
+	
+	// take over any changes to the config
+	writeConfigFile();
 
 	// power off
 	if(g_poweroffAllowed) power_off();
