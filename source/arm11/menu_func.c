@@ -104,7 +104,7 @@ u32 SetView(PrintConsole* con, u32 param)
 	ee_printf("Load config: %s\n", loadConfigFile() ? "success" : "failed");
 	
 	// show settings
-	for (int key; key < KLast; key++)
+	for (int key = 0; key < KLast; key++)
 	{
 		const char* kText = configGetKeyText(key);
 		const bool kExist = configDataExist(key);

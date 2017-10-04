@@ -41,11 +41,6 @@ volatile bool g_startFirmLaunch = false;
 int main(void)
 {
 	hardwareInit();
-	
-	fsMountSdmc();
-	fsMountNandFilesystems();
-	loadConfigFile();
-	// configRestoreDefaults();
 
 	GFX_init();
 
@@ -56,12 +51,22 @@ int main(void)
 	// init description console
 	PrintConsole desc_con;
 	consoleInit(SCREEN_TOP, &desc_con, false);
+	
+	// init filesystem
+	fsMountSdmc();
+	fsMountNandFilesystems();
+	
+	// load/create config file
+	loadConfigFile();
 
 	// run menu
 	menuProcess(&menu_con, &desc_con, menu_fb3ds);
 	
 	// take over any changes to the config
 	writeConfigFile();
+	
+	// deinit filestesystem
+	fsUnmountAll();
 
 	// power off
 	if(g_poweroffAllowed) power_off();
