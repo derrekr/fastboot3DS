@@ -118,6 +118,7 @@ u32 SetView(PrintConsole* con, u32 param)
 	consoleSelect(con);
 	consoleClear();
 	
+	ee_printf("Write config: %s\n", writeConfigFile() ? "success" : "failed");
 	ee_printf("Load config: %s\n", loadConfigFile() ? "success" : "failed");
 	
 	// show settings
