@@ -64,7 +64,7 @@
 MenuInfo menu_fb3ds[] =
 {
 	{
-		"Main Menu", 6,
+		"Main Menu", 6, NULL,
 		{
 			{ "Continue boot",				DESC_CONTINUE,				&DummyFunc,				0 },
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
@@ -75,7 +75,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 1
-		"Boot Menu", 5,
+		"Boot Menu", 5, NULL,
 		{
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT_1,			&DummyFunc,				0 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT_2,			&DummyFunc,				1 },
@@ -85,7 +85,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Slot Setup", 3,
+		"Boot Slot Setup", 3, NULL,
 		{
 			{ "Setup [slot 1]...",			DESC_SET_SLOT_1,			&DummyFunc,				0 },
 			{ "Setup [slot 2]...",			DESC_SET_SLOT_2,			&DummyFunc,				1 },
@@ -93,7 +93,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 3
-		"NAND Tools", 4,
+		"NAND Tools", 4, NULL,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&DummyFunc,				3 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&DummyFunc,				4 },
@@ -102,7 +102,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 4
-		"Settings", 3,
+		"Settings", 3, NULL,
 		{
 			{ "Change boot mode",			DESC_CHANGE_BOOT,			NULL,					5 },
 			{ "Change brightness",			DESC_CHANGE_BRIGHT,			&DummyFunc,				8 },
@@ -110,22 +110,22 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 5
-		"Boot Mode Setup", 3,
+		"Boot Mode Setup", 3, &menuPresetBootMode,
 		{
-			{ "Set normal boot",			DESC_BOOT_NORMAL,			&DummyFunc,				0 },
-			{ "Set quick boot",				DESC_BOOT_QUICK,			&DummyFunc,				1 },
-			{ "Set quiet boot",				DESC_BOOT_QUIET,			&DummyFunc,				2 }
+			{ "Set normal boot",			DESC_BOOT_NORMAL,			&menuSetBootMode,		0 },
+			{ "Set quick boot",				DESC_BOOT_QUICK,			&menuSetBootMode,		1 },
+			{ "Set quiet boot",				DESC_BOOT_QUIET,			&menuSetBootMode,		2 }
 		}
 	},
 	{ // 6
-		"Backup Setup", 2,
+		"Backup Setup", 2, NULL, 
 		{
 			{ "Enable contiguous backups",	DESC_ENABLE_CONTIG,			&DummyFunc,				1 },
 			{ "Disable contiguous backups",	DESC_DISABLE_CONTIG,		&DummyFunc,				0 }
 		}
 	},
 	{ // 7
-		"Miscellaneous", 3,
+		"Miscellaneous", 3, NULL,
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&DummyFunc,				1 },
 			{ "Credits",					DESC_CREDITS,				&ShowCredits,			0 },

@@ -126,6 +126,11 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
 	// int menu_y = MENU_DISP_Y + ((menu_con->consoleHeight - menu_block_height) >> 1);
 	int menu_y = MENU_OFFSET_TITLE;
+	int menu_preset = 0;
+	
+	// get menu preset
+	if (curr_menu->preset)
+		menu_preset = curr_menu->preset();
 	
 	// select menu console
 	consoleSelect(menu_con);
@@ -144,7 +149,8 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		ee_printf(is_selected ? "\x1b[47;30m%2lu.%-*.*s\x1b[0m" : "%2lu.%-*.*s", i + 1, MENU_WIDTH-3, MENU_WIDTH-3, name);
+		ee_printf(is_selected ? "\x1b[47;30m%.3s %-*.*s\x1b[0m" : "%.3s %-*.*s",
+			((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-3, MENU_WIDTH-3, name);
 	}
 	
 	// button instructions

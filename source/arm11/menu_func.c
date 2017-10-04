@@ -51,6 +51,23 @@ u32 ee_printf_line_center(const char *const fmt, ...)
 	return ee_printf("%*.*s%s\n", pad, pad, "", buf);
 }
 
+u32 menuPresetBootMode(void)
+{
+	if (configDataExist(KBootMode))
+	{
+		return (1 << (*(u32*) configGetData(KBootMode)));
+	}
+		
+	return 0;
+}
+
+u32 menuSetBootMode(PrintConsole* con, u32 param)
+{
+	(void) con;
+	
+	return (configSetKeyData(KBootMode, &param)) ? 0 : 1;
+}
+
 u32 DummyFunc(PrintConsole* con, u32 param)
 {
 	// clear console

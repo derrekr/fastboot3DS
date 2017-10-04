@@ -49,6 +49,7 @@ typedef struct {
 typedef struct {
     char* name;								///< Displayed name on top of the menu.
     u32 n_entries;							///< Number of entries in the menu.
+	u32 (*preset)(void);					///< Returns the preset of the current menu in bitwise format.
     MenuEntry entries[MENU_MAX_ENTRIES];	///< An array of menu entries.
 } MenuInfo;
 
