@@ -15,7 +15,7 @@ include $(DEVKITARM)/base_rules
 # all directories are relative to this makefile
 #---------------------------------------------------------------------------------
 BUILD		:= build
-SOURCES		:= ../source ../source/hardware ../source/arm11 ../source/arm11/hardware
+SOURCES		:= ../source ../source/hardware ../source/arm11 ../source/arm11/hardware ../source/arm11/menu
 INCLUDES	:= ../include ../thirdparty
 DEFINES		:= -DARM11 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
 				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)

@@ -18,7 +18,7 @@
 
 #include <string.h>
 #include "types.h"
-#include "arm11/menu.h"
+#include "arm11/menu/menu.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"

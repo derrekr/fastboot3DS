@@ -19,8 +19,8 @@
  */
 
 #include "types.h"
-#include "menu.h"
-#include "menu_func.h"
+#include "arm11/menu/menu.h"
+#include "arm11/menu/menu_func.h"
 
 #define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
 
@@ -129,7 +129,7 @@ MenuInfo menu_fb3ds[] =
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&DummyFunc,				1 },
 			{ "Credits",					DESC_CREDITS,				&ShowCredits,			0 },
-			{ "View current settings",		"View current settings",	&SetView,				0 }
+			{ "View current settings",		"View current settings",	&SetView,				0 } // needs to be removed later
 		}
 	}
 };
