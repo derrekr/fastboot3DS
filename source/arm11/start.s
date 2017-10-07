@@ -158,10 +158,9 @@ _start_skip_bss_init_array:
 		b _start_lp
 .pool
 _sysmode_stacks:
-	.word A11_STACK_END
-	.word (VRAM_BASE + VRAM_SIZE) @ Stack for core 1 for now.
-	                              @ Since we don't use core 1 this should be ok
-	.word 0
+	.word A11_C0_STACK_END      @ Stack for core 0
+	.word A11_C1_STACK_END      @ Stack for core 1
+	.word 0                     @ New 3DS cores are not used at all
 	.word 0
 
 
