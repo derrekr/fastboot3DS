@@ -21,7 +21,7 @@
 #include "types.h"
 #include "fatfs/ff.h"
 
-
+#define FS_MAX_DEVICES  (2)
 #define FS_MAX_DRIVES   (FF_VOLUMES)
 #define FS_DRIVE_NAMES  FF_VOLUME_STRS
 
@@ -29,6 +29,12 @@
 
 #define FS_MAX_DIRS     (3)
 
+
+typedef enum
+{
+	FS_DEVICE_SDMC = 0,
+	FS_DEVICE_NAND = 1
+} FsDevice;
 
 typedef enum
 {
@@ -51,11 +57,14 @@ typedef enum
 
 typedef FILINFO FsFileInfo;
 
+typedef s32 DevHandle;
 
 
 s32 fMount(FsDrive drive);
 s32 fUnmount(FsDrive drive);
 s32 fGetFree(FsDrive drive, u64 *size);
+s32 fPrepareRawAccess(FsDevice dev);
+s32 fFinalizeRawAccess(DevHandle handle);
 s32 fOpen(const char *const path, FsOpenMode mode);
 s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);

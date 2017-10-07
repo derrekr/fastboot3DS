@@ -16,6 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
 #include "types.h"
 #include "fs.h"
 #include "fatfs/ff.h"
@@ -33,6 +34,8 @@ static DIR dTable[FS_MAX_DIRS] = {0};
 static bool dStatTable[FS_MAX_DIRS] = {0};
 static u32 dHandles = 0;
 
+static bool devStatTable[FS_MAX_DEVICES] = {0};
+static bool fsStatBackupTable[FS_MAX_DRIVES] = {0};
 
 
 s32 fMount(FsDrive drive)
@@ -77,6 +80,49 @@ s32 fGetFree(FsDrive drive, u64 *size)
 		return FR_OK;
 	}
 	else return -res;
+}
+
+s32 fPrepareRawAccess(FsDevice dev)
+{
+	if((u32)dev >= FS_MAX_DEVICES) return -30;
+	if(devStatTable[dev]) return -31;
+	
+	if(dev != FS_DEVICE_NAND)
+		return -31;
+	
+	memcpy(fsStatBackupTable, fsStatTable, sizeof(fsStatTable));
+	
+	switch(dev)
+	{
+		case FS_DEVICE_SDMC:
+			fUnmount(FS_DRIVE_SDMC);
+			break;
+		case FS_DEVICE_NAND:
+			fUnmount(FS_DRIVE_TWLN);
+			fUnmount(FS_DRIVE_TWLP);
+			fUnmount(FS_DRIVE_NAND);
+			break;
+		default:
+			return -30; //panic();
+	}
+	
+	devStatTable[dev] = true;
+	
+	return FR_OK;
+}
+
+s32 fFinalizeRawAccess(DevHandle handle)
+{
+	if(handle != FR_OK) return -30;
+	if(!devStatTable[FS_DEVICE_NAND]) return -31;
+	
+	for(u32 drive = 0; drive < FS_MAX_DRIVES; drive++)
+	{
+		if(fsStatBackupTable[drive])
+			fMount(drive);
+	}
+	
+	return FR_OK;
 }
 
 static s32 findUnusedFileSlot(void)
@@ -285,3 +331,5 @@ s32 fUnlink(const char *const path)
 	if(res == FR_OK) return res;
 	else return -res;
 }
+
+
