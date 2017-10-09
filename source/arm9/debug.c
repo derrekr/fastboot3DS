@@ -22,7 +22,7 @@
 #include "mem_map.h"
 #include "hardware/pxi.h"
 #include "fatfs/ff.h"
-#include "arm9/fsutils.h"
+#include "fsutils.h"
 #include "arm9/hardware/interrupt.h"
 
 static u32 debugHash = 0;

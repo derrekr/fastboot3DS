@@ -27,7 +27,7 @@
 #include "fs.h"
 #include "util.h"
 // #include "arm9/hardware/interrupt.h"
-#include "arm11/fsutils.h"
+#include "fsutils.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/debug.h"
 #include "arm11/config.h"

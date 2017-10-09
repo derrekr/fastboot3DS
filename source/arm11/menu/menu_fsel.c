@@ -24,7 +24,7 @@
 #include "fs.h"
 #include "util.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/fsutils.h"
+#include "fsutils.h"
 #include "arm11/console.h"
 #include "arm11/debug.h"
 #include "arm11/fmt.h"

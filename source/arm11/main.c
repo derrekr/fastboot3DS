@@ -29,7 +29,7 @@
 #include "arm11/firm.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
-#include "arm11/fsutils.h"
+#include "fsutils.h"
 #include "arm11/config.h"
 
 

@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 // #include "arm11/dev.h"
-#include "arm11/fsutils.h"
+#include "fsutils.h"
 #include "util.h"
 #include "fs.h"
 
