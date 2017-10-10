@@ -110,8 +110,10 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	u32 entry11 = firm_hdr->entrypointarm11;
 
 
+	REG_PXI_SYNC = 0; // Disable all IRQs
 	while(1)
 	{
+		// Wait for the ARM11 to be ready before copying sections
 		while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
 		if(REG_PXI_RECV == 0xA8E4u) break;
 	}
@@ -151,13 +153,12 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	      REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
-	REG_PXI_SYNC = 0; // Disable all IRQs
 	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = entry11;
 
 	while(1)
 	{
-		// Wait for ARM111 to confirm it received the entrypoint
+		// Wait for the ARM111 to confirm it received the entrypoint
 		while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
 		if(REG_PXI_RECV == 0x94C6u) break;
 	}

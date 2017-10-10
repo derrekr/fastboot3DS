@@ -29,8 +29,8 @@ void NAKED firmLaunchStub(void)
 {
 	*((vu32*)A11_FALLBACK_ENTRY) = 0;
 
-	// Answer ARM0
 	REG_PXI_SYNC = 0; // Disable all IRQs
+	// Tell ARM9 we are ready
 	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = 0xA8E4u;
 
