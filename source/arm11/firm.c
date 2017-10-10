@@ -21,26 +21,27 @@
 #include "mem_map.h"
 #include "arm11/start.h"
 #include "hardware/pxi.h"
+#include "ipc_handler.h"
 
 
 
-/*void NAKED firmLaunchStub(void)
+void NAKED firmLaunchStub(void)
 {
 	*((vu32*)A11_FALLBACK_ENTRY) = 0;
 
 	// Answer ARM0
-	REG_PXI_SYNC11 = 0; // Disable all IRQs
-	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = PXI_RPL_OK;
+	REG_PXI_SYNC = 0; // Disable all IRQs
+	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
+	REG_PXI_SEND = 0xA8E4u;
 
 	// Wait for entry address
-	while(REG_PXI_CNT11 & PXI_RECV_FIFO_EMPTY);
-	u32 entry = REG_PXI_RECV11;
+	while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
+	u32 entry = REG_PXI_RECV;
 
 	// Tell ARM9 we got the entry
-	while(REG_PXI_CNT11 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND11 = PXI_RPL_FIRM_LAUNCH_READY;
-	REG_PXI_CNT11 = 0; // Disable PXI
+	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
+	REG_PXI_SEND = 0x94C6u;
+	REG_PXI_CNT = 0; // Disable PXI
 
 	if(!entry)
 	{
@@ -49,15 +50,26 @@
 	}
 
 	((void (*)(void))entry)();
-}*/
+}
 
-noreturn void firm_launch(void)
+s32 loadVerifyFirm(const char *const path)
 {
+	u32 cmdBuf[2];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+
+	return PXI_sendCmd(IPC_CMD9_LOAD_VERIFY_FIRM, cmdBuf, 2);
+}
+
+noreturn void firmLaunch(void)
+{
+	PXI_sendCmd(IPC_CMD9_FIRM_LAUNCH, NULL, 0);
+
 	// Relocate ARM11 stub
-	/*memcpy((void*)A11_STUB_ENTRY, (const void*)firmLaunchStub, A11_STUB_SIZE);
+	memcpy((void*)A11_STUB_ENTRY, (const void*)firmLaunchStub, A11_STUB_SIZE);
 
 	deinitCpu();
 
-	((void (*)(void))A11_STUB_ENTRY)();*/
+	((void (*)(void))A11_STUB_ENTRY)();
 	while(1);
 }

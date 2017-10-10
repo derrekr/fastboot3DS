@@ -64,7 +64,7 @@ int main(void)
 	
 	// take over any changes to the config
 	writeConfigFile();
-	
+
 	// deinit filestesystem
 	fsUnmountAll();
 

@@ -22,4 +22,5 @@
 
 
 
-noreturn void firm_launch(void);
+s32 loadVerifyFirm(const char *const path);
+noreturn void firmLaunch(void);

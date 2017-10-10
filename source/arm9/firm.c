@@ -16,22 +16,18 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "types.h"
 // we need the arm11 mem map information
 #define ARM11
 #include "mem_map.h"
 #undef ARM11
+#include "fs.h"
 #include "arm9/firm.h"
 #include "arm9/start.h"
 #include "arm9/hardware/crypto.h"
 #include "arm9/hardware/ndma.h"
-#include "arm9/gui/ui.h"
-#include "hardware/cache.h"
-#include "util.h"
-#include "hardware/pxi.h"*/
+#include "hardware/pxi.h"
 
 
 
@@ -104,7 +100,7 @@ static const firmProtectedArea firmProtectedAreas[] = {
 	*size = curLen;
 	
 	return true;
-}
+}*/
 
 // NOTE: Do not call any functions here!
 void NAKED firmLaunchStub(int argc, const char **argv)
@@ -113,6 +109,12 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	void (*entry9)(int, const char**, u32) = (void (*)(int, const char**, u32))firm_hdr->entrypointarm9;
 	u32 entry11 = firm_hdr->entrypointarm11;
 
+
+	while(1)
+	{
+		while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
+		if(REG_PXI_RECV == 0xA8E4u) break;
+	}
 
 	for(u32 i = 0; i < 4; i++)
 	{
@@ -149,24 +151,24 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	      REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
-	REG_PXI_SYNC9 = 0; // Disable all IRQs
-	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND9 = entry11;
+	REG_PXI_SYNC = 0; // Disable all IRQs
+	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
+	REG_PXI_SEND = entry11;
 
-	// Wait for ARM11...
 	while(1)
 	{
-		while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
-		if(REG_PXI_RECV9 == PXI_RPL_FIRM_LAUNCH_READY)
-			break;
+		// Wait for ARM111 to confirm it received the entrypoint
+		while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
+		if(REG_PXI_RECV == 0x94C6u) break;
 	}
-	REG_PXI_CNT9 = 0; // Disable PXI
+
+	REG_PXI_CNT = 0; // Disable PXI
 
 	// go for it!
-	entry9(argc, argv, 0x2BEEFu);
+	entry9(argc, argv, 0x3BEEFu);
 }
 
-bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
+/*bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	const char *const res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
@@ -264,22 +266,42 @@ bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
 	}
 	
 	return retval;
+}*/
+
+s32 loadVerifyFirm(const char *const path)
+{
+	// TODO: Accept firmX:/ paths
+	const s32 f = fOpen(path, FS_OPEN_EXISTING | FS_OPEN_READ);
+	if(f < 0) return -1;
+
+	const u32 size = fSize(f);
+	if(size > FIRM_MAX_SIZE)
+	{
+		fClose(f);
+		return -2;
+	}
+
+	if(fRead(f, (void*)FIRM_LOAD_ADDR, size) < 0)
+	{
+		fClose(f);
+		return -3;
+	}
+
+	fClose(f);
+
+	// TODO: Verify
+
+	// TODO: argc/v stuff
+
+	return 0;
 }
 
-noreturn void firm_launch(int argc, const char **argv)
+noreturn void firmLaunch(int argc, const char **argv)
 {
-	//ee_printf("Sending PXI_CMD_FIRM_LAUNCH\n");
-	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
-
-	//ee_printf("Waiting for ARM11...\n");
-	while(PXI_recvWord() != PXI_RPL_OK);
-
-	//ee_printf("Relocating FIRM launch stub...\n");
 	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
 
 	deinitCpu();
 
-	//ee_printf("Starting firm launch...\n");
 	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);
 	while(1);
-}*/
+}

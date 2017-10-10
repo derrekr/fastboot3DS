@@ -72,7 +72,6 @@ static void pxiIrqHandler(UNUSED u32 id)
 
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
 {
-	fb_assert(buf != NULL);
 	fb_assert(words <= IPC_MAX_PARAMS);
 
 

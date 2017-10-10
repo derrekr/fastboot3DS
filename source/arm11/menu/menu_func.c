@@ -106,7 +106,7 @@ u32 DummyFunc(PrintConsole* con, u32 param)
 		hidScanInput();
 	}
 	while (!(hidKeysDown() & KEY_B));
-	
+
 	return 0;
 }
 
@@ -160,7 +160,22 @@ u32 ShowCredits(PrintConsole* con, u32 param)
 	
 	// credits
 	con->cursorY = 4;
-	ee_printf_line_center("Fastboot3DS Credits");	ee_printf_line_center("===================");	ee_printf_line_center("");	ee_printf_line_center("Main developers:");	ee_printf_line_center("derrek");	ee_printf_line_center("profi200");	ee_printf_line_center("");	ee_printf_line_center("Thanks to:");	ee_printf_line_center("yellows8");	ee_printf_line_center("plutoo");	ee_printf_line_center("smea");	ee_printf_line_center("Normmatt (for sdmmc code)");	ee_printf_line_center("WinterMute (for console code)");	ee_printf_line_center("d0k3 (for menu code)");	ee_printf_line_center("");	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
+	ee_printf_line_center("Fastboot3DS Credits");
+	ee_printf_line_center("===================");
+	ee_printf_line_center("");
+	ee_printf_line_center("Main developers:");
+	ee_printf_line_center("derrek");
+	ee_printf_line_center("profi200");
+	ee_printf_line_center("");
+	ee_printf_line_center("Thanks to:");
+	ee_printf_line_center("yellows8");
+	ee_printf_line_center("plutoo");
+	ee_printf_line_center("smea");
+	ee_printf_line_center("Normmatt (for sdmmc code)");
+	ee_printf_line_center("WinterMute (for console code)");
+	ee_printf_line_center("d0k3 (for menu code)");
+	ee_printf_line_center("");
+	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
 
 	// wait for B button
