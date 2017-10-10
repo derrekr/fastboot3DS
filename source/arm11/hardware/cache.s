@@ -113,3 +113,6 @@ ASM_FUNC invalidateDCacheRange
 		blt invalidateDCacheRange_lp
 	mcr p15, 0, r2, c7, c10, 4      @ Data Synchronization Barrier
 	bx lr
+
+
+.pool

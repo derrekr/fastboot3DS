@@ -88,3 +88,6 @@ ASM_FUNC lz11Decompress
 	sub    r2, r2, #1          @ size--
 	strb   r4, [r1], #1        @ *out++ = r4
 	b      .Lloop              @ goto loop
+
+
+.pool
