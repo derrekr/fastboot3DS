@@ -57,7 +57,7 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 	u32 cmdBuf[3];
 	cmdBuf[0] = (u32)path;
 	cmdBuf[1] = strlen(path) + 1;
-	cmdBuf[1] = skipHashCheck;
+	cmdBuf[2] = skipHashCheck;
 
 	return PXI_sendCmd(IPC_CMD9_LOAD_VERIFY_FIRM, cmdBuf, 3);
 }
