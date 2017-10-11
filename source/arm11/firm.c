@@ -52,13 +52,14 @@ void NAKED firmLaunchStub(void)
 	((void (*)(void))entry)();
 }
 
-s32 loadVerifyFirm(const char *const path)
+s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 {
-	u32 cmdBuf[2];
+	u32 cmdBuf[3];
 	cmdBuf[0] = (u32)path;
 	cmdBuf[1] = strlen(path) + 1;
+	cmdBuf[1] = skipHashCheck;
 
-	return PXI_sendCmd(IPC_CMD9_LOAD_VERIFY_FIRM, cmdBuf, 2);
+	return PXI_sendCmd(IPC_CMD9_LOAD_VERIFY_FIRM, cmdBuf, 3);
 }
 
 noreturn void firmLaunch(void)
@@ -70,6 +71,8 @@ noreturn void firmLaunch(void)
 
 	deinitCpu();
 
+	// Change sp to a safe location
+	__asm__ __volatile__("mov sp, %0" : : "r" (A11_STUB_ENTRY) : "sp");
 	((void (*)(void))A11_STUB_ENTRY)();
 	while(1);
 }

@@ -22,49 +22,39 @@
 #define ARM11
 #include "mem_map.h"
 #undef ARM11
-#include "fs.h"
 #include "arm9/firm.h"
 #include "arm9/start.h"
+#include "util.h"
 #include "arm9/hardware/crypto.h"
 #include "arm9/hardware/ndma.h"
 #include "hardware/pxi.h"
+#include "fs.h"
 
 
-
-/* We don't want the FIRM to do hacky stuff with our loader */
-
-/*typedef struct
+static const struct
 {
 	u32 addr;
 	u32 size;
-} firmProtectedArea;
+} sectionWhitelist[] =
+{
+	{ // Unused ITCM data
+		ITCM_KERNEL_MIRROR, ITCM_SIZE - 0x4800
+	},
+	{ // ARM9 memory excluding exception vectors
+		A9_RAM_BASE + 0x40, A9_RAM_SIZE + A9_RAM_N3DS_EXT_SIZE - 0x40
+	},
+	{ // VRAM excluding the FIRM buffer
+		VRAM_BASE, VRAM_SIZE - 0x400000
+	},
+	{ // DSP memory + AXIWRAM excluding stack and FIRM launch stub
+		DSP_MEM_BASE, DSP_MEM_SIZE + AXIWRAM_SIZE - 0x220
+	},
+	{ // FCRAM
+		FCRAM_BASE, FCRAM_SIZE + FCRAM_N3DS_EXT_SIZE
+	}
+};
 
-static const firmProtectedArea firmProtectedAreas[] = {
-	{	// FIRM buffer
-		FIRM_LOAD_ADDR, FIRM_MAX_SIZE
-	},
-	{	// io regs
-		IO_MEM_BASE, VRAM_BASE - IO_MEM_BASE
-	},
-	{	// arm9 exception vector table
-		A9_VECTORS_START, A9_VECTORS_SIZE
-	},
-	{	// arm9 stack
-		A9_STACK_START, A9_STACK_END - A9_STACK_START
-	},
-	{	// Console unique data + ARM9 FIRM launch stub + argv data
-		ITCM_BASE + 0x3800, ITCM_SIZE - 0x3800
-	},
-	{	// arm11 exception vector table
-		A11_VECTORS_START, A11_VECTORS_SIZE
-	},
-	{	// arm11 stack
-		A11_STACK_START, A11_STACK_END - A11_STACK_START
-	},
-	{	// arm11 relocated firm launch stub
-		A11_STUB_ENTRY, A11_STUB_SIZE
-	}	
-};*/
+
 
 /* Calculates the actual firm partition size by using its header */
 /*bool firm_size(size_t *size)
@@ -169,128 +159,87 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	entry9(argc, argv, 0x3BEEFu);
 }
 
-/*bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
+s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 {
-	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	const char *const res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
-	bool isValid;
-	bool retval = true;
-	u32 hash[8];
-	
-	if(fwSize > FIRM_MAX_SIZE)
-		return false;
-		
-	if(fwSize <= sizeof(firm_header))
-		return false;
-	
-	if(memcmp(&firm_hdr->magic, "FIRM", 4) != 0)
-		return false;
+	u32 firmSize;
+	const firm_header *const firmHdr = (firm_header*)FIRM_LOAD_ADDR;
 
-	if(firm_hdr->entrypointarm9 == 0)
+
+	if(memcmp(path, "firm", 4) == 0)
 	{
-		if(printInfo) uiPrintError("Bad ARM9 entrypoint!\n");
-		return false;
+		// TODO
+	}
+	else
+	{
+		const s32 f = fOpen(path, FS_OPEN_EXISTING | FS_OPEN_READ);
+		if(f < 0) return -1;
+
+		firmSize = fSize(f);
+		if(firmSize > FIRM_MAX_SIZE)
+		{
+			fClose(f);
+			return -2;
+		}
+		if(fRead(f, (void*)FIRM_LOAD_ADDR, firmSize) < 0)
+		{
+			fClose(f);
+			return -3;
+		}
+
+		fClose(f);
 	}
 
-	if(printInfo)
-	{
-		uiPrintInfo("\nARM9  entry: 0x%" PRIX32 "\n", firm_hdr->entrypointarm9);
-		uiPrintInfo("ARM11 entry: 0x%" PRIX32 "\n\n", firm_hdr->entrypointarm11);
-	}
-	
-	for(u32 i=0; i<4; i++)
-	{
-		firm_sectionheader *section = &firm_hdr->section[i];
 
-		if(section->size == 0)
-			continue;
+	// Check if <= FIRM header size
+	if(firmSize <= sizeof(firm_header)) return -4;
 
-		if(printInfo)
-			uiPrintInfo("Section %" PRIu32 ":\n Offset: 0x%" PRIX32 "\n   Addr: 0x%" PRIX32 "\n   Size: 0x%" PRIX32 "\n",
-			             i, section->offset, section->address, section->size);
-				
-		if(section->offset >= fwSize || section->offset < sizeof(firm_header))
+	// Check magic
+	if(memcmp(&firmHdr->magic, "FIRM", 4) != 0) return -5;
+
+	// ARM9 entrypoint must not be 0
+	if(firmHdr->entrypointarm9 == 0) return -6;
+
+	for(u32 i = 0; i < 4; i++)
+	{
+		const firm_sectionheader *const section = &firmHdr->section[i];
+		const u32 secSize = section->size;
+
+		if(!secSize) continue;
+
+		const u32 secOffset = section->offset;
+		// Check section offset
+		if(secOffset >= firmSize || secOffset < sizeof(firm_header)) return -7;
+
+		// Check section size
+		if(secSize >= firmSize || (secSize + secOffset > firmSize)) return -8;
+
+		const u32 secAddr = section->address;
+		bool allowed = false;
+		for(u32 n = 0; n < arrayEntries(sectionWhitelist); n++)
 		{
-			if(printInfo)
-				uiPrintError("Bad section offset!\n");
-			return false;
-		}
-		
-		if((section->size >= fwSize) || (section->size + section->offset > fwSize))
-		{
-			if(printInfo)
-				uiPrintError("Bad section size!\n");
-			return false;
-		}
-		
-		// check for bad sections
-		const u32 numEntries = arrayEntries(firmProtectedAreas);
-		
-		for(u32 j=0; j<numEntries; j++)
-		{ 
-			// protected region dimensions
-			u32 addr = firmProtectedAreas[j].addr;
-			u32 size = firmProtectedAreas[j].size;
-			
-			// firmware section dimensions
-			u32 start = section->address;
-			u32 end = start + section->size;
-			
-			isValid = true;
-			
-			if(start >= addr && start < addr + size) isValid = false;
-			
-			else if(end > addr && end <= addr + size) isValid = false;
-			
-			else if(start < addr && end > addr + size) isValid = false;
-			
-			if(!isValid)
+			const u32 addr = sectionWhitelist[n].addr;
+			const u32 size = sectionWhitelist[n].size;
+
+			// Overflow check
+			if(secAddr > ~secSize) return -9;
+
+			// Range check
+			if(secAddr >= addr && secAddr + secSize <= addr + size)
 			{
-				if(printInfo)
-					uiPrintError("Unallowed section:\n0x%" PRIX32 " - 0x%" PRIX32 "\n", start, end);
-				retval = false;
+				allowed = true;
 				break;
 			}
 		}
-		
+		if(!allowed) return -10;
+
 		if(!skipHashCheck)
 		{
-			sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
+			u32 hash[8];
+			sha((u32*)(FIRM_LOAD_ADDR + secOffset), secSize, hash,
 			    SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
-			isValid = memcmp(hash, section->hash, 32) == 0;
-			
-			if(printInfo)
-				uiPrintInfo("   Hash: %s\x1B[0m\n", res[isValid]);
-			
-			retval &= isValid;
+			if(memcmp(section->hash, hash, 32) != 0) return -11;
 		}
 	}
-	
-	return retval;
-}*/
-
-s32 loadVerifyFirm(const char *const path)
-{
-	// TODO: Accept firmX:/ paths
-	const s32 f = fOpen(path, FS_OPEN_EXISTING | FS_OPEN_READ);
-	if(f < 0) return -1;
-
-	const u32 size = fSize(f);
-	if(size > FIRM_MAX_SIZE)
-	{
-		fClose(f);
-		return -2;
-	}
-
-	if(fRead(f, (void*)FIRM_LOAD_ADDR, size) < 0)
-	{
-		fClose(f);
-		return -3;
-	}
-
-	fClose(f);
-
-	// TODO: Verify
 
 	// TODO: argc/v stuff
 

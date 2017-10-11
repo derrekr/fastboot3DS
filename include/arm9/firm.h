@@ -47,5 +47,5 @@ typedef struct
 
 
 
-s32 loadVerifyFirm(const char *const path);
+s32 loadVerifyFirm(const char *const path, bool skipHashCheck);
 noreturn void firmLaunch(int argc, const char **argv);
