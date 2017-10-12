@@ -60,14 +60,14 @@ void truncateString(char* dest, const char* orig, int nsize, int tpos)
         return;
     } else if (nsize <= 3)
 	{
-        snprintf(dest, nsize, orig);
+        ee_snprintf(dest, nsize, orig);
     } else if (nsize >= osize)
 	{
-        snprintf(dest, nsize + 1, orig);
+        ee_snprintf(dest, nsize + 1, orig);
     } else
 	{
         if (tpos + 3 > nsize) tpos = nsize - 3;
-        snprintf(dest, nsize + 1, "%-.*s...%-.*s", tpos, orig, nsize - (3 + tpos), orig + osize - (nsize - (3 + tpos)));
+        ee_snprintf(dest, nsize + 1, "%-.*s...%-.*s", tpos, orig, nsize - (3 + tpos), orig + osize - (nsize - (3 + tpos)));
     }
 }
 
@@ -363,7 +363,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			const u32 kDown = hidKeysDown();
 			// const u32 kHeld = hidKeysHeld();
 			
-			if (kDown & KEY_A)
+			if ((kDown & KEY_A) && n_entries)
 			{
 				// build new res_path
 				char* fname = &(res_path[strlen(res_path)]);
@@ -394,6 +394,18 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			{
 				// cursor up
 				index = (index == 0) ? n_entries - 1 : index - 1;
+			}
+			else if ((kDown & KEY_DRIGHT) && n_entries)
+			{
+				// cursor down a page
+				index += BRWS_MAX_ENTRIES;
+				if (index >= n_entries) index = n_entries - 1;
+			}
+			else if ((kDown & KEY_DLEFT) && n_entries)
+			{
+				// cursor up a page
+				index -= BRWS_MAX_ENTRIES;
+				if (index < 0) index = 0;
 			}
 		}
 		
