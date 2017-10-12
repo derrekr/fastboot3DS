@@ -28,6 +28,8 @@
 #include "arm9/hardware/crypto.h"
 #include "arm9/hardware/ndma.h"
 #include "hardware/pxi.h"
+#include "arm9/partitions.h"
+#include "arm9/dev.h"
 #include "fs.h"
 
 
@@ -57,15 +59,15 @@ static const struct
 
 
 /* Calculates the actual firm partition size by using its header */
-/*bool firm_size(size_t *size)
+bool firm_size(size_t *size)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	u32 curLen = sizeof(firm_header);
 	u32 curOffset = 0;
-	*size = 0;*/
+	*size = 0;
 	
 	/* scan sections in reverse order */
-	/*for(int i=3; i>=0; i--)
+	for(int i=3; i>=0; i--)
 	{
 		firm_sectionheader *section = &firm_hdr->section[i];
 
@@ -90,7 +92,7 @@ static const struct
 	*size = curLen;
 	
 	return true;
-}*/
+}
 
 // NOTE: Do not call any functions here!
 void NAKED firmLaunchStub(int argc, const char **argv)
@@ -167,23 +169,32 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 
 	if(memcmp(path, "firm", 4) == 0)
 	{
-		// TODO
+		if(!dev_decnand->is_active()) return -1;
+
+		size_t partInd, sector;
+		if(!partitionGetIndex(path, &partInd)) return -2;
+		if(!partitionGetSectorOffset(partInd, &sector)) return -3;
+
+		if(!dev_decnand->read_sector(sector, 1, (void*)FIRM_LOAD_ADDR)) return -4;
+		if(!firm_size((size_t*)&firmSize)) return -5;
+		sector++;
+		if(!dev_decnand->read_sector(sector, (firmSize>>9) - 1, (void*)(FIRM_LOAD_ADDR + 0x200))) return -4;
 	}
 	else
 	{
 		const s32 f = fOpen(path, FS_OPEN_EXISTING | FS_OPEN_READ);
-		if(f < 0) return -1;
+		if(f < 0) return -6;
 
 		firmSize = fSize(f);
 		if(firmSize > FIRM_MAX_SIZE)
 		{
 			fClose(f);
-			return -2;
+			return -7;
 		}
 		if(fRead(f, (void*)FIRM_LOAD_ADDR, firmSize) < 0)
 		{
 			fClose(f);
-			return -3;
+			return -8;
 		}
 
 		fClose(f);
@@ -191,13 +202,13 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 
 
 	// Check if <= FIRM header size
-	if(firmSize <= sizeof(firm_header)) return -4;
+	if(firmSize <= sizeof(firm_header)) return -9;
 
 	// Check magic
-	if(memcmp(&firmHdr->magic, "FIRM", 4) != 0) return -5;
+	if(memcmp(&firmHdr->magic, "FIRM", 4) != 0) return -10;
 
 	// ARM9 entrypoint must not be 0
-	if(firmHdr->entrypointarm9 == 0) return -6;
+	if(firmHdr->entrypointarm9 == 0) return -11;
 
 	for(u32 i = 0; i < 4; i++)
 	{
@@ -208,10 +219,10 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 
 		const u32 secOffset = section->offset;
 		// Check section offset
-		if(secOffset >= firmSize || secOffset < sizeof(firm_header)) return -7;
+		if(secOffset >= firmSize || secOffset < sizeof(firm_header)) return -12;
 
 		// Check section size
-		if(secSize >= firmSize || (secSize + secOffset > firmSize)) return -8;
+		if(secSize >= firmSize || (secSize + secOffset > firmSize)) return -13;
 
 		const u32 secAddr = section->address;
 		bool allowed = false;
@@ -221,7 +232,7 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 			const u32 size = sectionWhitelist[n].size;
 
 			// Overflow check
-			if(secAddr > ~secSize) return -9;
+			if(secAddr > ~secSize) return -14;
 
 			// Range check
 			if(secAddr >= addr && secAddr + secSize <= addr + size)
@@ -230,14 +241,14 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 				break;
 			}
 		}
-		if(!allowed) return -10;
+		if(!allowed) return -15;
 
 		if(!skipHashCheck)
 		{
 			u32 hash[8];
 			sha((u32*)(FIRM_LOAD_ADDR + secOffset), secSize, hash,
 			    SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
-			if(memcmp(section->hash, hash, 32) != 0) return -11;
+			if(memcmp(section->hash, hash, 32) != 0) return -16;
 		}
 	}
 
