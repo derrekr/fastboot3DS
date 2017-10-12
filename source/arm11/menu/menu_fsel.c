@@ -324,9 +324,9 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 			formatBytes(byte_str, entry->fsize);
 		
 		consoleSetCursor(menu_con, brws_x, brws_y++);
-		truncateString(temp_str, entry->fname, BRWS_WIDTH-12, 8);
-		ee_printf(is_selected ? "\x1b[47;30m %-*.*s %10.10s\x1b[0m" : " %-*.*s %10.10s",
-			BRWS_WIDTH-12, BRWS_WIDTH-12, temp_str, byte_str);
+		truncateString(temp_str, entry->fname, BRWS_WIDTH-13, 8);
+		ee_printf(is_selected ? "\x1b[47;30m %-*.*s %10.10s \x1b[0m" : " %-*.*s %10.10s ",
+			BRWS_WIDTH-13, BRWS_WIDTH-13, temp_str, byte_str);
 	}
 	
 	// button instructions
