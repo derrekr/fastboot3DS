@@ -357,7 +357,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	if(start) strncpy(res_path, start, 256);
 	
 	// check res_path, fix if required
-	char* fname = NULL;
+	char* lastname = NULL;
 	FsFileInfo fno;
 	if (fStat(res_path, &fno) != FR_OK)
 	{
@@ -366,10 +366,10 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	// not a dir -> must be a file
 	else if (!(fno.fattrib & AM_DIR))
 	{
-		fname = strrchr(res_path, '/');
-		if (!fname)
+		lastname = strrchr(res_path, '/');
+		if (!lastname)
 			panicMsg("Invalid path");
-		*(fname++) = '\0';
+		*(lastname++) = '\0';
 		
 		s32 dhandle = fOpenDir(res_path);
 		if (dhandle < 0)
@@ -388,18 +388,18 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		if(n_entries < 0)
 			panicMsg("Error reading dir!");
 		
-		// find fname in listing
-		if (fname)
+		// find lastname in listing
+		if (lastname)
 		{
 			for (s32 i = 0; i < n_entries; i++)
 			{
-				if (strncmp(dir_buffer[i].fname, fname, 256) == 0)
+				if (strncmp(dir_buffer[i].fname, lastname, 256) == 0)
 				{
 					index = i;
 					break;
 				}
 			}
-			fname = NULL;
+			lastname = NULL;
 		}
 		
 		while(true)
@@ -427,21 +427,24 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			if ((kDown & KEY_A) && n_entries)
 			{
 				// build new res_path
-				char* fname = &(res_path[strlen(res_path)]);
-				if (fname > res_path) *(fname++) = '/';
-				strncpy(fname, dir_buffer[index].fname, (256 - (fname - res_path)));
+				char* name = &(res_path[strlen(res_path)]);
+				if (name > res_path) *(name++) = '/';
+				strncpy(name, dir_buffer[index].fname, (256 - (name - res_path)));
 				
 				// is this a dir?
 				is_dir = dir_buffer[index].is_dir;
+				
+				lastname = NULL;
 				break;
 			}
 			else if ((kDown & KEY_B) && *res_path)
 			{
 				// return to previous path
-				char* slash = strrchr(res_path, '/');
+				// (the name of this path will be stored in lastname)
+				lastname = strrchr(res_path, '/');
 				
-				if (slash)
-					*slash = '\0';
+				if (lastname)
+					*(lastname++) = '\0';
 				else
 					*res_path = '\0';
 				break;
