@@ -399,6 +399,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 					break;
 				}
 			}
+			fname = NULL;
 		}
 		
 		while(true)
