@@ -73,6 +73,25 @@ void truncateString(char* dest, const char* orig, int nsize, int tpos)
 }
 
 
+void formatBytes(char* str, u64 bytes)
+{
+	// str should be 32 byte in size, just to be safe
+    const char* units[] = {"  Byte", " kiB", " MiB", " GiB"};
+    
+    if (bytes < 1024)
+	{
+		ee_snprintf(str, 32, "%llu%s", bytes, units[0]);
+	}
+    else
+	{
+        u32 scale = 1;
+        u64 bytes100 = (bytes * 100) >> 10;
+        for(; (bytes100 >= 1024*100) && (scale < 3); scale++, bytes100 >>= 10);
+        ee_snprintf(str, 32, "%llu.%llu%s", bytes100 / 100, (bytes100 % 100) / 10, units[scale]);
+    }
+}
+
+
 // inspired by http://www.geeksforgeeks.org/wildcard-character-matching/
 static bool matchName(const char* path, const char* pattern)
 {
@@ -267,6 +286,7 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 	int brws_x = (menu_con->consoleWidth - BRWS_WIDTH) >> 1;
 	int brws_y = BRWS_OFFSET_TITLE;
 	char temp_str[BRWS_WIDTH + 1];
+	char byte_str[32];
 	
 	// fix scroll (if required)
 	if (index < *scroll)
@@ -298,10 +318,15 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 		DirBufferEntry* entry = &(dir_buffer[pos]);
 		bool is_selected = (pos == index);
 		
+		if(entry->is_dir)
+			strncpy(byte_str, *curr_path ? "(DIR)" : "(DRV)", 31);
+		else
+			formatBytes(byte_str, entry->fsize);
+		
 		consoleSetCursor(menu_con, brws_x, brws_y++);
-		truncateString(temp_str, entry->fname, BRWS_WIDTH - 5, 8);
-		ee_printf(is_selected ? "\x1b[47;30m%.3s %-*.*s\x1b[0m" : "%.3s %-*.*s",
-			(entry->is_dir) ? "[D]" : "[F]", BRWS_WIDTH-4, BRWS_WIDTH-4, temp_str);
+		truncateString(temp_str, entry->fname, BRWS_WIDTH-12, 8);
+		ee_printf(is_selected ? "\x1b[47;30m %-*.*s %10.10s\x1b[0m" : " %-*.*s %10.10s",
+			BRWS_WIDTH-12, BRWS_WIDTH-12, temp_str, byte_str);
 	}
 	
 	// button instructions
