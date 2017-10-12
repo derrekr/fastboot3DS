@@ -36,5 +36,6 @@ noreturn void __fb_assert(const char *const str, u32 line)
 	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
 #endif
 
+	enterCriticalSection();
 	while(1) __wfi();
 }
