@@ -89,8 +89,12 @@ u32 menuSetBootMode(PrintConsole* con, u32 param)
 u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 {
 	char res_path[256];
+	char* start = NULL;
 	
-	menuFileSelector(res_path, con, NULL, "*.firm");
+	if (configDataExist(KBootOption1 + param))
+		start = (char*) configGetData(KBootOption1 + param);
+	
+	menuFileSelector(res_path, con, start, "*.firm");
 	u32 res = (configSetKeyData(KBootOption1 + param, res_path)) ? 0 : 1;
 	
 	writeConfigFile();

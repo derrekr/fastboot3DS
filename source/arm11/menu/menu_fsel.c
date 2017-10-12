@@ -356,6 +356,27 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	*res_path = '\0'; // root dir if start is NULL
 	if(start) strncpy(res_path, start, 256);
 	
+	// check res_path, fix if required
+	char* fname = NULL;
+	FsFileInfo fno;
+	if (fStat(res_path, &fno) != FR_OK)
+	{
+		*res_path = '\0';
+	}
+	// not a dir -> must be a file
+	else if (!(fno.fattrib & AM_DIR))
+	{
+		fname = strrchr(res_path, '/');
+		if (!fname)
+			panicMsg("Invalid path");
+		*(fname++) = '\0';
+		
+		s32 dhandle = fOpenDir(res_path);
+		if (dhandle < 0)
+			panicMsg("Filesystem error");
+		fCloseDir(dhandle);
+	}
+	
 	bool is_dir = true; // we are not finished while we have a dir in res_path
 	while(is_dir)
 	{
@@ -366,6 +387,19 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		
 		if(n_entries < 0)
 			panicMsg("Error reading dir!");
+		
+		// find fname in listing
+		if (fname)
+		{
+			for (s32 i = 0; i < n_entries; i++)
+			{
+				if (strncmp(dir_buffer[i].fname, fname, 256) == 0)
+				{
+					index = i;
+					break;
+				}
+			}
+		}
 		
 		while(true)
 		{
