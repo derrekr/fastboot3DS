@@ -402,6 +402,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			lastname = NULL;
 		}
 		
+		u32 dbutton_cooldown = 0;
 		while(true)
 		{
 			// update file browser (on demand)
@@ -414,6 +415,16 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				GFX_swapFramebufs();
 			}
 			GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+			
+			// directional button cooldown
+			for (u32 i = dbutton_cooldown; i > 0; i--)
+			{
+				hidScanInput();
+				GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+				if (!(hidKeysHeld() & (KEY_DDOWN|KEY_DUP|KEY_DLEFT|KEY_DRIGHT)))
+					break;
+			}
+			dbutton_cooldown = 0;
 			
 			if(hidGetPowerButton(true)) // handle power button
 			{
@@ -474,8 +485,8 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 					if (index < 0) index = 0;
 				}
 				
-				// sleep for 160ms
-				TIMER_sleepMs(160);
+				// set directional button cooldown
+				dbutton_cooldown = 16;
 			}
 		}
 		
