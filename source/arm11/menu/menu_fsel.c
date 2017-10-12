@@ -23,9 +23,10 @@
 #include "types.h"
 #include "fs.h"
 #include "util.h"
+#include "fsutils.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/hardware/hid.h"
-#include "fsutils.h"
+#include "arm11/hardware/timer.h"
 #include "arm11/console.h"
 #include "arm11/power.h"
 #include "arm11/debug.h"
@@ -361,7 +362,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			
 			hidScanInput();
 			const u32 kDown = hidKeysDown();
-			// const u32 kHeld = hidKeysHeld();
+			const u32 kHeld = hidKeysHeld();
 			
 			if ((kDown & KEY_A) && n_entries)
 			{
@@ -385,27 +386,33 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 					*res_path = '\0';
 				break;
 			}
-			else if ((kDown & KEY_DDOWN) && n_entries)
+			else if (kHeld & (KEY_DDOWN|KEY_DUP|KEY_DLEFT|KEY_DRIGHT) && n_entries)
 			{
-				// cursor down
-				index = (index == n_entries - 1) ? 0 : index + 1;
-			}
-			else if ((kDown & KEY_DUP) && n_entries)
-			{
-				// cursor up
-				index = (index == 0) ? n_entries - 1 : index - 1;
-			}
-			else if ((kDown & KEY_DRIGHT) && n_entries)
-			{
-				// cursor down a page
-				index += BRWS_MAX_ENTRIES;
-				if (index >= n_entries) index = n_entries - 1;
-			}
-			else if ((kDown & KEY_DLEFT) && n_entries)
-			{
-				// cursor up a page
-				index -= BRWS_MAX_ENTRIES;
-				if (index < 0) index = 0;
+				if (kHeld & KEY_DDOWN)
+				{
+					// cursor down
+					index = (index == n_entries - 1) ? 0 : index + 1;
+				}
+				else if (kHeld & KEY_DUP)
+				{
+					// cursor up
+					index = (index == 0) ? n_entries - 1 : index - 1;
+				}
+				else if (kHeld & KEY_DRIGHT)
+				{
+					// cursor down a page
+					index += BRWS_MAX_ENTRIES;
+					if (index >= n_entries) index = n_entries - 1;
+				}
+				else if (kHeld & KEY_DLEFT)
+				{
+					// cursor up a page
+					index -= BRWS_MAX_ENTRIES;
+					if (index < 0) index = 0;
+				}
+				
+				// sleep for 160ms
+				TIMER_sleepMs(160);
 			}
 		}
 		
