@@ -171,9 +171,12 @@ static void sortDirBuffer(DirBufferEntry* dir_buffer, s32 n_entries)
 
 static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const char* pattern)
 {
-	FsFileInfo finfo[N_DIR_READ];
+	FsFileInfo* finfo = (FsFileInfo*) malloc(N_DIR_READ * sizeof(FsFileInfo));
 	s32 n_entries = 0;
 	s32 dhandle;
+	
+	if (!finfo) // out of memory
+		return -1;
 	
 	// set dir_buffer to all zeroes
 	memset(dir_buffer, 0, sizeof(DirBufferEntry) * MAX_DIR_ENTRIES);
@@ -197,13 +200,16 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 	// open directory
 	dhandle = fOpenDir(path);
 	if(dhandle < 0)
+	{
+		free(finfo);
 		return -1;
+	}
 	
 	s32 n_read = 0;
 	while((n_read = fReadDir(dhandle, finfo, N_DIR_READ)) > 0)
 	{
 		if (n_read < 0) // error reading dir
-			return -1;
+			goto fail;
 		
 		for(s32 i = 0; i < n_read; i++)
 		{
@@ -217,7 +223,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 			
 			// check for out of memory
 			if (!dir_buffer[n_entries].fname)
-				return -1;
+				goto fail;
 			
 			// max dir buffer size reached?
 			if (++n_entries >= MAX_DIR_ENTRIES)
@@ -230,11 +236,19 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 	}
 	
 	fCloseDir(dhandle);
+	free(finfo);
 	
 	if (n_entries > 0)
 		sortDirBuffer(dir_buffer, n_entries);
 	
 	return n_entries;
+	
+	fail:
+	
+	fCloseDir(dhandle);
+	free(finfo);
+	
+	return -1;	
 }
 
 
