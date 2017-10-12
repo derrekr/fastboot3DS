@@ -150,7 +150,7 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
 		ee_printf(is_selected ? "\x1b[47;30m%.3s %-*.*s\x1b[0m" : "%.3s %-*.*s",
-			((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-3, MENU_WIDTH-3, name);
+			((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
 	}
 	
 	// button instructions

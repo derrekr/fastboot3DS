@@ -85,11 +85,11 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Slot Setup", 3, NULL,
+		"Boot Slot Setup", 3, &menuPresetBootSlot,
 		{
-			{ "Setup [slot 1]...",			DESC_SET_SLOT_1,			&DummyFunc,				0 },
-			{ "Setup [slot 2]...",			DESC_SET_SLOT_2,			&DummyFunc,				1 },
-			{ "Setup [slot 3]...",			DESC_SET_SLOT_3,			&DummyFunc,				2 }
+			{ "Setup [slot 1]...",			DESC_SET_SLOT_1,			&menuSetupBootSlot,		0 },
+			{ "Setup [slot 2]...",			DESC_SET_SLOT_2,			&menuSetupBootSlot,		1 },
+			{ "Setup [slot 3]...",			DESC_SET_SLOT_3,			&menuSetupBootSlot,		2 }
 		}
 	},
 	{ // 3

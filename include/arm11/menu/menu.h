@@ -24,7 +24,6 @@
 #define MENU_MAX_ENTRIES	8
 #define MENU_MAX_DEPTH		4
 
-#define MENU_DISP_Y			-2
 #define MENU_OFFSET_TITLE	 5
 #define MENU_OFFSET_BUTTONS	18
 #define MENU_WIDTH			28

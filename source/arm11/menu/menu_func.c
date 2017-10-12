@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "arm11/menu/menu_fsel.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
@@ -61,11 +62,39 @@ u32 menuPresetBootMode(void)
 	return 0;
 }
 
+u32 menuPresetBootSlot(void)
+{
+	u32 res = 0;
+	
+	for (u32 i = 0; i < 3; i++)
+	{
+		if (configDataExist(KBootOption1 + i))
+		{
+			res |= 1 << i;
+		}
+	}
+		
+	return res;
+}
+
 u32 menuSetBootMode(PrintConsole* con, u32 param)
 {
 	(void) con;
+	u32 res = (configSetKeyData(KBootMode, &param)) ? 0 : 1;
 	
-	return (configSetKeyData(KBootMode, &param)) ? 0 : 1;
+	writeConfigFile();
+	return res;
+}
+
+u32 menuSetupBootSlot(PrintConsole* con, u32 param)
+{
+	char res_path[256];
+	
+	menuFileSelector(res_path, con, NULL, "*.firm");
+	u32 res = (configSetKeyData(KBootOption1 + param, res_path)) ? 0 : 1;
+	
+	writeConfigFile();
+	return res;
 }
 
 u32 DummyFunc(PrintConsole* con, u32 param)

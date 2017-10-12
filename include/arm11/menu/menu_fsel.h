@@ -19,5 +19,11 @@
  */
 
 #include "types.h"
+#include "arm11/console.h"
 
-u32 menuFileSelector(char* result, const char* start, const char* pattern);
+#define BRWS_MAX_ENTRIES	 8
+#define BRWS_OFFSET_TITLE	 5
+#define BRWS_OFFSET_BUTTONS	18
+#define BRWS_WIDTH			28
+
+bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern);
