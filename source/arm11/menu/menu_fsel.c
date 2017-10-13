@@ -486,7 +486,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				}
 				
 				// set directional button cooldown
-				dbutton_cooldown = 16;
+				dbutton_cooldown = 10;
 			}
 		}
 		
