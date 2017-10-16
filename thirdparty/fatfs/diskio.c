@@ -69,8 +69,6 @@ DSTATUS disk_initialize (
 			if(!dev_sdcard->init()) stat = STA_NOINIT;
 			break;
 		case FATFS_DEV_NUM_TWL_NAND:
-			if(!dev_decnand->init()) stat = STA_NOINIT;
-			break;
 		case FATFS_DEV_NUM_CTR_NAND:
 			if(!dev_decnand->init()) stat = STA_NOINIT;
 			break;
@@ -167,8 +165,6 @@ DRESULT disk_ioctl (
 			dev = dev_sdcard;
 			break;
 		case FATFS_DEV_NUM_TWL_NAND:
-			dev = dev_decnand;
-			break;
 		case FATFS_DEV_NUM_CTR_NAND:
 			dev = dev_decnand;
 			break;

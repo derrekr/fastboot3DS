@@ -53,10 +53,10 @@
 #define POLICY_WRITE_THROUGH_NO_ALLOC_BUFFERED (0b10u) // Behaves as noncacheable on ARM11 MPCore
 #define POLICY_WRITE_BACK_NO_ALLOC_BUFFERED    (0b11u)
 
-#define MAKE_CUSTOM_NORM_ATTR(outer, inner)    ((1u<<12) | (outer<<10) | (inner))
+#define MAKE_CUSTOM_NORM_ATTR(outer, inner)    (1u<<12 | (outer)<<10 | (inner))
 
 // Converts the attribute bits from L1 format to L2 format
-#define L1_TO_L2(attr)                         ((attr>>6 | attr) & 0x73)
+#define L1_TO_L2(attr)                         (((attr)>>6 | (attr)) & 0x73)
 
 
 

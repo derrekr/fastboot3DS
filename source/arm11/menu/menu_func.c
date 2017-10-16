@@ -164,7 +164,7 @@ u32 SetView(PrintConsole* con, u32 param)
 		{
 			char* text = (char*) configCopyText(key);
 			ee_printf("text: %s / u32: %lu\n", text, *(u32*) configGetData(key));
-			if (text) free(text);
+			free(text);
 		}
 	}
 	updateScreens();
