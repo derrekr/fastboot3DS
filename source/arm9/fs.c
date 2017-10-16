@@ -17,10 +17,17 @@
  */
 
 #include <string.h>
+#include <malloc.h>
 #include "types.h"
 #include "fs.h"
 #include "fatfs/ff.h"
 
+typedef struct
+{
+	u8 *mem;
+	size_t memSize;
+	size_t dataSize;
+} DevBuf;
 
 static FATFS fsTable[FS_MAX_DRIVES] = {0};
 static const char *const fsPathTable[FS_MAX_DRIVES] = {FS_DRIVE_NAMES};
@@ -36,6 +43,8 @@ static u32 dHandles = 0;
 
 static bool devStatTable[FS_MAX_DEVICES] = {0};
 static bool fsStatBackupTable[FS_MAX_DRIVES] = {0};
+
+static DevBuf devBuf;
 
 
 s32 fMount(FsDrive drive)
@@ -121,6 +130,57 @@ s32 fFinalizeRawAccess(DevHandle handle)
 		if(fsStatBackupTable[drive])
 			fMount(drive);
 	}
+	
+	return FR_OK;
+}
+
+static bool devBufAllocate(DevBuf *devBuf, u32 size)
+{
+	devBuf->mem = malloc(size);
+	if(!devBuf->mem) return false;
+	
+	devBuf->memSize = size;
+	
+	return true;
+}
+
+s32 fCreateDeviceBuffer(u32 size)
+{
+	if(!size || size > 0x40000) return -30;
+	if(devBuf.mem) return -31;
+	
+	if(!devBufAllocate(&devBuf, size))
+		 return -30;
+
+	return FR_OK;
+}
+
+static bool isValidDevBufHandle(DevBufHandle handle)
+{
+	if(handle != FR_OK)
+		return false;
+	
+	if(!devBuf.mem)
+		return false;
+	
+	return true;
+}
+
+static bool devBufFree(DevBuf *devBuf)
+{
+	free(devBuf->mem);
+	devBuf->mem = NULL;
+	
+	devBuf->memSize = 0;
+	
+	return true;
+}
+
+s32 fFreeDeviceBuffer(DevBufHandle handle)
+{
+	if(!isValidDevBufHandle(handle)) return -30;
+	
+	devBufFree(&devBuf);
 	
 	return FR_OK;
 }
