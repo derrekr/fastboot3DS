@@ -76,5 +76,5 @@ bool isNandImageCompatible(FIL *file)
 	}
 	
 	/* compare everything except the signature */
-	return memcmp(&imageHeader, &nandHeader, 0x100) == 0;
+	return memcmp(&imageHeader.magic, &nandHeader.magic, 0x100) == 0;
 }
