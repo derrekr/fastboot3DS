@@ -90,3 +90,6 @@ irqHandler_skip_processing:
 	str r0, [r12, #0x110]        @ REG_CPU_II_EOI
 	ldmfd sp!, {r0-r3, r12, lr}
 	rfefd sp!                    @ Restore lr (pc) and spsr (cpsr)
+
+
+.pool

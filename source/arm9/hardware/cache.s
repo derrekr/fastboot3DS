@@ -124,3 +124,6 @@ ASM_FUNC invalidateDCacheRange
 		cmp r0, r1
 		blt invalidateDCacheRange_lp
 	bx lr
+
+
+.pool

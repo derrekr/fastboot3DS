@@ -22,4 +22,5 @@
 
 
 
-noreturn void firm_launch(void);
+s32 loadVerifyFirm(const char *const path, bool skipHashCheck);
+noreturn void firmLaunch(void);

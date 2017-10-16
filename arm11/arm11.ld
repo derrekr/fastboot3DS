@@ -13,7 +13,7 @@ SECTIONS
 {
 	/* =========== CODE section =========== */
 
-	. = 0x1FF85000;
+	. = 0x1FF89000;
 	__start__ = . ;
 
 	.text ALIGN(4) :

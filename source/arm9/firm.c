@@ -16,8 +16,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "types.h"
 // we need the arm11 mem map information
@@ -26,60 +24,50 @@
 #undef ARM11
 #include "arm9/firm.h"
 #include "arm9/start.h"
+#include "util.h"
 #include "arm9/hardware/crypto.h"
 #include "arm9/hardware/ndma.h"
-#include "arm9/gui/ui.h"
-#include "hardware/cache.h"
-#include "util.h"
-#include "hardware/pxi.h"*/
+#include "hardware/pxi.h"
+#include "arm9/partitions.h"
+#include "arm9/dev.h"
+#include "fs.h"
 
 
-
-/* We don't want the FIRM to do hacky stuff with our loader */
-
-/*typedef struct
+static const struct
 {
 	u32 addr;
 	u32 size;
-} firmProtectedArea;
+} sectionWhitelist[] =
+{
+	{ // Unused ITCM data
+		ITCM_KERNEL_MIRROR, ITCM_SIZE - 0x4800
+	},
+	{ // ARM9 memory excluding exception vectors
+		A9_RAM_BASE + 0x40, A9_RAM_SIZE + A9_RAM_N3DS_EXT_SIZE - 0x40
+	},
+	{ // VRAM excluding the FIRM buffer
+		VRAM_BASE, VRAM_SIZE - 0x400000
+	},
+	{ // DSP memory + AXIWRAM excluding stack and FIRM launch stub
+		DSP_MEM_BASE, DSP_MEM_SIZE + AXIWRAM_SIZE - 0x220
+	},
+	{ // FCRAM
+		FCRAM_BASE, FCRAM_SIZE + FCRAM_N3DS_EXT_SIZE
+	}
+};
 
-static const firmProtectedArea firmProtectedAreas[] = {
-	{	// FIRM buffer
-		FIRM_LOAD_ADDR, FIRM_MAX_SIZE
-	},
-	{	// io regs
-		IO_MEM_BASE, VRAM_BASE - IO_MEM_BASE
-	},
-	{	// arm9 exception vector table
-		A9_VECTORS_START, A9_VECTORS_SIZE
-	},
-	{	// arm9 stack
-		A9_STACK_START, A9_STACK_END - A9_STACK_START
-	},
-	{	// Console unique data + ARM9 FIRM launch stub + argv data
-		ITCM_BASE + 0x3800, ITCM_SIZE - 0x3800
-	},
-	{	// arm11 exception vector table
-		A11_VECTORS_START, A11_VECTORS_SIZE
-	},
-	{	// arm11 stack
-		A11_STACK_START, A11_STACK_END - A11_STACK_START
-	},
-	{	// arm11 relocated firm launch stub
-		A11_STUB_ENTRY, A11_STUB_SIZE
-	}	
-};*/
+
 
 /* Calculates the actual firm partition size by using its header */
-/*bool firm_size(size_t *size)
+bool firm_size(size_t *size)
 {
 	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	u32 curLen = sizeof(firm_header);
 	u32 curOffset = 0;
-	*size = 0;*/
+	*size = 0;
 	
 	/* scan sections in reverse order */
-	/*for(int i=3; i>=0; i--)
+	for(int i=3; i>=0; i--)
 	{
 		firm_sectionheader *section = &firm_hdr->section[i];
 
@@ -113,6 +101,14 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	void (*entry9)(int, const char**, u32) = (void (*)(int, const char**, u32))firm_hdr->entrypointarm9;
 	u32 entry11 = firm_hdr->entrypointarm11;
 
+
+	REG_PXI_SYNC = 0; // Disable all IRQs
+	while(1)
+	{
+		// Wait for the ARM11 to be ready before copying sections
+		while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
+		if(REG_PXI_RECV == 0xA8E4u) break;
+	}
 
 	for(u32 i = 0; i < 4; i++)
 	{
@@ -149,137 +145,124 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	      REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
-	REG_PXI_SYNC9 = 0; // Disable all IRQs
-	while(REG_PXI_CNT9 & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND9 = entry11;
+	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
+	REG_PXI_SEND = entry11;
 
-	// Wait for ARM11...
 	while(1)
 	{
-		while(REG_PXI_CNT9 & PXI_RECV_FIFO_EMPTY);
-		if(REG_PXI_RECV9 == PXI_RPL_FIRM_LAUNCH_READY)
-			break;
+		// Wait for the ARM111 to confirm it received the entrypoint
+		while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
+		if(REG_PXI_RECV == 0x94C6u) break;
 	}
-	REG_PXI_CNT9 = 0; // Disable PXI
+
+	REG_PXI_CNT = 0; // Disable PXI
 
 	// go for it!
-	entry9(argc, argv, 0x2BEEFu);
+	entry9(argc, argv, 0x3BEEFu);
 }
 
-bool firm_verify(u32 fwSize, bool skipHashCheck, bool printInfo)
+s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 {
-	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
-	const char *const res[2] = {"\x1B[31mBAD", "\x1B[32mGOOD"};
-	bool isValid;
-	bool retval = true;
-	u32 hash[8];
-	
-	if(fwSize > FIRM_MAX_SIZE)
-		return false;
-		
-	if(fwSize <= sizeof(firm_header))
-		return false;
-	
-	if(memcmp(&firm_hdr->magic, "FIRM", 4) != 0)
-		return false;
+	u32 firmSize;
+	const firm_header *const firmHdr = (firm_header*)FIRM_LOAD_ADDR;
 
-	if(firm_hdr->entrypointarm9 == 0)
+
+	if(memcmp(path, "firm", 4) == 0)
 	{
-		if(printInfo) uiPrintError("Bad ARM9 entrypoint!\n");
-		return false;
+		if(!dev_decnand->is_active()) return -1;
+
+		size_t partInd, sector;
+		if(!partitionGetIndex(path, &partInd)) return -2;
+		if(!partitionGetSectorOffset(partInd, &sector)) return -3;
+
+		if(!dev_decnand->read_sector(sector, 1, (void*)FIRM_LOAD_ADDR)) return -4;
+		if(!firm_size((size_t*)&firmSize)) return -5;
+		sector++;
+		if(!dev_decnand->read_sector(sector, (firmSize>>9) - 1, (void*)(FIRM_LOAD_ADDR + 0x200))) return -4;
+	}
+	else
+	{
+		const s32 f = fOpen(path, FS_OPEN_EXISTING | FS_OPEN_READ);
+		if(f < 0) return -6;
+
+		firmSize = fSize(f);
+		if(firmSize > FIRM_MAX_SIZE)
+		{
+			fClose(f);
+			return -7;
+		}
+		if(fRead(f, (void*)FIRM_LOAD_ADDR, firmSize) < 0)
+		{
+			fClose(f);
+			return -8;
+		}
+
+		fClose(f);
 	}
 
-	if(printInfo)
-	{
-		uiPrintInfo("\nARM9  entry: 0x%" PRIX32 "\n", firm_hdr->entrypointarm9);
-		uiPrintInfo("ARM11 entry: 0x%" PRIX32 "\n\n", firm_hdr->entrypointarm11);
-	}
-	
-	for(u32 i=0; i<4; i++)
-	{
-		firm_sectionheader *section = &firm_hdr->section[i];
 
-		if(section->size == 0)
-			continue;
+	// Check if <= FIRM header size
+	if(firmSize <= sizeof(firm_header)) return -9;
 
-		if(printInfo)
-			uiPrintInfo("Section %" PRIu32 ":\n Offset: 0x%" PRIX32 "\n   Addr: 0x%" PRIX32 "\n   Size: 0x%" PRIX32 "\n",
-			             i, section->offset, section->address, section->size);
-				
-		if(section->offset >= fwSize || section->offset < sizeof(firm_header))
+	// Check magic
+	if(memcmp(&firmHdr->magic, "FIRM", 4) != 0) return -10;
+
+	// ARM9 entrypoint must not be 0
+	if(firmHdr->entrypointarm9 == 0) return -11;
+
+	for(u32 i = 0; i < 4; i++)
+	{
+		const firm_sectionheader *const section = &firmHdr->section[i];
+		const u32 secSize = section->size;
+
+		if(!secSize) continue;
+
+		const u32 secOffset = section->offset;
+		// Check section offset
+		if(secOffset >= firmSize || secOffset < sizeof(firm_header)) return -12;
+
+		// Check section size
+		if(secSize >= firmSize || (secSize + secOffset > firmSize)) return -13;
+
+		const u32 secAddr = section->address;
+		bool allowed = false;
+		for(u32 n = 0; n < arrayEntries(sectionWhitelist); n++)
 		{
-			if(printInfo)
-				uiPrintError("Bad section offset!\n");
-			return false;
-		}
-		
-		if((section->size >= fwSize) || (section->size + section->offset > fwSize))
-		{
-			if(printInfo)
-				uiPrintError("Bad section size!\n");
-			return false;
-		}
-		
-		// check for bad sections
-		const u32 numEntries = arrayEntries(firmProtectedAreas);
-		
-		for(u32 j=0; j<numEntries; j++)
-		{ 
-			// protected region dimensions
-			u32 addr = firmProtectedAreas[j].addr;
-			u32 size = firmProtectedAreas[j].size;
-			
-			// firmware section dimensions
-			u32 start = section->address;
-			u32 end = start + section->size;
-			
-			isValid = true;
-			
-			if(start >= addr && start < addr + size) isValid = false;
-			
-			else if(end > addr && end <= addr + size) isValid = false;
-			
-			else if(start < addr && end > addr + size) isValid = false;
-			
-			if(!isValid)
+			const u32 addr = sectionWhitelist[n].addr;
+			const u32 size = sectionWhitelist[n].size;
+
+			// Overflow check
+			if(secAddr > ~secSize) return -14;
+
+			// Range check
+			if(secAddr >= addr && secAddr + secSize <= addr + size)
 			{
-				if(printInfo)
-					uiPrintError("Unallowed section:\n0x%" PRIX32 " - 0x%" PRIX32 "\n", start, end);
-				retval = false;
+				allowed = true;
 				break;
 			}
 		}
-		
+		if(!allowed) return -15;
+
 		if(!skipHashCheck)
 		{
-			sha((u32*)(FIRM_LOAD_ADDR + section->offset), section->size, hash,
+			u32 hash[8];
+			sha((u32*)(FIRM_LOAD_ADDR + secOffset), secSize, hash,
 			    SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
-			isValid = memcmp(hash, section->hash, 32) == 0;
-			
-			if(printInfo)
-				uiPrintInfo("   Hash: %s\x1B[0m\n", res[isValid]);
-			
-			retval &= isValid;
+			if(memcmp(section->hash, hash, 32) != 0) return -16;
 		}
 	}
-	
-	return retval;
+
+	// TODO: argc/v stuff
+
+	return 0;
 }
 
-noreturn void firm_launch(int argc, const char **argv)
+noreturn void firmLaunch(int argc, const char **argv)
 {
-	//ee_printf("Sending PXI_CMD_FIRM_LAUNCH\n");
-	PXI_sendWord(PXI_CMD_FIRM_LAUNCH);
-
-	//ee_printf("Waiting for ARM11...\n");
-	while(PXI_recvWord() != PXI_RPL_OK);
-
-	//ee_printf("Relocating FIRM launch stub...\n");
 	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
 
 	deinitCpu();
 
-	//ee_printf("Starting firm launch...\n");
 	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);
 	while(1);
-}*/
+}

@@ -92,3 +92,6 @@ ASM_FUNC irqHandler
 	msr spsr_fsxc, r0
 irqHandler_skip_processing:
 	ldmfd sp!, {r0-r3, r12, pc}^
+
+
+.pool

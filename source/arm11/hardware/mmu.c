@@ -143,16 +143,21 @@ void setupMmu(void)
 		//            PERM_PRIV_RW_USR_NO_ACC, 1, true,
 		//            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
+		// AXIWRAM core 0/1 stack mapping
+		mmuMapPages(A11_C0_STACK_START, A11_C0_STACK_START, 4, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
+		            true, PERM_PRIV_RW_USR_NO_ACC, 1, true,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+
 		// AXIWRAM MMU table mapping
 		mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
 		            PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
 
-		// Remaining AXIWRAM pages
-		mmuMapPages(AXIWRAM_BASE + 0x5000u, AXIWRAM_BASE + 0x5000u, 123,
-		            (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
-		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
-
 		extern u32 __start__[];
+
+		// Remaining AXIWRAM pages
+		mmuMapPages((u32)__start__, (u32)__start__, 119, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
+		            true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 		// Map fastboot executable start to boot11 mirror (exception vectors)
 		mmuMapPages(BOOT11_MIRROR2, (u32)__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,

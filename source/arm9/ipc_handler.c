@@ -22,6 +22,7 @@
 #include "hardware/cache.h"
 #include "arm9/debug.h"
 #include "fs.h"
+#include "arm9/firm.h"
 
 
 
@@ -102,8 +103,13 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FREE):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
+			result = loadVerifyFirm((const char *const)buf[0], buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FIRM_LAUNCH):
+			{
+				extern volatile bool g_startFirmLaunch;
+				g_startFirmLaunch = true;
+			}
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_PREPA_POWER):
 		case IPC_CMD_ID_MASK(IPC_CMD9_PANIC):

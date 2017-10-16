@@ -114,20 +114,19 @@ _start:
 		@ Wait for interrupt
 		mcr p15, 0, r0, c7, c0, 4
 		b _start_lp
-.pool
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
 setupExceptionVectors:
-	adr r0, vectorStubs
+	adr r0, _vectorStubs
 	mov r1, #A9_VECTORS_START
 	ldmia r0!, {r2-r9}
 	stmia r1!, {r2-r9}
 	ldm r0, {r2-r5}
 	stm r1, {r2-r5}
 	bx lr
-vectorStubs:
+_vectorStubs:
 	ldr pc, irqHandlerPtr
 	irqHandlerPtr:                  .word irqHandler
 	ldr pc, fiqHandlerPtr
@@ -152,7 +151,6 @@ setupTcms:
 	orr r0, r0, #0x50000        @ Enable DTCM and ITCM
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	bx lr
-.pool
 
 
 @ void clearMem(u32 *adr, u32 size)
@@ -313,7 +311,6 @@ setupMpu:
 	orr r0, r0, r1              @ Enable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	bx lr
-.pool
 
 
 @ Needed by libc
@@ -345,4 +342,6 @@ deinitCpu:
 	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
 	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
 	bx r3
+
+
 .pool

@@ -156,13 +156,6 @@ _start_skip_bss_init_array:
 	_start_lp:
 		wfi
 		b _start_lp
-.pool
-_sysmode_stacks:
-	.word A11_STACK_END
-	.word (VRAM_BASE + VRAM_SIZE) @ Stack for core 1 for now.
-	                              @ Since we don't use core 1 this should be ok
-	.word 0
-	.word 0
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
@@ -176,7 +169,6 @@ stubExceptionVectors:
 		subs r1, r1, #1
 		bne stubExceptionVectors_lp
 	bx lr
-.pool
 
 
 @ void clearMem(u32 *adr, u32 size)
@@ -251,4 +243,11 @@ deinitCpu:
 	mcr p15, 0, r2, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r2, c7, c10, 4 @ Data Synchronization Barrier
 	bx r3
+
+
 .pool
+_sysmode_stacks:
+	.word A11_C0_STACK_END      @ Stack for core 0
+	.word A11_C1_STACK_END      @ Stack for core 1
+	.word 0                     @ New 3DS cores are not used at all
+	.word 0
