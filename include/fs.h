@@ -58,6 +58,7 @@ typedef enum
 typedef FILINFO FsFileInfo;
 
 typedef s32 DevHandle;
+typedef s32 DevBufHandle;
 
 
 s32 fMount(FsDrive drive);
@@ -65,6 +66,9 @@ s32 fUnmount(FsDrive drive);
 s32 fGetFree(FsDrive drive, u64 *size);
 s32 fPrepareRawAccess(FsDevice dev);
 s32 fFinalizeRawAccess(DevHandle handle);
+s32 fCreateDeviceBuffer(u32 size);
+s32 fFreeDeviceBuffer(DevBufHandle handle);
+//s32 fReadToDeviceBuffer(deviceHandle/fileHandle, cacheHandle, StorageOffset, size) //Note: size must be <= cache size, else: error
 s32 fOpen(const char *const path, FsOpenMode mode);
 s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);
