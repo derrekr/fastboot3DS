@@ -132,14 +132,14 @@ size_t firmwriterFinish()
 		if(!compBuf)
 		{
 			failure = true;
-			return 0;
+			goto end;
 		}
 	}
 
 	if(!dev_decnand->write_sector(sector, FIRMWRITER_SECTORS_PER_BLOCK, firmBuf))
 	{
 		failure = true;
-		return 0;
+		goto end;
 	}
 
 	/* read back data and compare */
@@ -147,8 +147,9 @@ size_t firmwriterFinish()
 		memcmp(firmBuf, compBuf, FIRMWRITER_SECTORS_PER_BLOCK * 0x200) != 0)
 	{
 		failure = true;
-		return 0;
 	}
+	
+end:
 
 	if(compBuf != blockData)
 		free(compBuf);
@@ -158,6 +159,9 @@ size_t firmwriterFinish()
 		free(blockData);
 		blockData = NULL;
 	}
+	
+	if(failure)
+		return 0;
 
 	return FIRMWRITER_SECTORS_PER_BLOCK;
 }
