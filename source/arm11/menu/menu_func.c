@@ -57,7 +57,7 @@ u32 menuPresetBootSlot(void)
 			res |= 1 << i;
 		}
 	}
-		
+	
 	return res;
 }
 
@@ -89,6 +89,90 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 		writeConfigFile();
 	}
+	
+	return res;
+}
+
+static const char * convTable[] = {
+	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
+	"UP", "DOWN", "R", "L", "X", "Y"
+};
+
+u32 menuSetupBootKeys(PrintConsole* con, u32 param)
+{
+	const u32 y_center = 7;
+	const u32 y_instr = 21;
+	
+	hidScanInput();
+	u32 kHeld = hidKeysHeld();
+	
+	while (true)
+	{
+		// build button string
+		char button_str[80];
+		char* ptr = button_str;
+		bool first = true;
+		for (u32 i = 0; i < 12; i++)
+		{
+			if (kHeld & (1<<i))
+			{
+				ptr += ee_sprintf(ptr, "%s[%s]", first ? " " : "+", convTable[i]);
+				first = false;
+			}
+		}
+		if (first) // backup solution for no buttons
+			ee_sprintf(ptr, "(no buttons held)");
+		
+		// clear console
+		consoleSelect(con);
+		consoleClear();
+		
+		// draw input block
+		con->cursorY = y_center;
+		ee_printf_line_center("Hold button(s) to setup.");
+		ee_printf_line_center("Currently held buttons:");
+		ee_printf_line_center(button_str);
+		
+		// draw instructions
+		con->cursorY = y_instr;
+		if (configDataExist(KBootOption1Buttons + param))
+		{
+			char* currentSetting =
+				(char*) configCopyText(KBootOption1Buttons + param);
+			ee_printf_line_center("Current: %s", currentSetting);
+			free(currentSetting);
+		}
+		ee_printf_line_center("[HOME] to cancel");
+		
+		// update screens
+		updateScreens();
+		
+		// check hold duration
+		u32 vBlanks = 0;
+		u32 kHeldNew = 0;
+		do
+		{
+			GFX_waitForEvent(GFX_EVENT_PDC0, true);
+			hidScanInput();
+			kHeldNew = hidKeysHeld();
+		} while ((kHeld == kHeldNew) && (++vBlanks < 100));
+		
+		// check keys
+		if (kHeldNew & KEY_HOME)
+		{
+			return 1;
+		}
+		else if ((kHeld == kHeldNew) && (kHeld & 0xfff))
+		{
+			break;
+		}
+		
+		kHeld = kHeldNew;
+	}
+	
+	// if we arrive here, we have a button combo
+	u32 res = (configSetKeyData(KBootOption1Buttons + param, &kHeld)) ? 0 : 1;
+	writeConfigFile();
 	
 	return res;
 }

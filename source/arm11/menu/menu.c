@@ -17,6 +17,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 #include "types.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
@@ -51,7 +52,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 		return;
 	}
 	
-	// word wrap description string
+	// build description string
 	// also handle MENU_FLAG_SLOTS flag
 	char desc_ww[512];
 	if ((curr_menu->flags & MENU_FLAG_SLOTS) && (index < 3) &&
@@ -59,12 +60,23 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	{
 		char slot_path[24+1];
 		truncateString(slot_path, (char*) configGetData(KBootOption1 + index), 24, 8);
-		ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
+		if (configDataExist(KBootOption1Buttons + index))
+		{
+			char* keycombo = (char*) configCopyText(KBootOption1Buttons + index);
+			ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nKeycombo: %s", desc, slot_path, keycombo);
+			free(keycombo);
+		}
+		else
+		{
+			ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
+		}
 	}
 	else
 	{
 		strncpy(desc_ww, desc, 512);
 	}
+	
+	// wordwrap description string
 	stringWordWrap(desc_ww, WORDWRAP_WIDTH);
 	
 	// get width, height

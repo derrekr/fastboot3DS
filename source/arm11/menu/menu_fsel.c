@@ -282,7 +282,7 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 	consoleSetCursor(menu_con, brws_x, brws_y++);
 	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[A]:Choose [B]:Back");
 	consoleSetCursor(menu_con, brws_x, brws_y++);
-	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[R]+[B] to cancel");
+	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[HOME] to cancel");
 }
 
 
@@ -384,8 +384,12 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			hidScanInput();
 			const u32 kDown = hidKeysDown();
 			const u32 kHeld = hidKeysHeld();
-			
-			if ((kDown & KEY_A) && n_entries)
+			if (kDown & KEY_HOME)
+			{
+				result = false;
+				break;
+			}
+			else if ((kDown & KEY_A) && n_entries)
 			{
 				// build new res_path
 				char* name = &(res_path[strlen(res_path)]);
@@ -398,26 +402,17 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				lastname = NULL;
 				break;
 			}
-			else if (kDown & KEY_B)
+			else if ((kDown & KEY_B) && *res_path)
 			{
-				// if R is held alongside: cancel
-				if (kHeld & KEY_R)
-				{
-					result = false;
-					break;
-				}
-				else if (*res_path)
-				{
-					// without R and not in root: return to previous path
-					// (the name of this path will be stored in lastname)
-					lastname = strrchr(res_path, '/');
-					
-					if (lastname)
-						*(lastname++) = '\0';
-					else
-						*res_path = '\0';
-					break;
-				}
+				// if not in root: return to previous path
+				// (the name of this path will be stored in lastname)
+				lastname = strrchr(res_path, '/');
+				
+				if (lastname)
+					*(lastname++) = '\0';
+				else
+					*res_path = '\0';
+				break;
 			}
 			else if (kHeld & (KEY_DDOWN|KEY_DUP|KEY_DLEFT|KEY_DRIGHT) && n_entries)
 			{
