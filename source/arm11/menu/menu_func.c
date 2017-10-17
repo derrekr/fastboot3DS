@@ -21,6 +21,7 @@
 #include <string.h>
 #include "types.h"
 #include "arm11/menu/menu_fsel.h"
+#include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
@@ -33,23 +34,6 @@ void updateScreens(void)
 	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
-}
-
-// doesn't belong in here, either
-u32 ee_printf_line_center(const char *const fmt, ...)
-{
-	char buf[64];
-	va_list args;
-	va_start(args, fmt);
-	ee_vsnprintf(buf, 64, fmt, args);
-	va_end(args);
-	
-	PrintConsole* con = consoleGet();
-	int pad = (con->consoleWidth - strlen(buf)) / 2;
-	if (pad < 0) pad = 0;
-	con->cursorX = 0;
-	
-	return ee_printf("%*.*s%s\n", pad, pad, "", buf);
 }
 
 u32 menuPresetBootMode(void)
@@ -88,16 +72,24 @@ u32 menuSetBootMode(PrintConsole* con, u32 param)
 
 u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 {
+	bool slot = param & 0xF;
 	char res_path[256];
 	char* start = NULL;
 	
-	if (configDataExist(KBootOption1 + param))
-		start = (char*) configGetData(KBootOption1 + param);
+	// if bit4 of param is set, reset slot and return
+	if (param & 0x10)
+		return (configSetKeyData(KBootOption1 + slot, NULL)) ? 0 : 1;
 	
-	menuFileSelector(res_path, con, start, "*.firm");
-	u32 res = (configSetKeyData(KBootOption1 + param, res_path)) ? 0 : 1;
+	if (configDataExist(KBootOption1 + slot))
+		start = (char*) configGetData(KBootOption1 + slot);
 	
-	writeConfigFile();
+	u32 res = 0;
+	if (menuFileSelector(res_path, con, start, "*.firm"))
+	{
+		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
+		writeConfigFile();
+	}
+	
 	return res;
 }
 

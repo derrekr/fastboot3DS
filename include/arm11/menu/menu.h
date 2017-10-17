@@ -28,7 +28,9 @@
 #define MENU_OFFSET_BUTTONS	18
 #define MENU_WIDTH			28
 #define WORDWRAP_WIDTH		58
-	
+
+#define MENU_FLAG_SLOTS		1
+
 #define MENU_EXIT_REBOOT	0
 #define MENU_EXIT_POWEROFF	1
 
@@ -49,6 +51,7 @@ typedef struct {
     char* name;								///< Displayed name on top of the menu.
     u32 n_entries;							///< Number of entries in the menu.
 	u32 (*preset)(void);					///< Returns the preset of the current menu in bitwise format.
+	u32 flags;								///< Used to mark special menus with special handling
     MenuEntry entries[MENU_MAX_ENTRIES];	///< An array of menu entries.
 } MenuInfo;
 

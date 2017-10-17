@@ -19,53 +19,15 @@
 #include <string.h>
 #include "types.h"
 #include "arm11/menu/menu.h"
+#include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
+#include "arm11/config.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
 #include "arm11/power.h"
 #include "hardware/gfx.h"
 
 
-
-u32 stringGetHeight(const char* str) {
-	u32 height = 1;
-	for (char* lf = strchr(str, '\n'); (lf != NULL); lf = strchr(lf + 1, '\n'))
-		height++;
-	return height;
-}
-
-u32 stringGetWidth(const char* str) {
-	u32 width = 0;
-	char* old_lf = (char*) str;
-	char* str_end = (char*) str + strlen(str);
-	for (char* lf = strchr(str, '\n'); lf != NULL; lf = strchr(lf + 1, '\n')) {
-		if ((u32) (lf - old_lf) > width) width = lf - old_lf;
-		old_lf = lf;
-	}
-	if ((u32) (str_end - old_lf) > width)
-		width = str_end - old_lf;
-	return width;
-}
-
-void stringWordWrap(char* str, int llen) {
-	char* last_brk = str - 1;
-	char* last_spc = str - 1;
-	for (char* str_ptr = str;; str_ptr++) {
-		if (!*str_ptr || (*str_ptr == ' ')) { // on space or string_end
-			if (str_ptr - last_brk > llen) { // if maximum line lenght is exceeded
-				if (last_spc > last_brk) { // put a line_brk at the last space
-					*last_spc = '\n';
-					last_brk = last_spc;
-					last_spc = str_ptr;
-				} else if (*str_ptr) { // if we have no applicable space
-					*str_ptr = '\n';
-					last_brk = str_ptr;
-				}
-			} else if (*str_ptr) last_spc = str_ptr;
-		} else if (*str_ptr == '\n') last_brk = str_ptr;
-		if (!*str_ptr) break;
-	}
-}
 
 void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 {
@@ -89,10 +51,20 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 		return;
 	}
 	
-	
 	// word wrap description string
+	// also handle MENU_FLAG_SLOTS flag
 	char desc_ww[512];
-	strncpy(desc_ww, desc, 512);
+	if ((curr_menu->flags & MENU_FLAG_SLOTS) && (index < 3) &&
+		(configDataExist(KBootOption1 + index)))
+	{
+		char slot_path[24+1];
+		truncateString(slot_path, (char*) configGetData(KBootOption1 + index), 24, 8);
+		ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
+	}
+	else
+	{
+		strncpy(desc_ww, desc, 512);
+	}
 	stringWordWrap(desc_ww, WORDWRAP_WIDTH);
 	
 	// get width, height

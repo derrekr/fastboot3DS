@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200, d0k3
@@ -17,13 +15,14 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+ 
 #include "types.h"
-#include "arm11/console.h"
 
-#define BRWS_MAX_ENTRIES	13
-#define BRWS_OFFSET_TITLE	 3
-#define BRWS_OFFSET_BUTTONS	19
-#define BRWS_WIDTH			40
 
-bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern);
+char* mallocpyString(const char* str);
+void truncateString(char* dest, const char* orig, int nsize, int tpos);
+void formatBytes(char* str, u64 bytes);
+u32 stringGetHeight(const char* str);
+u32 stringGetWidth(const char* str);
+void stringWordWrap(char* str, int llen);
+u32 ee_printf_line_center(const char *const fmt, ...);
