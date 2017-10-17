@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "arm11/hardware/hid.h"
+#include "arm11/hardware/i2c.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
 
@@ -127,4 +129,17 @@ u32 ee_printf_line_center(const char *const fmt, ...)
 	con->cursorX = 0;
 	
 	return ee_printf("%*.*s%s\n", pad, pad, "", buf);
+}
+
+// only intended to be ran when the shell is closed
+void sleepmode(void)
+{
+	i2cmcu_lcd_poweroff();
+	while (true) {
+		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+		hidScanInput();
+		if (hidKeysUp() & KEY_SHELL) break;
+	}
+	i2cmcu_lcd_poweron();
+	i2cmcu_lcd_backlight_poweron();
 }

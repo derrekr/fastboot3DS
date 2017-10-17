@@ -155,6 +155,9 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 			GFX_waitForEvent(GFX_EVENT_PDC0, true);
 			hidScanInput();
 			kHeldNew = hidKeysHeld();
+			
+			if(hidGetPowerButton(true)) power_off();
+			else if(hidKeysDown() & KEY_SHELL) sleepmode();
 		} while ((kHeld == kHeldNew) && (++vBlanks < 100));
 		
 		// check keys

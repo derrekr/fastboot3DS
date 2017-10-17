@@ -176,15 +176,17 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 		
 		if(hidGetPowerButton(true)) // handle power button
-		{
 			power_off();
-		}
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
 		// const u32 kHeld = hidKeysHeld();
 		
-		if ((kDown & KEY_A) && (curr_menu->entries[index].function == NULL))
+		if (kDown & KEY_SHELL)
+		{
+			sleepmode();
+		}
+		else if ((kDown & KEY_A) && (curr_menu->entries[index].function == NULL))
 		{
 			// store previous menu and index for return
 			if (menu_lvl < MENU_MAX_DEPTH)
@@ -211,6 +213,13 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			menu_lvl--;
 			curr_menu = prev_menu[menu_lvl];
 			index = prev_index[menu_lvl];
+		}
+		else if ((kDown & KEY_HOME) && (menu_lvl > 0))
+		{
+			// return to HOME menu
+			menu_lvl = 0;
+			curr_menu = prev_menu[0];
+			index = prev_index[0];
 		}
 		else if (kDown & KEY_DDOWN)
 		{

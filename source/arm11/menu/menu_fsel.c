@@ -377,14 +377,17 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			dbutton_cooldown = 0;
 			
 			if(hidGetPowerButton(true)) // handle power button
-			{
 				power_off();
-			}
 			
 			hidScanInput();
 			const u32 kDown = hidKeysDown();
 			const u32 kHeld = hidKeysHeld();
-			if (kDown & KEY_HOME)
+			
+			if (kDown & KEY_SHELL)
+			{
+				sleepmode();
+			}
+			else if (kDown & KEY_HOME)
 			{
 				result = false;
 				break;
