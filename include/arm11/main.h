@@ -20,5 +20,5 @@
 
 
 
-extern volatile bool g_poweroffAllowed;
+extern volatile bool g_continueBootloader;
 extern volatile bool g_startFirmLaunch;

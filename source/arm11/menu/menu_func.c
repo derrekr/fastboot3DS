@@ -16,6 +16,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ 
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,9 +28,29 @@
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/fmt.h"
-#include "arm11/power.h"
+#include "arm11/firm.h"
+#include "arm11/main.h"
 
-// we need a better solution for this later (!!!)
+
+
+void outputEndWait(void)
+{
+	u32 kDown = 0;
+	
+	do
+	{
+		GFX_waitForEvent(GFX_EVENT_PDC0, true);
+		
+		if(hidGetPowerButton(false)) // handle power button
+			break;
+		
+		hidScanInput();
+		kDown = hidKeysDown();
+		if (kDown & (KEY_SHELL)) sleepmode();
+	}
+	while (!(kDown & (KEY_B|KEY_HOME)));
+}
+
 void updateScreens(void)
 {
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
@@ -67,7 +89,6 @@ u32 menuSetBootMode(PrintConsole* con, u32 param)
 	(void) con;
 	u32 res = (configSetKeyData(KBootMode, &param)) ? 0 : 1;
 	
-	writeConfigFile();
 	return res;
 }
 
@@ -80,9 +101,9 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 	// if bit4 of param is set, reset slot and return
 	if (param & 0x10)
 	{
-		u32 res = (configSetKeyData(KBootOption1Buttons + slot, NULL) &&
-			configSetKeyData(KBootOption1 + slot, NULL)) ? 0 : 1;
-		return res;
+		configDeleteKey(KBootOption1Buttons + slot);
+		configDeleteKey(KBootOption1 + slot);
+		return 0;
 	}
 	
 	if (configDataExist(KBootOption1 + slot))
@@ -90,10 +111,7 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 	
 	u32 res = 0;
 	if (menuFileSelector(res_path, con, start, "*.firm"))
-	{
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
-		writeConfigFile();
-	}
 	
 	return res;
 }
@@ -181,49 +199,92 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 	
 	// if we arrive here, we have a button combo
 	u32 res = (configSetKeyData(KBootOption1Buttons + param, &kHeld)) ? 0 : 1;
-	writeConfigFile();
 	
 	return res;
 }
 
-u32 DummyFunc(PrintConsole* con, u32 param)
+u32 menuLaunchFirm(PrintConsole* con, u32 param)
 {
+	char path_store[256];
+	char* path;
+	
+	if (param < 3) // loading from bootslot
+	{
+		// clear console
+		consoleSelect(con);
+		consoleClear();
+	
+		// check if bootslot exists
+		ee_printf("Checking bootslot...\n");
+		if (!configDataExist(KBootOption1 + param))
+		{
+			ee_printf("Bootslot does not exist!\n");
+			goto fail;
+		}
+		path = (char*) configGetData(KBootOption1 + param);
+	}
+	else if (param == 0xFE) // loading from FIRM1
+	{
+		path = "firm1:";
+	}
+	else if (param == 0xFF) // user decision
+	{
+		path = path_store;
+		if (!menuFileSelector(path, con, NULL, "*.firm"))
+			return 1;
+	}
+	
+	// clear console
+	if (param >= 3)
+	{
+		consoleSelect(con);
+		consoleClear();
+	}
+	
+	// try load and verify
+	ee_printf("\nLoading %s...\n", path);
+	s32 res = loadVerifyFirm(path, false);
+	if (res != 0)
+	{
+		ee_printf("Firm %s error code %li!\n", (res > -8) ? "load" : "verify", res);
+		goto fail;
+	}
+	
+	ee_printf("\nFirm load success, launching firm..."); // <-- you will never see this
+	g_startFirmLaunch = true;
+	
+	return 0;
+	
+	fail:
+	
+	ee_printf("\nFirm launcher failed.\n\nPress B or HOME to return.");
+	updateScreens();
+	outputEndWait();
+	
+	return 1;
+}
+
+u32 menuContinueBoot(PrintConsole* con, u32 param)
+{
+	// all the relevant stuff handled outside
+	(void) con;
+	(void) param;
+	g_continueBootloader = true;
+	return 0;
+}
+
+u32 menuDummyFunc(PrintConsole* con, u32 param)
+{
+	(void) param;
+	
 	// clear console
 	consoleSelect(con);
 	consoleClear();
 	
 	// print something
-	ee_printf("Hello! I'm a dummy function.\nparam was %lu\n\nPress B to quit.\n\n", param);
+	ee_printf("\nThis is not implemented yet.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.");
 	updateScreens();
-	
-	// wait for B button
-	do
-	{
-		if(hidGetPowerButton(false)) // handle power button
-		{
-			ee_printf("POWER button pressed.\nPress A to confirm cancel & poweroff.\n");
-			updateScreens();
-			
-			do
-			{
-				hidScanInput();
-			}
-			while (!(hidKeysDown() & (KEY_A|KEY_B)));
-			
-			if (hidKeysDown() & KEY_B)
-			{
-				ee_printf("POWER off canceled, continuing...\n\n");
-				updateScreens();
-				hidGetPowerButton(true);
-			}
-			else
-			{
-				return 1;
-			}
-		}
-		hidScanInput();
-	}
-	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
+	outputEndWait();
 
 	return 0;
 }
@@ -257,8 +318,9 @@ u32 SetView(PrintConsole* con, u32 param)
 	// wait for B / HOME button
 	do
 	{
+		GFX_waitForEvent(GFX_EVENT_PDC0, true);
 		if(hidGetPowerButton(false)) // handle power button
-			return 1;
+			return 0;
 		
 		hidScanInput();
 	}
@@ -267,7 +329,7 @@ u32 SetView(PrintConsole* con, u32 param)
 	return 0;
 }
 
-u32 ShowCredits(PrintConsole* con, u32 param)
+u32 menuShowCredits(PrintConsole* con, u32 param)
 {
 	(void) param;
 	
@@ -295,18 +357,8 @@ u32 ShowCredits(PrintConsole* con, u32 param)
 	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
 
-	// wait for B button or HOME button
-	u32 kDown = 0;
-	do
-	{
-		if(hidGetPowerButton(false)) // handle power button
-			return 0;
-		
-		hidScanInput();
-		kDown = hidKeysDown();
-		if (kDown & (KEY_SHELL)) sleepmode();
-	}
-	while (!(kDown & (KEY_B|KEY_HOME)));
+	// wait for user
+	outputEndWait();
 	
 	return 0;
 }

@@ -75,9 +75,9 @@ MenuInfo menu_fb3ds[] =
 	{
 		"Main Menu", 6, NULL, 0, 
 		{
-			{ "Continue boot",				DESC_CONTINUE,				&DummyFunc,				0 },
+			{ "Continue boot",				DESC_CONTINUE,				&menuContinueBoot,		0 },
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
-			{ "Boot from file...",			DESC_BOOT_FILE,				&DummyFunc,				2 },
+			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
 			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					7 },
 			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					8 },
 			{ "Debug...",					LOREM,	    				NULL,					9 }
@@ -86,10 +86,10 @@ MenuInfo menu_fb3ds[] =
 	{ // 1
 		"Boot Menu", 5, &menuPresetBootSlot, MENU_FLAG_SLOTS,
 		{
-			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&DummyFunc,				0x00 },
-			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&DummyFunc,				0x01 },
-			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&DummyFunc,				0x02 },
-			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&DummyFunc,				0xFF },
+			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
+			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
+			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 },
+			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE },
 			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 }
 			
 		}
@@ -117,17 +117,17 @@ MenuInfo menu_fb3ds[] =
 	{ // 7
 		"NAND Tools", 4, NULL, 0,
 		{
-			{ "Backup NAND",				DESC_NAND_BACKUP,			&DummyFunc,				3 },
-			{ "Restore NAND",				DESC_NAND_RESTORE,			&DummyFunc,				4 },
-			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&DummyFunc,				4 },
-			{ "Flash firmware",				DESC_FIRM_FLASH,			&DummyFunc,				2 }
+			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,				3 },
+			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,				4 },
+			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,				4 },
+			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,				2 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&DummyFunc,				1 },
-			{ "Credits",					DESC_CREDITS,				&ShowCredits,			0 }
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,				1 },
+			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
 	{ // 9

@@ -16,6 +16,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
@@ -25,6 +27,7 @@
 #include "arm11/config.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+#include "arm11/main.h"
 #include "hardware/gfx.h"
 
 
@@ -157,7 +160,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 last_index = (u32) -1;
 	
 	// main menu processing loop
-	while (true) {
+	while (!g_startFirmLaunch && !g_continueBootloader) {
 		// update menu and description (on demand)
 		if ((index != last_index) || (curr_menu != last_menu)) {
 			menuDraw(curr_menu, menu_con, index);
@@ -171,7 +174,8 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		}
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 		
-		if(hidGetPowerButton(true)) // handle power button
+		// handle power button
+		if(hidGetPowerButton(true))
 			break; // deinits & poweroff outside of this function
 		
 		hidScanInput();

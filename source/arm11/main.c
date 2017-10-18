@@ -33,76 +33,94 @@
 #include "arm11/config.h"
 
 
-volatile bool g_poweroffAllowed = true;
+volatile bool g_continueBootloader = true;
 volatile bool g_startFirmLaunch = false;
 
 
 
 int main(void)
 {
+	// init hardware / filesystem / load config
 	hardwareInit();
-
-	GFX_init();
-
-	// init menu console
-	PrintConsole menu_con;
-	consoleInit(SCREEN_SUB, &menu_con, false);
-
-	// init description console
-	PrintConsole desc_con;
-	consoleInit(SCREEN_TOP, &desc_con, false);
-	
-	// init filesystem
 	fsMountSdmc();
 	fsMountNandFilesystems();
-	
-	// load/create config file
 	loadConfigFile();
-
-	// run menu
-	menuProcess(&menu_con, &desc_con, menu_fb3ds);
 	
-	// take over any changes to the config
-	writeConfigFile();
+	// check keys held at boot
+	hidScanInput();
+	u32 kHeld = hidKeysHeld();
+	
+	// boot slot keycombo held?
+	if (kHeld & 0xfff)
+	{
+		for(u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+		{
+			if(!configDataExist(KBootOption1 + i) ||
+				!configDataExist(KBootOption1Buttons + i))
+				continue;
+			
+			u32 combo = *(u32*) configGetData(KBootOption1Buttons + i);
+			if((kHeld & 0xfff) == combo)
+			{
+				char* path = (char*) configGetData(KBootOption1 + i);
+				g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0);
+			}
+		}
+	}
+	
+	// get bootmode from config
+	u32 bootmode = BootModeNormal;
+	if(configDataExist(KBootMode))
+		bootmode = *(u32*) configGetData(KBootMode);
 
-	// deinit filestesystem
+	// menu specific code
+	// HOME button detection may not work yet
+	// if(!g_startFirmLaunch && ((bootmode == BootModeNormal) || (kHeld & KEY_HOME)))
+	if(!g_startFirmLaunch)
+	{
+		// init screens
+		GFX_init();
+		
+		// init menu console
+		PrintConsole menu_con;
+		consoleInit(SCREEN_SUB, &menu_con, false);
+
+		// init description console
+		PrintConsole desc_con;
+		consoleInit(SCREEN_TOP, &desc_con, false);
+
+		// run menu
+		g_continueBootloader = false;
+		menuProcess(&menu_con, &desc_con, menu_fb3ds);
+		
+		// write config (if something changed)
+		if (configHasChanged()) writeConfigFile();
+		
+		// deinit GFX
+		GFX_deinit();
+	}
+	
+	// search for a bootable firmware (all slots)
+	if (g_continueBootloader && !g_startFirmLaunch)
+	{
+		for(u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+		{
+			if(!configDataExist(KBootOption1 + i))
+				continue;
+			
+			char* path = (char*) configGetData(KBootOption1 + i);
+			g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0);
+		}
+	}
+	
+	// deinit filesystem
 	fsUnmountAll();
 
+	// firm launch
+	if(g_startFirmLaunch) firmLaunch();
+	
 	// power off
-	if(g_poweroffAllowed) power_off();
-
-	/*while(!g_startFirmLaunch)
-	{
-		waitForInterrupt();
-
-		hidScanInput();
-		const u32 kDown = hidKeysDown();
-		const u32 kUp = hidKeysUp();
-
-		if(hidGetPowerButton(true))
-		{
-			if(g_poweroffAllowed) power_off();
-			PXI_trySendWord(PXI_RPL_POWER_PRESSED);
-		}
-
-		if(kDown & KEY_HOME) PXI_trySendWord(PXI_RPL_HOME_PRESSED);
-		if(kDown & KEY_SHELL) i2cmcu_lcd_poweroff();
-		if(kUp & KEY_SHELL)
-		{
-			i2cmcu_lcd_poweron();
-			i2cmcu_lcd_backlight_poweron();
-		}
-
-
-		u8 hidstate = i2cmcu_readreg_hid_held();
-		
-		if(!(hidstate & MCU_HID_HOME_BUTTON_NOT_HELD))
-			PXI_trySendWord(PXI_RPL_HOME_HELD);
-	}
-
-	GFX_deinit(); // TODO: Let ARM9 decide when to deinit gfx
-
-	firm_launch();*/
-
+	power_off();
+	
 	return 0;
 }
