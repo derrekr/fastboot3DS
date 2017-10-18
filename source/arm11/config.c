@@ -306,10 +306,19 @@ static char *findDefinition(const char *attrName)
 	return start;
 }
 
+static inline bool isEOL(const char c)
+{
+	static const char LF = 0x0A, CR = 0x0D, NEL = 0x15;
+	
+	if(c == LF || c == CR || c == NEL)
+		return true;
+	
+	return false;
+}
+
 /* returns the length of an attribute's data. */
 static u32 parseDefinition(char *attrData)
 {
-	static const char LF = 0x0A, CR = 0x0D, NEL = 0x15;
 	u32 len = 0;
 	char *cur = attrData;
 	char c;
@@ -320,7 +329,7 @@ static u32 parseDefinition(char *attrData)
 	// look for linebreaks that mark the end of a definition
 	for(; (c = *cur) != '\0'; cur++)
 	{
-		if(c == LF || c == CR || c == NEL)
+		if(isEOL(c))
 			break;
 		len ++;
 		c = *cur;
@@ -429,6 +438,7 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 			
 			memcpy_s(filebuf, MAX_FILE_SIZE + 1, textData - filebuf + newLen,
 						tempBuf, backupLen, 0, false);
+			free(tempBuf);
 		}
 		else
 		{
@@ -462,6 +472,56 @@ static void writeAttributeText(AttributeEntryType *attr, const char *newText, in
 	{
 		attr->textLength = writeUpdateDefinitionText(attr->textData, attr->textLength, newText);
 	}
+}
+
+static bool removeDefinition(AttributeEntryType *attr)
+{
+	const char *attrText = attr->textData;
+	const size_t attrLength = attr->textLength;
+	char *p = (char *)attrText;
+	char *lineBegin;
+	char *lineEnd;
+	char c;
+	
+	if(!attrText || !attrLength)
+		return false;
+	
+	/* go back and find the beginning of the key string */
+	
+	do
+	{
+		c = *p--;
+		if(isEOL(c))
+			break;
+	} while(p > filebuf);
+	
+	lineBegin = isEOL(c) ?	p + 1 : p;
+	
+	
+	/* find the end of this line */
+	
+	p = (char *)attrText;
+	
+	do
+	{
+		c = *p++;
+		if(isEOL(c))
+			break;
+	} while(c);
+	
+	if(c == '\0')
+		lineEnd = p - 1;
+	else
+	{
+		if(isEOL(*p))
+			lineEnd = p + 1;
+		else lineEnd = p;
+	}
+	
+	if(writeUpdateDefinitionText(lineBegin, lineEnd - lineBegin, "") != 0)
+		return false;
+	
+	return true;
 }
 
 static bool isValidPath(const char *path)
@@ -797,7 +857,7 @@ bool configSetKeyData(int key, const void *data)
 		return false;
 	
 	if(key < 0 || key >= KLast)
-		return NULL;
+		return false;
 	
 	attr = &attributes[key];
 	
@@ -819,6 +879,32 @@ void configRestoreDefaults()
 		else
 			configSetKeyData(key, "");
 	}
+}
+
+
+bool configDeleteKey(int key)
+{
+	AttributeEntryType *attr;
+	
+	if(!configLoaded)
+		return false;
+
+	if(key < 0 || key >= KLast)
+		return false;
+	
+	attr = &attributes[key];
+	
+	if(removeDefinition(attr))
+	{
+		free(attr->data);
+		attr->data = NULL;
+		attr->textData = NULL;
+		attr->textLength = 0;
+		
+		return true;
+	}
+	
+	return false;
 }
 
 bool configDevModeEnabled()

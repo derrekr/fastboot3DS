@@ -51,4 +51,5 @@ bool configDataExist(int key);
 const char *configGetKeyText(int key);
 bool configSetKeyData(int key, const void *data);
 void configRestoreDefaults();
+bool configDeleteKey(int key);
 bool configDevModeEnabled();
