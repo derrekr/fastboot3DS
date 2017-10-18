@@ -77,6 +77,13 @@ u32 hidGetWifiButton(bool resetState)
 	return tmp>>2;
 }
 
+bool hidIsHomeButtonHeldRaw(void)
+{
+	u8 buf[19];
+	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, buf, 19)) return false;
+	return !(buf[18] & 1u<<1);
+}
+
 void hidScanInput(void)
 {
 	u32 kOld = kHeld;
