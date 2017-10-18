@@ -29,7 +29,6 @@
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/console.h"
-#include "arm11/power.h"
 #include "arm11/debug.h"
 #include "arm11/fmt.h"
 
@@ -353,7 +352,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		}
 		
 		u32 dbutton_cooldown = 0;
-		while(true)
+		while(result)
 		{
 			// update file browser (on demand)
 			if (index != last_index) {
@@ -376,8 +375,9 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			}
 			dbutton_cooldown = 0;
 			
-			if(hidGetPowerButton(true)) // handle power button
-				power_off();
+			// handle power button
+			if(hidGetPowerButton(false))
+				result = false;
 			
 			hidScanInput();
 			const u32 kDown = hidKeysDown();
@@ -390,7 +390,6 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			else if (kDown & KEY_HOME)
 			{
 				result = false;
-				break;
 			}
 			else if ((kDown & KEY_A) && n_entries)
 			{

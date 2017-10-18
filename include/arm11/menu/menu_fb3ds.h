@@ -80,7 +80,7 @@ MenuInfo menu_fb3ds[] =
 			{ "Boot from file...",			DESC_BOOT_FILE,				&DummyFunc,				2 },
 			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					7 },
 			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					8 },
-			{ "Debug...",					"Debug menu.",	    		NULL,					9 }
+			{ "Debug...",					LOREM,	    				NULL,					9 }
 		}
 	},
 	{ // 1
@@ -133,7 +133,7 @@ MenuInfo menu_fb3ds[] =
 	{ // 9
 		"Debug", 1, NULL, 0, // this will not show in the release version
 		{
-			{ "View current settings",		"View current settings",	&SetView,				0 }
+			{ "View current settings",		LOREM,						&SetView,				0 }
 		}
 	}
 };

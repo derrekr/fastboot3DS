@@ -26,6 +26,7 @@
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/fmt.h"
+#include "arm11/power.h"
 
 // we need a better solution for this later (!!!)
 void updateScreens(void)
@@ -78,7 +79,11 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 	
 	// if bit4 of param is set, reset slot and return
 	if (param & 0x10)
-		return (configSetKeyData(KBootOption1 + slot, NULL)) ? 0 : 1;
+	{
+		u32 res = (configSetKeyData(KBootOption1Buttons + slot, NULL) &&
+			configSetKeyData(KBootOption1 + slot, NULL)) ? 0 : 1;
+		return res;
+	}
 	
 	if (configDataExist(KBootOption1 + slot))
 		start = (char*) configGetData(KBootOption1 + slot);
@@ -121,7 +126,7 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 			}
 		}
 		if (first) // backup solution for no buttons
-			ee_sprintf(ptr, "(no buttons held)");
+			ee_sprintf(ptr, "(no buttons)");
 		
 		// clear console
 		consoleSelect(con);
@@ -147,29 +152,30 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 		// update screens
 		updateScreens();
 		
-		// check hold duration
-		u32 vBlanks = 0;
+		// check for buttons until held for ~1.5sec
 		u32 kHeldNew = 0;
 		do
 		{
-			GFX_waitForEvent(GFX_EVENT_PDC0, true);
-			hidScanInput();
-			kHeldNew = hidKeysHeld();
+			// check hold duration
+			u32 vBlanks = 0;
+			do
+			{
+				GFX_waitForEvent(GFX_EVENT_PDC0, true);
+				if(hidGetPowerButton(false)) return 1;
+				
+				hidScanInput();
+				kHeldNew = hidKeysHeld();
+				if(hidKeysDown() & KEY_SHELL) sleepmode();
+			}
+			while ((kHeld == kHeldNew) && (++vBlanks < 100));
 			
-			if(hidGetPowerButton(true)) power_off();
-			else if(hidKeysDown() & KEY_SHELL) sleepmode();
-		} while ((kHeld == kHeldNew) && (++vBlanks < 100));
-		
-		// check keys
-		if (kHeldNew & KEY_HOME)
-		{
-			return 1;
+			// check HOME key
+			if (kHeldNew & KEY_HOME) return 1;
 		}
-		else if ((kHeld == kHeldNew) && (kHeld & 0xfff))
-		{
-			break;
-		}
+		while (!((kHeld|kHeldNew) & 0xfff));
+		// repeat checks until actual buttons are held
 		
+		if (kHeld == kHeldNew) break;
 		kHeld = kHeldNew;
 	}
 	
@@ -217,7 +223,7 @@ u32 DummyFunc(PrintConsole* con, u32 param)
 		}
 		hidScanInput();
 	}
-	while (!(hidKeysDown() & KEY_B));
+	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
 
 	return 0;
 }
@@ -248,16 +254,15 @@ u32 SetView(PrintConsole* con, u32 param)
 	}
 	updateScreens();
 	
-	// wait for B button
+	// wait for B / HOME button
 	do
 	{
 		if(hidGetPowerButton(false)) // handle power button
-		{
 			return 1;
-		}
+		
 		hidScanInput();
 	}
-	while (!(hidKeysDown() & KEY_B));
+	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
 	
 	return 0;
 }
@@ -290,16 +295,18 @@ u32 ShowCredits(PrintConsole* con, u32 param)
 	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
 
-	// wait for B button
+	// wait for B button or HOME button
+	u32 kDown = 0;
 	do
 	{
 		if(hidGetPowerButton(false)) // handle power button
-		{
-			return 1;
-		}
+			return 0;
+		
 		hidScanInput();
+		kDown = hidKeysDown();
+		if (kDown & (KEY_SHELL)) sleepmode();
 	}
-	while (!(hidKeysDown() & KEY_B));
+	while (!(kDown & (KEY_B|KEY_HOME)));
 	
 	return 0;
 }

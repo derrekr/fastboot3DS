@@ -25,7 +25,6 @@
 #include "arm11/config.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
-#include "arm11/power.h"
 #include "hardware/gfx.h"
 
 
@@ -61,7 +60,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 		if (configDataExist(KBootOption1Buttons + index))
 		{
 			char* keycombo = (char*) configCopyText(KBootOption1Buttons + index);
-			ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nKeycombo: %s", desc, slot_path, keycombo);
+			ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nButtons: %s", desc, slot_path, keycombo);
 			free(keycombo);
 		}
 		else
@@ -173,7 +172,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 		
 		if(hidGetPowerButton(true)) // handle power button
-			power_off();
+			break; // deinits & poweroff outside of this function
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
