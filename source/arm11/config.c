@@ -101,6 +101,7 @@ static AttributeEntryType attributes[numKeys];
 static char *filebuf = NULL;
 
 static bool configLoaded = false;
+static bool configDirty = false;
 
 /* This loads the config file from SD card or eMMC and parses it */
 bool loadConfigFile()
@@ -111,6 +112,8 @@ bool loadConfigFile()
 	
 	if(configLoaded)
 		unloadConfigFile();
+	
+	configDirty = false;
 	
 	// first, try SD card fatfs
 	if(true) // !!! if(bootInfo.sd_status == 2)
@@ -213,6 +216,11 @@ static void unloadConfigFile()
 		free(filebuf);
 		filebuf = NULL;
 	}
+}
+
+bool configHasChanged()
+{
+	return configDirty;
 }
 
 bool writeConfigFile()
@@ -864,7 +872,13 @@ bool configSetKeyData(int key, const void *data)
 	if(!keyFunctions[key].write)
 		panicMsg("Unimplemented key function!");
 	
-	return keyFunctions[key].write(attr, data, key);
+	if(keyFunctions[key].write(attr, data, key))
+	{
+		configDirty = true;
+		return true;
+	}
+	
+	return false;
 }
 
 void configRestoreDefaults()
@@ -879,6 +893,8 @@ void configRestoreDefaults()
 		else
 			configSetKeyData(key, "");
 	}
+	
+	configDirty = true;
 }
 
 
@@ -900,6 +916,8 @@ bool configDeleteKey(int key)
 		attr->data = NULL;
 		attr->textData = NULL;
 		attr->textLength = 0;
+		
+		configDirty = true;
 		
 		return true;
 	}
