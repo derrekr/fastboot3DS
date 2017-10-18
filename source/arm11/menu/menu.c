@@ -55,21 +55,48 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	// build description string
 	// also handle MENU_FLAG_SLOTS flag
 	char desc_ww[512];
-	if ((curr_menu->flags & MENU_FLAG_SLOTS) && (index < 3) &&
-		(configDataExist(KBootOption1 + index)))
+	if (curr_menu->flags & 0xF) // includes all known flags
 	{
-		char slot_path[24+1];
-		truncateString(slot_path, (char*) configGetData(KBootOption1 + index), 24, 8);
-		if (configDataExist(KBootOption1Buttons + index))
+		// flags only concern descriptions right now
+		char slot_path_store[24+1];
+		char* slot_path = NULL;
+		char* keycombo = NULL;
+		u32 flags = curr_menu->flags;
+		u32 slot = (flags & MENU_FLAG_SLOTS) ? index :
+			(flags & MENU_FLAG_SLOT(1)) ? 0 :
+			(flags & MENU_FLAG_SLOT(2)) ? 1 :
+			(flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
+		
+		if (slot < 3)
 		{
-			char* keycombo = (char*) configCopyText(KBootOption1Buttons + index);
-			ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nButtons: %s", desc, slot_path, keycombo);
-			free(keycombo);
-		}
-		else
-		{
-			ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
-		}
+			if(configDataExist(KBootOption1 + slot))
+			{
+				slot_path = slot_path_store;
+				truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
+			}
+			
+			if (configDataExist(KBootOption1Buttons + slot))
+				keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
+			
+			if (flags & MENU_FLAG_SLOTS)
+			{
+				if (slot_path && keycombo)
+					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nButtons: %s", desc, slot_path, keycombo);
+				else if (slot_path)
+					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
+				else strncpy(desc_ww, desc, 512);
+			}
+			else
+			{
+				if (((index == 0) || (index == 2)) && slot_path)
+					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
+				else if ((index == 1) && keycombo)
+					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, keycombo);
+				else strncpy(desc_ww, desc, 512);
+			}
+			
+			if (keycombo) free(keycombo);
+		} else strncpy(desc_ww, desc, 512);
 	}
 	else
 	{

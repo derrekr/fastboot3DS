@@ -30,6 +30,7 @@
 #define WORDWRAP_WIDTH		58
 
 #define MENU_FLAG_SLOTS		1
+#define MENU_FLAG_SLOT(x)	(1<<x)
 
 /**
  * @brief Menu entry description struct, used by MenuInfo.
