@@ -31,7 +31,7 @@
 #define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
 
 
-static u32 kHeld, kDown, kUp, homeShellState, powerWifiState;
+static u32 kHeld = 0, kDown = 0, kUp = 0, homeShellState = 0, powerWifiState = 0;
 
 
 
