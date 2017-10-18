@@ -75,8 +75,7 @@ int main(void)
 
 	// menu specific code
 	// HOME button detection may not work yet
-	// if(!g_startFirmLaunch && ((bootmode == BootModeNormal) || (kHeld & KEY_HOME)))
-	if(!g_startFirmLaunch)
+	if(!g_startFirmLaunch && ((bootmode == BootModeNormal) || hidIsHomeButtonHeldRaw()))
 	{
 		// init screens
 		GFX_init();
