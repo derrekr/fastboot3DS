@@ -252,7 +252,8 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 		}
 	}
 
-	// TODO: argc/v stuff
+	((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[0] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7474));
+	strncpy_s((void*)(ITCM_KERNEL_MIRROR + 0x7474), path, 256, 256);
 
 	return 0;
 }
