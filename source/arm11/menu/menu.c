@@ -48,9 +48,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// done if no description available
 	if (!name || !desc)
-	{
 		return;
-	}
 	
 	// build description string
 	// also handle MENU_FLAG_SLOTS flag
@@ -158,7 +156,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 menu_lvl = 0;
 	u32 index = 0;
 	u32 last_index = (u32) -1;
-	u32 result = MENU_EXIT_REBOOT;
 	
 	// main menu processing loop
 	while (true) {
@@ -218,8 +215,8 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// return to HOME menu
 			menu_lvl = 0;
-			curr_menu = prev_menu[0];
-			index = prev_index[0];
+			curr_menu = info;
+			index = 0;
 		}
 		else if (kDown & KEY_DDOWN)
 		{
@@ -230,13 +227,8 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// cursor up
 			index = (index == 0) ? curr_menu->n_entries - 1 : index - 1;
-		} 
-		/*if (kDown & KEY_START)
-		{
-			result = (kHeld & KEY_DLEFT) ? MENU_EXIT_POWEROFF : MENU_EXIT_REBOOT;
-			break;
-		}*/
+		}
 	}
 
-	return result;
+	return 0;
 }

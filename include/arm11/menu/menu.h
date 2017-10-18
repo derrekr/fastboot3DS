@@ -31,9 +31,6 @@
 
 #define MENU_FLAG_SLOTS		1
 
-#define MENU_EXIT_REBOOT	0
-#define MENU_EXIT_POWEROFF	1
-
 /**
  * @brief Menu entry description struct, used by MenuInfo.
  */
