@@ -20,9 +20,9 @@
 #include <string.h>
 #include "types.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/hardware/i2c.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+#include "arm11/hardware/interrupt.h"
 
 
 char* mallocpyString(const char* str)
@@ -134,12 +134,11 @@ u32 ee_printf_line_center(const char *const fmt, ...)
 // only intended to be ran when the shell is closed
 void sleepmode(void)
 {
-	i2cmcu_lcd_poweroff();
-	while (true) {
-		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+	GFX_enterLowPowerState();
+	do
+	{
+		__wfi();
 		hidScanInput();
-		if (hidKeysUp() & KEY_SHELL) break;
-	}
-	i2cmcu_lcd_poweron();
-	i2cmcu_lcd_backlight_poweron();
+	} while(!(hidKeysUp() & KEY_SHELL));
+	GFX_returnFromLowPowerState();
 }

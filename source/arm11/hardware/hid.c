@@ -80,7 +80,7 @@ u32 hidGetWifiButton(bool resetState)
 void hidScanInput(void)
 {
 	u32 kOld = kHeld;
-	const u32 tmpKHeld = homeShellState | REG_HID_PAD;
+	u32 tmpKHeld = homeShellState | REG_HID_PAD;
 	kHeld = tmpKHeld;
 	kDown = (~kOld) & tmpKHeld;
 	kUp = kOld & (~tmpKHeld);

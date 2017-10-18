@@ -67,5 +67,7 @@ void* GFX_getFramebuffer(u8 screen);
 void GFX_swapFramebufs(void);
 void GFX_waitForEvent(GfxEvent event, bool discard);
 void GFX_init(void);
+void GFX_enterLowPowerState(void);
+void GFX_returnFromLowPowerState(void);
 void GFX_deinit(void);
 #endif
