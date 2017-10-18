@@ -25,10 +25,10 @@
 #include "util.h"
 #include "fsutils.h"
 #include "arm11/menu/menu_fsel.h"
+#include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/console.h"
-#include "arm11/power.h"
 #include "arm11/debug.h"
 #include "arm11/fmt.h"
 
@@ -41,55 +41,6 @@ typedef struct {
 	char* fname;	// filename (handle via malloc)
 } DirBufferEntry;
 
-
-static char* mallocpyString(const char* str)
-{
-	u32 strsize = strlen(str) + 1;
-	char* astr = (char*) malloc(strsize);
-	
-	if (astr) strncpy(astr, str, strsize);
-	return astr;
-}
-
-
-void truncateString(char* dest, const char* orig, int nsize, int tpos)
-{
-    int osize = strlen(orig);
-	
-    if (nsize < 0)
-	{
-        return;
-    } else if (nsize <= 3)
-	{
-        ee_snprintf(dest, nsize, orig);
-    } else if (nsize >= osize)
-	{
-        ee_snprintf(dest, nsize + 1, orig);
-    } else
-	{
-        if (tpos + 3 > nsize) tpos = nsize - 3;
-        ee_snprintf(dest, nsize + 1, "%-.*s...%-.*s", tpos, orig, nsize - (3 + tpos), orig + osize - (nsize - (3 + tpos)));
-    }
-}
-
-
-void formatBytes(char* str, u64 bytes)
-{
-	// str should be 32 byte in size, just to be safe
-    const char* units[] = {"  Byte", " kiB", " MiB", " GiB"};
-    
-    if (bytes < 1024)
-	{
-		ee_snprintf(str, 32, "%llu%s", bytes, units[0]);
-	}
-    else
-	{
-        u32 scale = 1;
-        u64 bytes100 = (bytes * 100) >> 10;
-        for(; (bytes100 >= 1024*100) && (scale < 3); scale++, bytes100 >>= 10);
-        ee_snprintf(str, 32, "%llu.%llu%s", bytes100 / 100, (bytes100 % 100) / 10, units[scale]);
-    }
-}
 
 
 // inspired by http://www.geeksforgeeks.org/wildcard-character-matching/
@@ -191,12 +142,7 @@ static void sortDirBuffer(DirBufferEntry* dir_buffer, s32 n_entries)
 
 static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const char* pattern)
 {
-	FsFileInfo* finfo = (FsFileInfo*) malloc(N_DIR_READ * sizeof(FsFileInfo));
 	s32 n_entries = 0;
-	s32 dhandle;
-	
-	if (!finfo) // out of memory
-		return -1;
 	
 	// set dir_buffer to all zeroes
 	memset(dir_buffer, 0, sizeof(DirBufferEntry) * MAX_DIR_ENTRIES);
@@ -218,15 +164,16 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 	}
 
 	// open directory
-	dhandle = fOpenDir(path);
+	s32 dhandle = fOpenDir(path);
 	if(dhandle < 0)
-	{
-		free(finfo);
 		return -1;
-	}
-	
+    
+	FsFileInfo* finfo = (FsFileInfo*) malloc(N_DIR_READ * sizeof(FsFileInfo));
+	if (!finfo) // out of memory
+		return -1;
+        
 	s32 n_read = 0;
-	while((n_read = fReadDir(dhandle, finfo, N_DIR_READ)) > 0)
+	while((n_read = fReadDir(dhandle, finfo, N_DIR_READ)) != 0)
 	{
 		if (n_read < 0) // error reading dir
 			goto fail;
@@ -333,6 +280,8 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 	brws_y = BRWS_OFFSET_BUTTONS;
 	consoleSetCursor(menu_con, brws_x, brws_y++);
 	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[A]:Choose [B]:Back");
+	consoleSetCursor(menu_con, brws_x, brws_y++);
+	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[HOME] to cancel");
 }
 
 
@@ -378,7 +327,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	}
 	
 	bool is_dir = true; // we are not finished while we have a dir in res_path
-	while(is_dir)
+	while(is_dir && result)
 	{
 		s32 n_entries = readDirToBuffer(dir_buffer, res_path, pattern);
 		s32 last_index = (u32) -1;
@@ -403,7 +352,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		}
 		
 		u32 dbutton_cooldown = 0;
-		while(true)
+		while(result)
 		{
 			// update file browser (on demand)
 			if (index != last_index) {
@@ -426,16 +375,23 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			}
 			dbutton_cooldown = 0;
 			
-			if(hidGetPowerButton(true)) // handle power button
-			{
-				power_off();
-			}
+			// handle power button
+			if(hidGetPowerButton(false))
+				result = false;
 			
 			hidScanInput();
 			const u32 kDown = hidKeysDown();
 			const u32 kHeld = hidKeysHeld();
 			
-			if ((kDown & KEY_A) && n_entries)
+			if (kDown & KEY_SHELL)
+			{
+				sleepmode();
+			}
+			else if (kDown & KEY_HOME)
+			{
+				result = false;
+			}
+			else if ((kDown & KEY_A) && n_entries)
 			{
 				// build new res_path
 				char* name = &(res_path[strlen(res_path)]);
@@ -450,7 +406,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			}
 			else if ((kDown & KEY_B) && *res_path)
 			{
-				// return to previous path
+				// if not in root: return to previous path
 				// (the name of this path will be stored in lastname)
 				lastname = strrchr(res_path, '/');
 				

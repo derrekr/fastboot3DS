@@ -31,7 +31,7 @@
 #define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
 
 
-static u32 kHeld, kDown, kUp, homeShellState, powerWifiState;
+static vu32 kHeld = 0, kDown = 0, kUp = 0, homeShellState = 0, powerWifiState = 0;
 
 
 
@@ -47,36 +47,43 @@ static void hidIrqHandler(UNUSED u32 intSource)
 {
 	const u32 state = (u32)i2cmcu_readreg_hid_irq();
 
-	powerWifiState |= state & 3;
-	powerWifiState |= state>>2 & 4;
+	u32 tmp = powerWifiState;
+	tmp |= state & 3;
+	tmp |= state>>2 & 4;
+	powerWifiState = tmp;
 
-	homeShellState |= (state & 4)<<19;
-	homeShellState |= (state & 0x20)<<17;
+	tmp = homeShellState;
+	tmp |= (state & 4)<<19;
+	tmp |= (state & 0x20)<<17;
 
-	if(homeShellState & KEY_HOME) homeShellState ^= (state & 8)<<18;
-	if(homeShellState & KEY_SHELL) homeShellState ^= (state & 0x40)<<16;
+	if(tmp & KEY_HOME) tmp ^= (state & 8)<<18;
+	if(tmp & KEY_SHELL) tmp ^= (state & 0x40)<<16;
+	homeShellState = tmp;
 }
 
 u32 hidGetPowerButton(bool resetState)
 {
 	u32 tmp = powerWifiState;
-	if(resetState) powerWifiState &= ~3;
+	// Mask out power button pressed and long pressed and keep WiFi button state.
+	if(resetState) powerWifiState &= 4;
 	return tmp & 3;
 }
 
 u32 hidGetWifiButton(bool resetState)
 {
 	u32 tmp = powerWifiState;
-	if(resetState) powerWifiState &= ~4;
+	// Mask out WiFi button and keep power button states.
+	if(resetState) powerWifiState &= 3;
 	return tmp>>2;
 }
 
 void hidScanInput(void)
 {
 	u32 kOld = kHeld;
-	kHeld = homeShellState | REG_HID_PAD;
-	kDown = (~kOld) & kHeld;
-	kUp = kOld & (~kHeld);
+	u32 tmpKHeld = homeShellState | REG_HID_PAD;
+	kHeld = tmpKHeld;
+	kDown = (~kOld) & tmpKHeld;
+	kUp = kOld & (~tmpKHeld);
 }
 
 u32 hidKeysHeld(void)

@@ -33,7 +33,7 @@
 #include "arm11/config.h"
 #include "arm11/fmt.h"
 
-#define MAX_FILE_SIZE	0x4000 - 1
+#define MAX_FILE_SIZE	(0x4000 - 1)
 
 static const char *SdmcFilepath = "sdmc:/3ds/fastbootcfg.txt";
 static const char *NandFilepath = "nand:/fastboot3DS/fastbootcfg.txt";

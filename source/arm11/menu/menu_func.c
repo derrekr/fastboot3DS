@@ -21,10 +21,12 @@
 #include <string.h>
 #include "types.h"
 #include "arm11/menu/menu_fsel.h"
+#include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/fmt.h"
+#include "arm11/power.h"
 
 // we need a better solution for this later (!!!)
 void updateScreens(void)
@@ -33,23 +35,6 @@ void updateScreens(void)
 	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
-}
-
-// doesn't belong in here, either
-u32 ee_printf_line_center(const char *const fmt, ...)
-{
-	char buf[64];
-	va_list args;
-	va_start(args, fmt);
-	ee_vsnprintf(buf, 64, fmt, args);
-	va_end(args);
-	
-	PrintConsole* con = consoleGet();
-	int pad = (con->consoleWidth - strlen(buf)) / 2;
-	if (pad < 0) pad = 0;
-	con->cursorX = 0;
-	
-	return ee_printf("%*.*s%s\n", pad, pad, "", buf);
 }
 
 u32 menuPresetBootMode(void)
@@ -73,7 +58,7 @@ u32 menuPresetBootSlot(void)
 			res |= 1 << i;
 		}
 	}
-		
+	
 	return res;
 }
 
@@ -88,16 +73,116 @@ u32 menuSetBootMode(PrintConsole* con, u32 param)
 
 u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 {
+	bool slot = param & 0xF;
 	char res_path[256];
 	char* start = NULL;
 	
-	if (configDataExist(KBootOption1 + param))
-		start = (char*) configGetData(KBootOption1 + param);
+	// if bit4 of param is set, reset slot and return
+	if (param & 0x10)
+	{
+		u32 res = (configSetKeyData(KBootOption1Buttons + slot, NULL) &&
+			configSetKeyData(KBootOption1 + slot, NULL)) ? 0 : 1;
+		return res;
+	}
 	
-	menuFileSelector(res_path, con, start, "*.firm");
-	u32 res = (configSetKeyData(KBootOption1 + param, res_path)) ? 0 : 1;
+	if (configDataExist(KBootOption1 + slot))
+		start = (char*) configGetData(KBootOption1 + slot);
 	
+	u32 res = 0;
+	if (menuFileSelector(res_path, con, start, "*.firm"))
+	{
+		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
+		writeConfigFile();
+	}
+	
+	return res;
+}
+
+static const char * convTable[] = {
+	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
+	"UP", "DOWN", "R", "L", "X", "Y"
+};
+
+u32 menuSetupBootKeys(PrintConsole* con, u32 param)
+{
+	const u32 y_center = 7;
+	const u32 y_instr = 21;
+	
+	hidScanInput();
+	u32 kHeld = hidKeysHeld();
+	
+	while (true)
+	{
+		// build button string
+		char button_str[80];
+		char* ptr = button_str;
+		bool first = true;
+		for (u32 i = 0; i < 12; i++)
+		{
+			if (kHeld & (1<<i))
+			{
+				ptr += ee_sprintf(ptr, "%s[%s]", first ? " " : "+", convTable[i]);
+				first = false;
+			}
+		}
+		if (first) // backup solution for no buttons
+			ee_sprintf(ptr, "(no buttons)");
+		
+		// clear console
+		consoleSelect(con);
+		consoleClear();
+		
+		// draw input block
+		con->cursorY = y_center;
+		ee_printf_line_center("Hold button(s) to setup.");
+		ee_printf_line_center("Currently held buttons:");
+		ee_printf_line_center(button_str);
+		
+		// draw instructions
+		con->cursorY = y_instr;
+		if (configDataExist(KBootOption1Buttons + param))
+		{
+			char* currentSetting =
+				(char*) configCopyText(KBootOption1Buttons + param);
+			ee_printf_line_center("Current: %s", currentSetting);
+			free(currentSetting);
+		}
+		ee_printf_line_center("[HOME] to cancel");
+		
+		// update screens
+		updateScreens();
+		
+		// check for buttons until held for ~1.5sec
+		u32 kHeldNew = 0;
+		do
+		{
+			// check hold duration
+			u32 vBlanks = 0;
+			do
+			{
+				GFX_waitForEvent(GFX_EVENT_PDC0, true);
+				if(hidGetPowerButton(false)) return 1;
+				
+				hidScanInput();
+				kHeldNew = hidKeysHeld();
+				if(hidKeysDown() & KEY_SHELL) sleepmode();
+			}
+			while ((kHeld == kHeldNew) && (++vBlanks < 100));
+			
+			// check HOME key
+			if (kHeldNew & KEY_HOME) return 1;
+		}
+		while (!((kHeld|kHeldNew) & 0xfff));
+		// repeat checks until actual buttons are held
+		
+		if (kHeld == kHeldNew) break;
+		kHeld = kHeldNew;
+	}
+	
+	// if we arrive here, we have a button combo
+	u32 res = (configSetKeyData(KBootOption1Buttons + param, &kHeld)) ? 0 : 1;
 	writeConfigFile();
+	
 	return res;
 }
 
@@ -138,7 +223,7 @@ u32 DummyFunc(PrintConsole* con, u32 param)
 		}
 		hidScanInput();
 	}
-	while (!(hidKeysDown() & KEY_B));
+	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
 
 	return 0;
 }
@@ -164,21 +249,20 @@ u32 SetView(PrintConsole* con, u32 param)
 		{
 			char* text = (char*) configCopyText(key);
 			ee_printf("text: %s / u32: %lu\n", text, *(u32*) configGetData(key));
-			if (text) free(text);
+			free(text);
 		}
 	}
 	updateScreens();
 	
-	// wait for B button
+	// wait for B / HOME button
 	do
 	{
 		if(hidGetPowerButton(false)) // handle power button
-		{
 			return 1;
-		}
+		
 		hidScanInput();
 	}
-	while (!(hidKeysDown() & KEY_B));
+	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
 	
 	return 0;
 }
@@ -211,16 +295,18 @@ u32 ShowCredits(PrintConsole* con, u32 param)
 	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
 
-	// wait for B button
+	// wait for B button or HOME button
+	u32 kDown = 0;
 	do
 	{
 		if(hidGetPowerButton(false)) // handle power button
-		{
-			return 1;
-		}
+			return 0;
+		
 		hidScanInput();
+		kDown = hidKeysDown();
+		if (kDown & (KEY_SHELL)) sleepmode();
 	}
-	while (!(hidKeysDown() & KEY_B));
+	while (!(kDown & (KEY_B|KEY_HOME)));
 	
 	return 0;
 }

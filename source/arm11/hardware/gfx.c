@@ -288,9 +288,26 @@ void GFX_init(void)
 	REG_LCD_COLORFILL_SUB = 0;
 }
 
-void GFX_deinit(void)
+void GFX_enterLowPowerState(void)
 {
 	IRQ_unregisterHandler(IRQ_PDC0);
+	i2cmcu_lcd_poweroff();
+}
+
+void GFX_returnFromLowPowerState(void)
+{
+	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, gfxIrqHandler);
+	i2cmcu_lcd_poweron();
+	i2cmcu_lcd_backlight_poweron();
+}
+
+void GFX_deinit(void)
+{
+	IRQ_unregisterHandler(IRQ_PSC0);
+	IRQ_unregisterHandler(IRQ_PSC1);
+	IRQ_unregisterHandler(IRQ_PDC0);
+	IRQ_unregisterHandler(IRQ_PPF);
+	//IRQ_unregisterHandler(IRQ_P3D);
 
 	// Temporary Luma workaround
 	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,

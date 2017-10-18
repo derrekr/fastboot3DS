@@ -33,7 +33,7 @@
 
 #define AES_FLUSH_READ_FIFO   (1u<<10)
 #define AES_FLUSH_WRITE_FIFO  (1u<<11)
-#define AES_MAC_SIZE(n)       (((n - 2) / 2)<<16)
+#define AES_MAC_SIZE(n)       ((((n) - 2) / 2)<<16)
 #define AES_PASS_PAYLOARD     (1u<<19) // Passes the associated data to REG_AESRDFIFO
 #define AES_MAC_SRC_REG       (1u<<20)
 #define AES_IS_MAC_VALID      ((bool)(REG_AESCNT>>21 & 1u))

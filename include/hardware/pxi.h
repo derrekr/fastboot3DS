@@ -37,7 +37,7 @@
 
 // Defines for PX_SYNC regs
 #define PXI_DATA_RECEIVED            (REG_PXI_SYNC & 0xFFu)
-#define PXI_DATA_SENT(sent)          ((REG_PXI_SYNC & ~(0xFFu<<8)) | sent<<8)
+#define PXI_DATA_SENT(sent)          ((REG_PXI_SYNC & ~(0xFFu<<8)) | (sent)<<8)
 #ifdef ARM9
 #define PXI_TRIGGER_SYNC_IRQ         (1u<<29)
 #elif ARM11

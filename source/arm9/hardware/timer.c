@@ -35,8 +35,8 @@
 #define REG_TIMER3_VAL    *((vu16*)(TIMER_REGS_BASE + 0x0C))
 #define REG_TIMER3_CNT    *((vu16*)(TIMER_REGS_BASE + 0x0E))
 
-#define REG_TIMER_VAL(n)  *((vu16*)(TIMER_REGS_BASE + 0x00 + (n * 4)))
-#define REG_TIMER_CNT(n)  *((vu16*)(TIMER_REGS_BASE + 0x02 + (n * 4)))
+#define REG_TIMER_VAL(n)  *((vu16*)(TIMER_REGS_BASE + 0x00 + ((n) * 4)))
+#define REG_TIMER_CNT(n)  *((vu16*)(TIMER_REGS_BASE + 0x02 + ((n) * 4)))
 
 
 // For TIMER_sleep()

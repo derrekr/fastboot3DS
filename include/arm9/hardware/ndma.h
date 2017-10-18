@@ -90,13 +90,13 @@
 #define REG_NDMA7_FILL_DATA      *((vu32*)(NDMA_REGS_BASE + 0xDC))
 #define REG_NDMA7_CNT            *((vu32*)(NDMA_REGS_BASE + 0xE0))
 
-#define REG_NDMA_SRC_ADDR(n)     *((vu32*)(NDMA_REGS_BASE + 0x04 + (n * 28)))
-#define REG_NDMA_DST_ADDR(n)     *((vu32*)(NDMA_REGS_BASE + 0x08 + (n * 28)))
-#define REG_NDMA_TOTAL_CNT(n)    *((vu32*)(NDMA_REGS_BASE + 0x0C + (n * 28)))
-#define REG_NDMA_LOG_BLK_CNT(n)  *((vu32*)(NDMA_REGS_BASE + 0x10 + (n * 28)))
-#define REG_NDMA_INT_CNT(n)      *((vu32*)(NDMA_REGS_BASE + 0x14 + (n * 28)))
-#define REG_NDMA_FILL_DATA(n)    *((vu32*)(NDMA_REGS_BASE + 0x18 + (n * 28)))
-#define REG_NDMA_CNT(n)          *((vu32*)(NDMA_REGS_BASE + 0x1C + (n * 28)))
+#define REG_NDMA_SRC_ADDR(n)     *((vu32*)(NDMA_REGS_BASE + 0x04 + ((n) * 28)))
+#define REG_NDMA_DST_ADDR(n)     *((vu32*)(NDMA_REGS_BASE + 0x08 + ((n) * 28)))
+#define REG_NDMA_TOTAL_CNT(n)    *((vu32*)(NDMA_REGS_BASE + 0x0C + ((n) * 28)))
+#define REG_NDMA_LOG_BLK_CNT(n)  *((vu32*)(NDMA_REGS_BASE + 0x10 + ((n) * 28)))
+#define REG_NDMA_INT_CNT(n)      *((vu32*)(NDMA_REGS_BASE + 0x14 + ((n) * 28)))
+#define REG_NDMA_FILL_DATA(n)    *((vu32*)(NDMA_REGS_BASE + 0x18 + ((n) * 28)))
+#define REG_NDMA_CNT(n)          *((vu32*)(NDMA_REGS_BASE + 0x1C + ((n) * 28)))
 
 
 // REG_NDMA_GLOBAL_CNT
