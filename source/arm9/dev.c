@@ -148,7 +148,7 @@ bool sdmmc_sd_init(void)
 
 		do {
 			// if sd card is ready, stop polling
-			if(sdmmc_sd_is_active())
+			if(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE)
 				break;
 
 			TIMER_sleep(2);
@@ -194,7 +194,7 @@ bool sdmmc_sd_close(void)
 
 bool sdmmc_sd_is_active(void)
 {
-	return (sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE);
+	return (sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE) && dev_sd.initialized;
 }
 
 u32 sdmmc_sd_get_sector_count(void)
@@ -449,7 +449,7 @@ bool sdmmc_dnand_close(void)
 
 bool sdmmc_dnand_is_active(void)
 {
-	return sdmmc_rnand_is_active();
+	return sdmmc_rnand_is_active() && dev_dnand.dev.initialized;
 }
 
 
@@ -478,8 +478,7 @@ bool wififlash_close(void)
 
 bool wififlash_is_active(void)
 {
-	if(dev_wififlash.initialized) return true;
-	return wififlash_init();
+	return dev_wififlash.initialized;
 }
 
 u32 wififlash_get_sector_count(void)
