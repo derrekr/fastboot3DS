@@ -202,7 +202,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 		
 		// handle power button
-		if(hidGetPowerButton(true))
+		if(hidGetPowerButton(false))
 			break; // deinits & poweroff outside of this function
 		
 		hidScanInput();

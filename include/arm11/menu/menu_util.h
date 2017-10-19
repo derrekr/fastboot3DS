@@ -22,8 +22,14 @@
 char* mallocpyString(const char* str);
 void truncateString(char* dest, const char* orig, int nsize, int tpos);
 void formatBytes(char* str, u64 bytes);
+void keysToString(u32 keys, char* string);
+void stringWordWrap(char* str, int llen);
+
 u32 stringGetHeight(const char* str);
 u32 stringGetWidth(const char* str);
-void stringWordWrap(char* str, int llen);
+
 u32 ee_printf_line_center(const char *const fmt, ...);
+
+void updateScreens(void);
+void outputEndWait(void);
 void sleepmode(void);

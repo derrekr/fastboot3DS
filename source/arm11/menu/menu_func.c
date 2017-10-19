@@ -33,32 +33,6 @@
 
 
 
-void outputEndWait(void)
-{
-	u32 kDown = 0;
-	
-	do
-	{
-		GFX_waitForEvent(GFX_EVENT_PDC0, true);
-		
-		if(hidGetPowerButton(false)) // handle power button
-			break;
-		
-		hidScanInput();
-		kDown = hidKeysDown();
-		if (kDown & (KEY_SHELL)) sleepmode();
-	}
-	while (!(kDown & (KEY_B|KEY_HOME)));
-}
-
-void updateScreens(void)
-{
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-	GFX_swapFramebufs();
-	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
-}
-
 u32 menuPresetBootMode(void)
 {
 	if (configDataExist(KBootMode))
@@ -116,11 +90,6 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 	return res;
 }
 
-static const char * convTable[] = {
-	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
-	"UP", "DOWN", "R", "L", "X", "Y"
-};
-
 u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 {
 	const u32 y_center = 7;
@@ -133,18 +102,7 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 	{
 		// build button string
 		char button_str[80];
-		char* ptr = button_str;
-		bool first = true;
-		for (u32 i = 0; i < 12; i++)
-		{
-			if (kHeld & (1<<i))
-			{
-				ptr += ee_sprintf(ptr, "%s[%s]", first ? " " : "+", convTable[i]);
-				first = false;
-			}
-		}
-		if (first) // backup solution for no buttons
-			ee_sprintf(ptr, "(no buttons)");
+		keysToString(kHeld, button_str);
 		
 		// clear console
 		consoleSelect(con);
@@ -275,14 +233,12 @@ u32 menuContinueBoot(PrintConsole* con, u32 param)
 
 u32 menuDummyFunc(PrintConsole* con, u32 param)
 {
-	(void) param;
-	
 	// clear console
 	consoleSelect(con);
 	consoleClear();
 	
 	// print something
-	ee_printf("\nThis is not implemented yet.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.");
+	ee_printf("This is not implemented yet.\nMy parameter was %lu.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.", param);
 	updateScreens();
 	outputEndWait();
 
