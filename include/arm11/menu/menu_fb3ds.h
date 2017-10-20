@@ -117,23 +117,24 @@ MenuInfo menu_fb3ds[] =
 	{ // 7
 		"NAND Tools", 4, NULL, 0,
 		{
-			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,				3 },
-			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,				4 },
-			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,				4 },
-			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,				2 }
+			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,			3 },
+			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,			4 },
+			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,			4 },
+			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,			2 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,				1 },
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,			1 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
 	{ // 9
-		"Debug", 1, NULL, 0, // this will not show in the release version
+		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
-			{ "View current settings",		LOREM,						&SetView,				0 }
+			{ "View current settings",		LOREM,						&debugSettingsView,		0 },
+			{ "Escape sequence test",		LOREM,						&debugEscapeTest,		0 } 
 		}
 	}
 };

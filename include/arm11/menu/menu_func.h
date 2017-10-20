@@ -31,4 +31,5 @@ u32 menuShowCredits(PrintConsole* con, u32 param);
 u32 menuContinueBoot(PrintConsole* con, u32 param);
 
 u32 menuDummyFunc(PrintConsole* con, u32 param);
-u32 SetView(PrintConsole* con, u32 param);
+u32 debugSettingsView(PrintConsole* con, u32 param);
+u32 debugEscapeTest(PrintConsole* con, u32 param);
