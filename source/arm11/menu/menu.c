@@ -32,6 +32,46 @@
 
 
 
+void menuBuildDescString(char* desc, u32 slot, const char* name_raw, const char* desc_raw)
+{
+	// using no slot description
+	if (slot >= 3)
+	{
+		ee_snprintf(desc, 512, "%s:\n%s", name_raw, desc_raw);
+		stringWordWrap(desc, WORDWRAP_WIDTH);
+		return;
+	}
+	
+	
+	// raw description plus slot description
+	// get strings for path and keycombo
+	char slot_path_store[24+1];
+	char* slot_path = NULL;
+	char* keycombo = NULL;
+	
+	if(configDataExist(KBootOption1 + slot))
+	{
+		slot_path = slot_path_store;
+		truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
+	}
+	
+	if(configDataExist(KBootOption1Buttons + slot))
+		keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
+	
+	
+	// write description to desc string
+	ee_snprintf(desc, 512, "%s:\n%s\n \npath: %s\nkeys: %s",
+		name_raw, desc_raw,
+		slot_path ? slot_path : "- not set up -",
+		keycombo ? keycombo : "- not set up -");
+	
+	// wordwrap description string
+	stringWordWrap(desc, WORDWRAP_WIDTH);
+	
+	
+	if (keycombo) free(keycombo);
+}
+	
 void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 {
 	// select and clear description console
@@ -55,56 +95,16 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	// build description string
 	// also handle MENU_FLAG_SLOTS flag
 	char desc_ww[512];
+	u32 desc_slot = (u32) -1;
 	if (curr_menu->flags & 0xF) // includes all known flags
 	{
 		// flags only concern descriptions right now
-		char slot_path_store[24+1];
-		char* slot_path = NULL;
-		char* keycombo = NULL;
-		u32 flags = curr_menu->flags;
-		u32 slot = (flags & MENU_FLAG_SLOTS) ? index :
-			(flags & MENU_FLAG_SLOT(1)) ? 0 :
-			(flags & MENU_FLAG_SLOT(2)) ? 1 :
-			(flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
-		
-		if (slot < 3)
-		{
-			if(configDataExist(KBootOption1 + slot))
-			{
-				slot_path = slot_path_store;
-				truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
-			}
-			
-			if (configDataExist(KBootOption1Buttons + slot))
-				keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
-			
-			if (flags & MENU_FLAG_SLOTS)
-			{
-				if (slot_path && keycombo)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nButtons: %s", desc, slot_path, keycombo);
-				else if (slot_path)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
-				else strncpy(desc_ww, desc, 512);
-			}
-			else
-			{
-				if (((index == 0) || (index == 2)) && slot_path)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
-				else if ((index == 1) && keycombo)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, keycombo);
-				else strncpy(desc_ww, desc, 512);
-			}
-			
-			if (keycombo) free(keycombo);
-		} else strncpy(desc_ww, desc, 512);
+		desc_slot = (curr_menu->flags & MENU_FLAG_SLOTS) ? index :
+			(curr_menu->flags & MENU_FLAG_SLOT(1)) ? 0 :
+			(curr_menu->flags & MENU_FLAG_SLOT(2)) ? 1 :
+			(curr_menu->flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
 	}
-	else
-	{
-		strncpy(desc_ww, desc, 512);
-	}
-	
-	// wordwrap description string
-	stringWordWrap(desc_ww, WORDWRAP_WIDTH);
+	menuBuildDescString(desc_ww, desc_slot, name, desc);
 	
 	// get width, height
 	int desc_width = stringGetWidth(desc_ww);
@@ -114,10 +114,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// write to console
 	int desc_x = (desc_con->consoleWidth - desc_width) >> 1;
-	int desc_y = (desc_con->consoleHeight - 2 - desc_height);
-	
-	consoleSetCursor(desc_con, desc_x, desc_y++);
-	ee_printf("%s:", name);
+	int desc_y = (desc_con->consoleHeight - 1 - desc_height);
 	
 	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
 		consoleSetCursor(desc_con, desc_x, desc_y++);
@@ -160,8 +157,9 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		ee_printf(is_selected ? "\x1b[47;30m%.3s %-*.*s\x1b[0m" : "%.3s %-*.*s",
-			((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
+		if (is_selected) ee_printf("\x1b[47;30m");
+		ee_printf("%.3s %-*.*s", ((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
+		ee_printf("\x1b[0m");
 	}
 	
 	// button instructions
@@ -196,7 +194,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			last_menu = curr_menu;
 
 			GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-			               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+						0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 			GFX_swapFramebufs();
 		}
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank

@@ -35,8 +35,8 @@
 #define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
 
 #define DESC_CONTINUE		"Continue booting the first available boot slot.\nNo function if boot slots are not set up."
-#define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from."
-#define DESC_BOOT_FILE		"Select a firmware to boot."
+#define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from. Also includes boot slot and boot mode setup."
+#define DESC_BOOT_FILE		"Select a firmware file to boot."
 #define DESC_NAND_TOOLS		"Enter NAND tools submenu, including tools for NAND backup, NAND restore and firmware flash."
 #define DESC_OPTIONS		"Enter fastboot3ds settings submenu."
 #define DESC_MISC			"Enter miscellaneous submenu, including the update tool and credits section."
