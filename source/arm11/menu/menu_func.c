@@ -33,32 +33,6 @@
 
 
 
-void outputEndWait(void)
-{
-	u32 kDown = 0;
-	
-	do
-	{
-		GFX_waitForEvent(GFX_EVENT_PDC0, true);
-		
-		if(hidGetPowerButton(false)) // handle power button
-			break;
-		
-		hidScanInput();
-		kDown = hidKeysDown();
-		if (kDown & (KEY_SHELL)) sleepmode();
-	}
-	while (!(kDown & (KEY_B|KEY_HOME)));
-}
-
-void updateScreens(void)
-{
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-	GFX_swapFramebufs();
-	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
-}
-
 u32 menuPresetBootMode(void)
 {
 	if (configDataExist(KBootMode))
@@ -116,11 +90,6 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 	return res;
 }
 
-static const char * convTable[] = {
-	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
-	"UP", "DOWN", "R", "L", "X", "Y"
-};
-
 u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 {
 	const u32 y_center = 7;
@@ -133,18 +102,7 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 	{
 		// build button string
 		char button_str[80];
-		char* ptr = button_str;
-		bool first = true;
-		for (u32 i = 0; i < 12; i++)
-		{
-			if (kHeld & (1<<i))
-			{
-				ptr += ee_sprintf(ptr, "%s[%s]", first ? " " : "+", convTable[i]);
-				first = false;
-			}
-		}
-		if (first) // backup solution for no buttons
-			ee_sprintf(ptr, "(no buttons)");
+		keysToString(kHeld, button_str);
 		
 		// clear console
 		consoleSelect(con);
@@ -275,21 +233,53 @@ u32 menuContinueBoot(PrintConsole* con, u32 param)
 
 u32 menuDummyFunc(PrintConsole* con, u32 param)
 {
-	(void) param;
-	
 	// clear console
 	consoleSelect(con);
 	consoleClear();
 	
 	// print something
-	ee_printf("\nThis is not implemented yet.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.");
+	ee_printf("This is not implemented yet.\nMy parameter was %lu.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.", param);
 	updateScreens();
 	outputEndWait();
 
 	return 0;
 }
 
-u32 SetView(PrintConsole* con, u32 param)
+u32 menuShowCredits(PrintConsole* con, u32 param)
+{
+	(void) param;
+	
+	// clear console
+	consoleSelect(con);
+	consoleClear();
+	
+	// credits
+	con->cursorY = 4;
+	ee_printf_line_center("Fastboot3DS Credits");
+	ee_printf_line_center("===================");
+	ee_printf_line_center("");
+	ee_printf_line_center("Main developers:");
+	ee_printf_line_center("derrek");
+	ee_printf_line_center("profi200");
+	ee_printf_line_center("");
+	ee_printf_line_center("Thanks to:");
+	ee_printf_line_center("yellows8");
+	ee_printf_line_center("plutoo");
+	ee_printf_line_center("smea");
+	ee_printf_line_center("Normmatt (for sdmmc code)");
+	ee_printf_line_center("WinterMute (for console code)");
+	ee_printf_line_center("d0k3 (for menu code)");
+	ee_printf_line_center("");
+	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
+	updateScreens();
+
+	// wait for user
+	outputEndWait();
+	
+	return 0;
+}
+
+u32 debugSettingsView(PrintConsole* con, u32 param)
 {
 	(void) param;
 	
@@ -329,7 +319,7 @@ u32 SetView(PrintConsole* con, u32 param)
 	return 0;
 }
 
-u32 menuShowCredits(PrintConsole* con, u32 param)
+u32 debugEscapeTest(PrintConsole* con, u32 param)
 {
 	(void) param;
 	
@@ -337,28 +327,34 @@ u32 menuShowCredits(PrintConsole* con, u32 param)
 	consoleSelect(con);
 	consoleClear();
 	
-	// credits
-	con->cursorY = 4;
-	ee_printf_line_center("Fastboot3DS Credits");
-	ee_printf_line_center("===================");
-	ee_printf_line_center("");
-	ee_printf_line_center("Main developers:");
-	ee_printf_line_center("derrek");
-	ee_printf_line_center("profi200");
-	ee_printf_line_center("");
-	ee_printf_line_center("Thanks to:");
-	ee_printf_line_center("yellows8");
-	ee_printf_line_center("plutoo");
-	ee_printf_line_center("smea");
-	ee_printf_line_center("Normmatt (for sdmmc code)");
-	ee_printf_line_center("WinterMute (for console code)");
-	ee_printf_line_center("d0k3 (for menu code)");
-	ee_printf_line_center("");
-	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
-	updateScreens();
-
-	// wait for user
-	outputEndWait();
+	ee_printf("\x1b[1mbold\n\x1b[0m");
+	ee_printf("\x1b[2mfaint\n\x1b[0m");
+	ee_printf("\x1b[3mitalic\n\x1b[0m");
+	ee_printf("\x1b[4munderline\n\x1b[0m");
+	ee_printf("\x1b[5mblink slow\n\x1b[0m");
+	ee_printf("\x1b[6mblink fast\n\x1b[0m");
+	ee_printf("\x1b[7mreverse\n\x1b[0m");
+	ee_printf("\x1b[8mconceal\n\x1b[0m");
+	ee_printf("\x1b[9mcrossed-out\n\x1b[0m");
+	ee_printf("\n");
+	
+	for (u32 i = 0; i < 8; i++)
+	{
+		char c[8];
+		ee_snprintf(c, 8, "\x1b[%lu", 30 + i);
+		ee_printf("color #%lu:  %smnormal\x1b[0m %s;2mfaint\x1b[0m %s;4munderline\x1b[0m %s;7mreverse\x1b[0m %s;9mcrossed-out\x1b[0m\n", i, c, c, c, c, c);
+	}
+	
+	// wait for B / HOME button
+	do
+	{
+		updateScreens();
+		if(hidGetPowerButton(false)) // handle power button
+			return 0;
+		
+		hidScanInput();
+	}
+	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
 	
 	return 0;
 }

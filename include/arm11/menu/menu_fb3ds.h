@@ -35,8 +35,8 @@
 #define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
 
 #define DESC_CONTINUE		"Continue booting the first available boot slot.\nNo function if boot slots are not set up."
-#define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from."
-#define DESC_BOOT_FILE		"Select a firmware to boot."
+#define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from. Also includes boot slot and boot mode setup."
+#define DESC_BOOT_FILE		"Select a firmware file to boot."
 #define DESC_NAND_TOOLS		"Enter NAND tools submenu, including tools for NAND backup, NAND restore and firmware flash."
 #define DESC_OPTIONS		"Enter fastboot3ds settings submenu."
 #define DESC_MISC			"Enter miscellaneous submenu, including the update tool and credits section."
@@ -117,23 +117,24 @@ MenuInfo menu_fb3ds[] =
 	{ // 7
 		"NAND Tools", 4, NULL, 0,
 		{
-			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,				3 },
-			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,				4 },
-			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,				4 },
-			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,				2 }
+			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,			3 },
+			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,			4 },
+			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,			4 },
+			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,			2 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,				1 },
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,			1 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
 	{ // 9
-		"Debug", 1, NULL, 0, // this will not show in the release version
+		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
-			{ "View current settings",		LOREM,						&SetView,				0 }
+			{ "View current settings",		LOREM,						&debugSettingsView,		0 },
+			{ "Escape sequence test",		LOREM,						&debugEscapeTest,		0 } 
 		}
 	}
 };

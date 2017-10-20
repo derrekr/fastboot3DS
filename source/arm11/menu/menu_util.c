@@ -20,9 +20,10 @@
 #include <string.h>
 #include "types.h"
 #include "arm11/hardware/hid.h"
+#include "arm11/hardware/interrupt.h"
+#include "arm11/menu/menu_util.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
-#include "arm11/hardware/interrupt.h"
 
 
 char* mallocpyString(const char* str)
@@ -36,40 +37,61 @@ char* mallocpyString(const char* str)
 
 void truncateString(char* dest, const char* orig, int nsize, int tpos)
 {
-    int osize = strlen(orig);
+	int osize = strlen(orig);
 	
-    if (nsize < 0)
+	if (nsize < 0)
 	{
-        return;
-    } else if (nsize <= 3)
+		return;
+	} else if (nsize <= 3)
 	{
-        ee_snprintf(dest, nsize, orig);
-    } else if (nsize >= osize)
+		ee_snprintf(dest, nsize, orig);
+	} else if (nsize >= osize)
 	{
-        ee_snprintf(dest, nsize + 1, orig);
-    } else
+		ee_snprintf(dest, nsize + 1, orig);
+	} else
 	{
-        if (tpos + 3 > nsize) tpos = nsize - 3;
-        ee_snprintf(dest, nsize + 1, "%-.*s...%-.*s", tpos, orig, nsize - (3 + tpos), orig + osize - (nsize - (3 + tpos)));
-    }
+		if (tpos + 3 > nsize) tpos = nsize - 3;
+		ee_snprintf(dest, nsize + 1, "%-.*s...%-.*s", tpos, orig, nsize - (3 + tpos), orig + osize - (nsize - (3 + tpos)));
+	}
 }
 
 void formatBytes(char* str, u64 bytes)
 {
 	// str should be 32 byte in size, just to be safe
-    const char* units[] = {"  Byte", " kiB", " MiB", " GiB"};
-    
-    if (bytes < 1024)
+	const char* units[] = {"  Byte", " kiB", " MiB", " GiB"};
+	
+	if (bytes < 1024)
 	{
 		ee_snprintf(str, 32, "%llu%s", bytes, units[0]);
 	}
-    else
+	else
 	{
-        u32 scale = 1;
-        u64 bytes100 = (bytes * 100) >> 10;
-        for(; (bytes100 >= 1024*100) && (scale < 3); scale++, bytes100 >>= 10);
-        ee_snprintf(str, 32, "%llu.%llu%s", bytes100 / 100, (bytes100 % 100) / 10, units[scale]);
-    }
+		u32 scale = 1;
+		u64 bytes100 = (bytes * 100) >> 10;
+		for(; (bytes100 >= 1024*100) && (scale < 3); scale++, bytes100 >>= 10);
+		ee_snprintf(str, 32, "%llu.%llu%s", bytes100 / 100, (bytes100 % 100) / 10, units[scale]);
+	}
+}
+
+static const char * convTable[] = {
+	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
+	"UP", "DOWN", "R", "L", "X", "Y"
+};
+
+void keysToString(u32 keys, char* string)
+{
+	char* ptr = string;
+	bool first = true;
+	for (u32 i = 0; i < 12; i++)
+	{
+		if (keys & (1<<i))
+		{
+			ptr += ee_sprintf(ptr, "%s[%s]", first ? "" : "+", convTable[i]);
+			first = false;
+		}
+	}
+	if (first) // backup solution for no buttons
+		ee_sprintf(ptr, "(no buttons)");
 }
 
 u32 stringGetHeight(const char* str)
@@ -141,4 +163,30 @@ void sleepmode(void)
 		hidScanInput();
 	} while(!(hidKeysUp() & KEY_SHELL));
 	GFX_returnFromLowPowerState();
+}
+
+void updateScreens(void)
+{
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GFX_swapFramebufs();
+	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+}
+
+void outputEndWait(void)
+{
+	u32 kDown = 0;
+	
+	do
+	{
+		GFX_waitForEvent(GFX_EVENT_PDC0, true);
+		
+		if(hidGetPowerButton(false)) // handle power button
+			break;
+		
+		hidScanInput();
+		kDown = hidKeysDown();
+		if (kDown & (KEY_SHELL)) sleepmode();
+	}
+	while (!(kDown & (KEY_B|KEY_HOME)));
 }
