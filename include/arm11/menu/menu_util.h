@@ -19,6 +19,18 @@
 #include "types.h"
 
 
+// ANSI escape sequences for colors
+// see: https://en.wikipedia.org/wiki/ANSI_escape_code
+#define ESC_RESET		"\x1b[0m"
+#define ESC_BOLD		"\x1b[1m"
+#define ESC_FAINT		"\x1b[2m"
+#define ESC_UNDERLINE	"\x1b[4m"
+#define ESC_CROSSEDOUT	"\x1b[9m"
+#define ESC_INVERT		"\x1b[7m"
+#define ESC_FGCOLOR(x)	"\x1b[3" #x "m"
+#define ESC_BGCOLOR(x)	"\x1b[4" #x "m"
+
+
 char* mallocpyString(const char* str);
 void truncateString(char* dest, const char* orig, int nsize, int tpos);
 void formatBytes(char* str, u64 bytes);

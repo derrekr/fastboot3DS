@@ -31,6 +31,8 @@
 
 #define MENU_FLAG_SLOTS		1
 #define MENU_FLAG_SLOT(x)	(1<<x)
+#define MENU_FLAG_BOOTMODE	(1<<3)
+
 
 /**
  * @brief Menu entry description struct, used by MenuInfo.

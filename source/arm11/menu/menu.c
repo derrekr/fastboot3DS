@@ -26,17 +26,39 @@
 #include "arm11/hardware/hid.h"
 #include "arm11/config.h"
 #include "arm11/console.h"
+#include "arm11/debug.h"
 #include "arm11/fmt.h"
 #include "arm11/main.h"
 #include "hardware/gfx.h"
 
 
 
-void menuBuildDescString(char* desc, u32 slot, const char* name_raw, const char* desc_raw)
+void menuBuildDescString(char* desc, u32 flags, u32 index, const char* name_raw, const char* desc_raw)
 {
-	// using no slot description
-	if (slot >= 3)
+	// flags only concern descriptions right now
+	u32	slot = (flags & MENU_FLAG_SLOTS) ? index :
+		(flags & MENU_FLAG_SLOT(1)) ? 0 :
+		(flags & MENU_FLAG_SLOT(2)) ? 1 :
+		(flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
+	
+	// boot mode description
+	if ((flags & MENU_FLAG_BOOTMODE) && (index == 3))
 	{
+		if (configDataExist(KBootMode))
+		{
+			char* modestr = (char*) configCopyText(KBootMode);
+			if (!modestr) panicMsg("Config error");
+			ee_snprintf(desc, 512, "%s:\n%s\n \ncurrent: %s", name_raw, desc_raw, modestr);
+			free (modestr);
+		}
+		else ee_snprintf(desc, 512, "%s:\n%s\n \ncurrent: - not set up -", name_raw, desc_raw);
+		stringWordWrap(desc, WORDWRAP_WIDTH);
+		return;
+	}
+	// using no slot description
+	else if (slot >= 3)
+	{
+		
 		ee_snprintf(desc, 512, "%s:\n%s", name_raw, desc_raw);
 		stringWordWrap(desc, WORDWRAP_WIDTH);
 		return;
@@ -93,18 +115,8 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 		return;
 	
 	// build description string
-	// also handle MENU_FLAG_SLOTS flag
 	char desc_ww[512];
-	u32 desc_slot = (u32) -1;
-	if (curr_menu->flags & 0xF) // includes all known flags
-	{
-		// flags only concern descriptions right now
-		desc_slot = (curr_menu->flags & MENU_FLAG_SLOTS) ? index :
-			(curr_menu->flags & MENU_FLAG_SLOT(1)) ? 0 :
-			(curr_menu->flags & MENU_FLAG_SLOT(2)) ? 1 :
-			(curr_menu->flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
-	}
-	menuBuildDescString(desc_ww, desc_slot, name, desc);
+	menuBuildDescString(desc_ww, curr_menu->flags, index, name, desc);
 	
 	// get width, height
 	int desc_width = stringGetWidth(desc_ww);
@@ -157,9 +169,9 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		if (is_selected) ee_printf("\x1b[47;30m");
+		if (is_selected) ee_printf(ESC_FGCOLOR(0) ESC_BGCOLOR(7));
 		ee_printf("%.3s %-*.*s", ((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
-		ee_printf("\x1b[0m");
+		ee_printf(ESC_RESET);
 	}
 	
 	// button instructions
