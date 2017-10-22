@@ -55,12 +55,6 @@ int main(void)
 	loadConfigFile();
 	
 	
-	// init and select terminal console
-	PrintConsole term_con;
-	consoleInit(SCREEN_TOP, &term_con, true);
-	consoleSelect(&term_con);
-	
-	
 	// check keys held at boot
 	hidScanInput();
 	u32 kHeld = hidKeysHeld();
@@ -119,10 +113,15 @@ int main(void)
 	// main loop
 	while(!g_startFirmLaunch)
 	{
+		PrintConsole term_con;
+	
 		// init screens (if we'll need them below)
 		if((show_menu || err_string) && !gfx_initialized)
 		{
 			GFX_init();
+			// init and select terminal console
+			consoleInit(SCREEN_TOP, &term_con, true);
+			consoleSelect(&term_con);
 			gfx_initialized = true;
 		}
 		
