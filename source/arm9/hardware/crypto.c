@@ -61,15 +61,6 @@
 #define REG_AESKEYYFIFO       ((vu32*)(AES_REGS_BASE + 0x108))
 
 
-/*static void deriveKey(u32 pad[4], u32 boot9Off)
-{
-	const u32 *pad2 = (u32*)(BOOT9_BASE + boot9Off);
-
-	pad[0] ^= pad2[0];
-	pad[1] ^= pad2[1];
-	pad[2] ^= pad2[2];
-	pad[3] ^= pad2[3];
-}*/
 
 static void setupKeys(void)
 {
