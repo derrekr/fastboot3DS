@@ -84,7 +84,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 1
-		"Boot Menu", 5, &menuPresetBootSlot, MENU_FLAG_SLOTS,
+		"Boot Menu", 5, &menuPresetBootMenu, MENU_FLAG_SLOTS,
 		{
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
@@ -95,7 +95,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Setup", 4, &menuPresetBootSlot, MENU_FLAG_SLOTS,
+		"Boot Setup", 4, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE,
 		{
 			{ "Setup [slot 1]...",			DESC_SLOT_SETUP(1),			NULL,					3 },
 			{ "Setup [slot 2]...",			DESC_SLOT_SETUP(2),			NULL,					4 },

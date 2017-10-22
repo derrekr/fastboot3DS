@@ -27,6 +27,7 @@
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
+#include "arm11/debug.h"
 #include "arm11/fmt.h"
 #include "arm11/firm.h"
 #include "arm11/main.h"
@@ -43,7 +44,7 @@ u32 menuPresetBootMode(void)
 	return 0;
 }
 
-u32 menuPresetBootSlot(void)
+u32 menuPresetBootMenu(void)
 {
 	u32 res = 0;
 	
@@ -56,6 +57,16 @@ u32 menuPresetBootSlot(void)
 	}
 	
 	return res;
+}
+
+u32 menuPresetBootConfig(void)
+{
+	u32 res = 0;
+	
+	if (configDataExist(KBootMode))
+		res |= 1 << 3;
+	
+	return res | menuPresetBootMenu();
 }
 
 u32 menuSetBootMode(PrintConsole* con, u32 param)
@@ -120,6 +131,7 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 		{
 			char* currentSetting =
 				(char*) configCopyText(KBootOption1Buttons + param);
+			if (!currentSetting) panicMsg("Config error");
 			ee_printf_line_center("Current: %s", currentSetting);
 			free(currentSetting);
 		}

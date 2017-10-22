@@ -21,7 +21,8 @@
 #include "types.h"
 
 u32 menuPresetBootMode(void);
-u32 menuPresetBootSlot(void);
+u32 menuPresetBootMenu(void);
+u32 menuPresetBootConfig(void);
 
 u32 menuSetBootMode(PrintConsole* con, u32 param);
 u32 menuSetupBootSlot(PrintConsole* con, u32 param);
