@@ -111,10 +111,9 @@ int main(void)
 
 	
 	// main loop
+	PrintConsole term_con;
 	while(!g_startFirmLaunch)
 	{
-		PrintConsole term_con;
-	
 		// init screens (if we'll need them below)
 		if((show_menu || err_string) && !gfx_initialized)
 		{

@@ -23,6 +23,7 @@
 #include "types.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
+#include "arm11/menu/menu_color.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/config.h"
 #include "arm11/console.h"
@@ -33,8 +34,14 @@
 
 
 
-void menuBuildDescString(char* desc, u32 flags, u32 index, const char* name_raw, const char* desc_raw)
+void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 {
+	char* desc_ptr = desc;
+	
+	// copy raw description
+	desc_ptr += ee_sprintf(desc_ptr, desc_raw);
+	
+	
 	// flags only concern descriptions right now
 	u32	slot = (flags & MENU_FLAG_SLOTS) ? index :
 		(flags & MENU_FLAG_SLOT(1)) ? 0 :
@@ -48,50 +55,39 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* name_raw,
 		{
 			char* modestr = (char*) configCopyText(KBootMode);
 			if (!modestr) panicMsg("Config error");
-			ee_snprintf(desc, 512, "%s:\n%s\n \ncurrent: %s", name_raw, desc_raw, modestr);
+			desc_ptr += ee_sprintf(desc_ptr, "\n \ncurrent: %s", modestr);
 			free (modestr);
 		}
-		else ee_snprintf(desc, 512, "%s:\n%s\n \ncurrent: - not set up -", name_raw, desc_raw);
-		stringWordWrap(desc, WORDWRAP_WIDTH);
-		return;
+		else desc_ptr += ee_sprintf(desc_ptr, "\n \ncurrent: - not set up -");
 	}
-	// using no slot description
-	else if (slot >= 3)
+	// boot slot description
+	else if (slot < 3)
 	{
+		// get strings for path and keycombo
+		char slot_path_store[24+1];
+		char* slot_path = NULL;
+		char* keycombo = NULL;
 		
-		ee_snprintf(desc, 512, "%s:\n%s", name_raw, desc_raw);
-		stringWordWrap(desc, WORDWRAP_WIDTH);
-		return;
+		if(configDataExist(KBootOption1 + slot))
+		{
+			slot_path = slot_path_store;
+			truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
+		}
+		
+		if(configDataExist(KBootOption1Buttons + slot))
+			keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
+		
+		// write description to desc string
+		desc_ptr += ee_sprintf(desc_ptr, "\n \npath: %s\nkeys: %s",
+			slot_path ? slot_path : "- not set up -",
+			keycombo ? keycombo : "- not set up -");
+		
+		if (keycombo) free(keycombo);
 	}
 	
 	
-	// raw description plus slot description
-	// get strings for path and keycombo
-	char slot_path_store[24+1];
-	char* slot_path = NULL;
-	char* keycombo = NULL;
-	
-	if(configDataExist(KBootOption1 + slot))
-	{
-		slot_path = slot_path_store;
-		truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
-	}
-	
-	if(configDataExist(KBootOption1Buttons + slot))
-		keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
-	
-	
-	// write description to desc string
-	ee_snprintf(desc, 512, "%s:\n%s\n \npath: %s\nkeys: %s",
-		name_raw, desc_raw,
-		slot_path ? slot_path : "- not set up -",
-		keycombo ? keycombo : "- not set up -");
-	
-	// wordwrap description string
+	// wordwrap the whole string
 	stringWordWrap(desc, WORDWRAP_WIDTH);
-	
-	
-	if (keycombo) free(keycombo);
 }
 	
 void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
@@ -103,7 +99,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	// print title at the top
 	const char* title = "fastboot 3DS " VERS_STRING;
 	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
-	ee_printf(title);
+	ee_printf(ESC_SCHEME_ACCENT0 "%s" ESC_RESET, title);
 	
 	// get description, check if available
 	MenuEntry* entry = &(curr_menu->entries[index]);
@@ -116,7 +112,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// build description string
 	char desc_ww[512];
-	menuBuildDescString(desc_ww, curr_menu->flags, index, name, desc);
+	menuBuildDescString(desc_ww, curr_menu->flags, index, desc);
 	
 	// get width, height
 	int desc_width = stringGetWidth(desc_ww);
@@ -126,12 +122,17 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// write to console
 	int desc_x = (desc_con->consoleWidth - desc_width) >> 1;
-	int desc_y = (desc_con->consoleHeight - 1 - desc_height);
+	int desc_y = (desc_con->consoleHeight - 2 - desc_height);
 	
+	consoleSetCursor(desc_con, desc_x, desc_y++);
+	ee_printf(ESC_SCHEME_ACCENT1 "%s:\n" ESC_RESET, name);
+	
+	ee_printf(ESC_SCHEME_WEAK);
 	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
 		consoleSetCursor(desc_con, desc_x, desc_y++);
 		ee_printf(str);
 	}
+	ee_printf(ESC_RESET);
 }
 
 /**
@@ -158,7 +159,7 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 	
 	// menu title
 	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf(curr_menu->name);
+	ee_printf(ESC_SCHEME_ACCENT1 "%s" ESC_RESET, curr_menu->name);
 	menu_y++;
 	
 	// menu entries
@@ -169,7 +170,9 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		if (is_selected) ee_printf(ESC_FGCOLOR(0) ESC_BGCOLOR(7));
+		// ee_printf(((menu_preset >> i) & 0x1) ? ESC_SCHEME_STD : ESC_SCHEME_WEAK);
+		ee_printf(ESC_SCHEME_STD);
+		if (is_selected) ee_printf(ESC_INVERT);
 		ee_printf("%.3s %-*.*s", ((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
 		ee_printf(ESC_RESET);
 	}
@@ -177,7 +180,7 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 	// button instructions
 	menu_y = MENU_OFFSET_BUTTONS;
 	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf("%-*.*s", MENU_WIDTH, MENU_WIDTH, "[A]:Choose [B]:Back");
+	ee_printf(ESC_SCHEME_WEAK "%-*.*s" ESC_RESET, MENU_WIDTH, MENU_WIDTH, "[A]:Choose [B]:Back");
 }
 
 /**

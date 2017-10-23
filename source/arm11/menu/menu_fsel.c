@@ -26,6 +26,7 @@
 #include "fsutils.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_util.h"
+#include "arm11/menu/menu_color.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/console.h"
@@ -251,7 +252,7 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 	// browser title
 	consoleSetCursor(menu_con, brws_x, brws_y++);
 	truncateString(temp_str, *curr_path ? curr_path : "root", BRWS_WIDTH, 8);
-	ee_printf("%-*s", BRWS_WIDTH, temp_str);
+	ee_printf(ESC_SCHEME_ACCENT1 "%-*s" ESC_RESET, BRWS_WIDTH, temp_str);
 	brws_y++;
 	
 	// menu entries
@@ -271,17 +272,20 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 		
 		consoleSetCursor(menu_con, brws_x, brws_y++);
 		truncateString(temp_str, entry->fname, BRWS_WIDTH-13, 8);
-		if (is_selected) if (is_selected) ee_printf(ESC_FGCOLOR(0) ESC_BGCOLOR(7));
+		ee_printf(entry->is_dir ? ESC_SCHEME_WEAK : ESC_SCHEME_STD);
+		if (is_selected)ee_printf(ESC_INVERT);
 		ee_printf(" %-*.*s %10.10s ", BRWS_WIDTH-13, BRWS_WIDTH-13, temp_str, byte_str);
 		ee_printf(ESC_RESET);
 	}
 	
 	// button instructions
 	brws_y = BRWS_OFFSET_BUTTONS;
+	ee_printf(ESC_SCHEME_WEAK);
 	consoleSetCursor(menu_con, brws_x, brws_y++);
 	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[A]:Choose [B]:Back");
 	consoleSetCursor(menu_con, brws_x, brws_y++);
 	ee_printf("%-*.*s", BRWS_WIDTH, BRWS_WIDTH, "[HOME] to cancel");
+	ee_printf(ESC_RESET);
 }
 
 
