@@ -127,12 +127,16 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		
 		// draw input block
 		term_con->cursorY = y_center;
+		ee_printf(ESC_SCHEME_WEAK);
 		ee_printf_line_center("Hold button(s) to setup.");
 		ee_printf_line_center("Currently held buttons:");
+		ee_printf(ESC_SCHEME_STD);
 		ee_printf_line_center(button_str);
+		ee_printf(ESC_RESET);
 		
 		// draw instructions
 		term_con->cursorY = y_instr;
+		ee_printf(ESC_SCHEME_WEAK);
 		if (configDataExist(KBootOption1Buttons + param))
 		{
 			char* currentSetting =
@@ -142,6 +146,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			free(currentSetting);
 		}
 		ee_printf_line_center("[HOME] to cancel");
+		ee_printf(ESC_RESET);
 		
 		// update screens
 		updateScreens();
@@ -277,14 +282,19 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// credits
 	term_con->cursorY = 4;
+	ee_printf(ESC_SCHEME_ACCENT0);
 	ee_printf_line_center("Fastboot3DS Credits");
 	ee_printf_line_center("===================");
 	ee_printf_line_center("");
+	ee_printf(ESC_SCHEME_STD);
 	ee_printf_line_center("Main developers:");
+	ee_printf(ESC_SCHEME_WEAK);
 	ee_printf_line_center("derrek");
 	ee_printf_line_center("profi200");
 	ee_printf_line_center("");
+	ee_printf(ESC_SCHEME_STD);
 	ee_printf_line_center("Thanks to:");
+	ee_printf(ESC_SCHEME_WEAK);
 	ee_printf_line_center("yellows8");
 	ee_printf_line_center("plutoo");
 	ee_printf_line_center("smea");
