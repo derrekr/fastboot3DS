@@ -24,7 +24,7 @@
 
 #define SUBMENU_SLOT_SETUP(x) \
 { \
-	"Boot Slot #" #x " Setup", 3, NULL, MENU_FLAG_SLOT(x), \
+	"Boot Slot #" #x " Setup", 3, &menuPresetSlotConfig##x, MENU_FLAG_SLOT(x), \
 	{ \
 		{ "Select [slot " #x "] firm",		DESC_FIRM_SLOT(x),			&menuSetupBootSlot,		(x-1)&0xF }, \
 		{ "Select [slot " #x "] buttons",	DESC_KEYS_SLOT(x),			&menuSetupBootKeys,		(x-1)&0xF }, \

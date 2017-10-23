@@ -23,6 +23,9 @@
 u32 menuPresetBootMode(void);
 u32 menuPresetBootMenu(void);
 u32 menuPresetBootConfig(void);
+u32 menuPresetSlotConfig1(void);
+u32 menuPresetSlotConfig2(void);
+u32 menuPresetSlotConfig3(void);
 
 u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);

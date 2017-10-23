@@ -35,6 +35,12 @@
 
 
 
+#define PRESET_SLOT_CONFIG_FUNC(x) \
+u32 menuPresetSlotConfig##x(void) \
+{ \
+	return menuPresetSlotConfig((x-1)); \
+}
+
 u32 menuPresetBootMode(void)
 {
 	if (configDataExist(KBootMode))
@@ -69,6 +75,22 @@ u32 menuPresetBootConfig(void)
 	
 	return res | menuPresetBootMenu();
 }
+
+u32 menuPresetSlotConfig(u32 slot)
+{
+	u32 res = 0;
+	
+	if (configDataExist(KBootOption1 + slot))
+		res |= (1 << 0);
+		
+	if (configDataExist(KBootOption1Buttons + slot))
+		res |= (1 << 1);
+	
+	return res;
+}
+PRESET_SLOT_CONFIG_FUNC(1)
+PRESET_SLOT_CONFIG_FUNC(2)
+PRESET_SLOT_CONFIG_FUNC(3)
 
 u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
