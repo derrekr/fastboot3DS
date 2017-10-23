@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
@@ -69,16 +70,19 @@ u32 menuPresetBootConfig(void)
 	return res | menuPresetBootMenu();
 }
 
-u32 menuSetBootMode(PrintConsole* con, u32 param)
+u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	(void) con;
+	(void) term_con;
+	(void) menu_con;
 	u32 res = (configSetKeyData(KBootMode, &param)) ? 0 : 1;
 	
 	return res;
 }
 
-u32 menuSetupBootSlot(PrintConsole* con, u32 param)
+u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) term_con;
+	
 	bool slot = param & 0xF;
 	char res_path[256];
 	char* start = NULL;
@@ -95,14 +99,16 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 		start = (char*) configGetData(KBootOption1 + slot);
 	
 	u32 res = 0;
-	if (menuFileSelector(res_path, con, start, "*.firm"))
+	if (menuFileSelector(res_path, menu_con, start, "*.firm"))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 	
 	return res;
 }
 
-u32 menuSetupBootKeys(PrintConsole* con, u32 param)
+u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
+	
 	const u32 y_center = 7;
 	const u32 y_instr = 21;
 	
@@ -116,17 +122,17 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 		keysToString(kHeld, button_str);
 		
 		// clear console
-		consoleSelect(con);
+		consoleSelect(term_con);
 		consoleClear();
 		
 		// draw input block
-		con->cursorY = y_center;
+		term_con->cursorY = y_center;
 		ee_printf_line_center("Hold button(s) to setup.");
 		ee_printf_line_center("Currently held buttons:");
 		ee_printf_line_center(button_str);
 		
 		// draw instructions
-		con->cursorY = y_instr;
+		term_con->cursorY = y_instr;
 		if (configDataExist(KBootOption1Buttons + param))
 		{
 			char* currentSetting =
@@ -173,7 +179,7 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 	return res;
 }
 
-u32 menuLaunchFirm(PrintConsole* con, u32 param)
+u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	char path_store[256];
 	char* path;
@@ -181,7 +187,7 @@ u32 menuLaunchFirm(PrintConsole* con, u32 param)
 	if (param < 3) // loading from bootslot
 	{
 		// clear console
-		consoleSelect(con);
+		consoleSelect(term_con);
 		consoleClear();
 	
 		// check if bootslot exists
@@ -200,14 +206,14 @@ u32 menuLaunchFirm(PrintConsole* con, u32 param)
 	else if (param == 0xFF) // user decision
 	{
 		path = path_store;
-		if (!menuFileSelector(path, con, NULL, "*.firm"))
+		if (!menuFileSelector(path, menu_con, NULL, "*.firm"))
 			return 1;
 	}
 	
 	// clear console
 	if (param >= 3)
 	{
-		consoleSelect(con);
+		consoleSelect(term_con);
 		consoleClear();
 	}
 	
@@ -234,19 +240,22 @@ u32 menuLaunchFirm(PrintConsole* con, u32 param)
 	return 1;
 }
 
-u32 menuContinueBoot(PrintConsole* con, u32 param)
+u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	// all the relevant stuff handled outside
-	(void) con;
+	(void) term_con;
+	(void) menu_con;
 	(void) param;
 	g_continueBootloader = true;
 	return 0;
 }
 
-u32 menuDummyFunc(PrintConsole* con, u32 param)
+u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
+	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
 	consoleClear();
 	
 	// print something
@@ -257,16 +266,17 @@ u32 menuDummyFunc(PrintConsole* con, u32 param)
 	return 0;
 }
 
-u32 menuShowCredits(PrintConsole* con, u32 param)
+u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
 	(void) param;
 	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
 	consoleClear();
 	
 	// credits
-	con->cursorY = 4;
+	term_con->cursorY = 4;
 	ee_printf_line_center("Fastboot3DS Credits");
 	ee_printf_line_center("===================");
 	ee_printf_line_center("");
@@ -291,12 +301,13 @@ u32 menuShowCredits(PrintConsole* con, u32 param)
 	return 0;
 }
 
-u32 debugSettingsView(PrintConsole* con, u32 param)
+u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
 	(void) param;
 	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
 	consoleClear();
 	
 	ee_printf("Write config: %s\n", writeConfigFile() ? "success" : "failed");
@@ -331,12 +342,13 @@ u32 debugSettingsView(PrintConsole* con, u32 param)
 	return 0;
 }
 
-u32 debugEscapeTest(PrintConsole* con, u32 param)
+u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
 	(void) param;
 	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
 	consoleClear();
 	
 	ee_printf("\x1b[1mbold\n\x1b[0m");

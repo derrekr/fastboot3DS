@@ -24,13 +24,13 @@ u32 menuPresetBootMode(void);
 u32 menuPresetBootMenu(void);
 u32 menuPresetBootConfig(void);
 
-u32 menuSetBootMode(PrintConsole* con, u32 param);
-u32 menuSetupBootSlot(PrintConsole* con, u32 param);
-u32 menuSetupBootKeys(PrintConsole* con, u32 param);
-u32 menuLaunchFirm(PrintConsole* con, u32 param);
-u32 menuShowCredits(PrintConsole* con, u32 param);
-u32 menuContinueBoot(PrintConsole* con, u32 param);
+u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 
-u32 menuDummyFunc(PrintConsole* con, u32 param);
-u32 debugSettingsView(PrintConsole* con, u32 param);
-u32 debugEscapeTest(PrintConsole* con, u32 param);
+u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param);

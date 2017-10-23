@@ -243,7 +243,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
-			(*(entry->function))(desc_con, entry->param);
+			(*(entry->function))(desc_con, menu_con, entry->param);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
 		}

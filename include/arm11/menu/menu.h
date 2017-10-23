@@ -40,7 +40,7 @@
 typedef struct {
     char* name;					///< Displayed name of the menu entry.
     char* desc;					///< Description for menu entry.
-    u32 (*function)(PrintConsole *con, u32 param);	///< Function called by menu entry.
+    u32 (*function)(PrintConsole *term_con, PrintConsole* menu_con, u32 param);	///< Function called by menu entry.
     u32 param;					///< Paramater for menu entry function / if function == NULL, offset to is_sub_menu.
 } MenuEntry;
 
