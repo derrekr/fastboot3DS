@@ -813,7 +813,7 @@ static bool writeDevMode(AttributeEntryType *attr, const void *newData, int key)
 	
 	*(bool *)attr->data = enabled;
 	
-	const char *textData = modeTable[enabled ? 0 : 1];
+	const char *textData = devModeStates[enabled ? 0 : 1];
 	
 	writeAttributeText(attr, textData, key);
 	
