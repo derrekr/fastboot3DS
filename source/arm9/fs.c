@@ -19,7 +19,9 @@
 #include <string.h>
 #include <malloc.h>
 #include "types.h"
+#include "util.h"
 #include "fs.h"
+#include "arm9/dev.h"
 #include "fatfs/ff.h"
 
 typedef struct
@@ -28,6 +30,8 @@ typedef struct
 	size_t memSize;
 	size_t dataSize;
 } DevBuf;
+
+static const DevHandle devHandleMagic = 0x42424296;
 
 static FATFS fsTable[FS_MAX_DRIVES] = {0};
 static const char *const fsPathTable[FS_MAX_DRIVES] = {FS_DRIVE_NAMES};
@@ -117,13 +121,41 @@ s32 fPrepareRawAccess(FsDevice dev)
 	
 	devStatTable[dev] = true;
 	
-	return FR_OK;
+	return devHandleMagic;
+}
+
+static inline bool isValidDevHandle(DevHandle handle)
+{
+	if(handle != devHandleMagic)
+		return false;
+	
+	return true;
+}
+
+static inline FsDevice getDeviceFromHanlde(DevBufHandle handle)
+{
+	// for now only nand is supported.
+	(void) handle;
+	return FS_DEVICE_NAND;
+}
+
+static inline bool usesRawAccess(FsDevice dev)
+{
+	if(!devStatTable[dev])
+		return false;
+	
+	return true;
 }
 
 s32 fFinalizeRawAccess(DevHandle handle)
 {
-	if(handle != FR_OK) return -30;
-	if(!devStatTable[FS_DEVICE_NAND]) return -31;
+	FsDevice dev;
+	
+	if(!isValidDevHandle(handle)) return -30;
+	
+	dev = getDeviceFromHanlde(handle);
+	
+	if(!usesRawAccess(dev)) return -31;
 	
 	for(u32 drive = 0; drive < FS_MAX_DRIVES; drive++)
 	{
@@ -392,4 +424,150 @@ s32 fUnlink(const char *const path)
 	else return -res;
 }
 
+// Reads from a device or file to a device buffer
+// Note: size must be <= cache size, else: error
+s32 fReadToDeviceBuffer(s32 sourceHandle, u32 sourceOffset, u32 sourceSize, DevBufHandle devBufHandle)
+{
+	FsDevice dev;
+	u32 sector, count;
+	bool fromFile;
+	
+	// source is a device?
+	if(isValidDevHandle(sourceHandle))
+	{
+		if(!isValidDevHandle(sourceHandle))
+			return -30;
+	
+		dev = getDeviceFromHanlde(sourceHandle);
+	
+		if(!usesRawAccess(dev))
+			return -30;
+		
+		if(sourceOffset % 0x200 || sourceSize % 0x200)
+			return -30;
+		
+		fromFile = false;
+	}
+	else
+	{
+		// source must be file, but is it valid?
+		if(!isFileHandleValid(sourceHandle))
+			return -30;
+		
+		fromFile = true;
+	}
+	
+	/* validate device buffer */
+	
+	if(!isValidDevBufHandle(devBufHandle))
+		return -30;
+	
+	if(devBuf.memSize < sourceSize)
+		return -30;
+	
+	/* getting interesting here */
+	
+	if(fromFile)
+	{
+		if(fLseek(sourceHandle, sourceOffset) < 0)
+			return -31;
+		
+		if(fRead(sourceHandle, devBuf.mem, sourceSize) < 0)
+			return -31;
+	}
+	else
+	{
+		// for now...
+		if(dev != FS_DEVICE_NAND)
+			return -30;
+		
+		if(!dev_rawnand->is_active())
+			return -31;
+		
+		sector = sourceOffset >> 9;
+		count = sourceSize >> 9;
+		
+		if(!dev_rawnand->read_sector(sector, count, devBuf.mem))
+			return -31;
+	}
+	
+	devBuf.dataSize = sourceSize;
+	
+	return FR_OK;
+}
+
+// Writes from a device buffer to a device or file.
+// Note: size must be <= cache size, else: error
+s32 fsWriteFromCache(s32 destHandle, u32 destOffset, u32 destSize, DevBufHandle devBufHandle)
+{
+	FsDevice dev;
+	u32 sector, count;
+	bool toFile;
+	
+	// destination is a device?
+	if(isValidDevHandle(destHandle))
+	{
+		if(!isValidDevHandle(destHandle))
+			return -30;
+	
+		dev = getDeviceFromHanlde(destHandle);
+	
+		if(!usesRawAccess(dev))
+			return -30;
+		
+		if(destOffset % 0x200 || destSize % 0x200)
+			return -30;
+		
+		toFile = false;
+	}
+	else
+	{
+		// dest must be file, but is it valid?
+		if(!isFileHandleValid(destHandle))
+			return -30;
+		
+		toFile = true;
+	}
+	
+	/* validate device buffer */
+	
+	if(!isValidDevBufHandle(devBufHandle))
+		return -30;
+	
+	if(devBuf.dataSize < destSize)
+		return -30;
+	
+	count = min(devBuf.dataSize, destSize);
+	
+	if(toFile)
+	{
+		if(fLseek(destHandle, destOffset) < 0)
+			return -31;
+		
+		if(fWrite(destHandle, devBuf.mem, count) < 0)
+			return -31;
+	}
+	else
+	{
+		// for now...
+		if(dev != FS_DEVICE_NAND)
+			return -30;
+		
+		if(!dev_rawnand->is_active())
+			return -31;
+		
+		if(count % 0x200)
+			return -30;
+		
+		sector = destOffset >> 9;
+		count = count >> 9;
+		
+		if(!dev_rawnand->write_sector(sector, count, devBuf.mem))
+			return -31;
+	}
+	
+	devBuf.dataSize = 0;
+	
+	return FR_OK;
+}
 

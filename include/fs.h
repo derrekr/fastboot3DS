@@ -68,7 +68,6 @@ s32 fPrepareRawAccess(FsDevice dev);
 s32 fFinalizeRawAccess(DevHandle handle);
 s32 fCreateDeviceBuffer(u32 size);
 s32 fFreeDeviceBuffer(DevBufHandle handle);
-//s32 fReadToDeviceBuffer(deviceHandle/fileHandle, cacheHandle, StorageOffset, size) //Note: size must be <= cache size, else: error
 s32 fOpen(const char *const path, FsOpenMode mode);
 s32 fRead(s32 handle, void *const buf, u32 size);
 s32 fWrite(s32 handle, const void *const buf, u32 size);
@@ -85,3 +84,5 @@ s32 fCloseDir(s32 handle);
 s32 fMkdir(const char *const path);
 s32 fRename(const char *const old, const char *const new);
 s32 fUnlink(const char *const path);
+s32 fReadToDeviceBuffer(s32 sourceHandle, u32 sourceOffset, u32 sourceSize, DevBufHandle devBufHandle);
+s32 fsWriteFromCache(s32 destHandle, u32 destOffset, u32 destSize, DevBufHandle devBufHandle);
