@@ -181,7 +181,10 @@ bool loadConfigFile()
 	// terminate string buf
 	filebuf[fileSize] = '\0';
 	
-	return parseConfigFile();
+	if(!parseConfigFile())
+		goto fail;
+	
+	return true;
 	
 fail:
 	
@@ -271,13 +274,14 @@ fail:
 
 static bool createConfigFile()
 {
-	char temp = '\0';
+	// set default settings for new config files
+	const char *temp = "BOOT_MODE = Normal\n";
 	bool ret;
 	
 	if(filebuf)
 		panicMsg("config: internal error");
 	
-	filebuf = &temp;
+	filebuf = (char*)temp;
 	
 	ret = writeConfigFile();
 	
@@ -439,9 +443,11 @@ static u32 writeUpdateDefinitionText(char *textData, u32 curTextLen, const char 
 		if(newLen > curTextLen)
 		{
 			size_t backupLen = curLen - (textData - filebuf) - curTextLen + 1;
+			
 			char *tempBuf = (char *) malloc(backupLen);
 			if(!tempBuf)
-				return 0;
+				panicMsg("writeUpdateDefinitionText OOM!");
+			
 			memcpy(tempBuf, textData + curTextLen, backupLen);
 			
 			memcpy_s(filebuf, MAX_FILE_SIZE + 1, textData - filebuf + newLen,
@@ -503,12 +509,17 @@ static bool removeDefinition(AttributeEntryType *attr)
 			break;
 	} while(p > filebuf);
 	
-	lineBegin = isEOL(c) ?	p + 1 : p;
-	
+	if(isEOL(c))
+		lineBegin = p + 2;
+	else
+	{
+		if(p != filebuf) panicMsg("removeDefinition BUG!");
+		lineBegin = p;
+	}
 	
 	/* find the end of this line */
 	
-	p = (char *)attrText;
+	p = (char *)attrText + attrLength;
 	
 	do
 	{
@@ -883,18 +894,16 @@ bool configSetKeyData(int key, const void *data)
 
 void configRestoreDefaults()
 {
+	const u32 defaultMode = BootModeNormal;
+
 	if(!configLoaded)
 		return;
-
-	for(int key=0; key<numKeys; key++)
-	{
-		if(key == KBootMode)
-			configSetKeyData(KBootMode, "Normal");
-		else
-			configSetKeyData(key, "");
-	}
 	
-	configDirty = true;
+	// truncate
+	filebuf[0] = '\0';
+
+	if(!configSetKeyData(KBootMode, &defaultMode))
+		panic();
 }
 
 
