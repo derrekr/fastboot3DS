@@ -23,7 +23,7 @@
 
 #define FS_MAX_DEVICES  (2)
 #define FS_MAX_DRIVES   (FF_VOLUMES)
-#define FS_DRIVE_NAMES  FF_VOLUME_STRS
+#define FS_DRIVE_NAMES  "sdmc:/","twln:/","twlp:/","nand:/"
 
 #define FS_MAX_FILES    (5)
 

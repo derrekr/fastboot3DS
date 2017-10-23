@@ -69,6 +69,10 @@ void IRQ_init(void)
 
 	if(!getCpuId())
 	{
+		// Disable FIQs
+		REG_CFG11_FIQ_CNT = 1;
+
+
 		// Disable the global interrupt distributor
 		REG_GID_CNT = 0;
 
@@ -122,6 +126,7 @@ void IRQ_init(void)
 		tmp = REG_CPU_II_AKN; // Aknowledge
 		REG_CPU_II_EOI = tmp; // End of interrupt
 	} while(tmp != 1023);
+
 
 	leaveCriticalSection(); // Enables interrupts
 }

@@ -178,7 +178,8 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 		if(!dev_decnand->read_sector(sector, 1, (void*)FIRM_LOAD_ADDR)) return -4;
 		if(!firm_size((size_t*)&firmSize)) return -5;
 		sector++;
-		if(!dev_decnand->read_sector(sector, (firmSize>>9) - 1, (void*)(FIRM_LOAD_ADDR + 0x200))) return -4;
+		if(!dev_decnand->read_sector(sector, (firmSize>>9) - 1, (void*)(FIRM_LOAD_ADDR + sizeof(firm_header))))
+			return -4;
 	}
 	else
 	{

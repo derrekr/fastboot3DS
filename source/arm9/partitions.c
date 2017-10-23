@@ -33,7 +33,9 @@ static size_t numPartitions;
 static inline int findPartition(const char *name)
 {
 	size_t namelen = strlen(name);
-	
+
+	if(namelen >= 1 && name[namelen - 1] == ':') namelen--;
+
 	for(size_t i=0; i<numPartitions; i++)
 	{
 		// ee_printf("findPartition: %s vs %s\n", name, partitions[i].name);

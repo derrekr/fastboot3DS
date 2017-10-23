@@ -207,16 +207,13 @@ void GFX_setBrightness(u32 brightness)
 
 void* GFX_getFramebuffer(u8 screen)
 {
-	if(!activeFb)
+	static void *const framebufTable[2][2] =
 	{
-		if(screen) return (void*)FRAMEBUF_TOP_A_2;
-		else       return (void*)FRAMEBUF_SUB_A_2;
-	}
-	else
-	{
-		if(screen) return (void*)FRAMEBUF_TOP_A_1;
-		else       return (void*)FRAMEBUF_SUB_A_1;
-	}
+		{(void*)FRAMEBUF_SUB_A_2, (void*)FRAMEBUF_SUB_A_1},
+		{(void*)FRAMEBUF_TOP_A_2, (void*)FRAMEBUF_TOP_A_1}
+	};
+
+	return framebufTable[screen][activeFb];
 }
 
 void GFX_swapFramebufs(void)

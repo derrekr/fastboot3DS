@@ -22,41 +22,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
+#include "arm11/debug.h"
 #include "arm11/fmt.h"
 #include "arm11/firm.h"
 #include "arm11/main.h"
 
 
 
-void outputEndWait(void)
-{
-	u32 kDown = 0;
-	
-	do
-	{
-		GFX_waitForEvent(GFX_EVENT_PDC0, true);
-		
-		if(hidGetPowerButton(false)) // handle power button
-			break;
-		
-		hidScanInput();
-		kDown = hidKeysDown();
-		if (kDown & (KEY_SHELL)) sleepmode();
-	}
-	while (!(kDown & (KEY_B|KEY_HOME)));
-}
-
-void updateScreens(void)
-{
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-	GFX_swapFramebufs();
-	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+#define PRESET_SLOT_CONFIG_FUNC(x) \
+u32 menuPresetSlotConfig##x(void) \
+{ \
+	return menuPresetSlotConfig((x-1)); \
 }
 
 u32 menuPresetBootMode(void)
@@ -69,7 +51,7 @@ u32 menuPresetBootMode(void)
 	return 0;
 }
 
-u32 menuPresetBootSlot(void)
+u32 menuPresetBootMenu(void)
 {
 	u32 res = 0;
 	
@@ -84,16 +66,45 @@ u32 menuPresetBootSlot(void)
 	return res;
 }
 
-u32 menuSetBootMode(PrintConsole* con, u32 param)
+u32 menuPresetBootConfig(void)
 {
-	(void) con;
+	u32 res = 0;
+	
+	if (configDataExist(KBootMode))
+		res |= 1 << 3;
+	
+	return res | menuPresetBootMenu();
+}
+
+u32 menuPresetSlotConfig(u32 slot)
+{
+	u32 res = 0;
+	
+	if (configDataExist(KBootOption1 + slot))
+		res |= (1 << 0);
+		
+	if (configDataExist(KBootOption1Buttons + slot))
+		res |= (1 << 1);
+	
+	return res;
+}
+PRESET_SLOT_CONFIG_FUNC(1)
+PRESET_SLOT_CONFIG_FUNC(2)
+PRESET_SLOT_CONFIG_FUNC(3)
+
+u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) term_con;
+	(void) menu_con;
 	u32 res = (configSetKeyData(KBootMode, &param)) ? 0 : 1;
 	
 	return res;
 }
 
-u32 menuSetupBootSlot(PrintConsole* con, u32 param)
+u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) term_con;
+	
 	bool slot = param & 0xF;
 	char res_path[256];
 	char* start = NULL;
@@ -110,19 +121,16 @@ u32 menuSetupBootSlot(PrintConsole* con, u32 param)
 		start = (char*) configGetData(KBootOption1 + slot);
 	
 	u32 res = 0;
-	if (menuFileSelector(res_path, con, start, "*.firm"))
+	if (menuFileSelector(res_path, menu_con, start, "*.firm"))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 	
 	return res;
 }
 
-static const char * convTable[] = {
-	"A", "B", "SELECT", "START", "RIGHT", "LEFT",
-	"UP", "DOWN", "R", "L", "X", "Y"
-};
-
-u32 menuSetupBootKeys(PrintConsole* con, u32 param)
+u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
+	
 	const u32 y_center = 7;
 	const u32 y_instr = 21;
 	
@@ -133,39 +141,34 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 	{
 		// build button string
 		char button_str[80];
-		char* ptr = button_str;
-		bool first = true;
-		for (u32 i = 0; i < 12; i++)
-		{
-			if (kHeld & (1<<i))
-			{
-				ptr += ee_sprintf(ptr, "%s[%s]", first ? " " : "+", convTable[i]);
-				first = false;
-			}
-		}
-		if (first) // backup solution for no buttons
-			ee_sprintf(ptr, "(no buttons)");
+		keysToString(kHeld, button_str);
 		
 		// clear console
-		consoleSelect(con);
+		consoleSelect(term_con);
 		consoleClear();
 		
 		// draw input block
-		con->cursorY = y_center;
+		term_con->cursorY = y_center;
+		ee_printf(ESC_SCHEME_WEAK);
 		ee_printf_line_center("Hold button(s) to setup.");
 		ee_printf_line_center("Currently held buttons:");
+		ee_printf(ESC_SCHEME_STD);
 		ee_printf_line_center(button_str);
+		ee_printf(ESC_RESET);
 		
 		// draw instructions
-		con->cursorY = y_instr;
+		term_con->cursorY = y_instr;
+		ee_printf(ESC_SCHEME_WEAK);
 		if (configDataExist(KBootOption1Buttons + param))
 		{
 			char* currentSetting =
 				(char*) configCopyText(KBootOption1Buttons + param);
+			if (!currentSetting) panicMsg("Config error");
 			ee_printf_line_center("Current: %s", currentSetting);
 			free(currentSetting);
 		}
 		ee_printf_line_center("[HOME] to cancel");
+		ee_printf(ESC_RESET);
 		
 		// update screens
 		updateScreens();
@@ -203,7 +206,7 @@ u32 menuSetupBootKeys(PrintConsole* con, u32 param)
 	return res;
 }
 
-u32 menuLaunchFirm(PrintConsole* con, u32 param)
+u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	char path_store[256];
 	char* path;
@@ -211,7 +214,7 @@ u32 menuLaunchFirm(PrintConsole* con, u32 param)
 	if (param < 3) // loading from bootslot
 	{
 		// clear console
-		consoleSelect(con);
+		consoleSelect(term_con);
 		consoleClear();
 	
 		// check if bootslot exists
@@ -230,14 +233,14 @@ u32 menuLaunchFirm(PrintConsole* con, u32 param)
 	else if (param == 0xFF) // user decision
 	{
 		path = path_store;
-		if (!menuFileSelector(path, con, NULL, "*.firm"))
+		if (!menuFileSelector(path, menu_con, NULL, "*.firm"))
 			return 1;
 	}
 	
 	// clear console
 	if (param >= 3)
 	{
-		consoleSelect(con);
+		consoleSelect(term_con);
 		consoleClear();
 	}
 	
@@ -264,37 +267,79 @@ u32 menuLaunchFirm(PrintConsole* con, u32 param)
 	return 1;
 }
 
-u32 menuContinueBoot(PrintConsole* con, u32 param)
+u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	// all the relevant stuff handled outside
-	(void) con;
+	(void) term_con;
+	(void) menu_con;
 	(void) param;
 	g_continueBootloader = true;
 	return 0;
 }
 
-u32 menuDummyFunc(PrintConsole* con, u32 param)
+u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	(void) param;
+	(void) menu_con;
 	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
 	consoleClear();
 	
 	// print something
-	ee_printf("\nThis is not implemented yet.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.");
+	ee_printf("This is not implemented yet.\nMy parameter was %lu.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.", param);
 	updateScreens();
 	outputEndWait();
 
 	return 0;
 }
 
-u32 SetView(PrintConsole* con, u32 param)
+u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
 	(void) param;
 	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
+	consoleClear();
+	
+	// credits
+	term_con->cursorY = 4;
+	ee_printf(ESC_SCHEME_ACCENT0);
+	ee_printf_line_center("Fastboot3DS Credits");
+	ee_printf_line_center("===================");
+	ee_printf_line_center("");
+	ee_printf(ESC_SCHEME_STD);
+	ee_printf_line_center("Main developers:");
+	ee_printf(ESC_SCHEME_WEAK);
+	ee_printf_line_center("derrek");
+	ee_printf_line_center("profi200");
+	ee_printf_line_center("");
+	ee_printf(ESC_SCHEME_STD);
+	ee_printf_line_center("Thanks to:");
+	ee_printf(ESC_SCHEME_WEAK);
+	ee_printf_line_center("yellows8");
+	ee_printf_line_center("plutoo");
+	ee_printf_line_center("smea");
+	ee_printf_line_center("Normmatt (for sdmmc code)");
+	ee_printf_line_center("WinterMute (for console code)");
+	ee_printf_line_center("d0k3 (for menu code)");
+	ee_printf_line_center("");
+	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
+	updateScreens();
+
+	// wait for user
+	outputEndWait();
+	
+	return 0;
+}
+
+u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) menu_con;
+	(void) param;
+	
+	// clear console
+	consoleSelect(term_con);
 	consoleClear();
 	
 	ee_printf("Write config: %s\n", writeConfigFile() ? "success" : "failed");
@@ -329,36 +374,43 @@ u32 SetView(PrintConsole* con, u32 param)
 	return 0;
 }
 
-u32 menuShowCredits(PrintConsole* con, u32 param)
+u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	(void) menu_con;
 	(void) param;
 	
 	// clear console
-	consoleSelect(con);
+	consoleSelect(term_con);
 	consoleClear();
 	
-	// credits
-	con->cursorY = 4;
-	ee_printf_line_center("Fastboot3DS Credits");
-	ee_printf_line_center("===================");
-	ee_printf_line_center("");
-	ee_printf_line_center("Main developers:");
-	ee_printf_line_center("derrek");
-	ee_printf_line_center("profi200");
-	ee_printf_line_center("");
-	ee_printf_line_center("Thanks to:");
-	ee_printf_line_center("yellows8");
-	ee_printf_line_center("plutoo");
-	ee_printf_line_center("smea");
-	ee_printf_line_center("Normmatt (for sdmmc code)");
-	ee_printf_line_center("WinterMute (for console code)");
-	ee_printf_line_center("d0k3 (for menu code)");
-	ee_printf_line_center("");
-	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
-	updateScreens();
-
-	// wait for user
-	outputEndWait();
+	ee_printf("\x1b[1mbold\n\x1b[0m");
+	ee_printf("\x1b[2mfaint\n\x1b[0m");
+	ee_printf("\x1b[3mitalic\n\x1b[0m");
+	ee_printf("\x1b[4munderline\n\x1b[0m");
+	ee_printf("\x1b[5mblink slow\n\x1b[0m");
+	ee_printf("\x1b[6mblink fast\n\x1b[0m");
+	ee_printf("\x1b[7mreverse\n\x1b[0m");
+	ee_printf("\x1b[8mconceal\n\x1b[0m");
+	ee_printf("\x1b[9mcrossed-out\n\x1b[0m");
+	ee_printf("\n");
+	
+	for (u32 i = 0; i < 8; i++)
+	{
+		char c[8];
+		ee_snprintf(c, 8, "\x1b[%lu", 30 + i);
+		ee_printf("color #%lu:  %smnormal\x1b[0m %s;2mfaint\x1b[0m %s;4munderline\x1b[0m %s;7mreverse\x1b[0m %s;9mcrossed-out\x1b[0m\n", i, c, c, c, c, c);
+	}
+	
+	// wait for B / HOME button
+	do
+	{
+		updateScreens();
+		if(hidGetPowerButton(false)) // handle power button
+			return 0;
+		
+		hidScanInput();
+	}
+	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
 	
 	return 0;
 }

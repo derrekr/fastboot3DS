@@ -24,7 +24,7 @@
 
 #define SUBMENU_SLOT_SETUP(x) \
 { \
-	"Boot Slot #" #x " Setup", 3, NULL, MENU_FLAG_SLOT(x), \
+	"Boot Slot #" #x " Setup", 3, &menuPresetSlotConfig##x, MENU_FLAG_SLOT(x), \
 	{ \
 		{ "Select [slot " #x "] firm",		DESC_FIRM_SLOT(x),			&menuSetupBootSlot,		(x-1)&0xF }, \
 		{ "Select [slot " #x "] buttons",	DESC_KEYS_SLOT(x),			&menuSetupBootKeys,		(x-1)&0xF }, \
@@ -35,8 +35,8 @@
 #define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
 
 #define DESC_CONTINUE		"Continue booting the first available boot slot.\nNo function if boot slots are not set up."
-#define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from."
-#define DESC_BOOT_FILE		"Select a firmware to boot."
+#define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from. Also includes boot slot and boot mode setup."
+#define DESC_BOOT_FILE		"Select a firmware file to boot."
 #define DESC_NAND_TOOLS		"Enter NAND tools submenu, including tools for NAND backup, NAND restore and firmware flash."
 #define DESC_OPTIONS		"Enter fastboot3ds settings submenu."
 #define DESC_MISC			"Enter miscellaneous submenu, including the update tool and credits section."
@@ -47,12 +47,12 @@
 
 #define DESC_SLOT_SETUP(x)	"Change boot settings for slot #" #x "."
 #define DESC_FIRM_SLOT(x)	"Change the firmware in boot slot #" #x "."
-#define DESC_CLEAR_SLOT(x)	"Change the firmware in boot slot #" #x "."
+#define DESC_CLEAR_SLOT(x)	"Clear & reset boot slot #" #x "."
 #define DESC_KEYS_SLOT(x)	"Change the keycombo used to boot slot #" #x "."
 
-#define DESC_BOOT_NORMAL	"Set normal boot mode.\nIn normal boot mode, you will be presented with the fastboot3ds menu upon boot."
-#define DESC_BOOT_QUICK		"Set quick boot mode.\nIn quick boot mode, splash is displayed and the boot is continued via the first available boot slot. To enter fastboot3ds menu, hold the HOME button at startup."
-#define DESC_BOOT_QUIET		"Set quiet boot mode.\nIn quiet boot mode, splash is not displayed and the boot is continued via the first available boot slot. To enter fastboot3ds menu, hold the HOME button at startup."
+#define DESC_BOOT_NORMAL	"In normal boot mode, you will be presented with the fastboot3ds menu upon boot."
+#define DESC_BOOT_QUICK		"In quick boot mode, splash is displayed and the boot is continued via the first available boot slot. To enter fastboot3ds menu, hold the HOME button at startup."
+#define DESC_BOOT_QUIET		"In quiet boot mode, splash is not displayed and the boot is continued via the first available boot slot. To enter fastboot3ds menu, hold the HOME button at startup."
 #define DESC_CHANGE_BOOT	"Change fastboot3ds boot mode. This allows you to set up how your console boots."
 
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."
@@ -84,7 +84,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 1
-		"Boot Menu", 5, &menuPresetBootSlot, MENU_FLAG_SLOTS,
+		"Boot Menu", 5, &menuPresetBootMenu, MENU_FLAG_SLOTS,
 		{
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
@@ -95,7 +95,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Setup", 4, &menuPresetBootSlot, MENU_FLAG_SLOTS,
+		"Boot Setup", 4, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE,
 		{
 			{ "Setup [slot 1]...",			DESC_SLOT_SETUP(1),			NULL,					3 },
 			{ "Setup [slot 2]...",			DESC_SLOT_SETUP(2),			NULL,					4 },
@@ -117,23 +117,24 @@ MenuInfo menu_fb3ds[] =
 	{ // 7
 		"NAND Tools", 4, NULL, 0,
 		{
-			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,				3 },
-			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,				4 },
-			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,				4 },
-			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,				2 }
+			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,			3 },
+			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,			4 },
+			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuDummyFunc,			4 },
+			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,			2 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,				1 },
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,			1 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
 	{ // 9
-		"Debug", 1, NULL, 0, // this will not show in the release version
+		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
-			{ "View current settings",		LOREM,						&SetView,				0 }
+			{ "View current settings",		LOREM,						&debugSettingsView,		0 },
+			{ "Escape sequence test",		LOREM,						&debugEscapeTest,		0 } 
 		}
 	}
 };

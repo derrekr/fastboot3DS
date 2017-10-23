@@ -23,16 +23,16 @@ static u16 colorTable[] = {
 	RGB8_to_565(  0,255,255),	// bright cyan
 	RGB8_to_565(255,255,255),	// bright white
 
-	RGB8_to_565(128,128,128),	// bright black
+	RGB8_to_565( 64, 64, 64),	// almost black
 	RGB8_to_565(255,  0,  0),	// bright red
 	RGB8_to_565(  0,255,  0),	// bright green
-	RGB8_to_565(255,255,  0),	// bright yellow
-	RGB8_to_565(  0,  0,255),	// bright blue
+	RGB8_to_565(255,255, 32),	// acccent yellow
+	RGB8_to_565( 64, 64,255),	// accent blue
 	RGB8_to_565(255,  0,255),	// bright magenta
 	RGB8_to_565(  0,255,255),	// bright cyan
-	RGB8_to_565(255,255,255),	// bright white
+	RGB8_to_565(192,192,192),	// almost white
 
-	RGB8_to_565(  0,  0,  0),	// faint black
+	RGB8_to_565(128,128,128),	// bright black
 	RGB8_to_565( 64,  0,  0),	// faint red
 	RGB8_to_565(  0, 64,  0),	// faint green
 	RGB8_to_565( 64, 64,  0),	// faint yellow

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200, d0k3
@@ -16,20 +18,21 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#include "types.h"
 
 
-char* mallocpyString(const char* str);
-void truncateString(char* dest, const char* orig, int nsize, int tpos);
-void formatBytes(char* str, u64 bytes);
-void keysToString(u32 keys, char* string);
-void stringWordWrap(char* str, int llen);
+// ANSI escape sequences for colors
+// see: https://en.wikipedia.org/wiki/ANSI_escape_code
+#define ESC_RESET			"\x1b[0m"
+#define ESC_BOLD			"\x1b[1m"
+#define ESC_FAINT			"\x1b[2m"
+#define ESC_UNDERLINE		"\x1b[4m"
+#define ESC_CROSSEDOUT		"\x1b[9m"
+#define ESC_INVERT			"\x1b[7m"
+#define ESC_FGCOLOR(x)		"\x1b[3" #x "m"
+#define ESC_BGCOLOR(x)		"\x1b[4" #x "m"
 
-u32 stringGetHeight(const char* str);
-u32 stringGetWidth(const char* str);
-
-u32 ee_printf_line_center(const char *const fmt, ...);
-
-void updateScreens(void);
-void outputEndWait(void);
-void sleepmode(void);
+// colors for color scheme
+#define ESC_SCHEME_STD		ESC_RESET ESC_FGCOLOR(7) ESC_BGCOLOR(0)
+#define ESC_SCHEME_WEAK		ESC_RESET ESC_FGCOLOR(7) ESC_BGCOLOR(0) ESC_BOLD
+#define ESC_SCHEME_ACCENT0	ESC_RESET ESC_FGCOLOR(4) ESC_BGCOLOR(0) ESC_BOLD
+#define ESC_SCHEME_ACCENT1	ESC_RESET ESC_FGCOLOR(3) ESC_BGCOLOR(0) ESC_BOLD

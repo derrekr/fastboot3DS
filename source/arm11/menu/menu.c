@@ -23,15 +23,73 @@
 #include "types.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
+#include "arm11/menu/menu_color.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/config.h"
 #include "arm11/console.h"
+#include "arm11/debug.h"
 #include "arm11/fmt.h"
 #include "arm11/main.h"
 #include "hardware/gfx.h"
 
 
 
+void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
+{
+	char* desc_ptr = desc;
+	
+	// copy raw description
+	desc_ptr += ee_sprintf(desc_ptr, desc_raw);
+	
+	
+	// flags only concern descriptions right now
+	u32	slot = (flags & MENU_FLAG_SLOTS) ? index :
+		(flags & MENU_FLAG_SLOT(1)) ? 0 :
+		(flags & MENU_FLAG_SLOT(2)) ? 1 :
+		(flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
+	
+	// boot mode description
+	if ((flags & MENU_FLAG_BOOTMODE) && (index == 3))
+	{
+		if (configDataExist(KBootMode))
+		{
+			char* modestr = (char*) configCopyText(KBootMode);
+			if (!modestr) panicMsg("Config error");
+			desc_ptr += ee_sprintf(desc_ptr, "\n \ncurrent: %s", modestr);
+			free (modestr);
+		}
+		else desc_ptr += ee_sprintf(desc_ptr, "\n \ncurrent: - not set up -");
+	}
+	// boot slot description
+	else if (slot < 3)
+	{
+		// get strings for path and keycombo
+		char slot_path_store[24+1];
+		char* slot_path = NULL;
+		char* keycombo = NULL;
+		
+		if(configDataExist(KBootOption1 + slot))
+		{
+			slot_path = slot_path_store;
+			truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
+		}
+		
+		if(configDataExist(KBootOption1Buttons + slot))
+			keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
+		
+		// write description to desc string
+		desc_ptr += ee_sprintf(desc_ptr, "\n \npath: %s\nkeys: %s",
+			slot_path ? slot_path : "- not set up -",
+			keycombo ? keycombo : "- not set up -");
+		
+		if (keycombo) free(keycombo);
+	}
+	
+	
+	// wordwrap the whole string
+	stringWordWrap(desc, WORDWRAP_WIDTH);
+}
+	
 void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 {
 	// select and clear description console
@@ -41,7 +99,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	// print title at the top
 	const char* title = "fastboot 3DS " VERS_STRING;
 	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
-	ee_printf(title);
+	ee_printf(ESC_SCHEME_ACCENT0 "%s" ESC_RESET, title);
 	
 	// get description, check if available
 	MenuEntry* entry = &(curr_menu->entries[index]);
@@ -53,58 +111,8 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 		return;
 	
 	// build description string
-	// also handle MENU_FLAG_SLOTS flag
 	char desc_ww[512];
-	if (curr_menu->flags & 0xF) // includes all known flags
-	{
-		// flags only concern descriptions right now
-		char slot_path_store[24+1];
-		char* slot_path = NULL;
-		char* keycombo = NULL;
-		u32 flags = curr_menu->flags;
-		u32 slot = (flags & MENU_FLAG_SLOTS) ? index :
-			(flags & MENU_FLAG_SLOT(1)) ? 0 :
-			(flags & MENU_FLAG_SLOT(2)) ? 1 :
-			(flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
-		
-		if (slot < 3)
-		{
-			if(configDataExist(KBootOption1 + slot))
-			{
-				slot_path = slot_path_store;
-				truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
-			}
-			
-			if (configDataExist(KBootOption1Buttons + slot))
-				keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
-			
-			if (flags & MENU_FLAG_SLOTS)
-			{
-				if (slot_path && keycombo)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s\nButtons: %s", desc, slot_path, keycombo);
-				else if (slot_path)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
-				else strncpy(desc_ww, desc, 512);
-			}
-			else
-			{
-				if (((index == 0) || (index == 2)) && slot_path)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, slot_path);
-				else if ((index == 1) && keycombo)
-					ee_snprintf(desc_ww, 512, "%s\nCurrent: %s", desc, keycombo);
-				else strncpy(desc_ww, desc, 512);
-			}
-			
-			if (keycombo) free(keycombo);
-		} else strncpy(desc_ww, desc, 512);
-	}
-	else
-	{
-		strncpy(desc_ww, desc, 512);
-	}
-	
-	// wordwrap description string
-	stringWordWrap(desc_ww, WORDWRAP_WIDTH);
+	menuBuildDescString(desc_ww, curr_menu->flags, index, desc);
 	
 	// get width, height
 	int desc_width = stringGetWidth(desc_ww);
@@ -117,12 +125,14 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	int desc_y = (desc_con->consoleHeight - 2 - desc_height);
 	
 	consoleSetCursor(desc_con, desc_x, desc_y++);
-	ee_printf("%s:", name);
+	ee_printf(ESC_SCHEME_ACCENT1 "%s:\n" ESC_RESET, name);
 	
+	ee_printf(ESC_SCHEME_WEAK);
 	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
 		consoleSetCursor(desc_con, desc_x, desc_y++);
 		ee_printf(str);
 	}
+	ee_printf(ESC_RESET);
 }
 
 /**
@@ -149,7 +159,7 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 	
 	// menu title
 	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf(curr_menu->name);
+	ee_printf(ESC_SCHEME_ACCENT1 "%s" ESC_RESET, curr_menu->name);
 	menu_y++;
 	
 	// menu entries
@@ -160,14 +170,17 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		bool is_selected = (i == index);
 		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
-		ee_printf(is_selected ? "\x1b[47;30m%.3s %-*.*s\x1b[0m" : "%.3s %-*.*s",
-			((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
+		// ee_printf(((menu_preset >> i) & 0x1) ? ESC_SCHEME_STD : ESC_SCHEME_WEAK);
+		ee_printf(ESC_SCHEME_STD);
+		if (is_selected) ee_printf(ESC_INVERT);
+		ee_printf("%.3s %-*.*s", ((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
+		ee_printf(ESC_RESET);
 	}
 	
 	// button instructions
 	menu_y = MENU_OFFSET_BUTTONS;
 	consoleSetCursor(menu_con, menu_x, menu_y++);
-	ee_printf("%-*.*s", MENU_WIDTH, MENU_WIDTH, "[A]:Choose [B]:Back");
+	ee_printf(ESC_SCHEME_WEAK "%-*.*s" ESC_RESET, MENU_WIDTH, MENU_WIDTH, "[A]:Choose [B]:Back");
 }
 
 /**
@@ -196,13 +209,13 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			last_menu = curr_menu;
 
 			GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-			               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+						0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 			GFX_swapFramebufs();
 		}
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 		
 		// handle power button
-		if(hidGetPowerButton(true))
+		if(hidGetPowerButton(false))
 			break; // deinits & poweroff outside of this function
 		
 		hidScanInput();
@@ -230,7 +243,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
-			(*(entry->function))(desc_con, entry->param);
+			(*(entry->function))(desc_con, menu_con, entry->param);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
 		}
