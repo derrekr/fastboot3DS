@@ -46,6 +46,24 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FGETFREE):
 			result = fGetFree(buf[2], (u64*)buf[0]);
 			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FPREP_RAW_ACCESS):
+			result = fPrepareRawAccess(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FFINAL_RAW_ACCESS):
+			result = fFinalizeRawAccess(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FCREATE_DEV_BUF):
+			result = fCreateDeviceBuffer(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FFREE_DEV_BUF):
+			result = fFreeDeviceBuffer(buf[0]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FREAD_TO_DEV_BUF):
+			result = fReadToDeviceBuffer(buf[0], buf[1], buf[2], buf[3]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FWRITE_FROM_DEV_BUF):
+			result = fsWriteFromDeviceBuffer(buf[0], buf[1], buf[2], buf[3]);
+			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FOPEN):
 			result = fOpen((const char *const)buf[0], buf[2]);
 			break;

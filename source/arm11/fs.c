@@ -46,6 +46,52 @@ s32 fGetFree(FsDrive drive, u64 *size)
 	return PXI_sendCmd(IPC_CMD9_FGETFREE, cmdBuf, 3);
 }
 
+s32 fPrepareRawAccess(FsDevice dev)
+{
+	const u32 cmdBuf = dev;
+	return PXI_sendCmd(IPC_CMD9_FPREP_RAW_ACCESS, &cmdBuf, 1);
+}
+
+s32 fFinalizeRawAccess(DevHandle handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FFINAL_RAW_ACCESS, &cmdBuf, 1);
+}
+
+s32 fCreateDeviceBuffer(u32 size)
+{
+	const u32 cmdBuf = size;
+	return PXI_sendCmd(IPC_CMD9_FCREATE_DEV_BUF, &cmdBuf, 1);
+}
+
+s32 fFreeDeviceBuffer(DevBufHandle handle)
+{
+	const u32 cmdBuf = handle;
+	return PXI_sendCmd(IPC_CMD9_FFREE_DEV_BUF, &cmdBuf, 1);
+}
+
+s32 fReadToDeviceBuffer(s32 sourceHandle, u32 sourceOffset, u32 sourceSize, DevBufHandle devBufHandle)
+{
+	u32 cmdBuf[4];
+	cmdBuf[0] = sourceHandle;
+	cmdBuf[1] = sourceOffset;
+	cmdBuf[2] = sourceSize;
+	cmdBuf[3] = devBufHandle;
+
+	return PXI_sendCmd(IPC_CMD9_FREAD_TO_DEV_BUF, cmdBuf, 4);
+}
+
+s32 fsWriteFromDeviceBuffer(s32 destHandle, u32 destOffset, u32 destSize, DevBufHandle devBufHandle)
+{
+	u32 cmdBuf[4];
+	cmdBuf[0] = destHandle;
+	cmdBuf[1] = destOffset;
+	cmdBuf[2] = destSize;
+	cmdBuf[3] = devBufHandle;
+
+	return PXI_sendCmd(IPC_CMD9_FWRITE_FROM_DEV_BUF, cmdBuf, 4);
+}
+
 s32 fOpen(const char *const path, FsOpenMode mode)
 {
 	u32 cmdBuf[3];
