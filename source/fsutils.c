@@ -26,24 +26,31 @@
 
 bool fsEnsureMounted(const char *path)
 {
+	s32 res = 0;
+	
 	if(strncmp(path, "sdmc:", 5) == 0)
 	{
-		return (fMount(FS_DRIVE_SDMC) == 0);
+		res = fMount(FS_DRIVE_SDMC);
 	}
 	else if(strncmp(path, "nand:", 5) == 0)
 	{
-		return (fMount(FS_DRIVE_NAND) == 0);
+		res = fMount(FS_DRIVE_NAND);
 	}
 	else if(strncmp(path, "twln:", 5) == 0)
 	{
-		return (fMount(FS_DRIVE_TWLN) == 0);
+		res = fMount(FS_DRIVE_TWLN);
 	}
 	else if(strncmp(path, "twlp:", 5) == 0)
 	{
-		return (fMount(FS_DRIVE_TWLP) == 0);
+		res = fMount(FS_DRIVE_TWLP);
+	}
+	else
+	{
+		return false;
 	}
 	
-	return false;
+	// succesfull mount or already mounted
+	return ((res == 0) || (res == -31));
 }
 
 void fsUnmountAll()

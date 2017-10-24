@@ -152,13 +152,16 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 	if(!*path)
 	{
 		const char* root_paths[] = { "sdmc:", "nand:", "twln:", "twlp:" };
-		n_entries = sizeof(root_paths) / sizeof(const char*);
 		
-		for(s32 i = 0; i < n_entries; i++)
+		for(u32 i = 0; i < sizeof(root_paths) / sizeof(const char*); i++)
 		{
-			dir_buffer[i].fsize = 0;
-			dir_buffer[i].is_dir = 1;
-			dir_buffer[i].fname = mallocpyString(root_paths[i]);
+			if (!fsEnsureMounted(root_paths[i]))
+			 	continue;
+			
+			dir_buffer[n_entries].fsize = 0;
+			dir_buffer[n_entries].is_dir = 1;
+			dir_buffer[n_entries].fname = mallocpyString(root_paths[i]);
+			n_entries++;
 		}
 		
 		return n_entries;
