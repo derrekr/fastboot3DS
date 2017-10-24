@@ -105,7 +105,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) term_con;
 	
-	bool slot = param & 0xF;
+	u32 slot = param & 0xF;
 	char res_path[256];
 	char* start = NULL;
 	
