@@ -327,8 +327,49 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
 
-	// wait for user
-	outputEndWait();
+	
+	// Konami code
+	const u32 konami_code[] = {
+		KEY_DUP, KEY_DUP, KEY_DDOWN, KEY_DDOWN, KEY_DLEFT, KEY_DRIGHT, KEY_DLEFT, KEY_DRIGHT, KEY_B, KEY_A };
+	const u32 konami = sizeof(konami_code) / sizeof(u32);
+	u32 k = 0;
+	
+	// handle user input
+	u32 kDown = 0;
+	do
+	{
+		GFX_waitForEvent(GFX_EVENT_PDC0, true);
+		
+		if(hidGetPowerButton(false)) // handle power button
+			break;
+		
+		hidScanInput();
+		kDown = hidKeysDown();
+		
+		if (kDown) k = (kDown & konami_code[k]) ? k + 1 : 0;
+		if (!k && (kDown & KEY_B)) break;
+		if (kDown & KEY_SHELL) sleepmode();
+	}
+	while (!(kDown & KEY_HOME) && (k < konami));
+	
+	
+	// Konami code entered?
+	if (k == konami)
+	{
+		const bool enabled = true;
+		configSetKeyData(KDevMode, &enabled);
+		
+		consoleClear();
+		ee_printf(ESC_SCHEME_ACCENT1);
+		ee_printf("You are now a developer!\n");
+		ee_printf(ESC_RESET);
+		ee_printf("Access to developer only features granted.\n\n");
+		ee_printf("Press B or HOME to return.");
+		updateScreens();
+		
+		outputEndWait();
+	}
+	
 	
 	return 0;
 }
