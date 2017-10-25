@@ -29,9 +29,10 @@
 #define MENU_WIDTH			28
 #define WORDWRAP_WIDTH		58
 
-#define MENU_FLAG_SLOTS		1
+#define MENU_FLAG_SLOTS		(1<<0)
 #define MENU_FLAG_SLOT(x)	(1<<x)
 #define MENU_FLAG_BOOTMODE	(1<<3)
+#define MENU_FLAG_CONFIG	(1<<10)
 
 
 /**

@@ -41,17 +41,35 @@ u32 menuPresetSlotConfig##x(void) \
 	return menuPresetSlotConfig((x-1)); \
 }
 
-u32 menuPresetBootMode(void)
+u32 menuPresetNandTools(void)
 {
-	if (configDataExist(KBootMode))
-	{
-		return (1 << (*(u32*) configGetData(KBootMode)));
-	}
-		
-	return 0;
+	u32 res = 0xFF;
+	
+	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
+		res &= ~((1 << 2) | (1 << 3));
+	
+	return res;
 }
 
 u32 menuPresetBootMenu(void)
+{
+	u32 res = 0xFF;
+	
+	for (u32 i = 0; i < 3; i++)
+	{
+		if (!configDataExist(KBootOption1 + i))
+		{
+			res &= ~(1 << i);
+		}
+	}
+	
+	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
+		res &= ~(1 << 3);
+	
+	return res;
+}
+
+u32 menuPresetBootConfig(void)
 {
 	u32 res = 0;
 	
@@ -63,17 +81,10 @@ u32 menuPresetBootMenu(void)
 		}
 	}
 	
-	return res;
-}
-
-u32 menuPresetBootConfig(void)
-{
-	u32 res = 0;
-	
 	if (configDataExist(KBootMode))
 		res |= 1 << 3;
 	
-	return res | menuPresetBootMenu();
+	return res;
 }
 
 u32 menuPresetSlotConfig(u32 slot)
@@ -86,11 +97,24 @@ u32 menuPresetSlotConfig(u32 slot)
 	if (configDataExist(KBootOption1Buttons + slot))
 		res |= (1 << 1);
 	
+	if (res) res |= (1 << 2);
+	
 	return res;
 }
 PRESET_SLOT_CONFIG_FUNC(1)
 PRESET_SLOT_CONFIG_FUNC(2)
 PRESET_SLOT_CONFIG_FUNC(3)
+
+u32 menuPresetBootMode(void)
+{
+	if (configDataExist(KBootMode))
+	{
+		return (1 << (*(u32*) configGetData(KBootMode)));
+	}
+		
+	return 0;
+}
+
 
 u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
@@ -360,11 +384,12 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		configSetKeyData(KDevMode, &enabled);
 		
 		consoleClear();
+		term_con->cursorY = 10;
 		ee_printf(ESC_SCHEME_ACCENT1);
-		ee_printf("You are now a developer!\n");
+		ee_printf_line_center("You are now a developer!");
 		ee_printf(ESC_RESET);
-		ee_printf("Access to developer only features granted.\n\n");
-		ee_printf("Press B or HOME to return.");
+		ee_printf_line_center("");
+		ee_printf_line_center("Access to developer-only features granted.");
 		updateScreens();
 		
 		outputEndWait();

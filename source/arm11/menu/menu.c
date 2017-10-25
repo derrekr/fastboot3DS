@@ -42,7 +42,7 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 	desc_ptr += ee_sprintf(desc_ptr, desc_raw);
 	
 	
-	// flags only concern descriptions right now
+	// handle flags
 	u32	slot = (flags & MENU_FLAG_SLOTS) ? index :
 		(flags & MENU_FLAG_SLOT(1)) ? 0 :
 		(flags & MENU_FLAG_SLOT(2)) ? 1 :
@@ -147,7 +147,7 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
 	// int menu_y = MENU_DISP_Y + ((menu_con->consoleHeight - menu_block_height) >> 1);
 	int menu_y = MENU_OFFSET_TITLE;
-	int menu_preset = 0;
+	int menu_preset = 0xFF;
 	
 	// get menu preset
 	if (curr_menu->preset)
@@ -169,11 +169,17 @@ void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 		char* name = entry->name;
 		bool is_selected = (i == index);
 		
+		char symbol = ' ';
+		if (curr_menu->flags & MENU_FLAG_CONFIG)
+			symbol = ((menu_preset >> i) & 0x1) ? '\xFB' : ' ';
+		else
+			symbol = ((menu_preset >> i) & 0x1) ? '+' : '-';
+		
 		consoleSetCursor(menu_con, menu_x, menu_y++);
 		// ee_printf(((menu_preset >> i) & 0x1) ? ESC_SCHEME_STD : ESC_SCHEME_WEAK);
 		ee_printf(ESC_SCHEME_STD);
 		if (is_selected) ee_printf(ESC_INVERT);
-		ee_printf("%.3s %-*.*s", ((menu_preset >> i) & 0x1) ? "[X]" : "[ ]", MENU_WIDTH-4, MENU_WIDTH-4, name);
+		ee_printf("[%c] %-*.*s", symbol, MENU_WIDTH-4, MENU_WIDTH-4, name);
 		ee_printf(ESC_RESET);
 	}
 	

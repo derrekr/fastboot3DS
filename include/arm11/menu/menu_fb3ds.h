@@ -24,7 +24,7 @@
 
 #define SUBMENU_SLOT_SETUP(x) \
 { \
-	"Boot Slot #" #x " Setup", 3, &menuPresetSlotConfig##x, MENU_FLAG_SLOT(x), \
+	"Boot Slot #" #x " Setup", 3, &menuPresetSlotConfig##x, MENU_FLAG_SLOT(x) | MENU_FLAG_CONFIG, \
 	{ \
 		{ "Select [slot " #x "] firm",		DESC_FIRM_SLOT(x),			&menuSetupBootSlot,		(x-1)&0xF }, \
 		{ "Select [slot " #x "] buttons",	DESC_KEYS_SLOT(x),			&menuSetupBootKeys,		(x-1)&0xF }, \
@@ -95,7 +95,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Setup", 4, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE,
+		"Boot Setup", 4, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
 		{
 			{ "Setup [slot 1]...",			DESC_SLOT_SETUP(1),			NULL,					3 },
 			{ "Setup [slot 2]...",			DESC_SLOT_SETUP(2),			NULL,					4 },
@@ -107,7 +107,7 @@ MenuInfo menu_fb3ds[] =
 	SUBMENU_SLOT_SETUP(2), // 4
 	SUBMENU_SLOT_SETUP(3), // 5
 	{ // 6
-		"Boot Mode Setup", 3, &menuPresetBootMode, 0,
+		"Boot Mode Setup", 3, &menuPresetBootMode, MENU_FLAG_CONFIG,
 		{
 			{ "Set normal boot",			DESC_BOOT_NORMAL,			&menuSetBootMode,		0 },
 			{ "Set quiet boot",				DESC_BOOT_QUIET,			&menuSetBootMode,		1 },
@@ -115,7 +115,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 7
-		"NAND Tools", 4, NULL, 0,
+		"NAND Tools", 4, &menuPresetNandTools, 0,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuDummyFunc,			3 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuDummyFunc,			4 },
