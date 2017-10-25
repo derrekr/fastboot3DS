@@ -130,7 +130,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	(void) term_con;
 	
 	u32 slot = param & 0xF;
-	char res_path[256];
+	char* res_path = NULL;
 	char* start = NULL;
 	
 	// if bit4 of param is set, reset slot and return
@@ -144,10 +144,14 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	if (configDataExist(KBootOption1 + slot))
 		start = (char*) configGetData(KBootOption1 + slot);
 	
+	res_path = (char*) malloc(256);
+	if (!res_path) panicMsg("Out of memory");
+	
 	u32 res = 0;
 	if (menuFileSelector(res_path, menu_con, start, "*.firm"))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 	
+	free(res_path);
 	return res;
 }
 
