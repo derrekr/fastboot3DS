@@ -78,9 +78,9 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 			keycombo = (char*) configCopyText(KBootOption1Buttons + slot);
 		
 		// write description to desc string
-		desc_ptr += ee_sprintf(desc_ptr, "\n \npath: %s\nkeys: %s",
-			slot_path ? slot_path : "- not set up -",
-			keycombo ? keycombo : "- not set up -");
+		desc_ptr += ee_sprintf(desc_ptr, "\n \npath: %s\nboot: %s",
+			slot_path ? slot_path : "- slot disabled -",
+			!slot_path ? "- slot disabled -" : keycombo ? keycombo : "bootloader (auto)");
 		
 		if (keycombo) free(keycombo);
 	}

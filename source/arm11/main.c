@@ -171,9 +171,10 @@ int main(void)
 			if(!err_string) panicMsg("Out of memory");
 		
 			err_ptr += ee_sprintf(err_ptr, "Continuing bootloader...\n");
-			for(u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+			for (u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
 			{
-				if(!configDataExist(KBootOption1 + i))
+				// FIRM not set for slot or slot not set to autoboot
+				if (!configDataExist(KBootOption1 + i) || configDataExist(KBootOption1Buttons + i))
 					continue;
 
 				char* path = (char*) configGetData(KBootOption1 + i);

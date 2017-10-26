@@ -92,12 +92,14 @@ u32 menuPresetSlotConfig(u32 slot)
 	u32 res = 0;
 	
 	if (configDataExist(KBootOption1 + slot))
+	{
 		res |= (1 << 0);
-		
-	if (configDataExist(KBootOption1Buttons + slot))
-		res |= (1 << 1);
-	
-	if (res) res |= (1 << 2);
+		res |= (configDataExist(KBootOption1Buttons + slot)) ? (1 << 1) : (1 << 2);
+	}
+	else
+	{
+		res |= (1 << 3);
+	}
 	
 	return res;
 }
@@ -165,6 +167,17 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	const u32 y_center = 7;
 	const u32 y_instr = 21;
 	const u32 slot = param & 0xF;
+	
+	// don't allow setting this up if firm is not set
+	if (!configDataExist(KBootOption1 + slot))
+		return 0;
+	
+	// if bit4 of param is set, delete boot keys and return
+	if (param & 0x10)
+	{
+		configDeleteKey(KBootOption1Buttons + slot);
+		return 0;
+	}
 	
 	hidScanInput();
 	u32 kHeld = hidKeysHeld();
