@@ -153,6 +153,30 @@ u32 ee_printf_line_center(const char *const fmt, ...)
 	return ee_printf("%*.*s%s\n", pad, pad, "", buf);
 }
 
+u32 ee_printf_screen_center(const char *const fmt, ...)
+{
+	u32 res = 0;
+	
+	char buf[256];
+	va_list args;
+	va_start(args, fmt);
+	ee_vsnprintf(buf, 256, fmt, args);
+	va_end(args);
+	
+	PrintConsole *con = consoleGet();
+	int x = (con->consoleWidth - stringGetWidth(buf)) >> 1;
+	int y = (con->consoleHeight - stringGetHeight(buf)) >> 1;
+	
+	consoleClear();
+	for (char* str = strtok(buf, "\n"); str != NULL; str = strtok(NULL, "\n"))
+	{
+		consoleSetCursor(con, x, y++);
+		res += ee_printf(str);
+	}
+	
+	return res;
+}
+
 // only intended to be ran when the shell is closed
 void sleepmode(void)
 {

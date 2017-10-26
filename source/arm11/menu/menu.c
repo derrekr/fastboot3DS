@@ -128,7 +128,8 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	ee_printf(ESC_SCHEME_ACCENT1 "%s:\n" ESC_RESET, name);
 	
 	ee_printf(ESC_SCHEME_WEAK);
-	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n")) {
+	for (char* str = strtok(desc_ww, "\n"); str != NULL; str = strtok(NULL, "\n"))
+	{
 		consoleSetCursor(desc_con, desc_x, desc_y++);
 		ee_printf(str);
 	}

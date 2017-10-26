@@ -29,6 +29,7 @@ u32 stringGetHeight(const char* str);
 u32 stringGetWidth(const char* str);
 
 u32 ee_printf_line_center(const char *const fmt, ...);
+u32 ee_printf_screen_center(const char *const fmt, ...);
 
 void updateScreens(void);
 void outputEndWait(void);

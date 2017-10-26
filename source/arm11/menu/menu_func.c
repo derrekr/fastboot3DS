@@ -129,7 +129,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) term_con;
 	
-	u32 slot = param & 0xF;
+	const u32 slot = param & 0xF;
 	char* res_path = NULL;
 	char* start = NULL;
 	
@@ -147,6 +147,9 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	res_path = (char*) malloc(256);
 	if (!res_path) panicMsg("Out of memory");
 	
+	ee_printf_screen_center("Select a firmware file for slot #%lu.\nPress [HOME] to cancel.", slot + 1);
+	updateScreens();
+	
 	u32 res = 0;
 	if (menuFileSelector(res_path, menu_con, start, "*.firm"))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
@@ -161,6 +164,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	const u32 y_center = 7;
 	const u32 y_instr = 21;
+	const u32 slot = param & 0xF;
 	
 	hidScanInput();
 	u32 kHeld = hidKeysHeld();
@@ -187,10 +191,10 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		// draw instructions
 		term_con->cursorY = y_instr;
 		ee_printf(ESC_SCHEME_WEAK);
-		if (configDataExist(KBootOption1Buttons + param))
+		if (configDataExist(KBootOption1Buttons + slot))
 		{
 			char* currentSetting =
-				(char*) configCopyText(KBootOption1Buttons + param);
+				(char*) configCopyText(KBootOption1Buttons + slot);
 			if (!currentSetting) panicMsg("Config error");
 			ee_printf_line_center("Current: %s", currentSetting);
 			free(currentSetting);
@@ -229,7 +233,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	// if we arrive here, we have a button combo
-	u32 res = (configSetKeyData(KBootOption1Buttons + param, &kHeld)) ? 0 : 1;
+	u32 res = (configSetKeyData(KBootOption1Buttons + slot, &kHeld)) ? 0 : 1;
 	
 	return res;
 }
@@ -239,12 +243,12 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	char path_store[256];
 	char* path;
 	
+	// select & clear console
+	consoleSelect(term_con);
+	consoleClear();
+		
 	if (param < 3) // loading from bootslot
 	{
-		// clear console
-		consoleSelect(term_con);
-		consoleClear();
-	
 		// check if bootslot exists
 		ee_printf("Checking bootslot...\n");
 		if (!configDataExist(KBootOption1 + param))
@@ -260,16 +264,12 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	else if (param == 0xFF) // user decision
 	{
+		ee_printf_screen_center("Select a firmware file to boot.\nPress [HOME] to cancel.");
+		updateScreens();
+		
 		path = path_store;
 		if (!menuFileSelector(path, menu_con, NULL, "*.firm"))
 			return 1;
-	}
-	
-	// clear console
-	if (param >= 3)
-	{
-		consoleSelect(term_con);
-		consoleClear();
 	}
 	
 	// try load and verify

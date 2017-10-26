@@ -104,6 +104,7 @@ static void freeDirBufferContent(DirBufferEntry* dir_buffer, s32 n_entries)
 			break; // this should never happen
 		
 		free (dir_buffer[i].fname);
+		dir_buffer[i].fname = NULL;
 	}
 }
 
@@ -169,12 +170,14 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 
 	// open directory
 	s32 dhandle = fOpenDir(path);
-	if(dhandle < 0)
-		return -1;
+	if(dhandle < 0) return -1;
     
 	FsFileInfo* finfo = (FsFileInfo*) malloc(N_DIR_READ * sizeof(FsFileInfo));
 	if (!finfo) // out of memory
-		return -1;
+	{
+		fCloseDir(dhandle);
+		return -1; 
+	}
         
 	s32 n_read = 0;
 	while((n_read = fReadDir(dhandle, finfo, N_DIR_READ)) != 0)
@@ -297,7 +300,7 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
  * @param res_path The selected path will end up here.
  * @param menu_con Console that the file browser is displayed on.
  * @param start Starting path (must be a dir).
- * @param patter Only files matching this wildcard pattern will be displayed.
+ * @param pattern Only files matching this wildcard pattern will be displayed.
  */
 bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern)
 {
@@ -329,7 +332,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		
 		s32 dhandle = fOpenDir(res_path);
 		if (dhandle < 0)
-			panicMsg("Filesystem error");
+			panicMsg("Filesystem corruption");
 		fCloseDir(dhandle);
 	}
 	
@@ -342,7 +345,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		s32 index = 0;
 		
 		if(n_entries < 0)
-			panicMsg("Error reading dir!");
+			panicMsg("Filesystem corruption in dir");
 		
 		// find lastname in listing
 		if (lastname)
