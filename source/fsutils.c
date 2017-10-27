@@ -134,3 +134,17 @@ fail:
 	return false;
 }
 
+bool fsQuickRead(const char* filepath, void* buff, u32 len, u32 off)
+{
+	s32 fHandle = fOpen(filepath, FS_OPEN_EXISTING | FS_OPEN_READ);
+	if (fHandle < 0) return false;
+	
+	bool res = true;
+	if ((fSize(fHandle) < off + len) ||
+		(fLseek(fHandle, off) != 0) ||
+		(fRead(fHandle, buff, len) != 0))
+		res = false;
+		
+	fClose(fHandle);
+	return res;
+}

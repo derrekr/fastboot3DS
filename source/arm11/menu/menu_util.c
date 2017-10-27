@@ -21,6 +21,7 @@
 #include "types.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
@@ -177,6 +178,29 @@ u32 ee_printf_screen_center(const char *const fmt, ...)
 	return res;
 }
 
+// prints a progress indicator (no args allowed, for byte values)
+u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max)
+{
+	u32 res = 0;
+	
+	u32 prog_w = (u32) ((max > 0) && (curr <= max)) ? ((u64) curr * w) / max : 0;
+    u32 prog_p = (u32) ((max > 0) && (curr <= max)) ? ((u64) curr * 100) / max : 0;
+	
+	
+	res += ee_printf(ESC_SCHEME_ACCENT1 "%s" ESC_RESET " | ", fmt);
+	
+	u32 i = 0;
+	ee_printf(ESC_SCHEME_WEAK);
+	for (; i < prog_w; i++) res += ee_printf("\xDB");
+	for (; i < w; i++) res += ee_printf("\xB1");
+	ee_printf(ESC_RESET);
+	
+	res += ee_printf(" | %lu%% || %llu / %llu MiB\r", prog_p, curr / 0x100000, max / 0x100000);
+	
+	
+	return res;
+}
+
 // only intended to be ran when the shell is closed
 void sleepmode(void)
 {
@@ -213,4 +237,42 @@ void outputEndWait(void)
 		if (kDown & (KEY_SHELL)) sleepmode();
 	}
 	while (!(kDown & (KEY_B|KEY_HOME)));
+}
+
+bool userCancelHandler(bool cancelAllowed)
+{
+	hidScanInput();
+	u32 kDown = hidKeysDown();
+	
+	if (kDown & KEY_SHELL)
+	{
+		sleepmode();
+	}
+	else if (kDown & (KEY_HOME|KEY_B) || hidGetPowerButton(false))
+	{
+		if (cancelAllowed)
+		{
+			ee_printf("\n\nCancel current operation?\n(A to confirm, B to continue)\n\n");
+			updateScreens();
+			do
+			{
+				GFX_waitForEvent(GFX_EVENT_PDC0, true);
+			
+				hidScanInput();
+				kDown = hidKeysDown();
+				
+				if (kDown & KEY_SHELL) sleepmode();
+				if (kDown & KEY_A) return true;
+			}
+			while (!(kDown & KEY_B));
+		}
+		else
+		{
+			ee_printf("\nCancel is not allowed here.\n");
+		}
+		
+		hidGetPowerButton(true); // poweroff stopped
+	}
+	
+	return false;
 }

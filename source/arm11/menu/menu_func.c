@@ -22,10 +22,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "fs.h"
+#include "fsutils.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
+#include "arm11/menu/menu_func.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
+#include "arm11/hardware/i2c.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/debug.h"
@@ -318,19 +322,141 @@ u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	return 0;
 }
 
-u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;
+	(void) param;
+	u32 result = 1;
 	
-	// clear console
+	// select & clear console
 	consoleSelect(term_con);
 	consoleClear();
 	
-	// print something
-	ee_printf("This is not implemented yet.\nMy parameter was %lu.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.", param);
+	
+	// ensure SD mounted
+	if (!fsEnsureMounted("sdmc:"))
+	{
+		ee_printf("SD not inserted or corrupt!\n");
+		goto fail;
+	}
+	
+	
+	// console serial number
+	char serial[0x10] = { 0 }; // serial from SecureInfo_?
+	if (!fsQuickRead("nand:/rw/sys/SecureInfo_A", serial, 0xF, 0x102) && 
+		!fsQuickRead("nand:/rw/sys/SecureInfo_B", serial, 0xF, 0x102))
+		ee_snprintf(serial, 0x10, "UNKNOWN");
+	
+	// current state of the RTC
+	u8 rtc[8] = { 0 };
+	I2C_readRegBuf(I2C_DEV_MCU, 0x30, rtc, 8); // ignore the return value
+	
+	// create NAND backup filename
+	char fpath[64];
+	ee_snprintf(fpath, 64, NAND_BACKUP_PATH "/%02X%02X%02X%02X%02X%02X_%s_nand.bin",
+		rtc[6], rtc[5], rtc[4], rtc[2], rtc[1], rtc[0], serial);
+	
+	ee_printf("Creating NAND backup:\n%s\n\nPreparing NAND backup...\n", fpath);
+	updateScreens();
+	
+	
+	// open file handle
+	s32 fHandle;
+	if (!fsCreateFileWithPath(fpath) ||
+		((fHandle = fOpen(fpath, FS_OPEN_EXISTING | FS_OPEN_WRITE)) < 0))
+	{
+		ee_printf("Cannot create file!\n");
+		goto fail;
+	}
+	
+	// reserve space for NAND backup / needs work (!!!)
+	ee_printf("Reserving space...\n");
+	updateScreens();
+	if ((fLseek(fHandle, NAND_BACKUP_SIZE) != 0) || (fTell(fHandle) != NAND_BACKUP_SIZE))
+	{
+		fClose(fHandle);
+		fUnlink(fpath);
+		ee_printf("Not enough space!\n");
+		goto fail;
+	}
+	
+	
+	// setup device read
+	s32 devHandle = fPrepareRawAccess(FS_DEVICE_NAND);
+	if (devHandle < 0)
+	{
+		fClose(fHandle);
+		fUnlink(fpath);
+		ee_printf("Cannot read NAND!\n");
+		goto fail;
+	}
+	
+	// setup device buffer
+	s32 dbufHandle = fCreateDeviceBuffer(DEVICE_BUFSIZE);
+	if (dbufHandle < 0)
+		panicMsg("Out of memory");
+	
+	
+	// all done, ready to do the NAND backup
+	ee_printf("\n");
+	for (s64 p = 0; p < NAND_BACKUP_SIZE; p += DEVICE_BUFSIZE)
+	{
+		s64 readBytes = (NAND_BACKUP_SIZE - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : NAND_BACKUP_SIZE - p;
+		s32 errcode = 0;
+		ee_printf_progress("NAND backup", PROGRESS_WIDTH, p, NAND_BACKUP_SIZE);
+		updateScreens();
+		
+		if ((errcode = fReadToDeviceBuffer(devHandle, p, readBytes, dbufHandle)) != 0)
+		{
+			ee_printf("\nError: Cannot read from NAND (%li)!\n", errcode);
+			goto fail_close_handles;
+		}
+		
+		if ((errcode = fsWriteFromDeviceBuffer(fHandle, p, readBytes, dbufHandle)) != 0)
+		{
+			ee_printf("\nError: Cannot write to file (%li)!\n", errcode);
+			goto fail_close_handles;
+		}
+		
+		// check for user cancel request
+		if (userCancelHandler(true))
+		{
+			fClose(fHandle);
+			fFinalizeRawAccess(devHandle);
+			fFreeDeviceBuffer(dbufHandle);
+			fUnlink(fpath);
+			return 1;
+		}
+	}
+	
+	// NAND access finalized
+	ee_printf_progress("NAND backup", PROGRESS_WIDTH, NAND_BACKUP_SIZE, NAND_BACKUP_SIZE);
+	ee_printf("\nNAND backup finished.\n");
+	result = 0;
+	
+	
+	fail_close_handles:
+	
+	fClose(fHandle);
+	fFinalizeRawAccess(devHandle);
+	fFreeDeviceBuffer(dbufHandle);
+	
+	
+	fail:
+	
+	ee_printf("\nPress B or HOME to return.");
 	updateScreens();
 	outputEndWait();
 
+	
+	if (result != 0) fUnlink(fpath);
+	return result;
+}
+
+u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) menu_con;
+	(void) param;
 	return 0;
 }
 
@@ -413,6 +539,22 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	
+	return 0;
+}
+
+u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) menu_con;
+	
+	// clear console
+	consoleSelect(term_con);
+	consoleClear();
+	
+	// print something
+	ee_printf("This is not implemented yet.\nMy parameter was %lu.\nGo look elsewhere, nothing to see here.\n\nPress B or HOME to return.", param);
+	updateScreens();
+	outputEndWait();
+
 	return 0;
 }
 

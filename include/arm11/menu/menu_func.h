@@ -20,6 +20,11 @@
 
 #include "types.h"
 
+#define NAND_BACKUP_PATH	"sdmc:/3DS" // NAND backups standard path
+#define NAND_BACKUP_SIZE	1979711488 // <-- d0k3's NAND backup size
+#define DEVICE_BUFSIZE		(128 * 1024) // 128KiB
+#define PROGRESS_WIDTH		20
+
 u32 menuPresetNandTools(void);
 u32 menuPresetBootMenu(void);
 u32 menuPresetBootConfig(void);
@@ -32,8 +37,10 @@ u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
-u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 
 u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
