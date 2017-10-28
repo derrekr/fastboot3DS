@@ -26,4 +26,4 @@
 #define BRWS_OFFSET_BUTTONS	19
 #define BRWS_WIDTH			40
 
-bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern);
+bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern, bool allow_root);
