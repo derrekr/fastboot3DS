@@ -302,7 +302,7 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
  * @param start Starting path (must be a dir).
  * @param pattern Only files matching this wildcard pattern will be displayed.
  */
-bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern)
+bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern, bool allow_root)
 {
 	DirBufferEntry* dir_buffer;
 	bool result = true; // <--- should be handled differently 
@@ -314,6 +314,10 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	// is also used as temporary buffer
 	*res_path = '\0'; // root dir if start is NULL
 	if(start) strncpy(res_path, start, 256);
+    
+    // handle allow_root
+    if (!allow_root && (strncmp(res_path, "sdmc:", 5) != 0))
+         strncpy(res_path, "sdmc:", 256);
 	
 	// check res_path, fix if required
 	char* lastname = NULL;
@@ -422,7 +426,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				
 				if (lastname)
 					*(lastname++) = '\0';
-				else
+				else if (allow_root)
 					*res_path = '\0';
 				break;
 			}

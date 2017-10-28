@@ -157,7 +157,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	
 	u32 res = 0;
-	if (menuFileSelector(res_path, menu_con, start, "*.firm"))
+	if (menuFileSelector(res_path, menu_con, start, "*.firm", true))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 	
 	free(res_path);
@@ -285,8 +285,12 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		updateScreens();
 		
 		path = path_store;
-		if (!menuFileSelector(path, menu_con, NULL, "*.firm"))
+		if (!menuFileSelector(path, menu_con, NULL, "*.firm", true))
 			return 1;
+		
+		// back to terminal console
+		consoleSelect(term_con);
+		consoleClear();
 	}
 	
 	// try load and verify
@@ -370,6 +374,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	// reserve space for NAND backup / needs work (!!!)
+    // !MISSING! Actually use the actual size of the NAND
 	ee_printf("Reserving space...\n");
 	updateScreens();
 	if ((fLseek(fHandle, NAND_BACKUP_SIZE) != 0) || (fTell(fHandle) != NAND_BACKUP_SIZE))
@@ -387,7 +392,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		fClose(fHandle);
 		fUnlink(fpath);
-		ee_printf("Cannot read NAND!\n");
+		ee_printf("Cannot open NAND device!\n");
 		goto fail;
 	}
 	
@@ -431,7 +436,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// NAND access finalized
 	ee_printf_progress("NAND backup", PROGRESS_WIDTH, NAND_BACKUP_SIZE, NAND_BACKUP_SIZE);
-	ee_printf("\nNAND backup finished.\n");
+	ee_printf("\n\nNAND backup finished.\n");
 	result = 0;
 	
 	
@@ -455,9 +460,128 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	(void) menu_con;
-	(void) param;
-	return 0;
+	u32 result = 1;
+    
+	
+	// select & clear console
+	consoleSelect(term_con);
+	consoleClear();
+    
+	// ensure SD mounted
+	if (!fsEnsureMounted("sdmc:"))
+	{
+		ee_printf("SD not inserted or corrupt!\n");
+		goto fail;
+	}
+    
+    
+	ee_printf_screen_center("Select a NAND backup for restore.\nPress [HOME] to cancel.");
+	updateScreens();
+	
+	char fpath[256];
+	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*nand*.bin", false))
+		return 1; // canceled by user
+    
+    // may be only of interest when not doing forced restore
+    // *MISSING* check NAND backup validity (header, file size, crypto)
+    // *MISSING* ensure the NAND backup does not change the partitioning
+    // *MISSING* protect sector 0x00, sector 0x96 and the FIRM partitions for safe restore
+    
+    
+    // select & clear console
+	consoleSelect(term_con);
+	consoleClear();
+    
+    ee_printf("Restoring NAND backup:\n%s\n\nPreparing NAND restore...\n", fpath);
+	updateScreens();
+    
+    
+    // open file handle
+	s32 fHandle;
+	if ((fHandle = fOpen(fpath, FS_OPEN_EXISTING | FS_OPEN_READ)) < 0)
+	{
+		ee_printf("Cannot open file!\n");
+		goto fail;
+	}
+    
+    // setup device read
+	s32 devHandle = fPrepareRawAccess(FS_DEVICE_NAND);
+	if (devHandle < 0)
+	{
+		fClose(fHandle);
+		fUnlink(fpath);
+		ee_printf("Cannot open NAND device!\n");
+		goto fail;
+	}
+	
+	// setup device buffer
+	s32 dbufHandle = fCreateDeviceBuffer(DEVICE_BUFSIZE);
+	if (dbufHandle < 0)
+		panicMsg("Out of memory");
+    
+    
+    // check file size
+    ee_printf("File size: %lu MiB\n", fSize(fHandle) / 0x100000);
+    if (fSize(fHandle) > NAND_BACKUP_SIZE)
+    {
+        ee_printf("Size exceeds available space!\n");
+        goto fail_close_handles;
+    }
+    
+    
+    // all done, ready to do the NAND backup
+	ee_printf("\n");
+	for (s64 p = 0; p < NAND_BACKUP_SIZE; p += DEVICE_BUFSIZE)
+	{
+		s64 readBytes = (NAND_BACKUP_SIZE - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : NAND_BACKUP_SIZE - p;
+		s32 errcode = 0;
+		ee_printf_progress("NAND restore", PROGRESS_WIDTH, p, NAND_BACKUP_SIZE);
+		updateScreens();
+		
+		if ((errcode = fReadToDeviceBuffer(fHandle, p, readBytes, dbufHandle)) != 0)
+		{
+			ee_printf("\nError: Cannot read from file (%li)!\n", errcode);
+			goto fail_close_handles;
+		}
+		
+		if ((errcode = fsWriteFromDeviceBuffer(devHandle, p, readBytes, dbufHandle)) != 0)
+		{
+			ee_printf("\nError: Cannot write to NAND (%li)!\n", errcode);
+			goto fail_close_handles;
+		}
+		
+		// check for user cancel request
+		if (userCancelHandler(true))
+		{
+			fClose(fHandle);
+			fFinalizeRawAccess(devHandle);
+			fFreeDeviceBuffer(dbufHandle);
+			fUnlink(fpath);
+			return 1;
+		}
+	}
+	
+	// NAND access finalized
+	ee_printf_progress("NAND restore", PROGRESS_WIDTH, NAND_BACKUP_SIZE, NAND_BACKUP_SIZE);
+	ee_printf("\n\nNAND restore finished.\n");
+	result = 0;
+	
+	
+	fail_close_handles:
+	
+	fClose(fHandle);
+	fFinalizeRawAccess(devHandle);
+	fFreeDeviceBuffer(dbufHandle);
+	
+	
+	fail:
+	
+	ee_printf("\nPress B or HOME to return.");
+	updateScreens();
+	outputEndWait();
+
+	
+	return result;
 }
 
 u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
