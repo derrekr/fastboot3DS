@@ -279,7 +279,7 @@ bool sdmmc_dnand_init(void)
 		// Check "NCSD" magic
 		if(header.magic != 0x4453434E) return false;
 
-		// Collect partition infos...
+		// Collect partition info...
 		for(int i = 0; i < MAX_PARTITIONS; i++)
 		{
 			u8 type = header.partFsType[i];

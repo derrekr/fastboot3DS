@@ -153,6 +153,19 @@ bool partitionGetKeyslot(size_t index, u8 *keyslot)
 	return true;
 }
 
+bool partitionGetInfo(size_t index, partitionStruct *info)
+{
+	if(index >= MAX_PARTITIONS)
+	{
+		memset(info, 0, sizeof(*info));
+		return false;
+	}
+	
+	memcpy(info, &partitions[index], sizeof(*info));
+	
+	return true;
+}
+
 void partitionsReset(void)
 {
 	numPartitions = 0;

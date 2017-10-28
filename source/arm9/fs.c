@@ -22,6 +22,8 @@
 #include "util.h"
 #include "fs.h"
 #include "arm9/dev.h"
+#include "arm9/ncsd.h"
+#include "arm9/partitions.h"
 #include "fatfs/ff.h"
 
 
@@ -31,6 +33,12 @@ typedef struct
 	size_t memSize;
 	size_t dataSize;
 } DevBuf;
+
+typedef struct
+{
+	size_t sector;
+	size_t count;
+} ProtNandRegion;
 
 
 static const DevHandle devHandleMagic = 0x42424296;
@@ -52,9 +60,16 @@ static bool fsStatBackupTable[FS_MAX_DRIVES] = {0};
 
 static DevBuf devBuf;
 
+static ProtNandRegion protNandRegions[MAX_PARTITIONS + 1]  = {0};
+static size_t numProtNandRegions;
 
 
 static bool isFileHandleValid(s32 handle);
+
+static inline bool isNandProtected()
+{
+	return numProtNandRegions != 0;
+}
 
 s32 fMount(FsDrive drive)
 {
@@ -98,6 +113,23 @@ s32 fGetFree(FsDrive drive, u64 *size)
 		return FR_OK;
 	}
 	else return -res;
+}
+
+u32 fGetDeviceSize(FsDevice dev)
+{
+	switch(dev)
+	{
+		case FS_DEVICE_SDMC:
+			return dev_sdcard->get_sector_count();
+			break;
+		case FS_DEVICE_NAND:
+			return dev_rawnand->get_sector_count();
+			break;
+		default:
+			break;
+	}
+	
+	return 0;
 }
 
 s32 fPrepareRawAccess(FsDevice dev)
@@ -183,7 +215,7 @@ static bool devBufAllocate(DevBuf *devBuf, u32 size)
 
 s32 fCreateDeviceBuffer(u32 size)
 {
-	if(!size || size > 0x40000) return -30;
+	if(!size || size > 0x80000) return -30;
 	if(devBuf.mem) return -31;
 	
 	if(!devBufAllocate(&devBuf, size))
@@ -575,3 +607,48 @@ s32 fUnlink(const char *const path)
 	if(res == FR_OK) return res;
 	else return -res;
 }
+
+s32 fVerifyNandImage(const char *const path)
+{
+	//NCSD_header header;
+
+	// TODO
+	(void) path;
+	
+	return FR_OK;
+}
+
+s32 fSetNandProtection(bool protect)
+{
+	partitionStruct partInfo;
+
+	if(protect == isNandProtected())	// nothing to do here
+		return FR_OK;
+	
+	if(protect)
+	{
+		protNandRegions[0].sector = 0x96;
+		protNandRegions[0].count = 1;
+		numProtNandRegions = 1;
+	
+		for(size_t i=0; i < arrayEntries(protNandRegions) - 1; i++)
+		{
+			if(partitionGetInfo(i, &partInfo))
+			{
+				if(partInfo.type == 3) // is firmware?
+				{
+					protNandRegions[numProtNandRegions].sector = partInfo.sector;
+					protNandRegions[numProtNandRegions].count = partInfo.count;
+					numProtNandRegions++;
+				}
+			}
+		}
+	}
+	else
+	{
+		numProtNandRegions = 0;
+	}
+
+	return FR_OK;
+}
+
