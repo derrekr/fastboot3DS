@@ -21,6 +21,7 @@
 #include "types.h"
 #include "util.h"
 #include "fs.h"
+#include "arm9/debug.h"
 #include "arm9/dev.h"
 #include "arm9/ncsd.h"
 #include "arm9/partitions.h"
@@ -69,6 +70,28 @@ static bool isFileHandleValid(s32 handle);
 static inline bool isNandProtected()
 {
 	return numProtNandRegions != 0;
+}
+
+static inline const ProtNandRegion *getNandProtRegion(size_t startSector, size_t writeSize)
+{
+	ProtNandRegion *region;
+	size_t regionEnd, writeEnd;
+	
+	if(startSector > ~writeSize)
+		panic();
+
+	for(size_t i=0; i < numProtNandRegions; i++)
+	{
+		region = &protNandRegions[i];
+		
+		regionEnd = region->sector + region->count;
+		writeEnd = startSector + writeSize;
+		
+		if(startSector <= regionEnd && writeEnd > region->sector)
+			return region;
+	}
+	
+	return NULL;
 }
 
 s32 fMount(FsDrive drive)
@@ -333,6 +356,7 @@ s32 fsWriteFromDeviceBuffer(s32 destHandle, u32 destOffset, u32 destSize, DevBuf
 	FsDevice dev;
 	u32 sector, count;
 	bool toFile;
+	const ProtNandRegion *region;
 	
 	// destination is a device?
 	if(isValidDevHandle(destHandle))
@@ -392,10 +416,54 @@ s32 fsWriteFromDeviceBuffer(s32 destHandle, u32 destOffset, u32 destSize, DevBuf
 		sector = destOffset >> 9;
 		count = count >> 9;
 		
-		if(!dev_rawnand->write_sector(sector, count, devBuf.mem))
-			return -31;
+		
+		if(isNandProtected())
+		{
+			u32 toWrite = count;
+			u8 *devBufPtr = devBuf.mem;
+			
+			/* check if we want to write to a protected area on NAND */
+			
+			do
+			{
+				region = getNandProtRegion(sector, toWrite);
+				
+				if(region)
+				{
+					// we're inside a prot region?
+					if(region->sector <= sector)
+					{
+						// calc how much do we need to skip
+						count = min(region->sector + region->count, sector + toWrite) - sector;
+					}
+					else	// we are going to run into a prot region
+					{
+						count = min(toWrite, region->sector - sector);
+						
+						if(!dev_rawnand->write_sector(sector, count, devBufPtr))
+							return -31;
+					}
+				}
+				else
+				{
+					// no prot regions found, do a normal write
+					if(!dev_rawnand->write_sector(sector, count, devBufPtr))
+						return -31;
+				}
+				
+				devBufPtr += count << 9;
+				sector += count;
+				toWrite -= count;
+			}
+			while(toWrite);
+		}
+		else
+		{
+			if(!dev_rawnand->write_sector(sector, count, devBuf.mem))
+				return -31;
+		}
 	}
-	
+
 	devBuf.dataSize = 0;
 	
 	return FR_OK;
@@ -638,10 +706,12 @@ s32 fSetNandProtection(bool protect)
 	
 	if(protect)
 	{
-		numProtNandRegions = 2;
+		numProtNandRegions = arrayEntries(defaultProt);
 		memcpy(protNandRegions, defaultProt, sizeof defaultProt);
+		
+		const size_t maxPartitions = arrayEntries(protNandRegions) - arrayEntries(defaultProt);
 	
-		for(size_t i=0; i < arrayEntries(protNandRegions) - 2; i++)
+		for(size_t i=0; i < maxPartitions; i++)
 		{
 			if(partitionGetInfo(i, &partInfo))
 			{
