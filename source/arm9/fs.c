@@ -60,7 +60,7 @@ static bool fsStatBackupTable[FS_MAX_DRIVES] = {0};
 
 static DevBuf devBuf;
 
-static ProtNandRegion protNandRegions[MAX_PARTITIONS + 1]  = {0};
+static ProtNandRegion protNandRegions[MAX_PARTITIONS + 2]  = {0};
 static size_t numProtNandRegions;
 
 
@@ -620,6 +620,17 @@ s32 fVerifyNandImage(const char *const path)
 
 s32 fSetNandProtection(bool protect)
 {
+	static const partitionStruct defaultProt[] = {
+		{
+			.sector = 0,
+			.count = 1,
+		},
+		{
+			.sector = 0x96,
+			.count = 1,
+		}
+	};
+
 	partitionStruct partInfo;
 
 	if(protect == isNandProtected())	// nothing to do here
@@ -627,11 +638,10 @@ s32 fSetNandProtection(bool protect)
 	
 	if(protect)
 	{
-		protNandRegions[0].sector = 0x96;
-		protNandRegions[0].count = 1;
-		numProtNandRegions = 1;
+		numProtNandRegions = 2;
+		memcpy(protNandRegions, defaultProt, sizeof defaultProt);
 	
-		for(size_t i=0; i < arrayEntries(protNandRegions) - 1; i++)
+		for(size_t i=0; i < arrayEntries(protNandRegions) - 2; i++)
 		{
 			if(partitionGetInfo(i, &partInfo))
 			{
