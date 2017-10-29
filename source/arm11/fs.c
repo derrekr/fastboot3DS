@@ -46,6 +46,12 @@ s32 fGetFree(FsDrive drive, u64 *size)
 	return PXI_sendCmd(IPC_CMD9_FGETFREE, cmdBuf, 3);
 }
 
+u32 fGetDeviceSize(FsDevice dev)
+{
+	const u32 cmdBuf = dev;
+	return PXI_sendCmd(IPC_CMD9_FGET_DEV_SIZE, &cmdBuf, 1);
+}
+
 s32 fPrepareRawAccess(FsDevice dev)
 {
 	const u32 cmdBuf = dev;
@@ -228,4 +234,19 @@ s32 fUnlink(const char *const path)
 	cmdBuf[1] = strlen(path) + 1;
 
 	return PXI_sendCmd(IPC_CMD9_FUNLINK, cmdBuf, 2);
+}
+
+s32 fVerifyNandImage(const char *const path)
+{
+	u32 cmdBuf[2];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+
+	return PXI_sendCmd(IPC_CMD9_FVERIFY_NAND_IMG, cmdBuf, 2);
+}
+
+s32 fSetNandProtection(bool protect)
+{
+	const u32 cmdBuf = protect;
+	return PXI_sendCmd(IPC_CMD9_FSET_NAND_PROT, &cmdBuf, 1);
 }
