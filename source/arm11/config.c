@@ -33,7 +33,7 @@
 #include "arm11/config.h"
 #include "arm11/fmt.h"
 
-#define MAX_FILE_SIZE	(0x4000 - 1)
+#define MAX_FILE_SIZE	(0x4000u - 1)
 
 static const char *SdmcFilepath = "sdmc:/3ds/fastbootcfg.txt";
 static const char *NandFilepath = "nand:/fastboot3DS/fastbootcfg.txt";
@@ -110,7 +110,7 @@ bool loadConfigFile()
 	u32 fileSize;
 	bool createFile = false;
 	
-	if(configLoaded)
+	if(filebuf)
 		unloadConfigFile();
 	
 	configDirty = false;
@@ -152,7 +152,7 @@ bool loadConfigFile()
 	if(fileSize > MAX_FILE_SIZE)
 	{
 		ee_printf("Invalid config-file size!\n");
-		goto fail;
+		return false;
 	}
 	
 	filebuf = (char *) malloc(MAX_FILE_SIZE + 1);
@@ -160,23 +160,26 @@ bool loadConfigFile()
 	if(!filebuf)
 	{
 		ee_printf("Out of memory!\n");
-		goto fail;
+		return false;
 	}
 	
-	if((file = fOpen(filepath, FS_OPEN_READ)) < 0)
+	if(fileSize)
 	{
-		ee_printf("Failed to open config-file for reading!\n");
-		goto fail;
-	}
-	
-	if(fRead(file, filebuf, fileSize) != FR_OK)
-	{
-		ee_printf("Failed to read from config-file!\n");
+		if((file = fOpen(filepath, FS_OPEN_READ)) < 0)
+		{
+			ee_printf("Failed to open config-file for reading!\n");
+			goto fail;
+		}
+		
+		if(fRead(file, filebuf, fileSize) != FR_OK)
+		{
+			ee_printf("Failed to read from config-file!\n");
+			fClose(file);
+			goto fail;
+		}
+		
 		fClose(file);
-		goto fail;
 	}
-	
-	fClose(file);
 	
 	// terminate string buf
 	filebuf[fileSize] = '\0';
