@@ -676,10 +676,37 @@ s32 fUnlink(const char *const path)
 	else return -res;
 }
 
+static size_t calcNandImageMinSize(const NCSD_header *header)
+{
+	const u32 mediaSize = header->mediaSize;
+	struct NCSD_part *part;
+	u32 partSize;
+	size_t total = 0;
+	
+	for(size_t i=0; i<arrayEntries(header->partitions); i++)
+	{
+		partSize = part->mediaSize;
+		
+		if(total > ~partSize)
+			goto fail;
+			
+		total += partSize;
+	}
+	
+	if(!mediaSize || total / mediaSize >= UINT32_MAX)
+		goto fail;
+	
+	return mediaSize * total;
+	
+fail:
+
+	return 0;
+}
+
 s32 fVerifyNandImage(const char *const path)
 {
-	const u32 minImageSize = 0x1000;
 	const u32 maxImageSize = fGetDeviceSize(FS_DEVICE_NAND);
+	u32 minImageSize = 0x200;
 
 	NCSD_header imageHeader;
 	NCSD_header physicalHeader;
@@ -701,7 +728,14 @@ s32 fVerifyNandImage(const char *const path)
 	if(!dev_rawnand->read_sector(0, 1, &physicalHeader))
 		goto done;
 	
-	if(memcmp(&imageHeader, &physicalHeader, sizeof(NCSD_header)))
+	/* compare everything except the signature */
+	if(memcmp(&imageHeader.magic, &physicalHeader.magic,
+				sizeof(imageHeader) - sizeof(imageHeader.signature)))
+		goto done;
+	
+	minImageSize = calcNandImageMinSize(&imageHeader);
+	
+	if(!minImageSize || imageSize < minImageSize)
 		goto done;
 	
 	/* success! */
