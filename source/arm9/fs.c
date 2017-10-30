@@ -679,24 +679,31 @@ s32 fUnlink(const char *const path)
 static size_t calcNandImageMinSize(const NCSD_header *header)
 {
 	const u32 mediaSize = header->mediaSize;
-	struct NCSD_part *part;
-	u32 partSize;
-	size_t total = 0;
+	const struct NCSD_part *part = header->partitions;
+	u32 partSize, partOffset, total;
+	size_t largest = 0;
 	
-	for(size_t i=0; i<arrayEntries(header->partitions); i++)
+	for(size_t i=0; i<arrayEntries(header->partitions); i++, part++)
 	{
 		partSize = part->mediaSize;
+		partOffset = part->mediaOffset;
 		
-		if(total > ~partSize)
+		if(partOffset > ~partSize)
 			goto fail;
-			
-		total += partSize;
+		
+		total = partOffset + partSize;
+		
+		if(largest < total)
+			largest = total;
 	}
 	
-	if(!mediaSize || total / mediaSize >= UINT32_MAX)
+	if(UINT32_MAX / 0x200 < largest)
 		goto fail;
 	
-	return mediaSize * total;
+	if(largest > mediaSize)
+		goto fail;
+	
+	return largest * 0x200;
 	
 fail:
 
