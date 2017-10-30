@@ -79,13 +79,13 @@ static inline const ProtNandRegion *getNandProtRegion(size_t startSector, size_t
 	
 	if(startSector > ~writeSize)
 		panic();
+	
+	writeEnd = startSector + writeSize;
 
 	for(size_t i=0; i < numProtNandRegions; i++)
 	{
 		region = &protNandRegions[i];
-		
 		regionEnd = region->sector + region->count;
-		writeEnd = startSector + writeSize;
 		
 		if(startSector <= regionEnd && writeEnd > region->sector)
 			return region;
@@ -678,12 +678,41 @@ s32 fUnlink(const char *const path)
 
 s32 fVerifyNandImage(const char *const path)
 {
-	//NCSD_header header;
+	const u32 minImageSize = 0x1000;
+	const u32 maxImageSize = fGetDeviceSize(FS_DEVICE_NAND);
 
-	// TODO
-	(void) path;
+	NCSD_header imageHeader;
+	NCSD_header physicalHeader;
+	s32 fHandle;
+	u32 imageSize;
+	s32 ret = -30;
+
+	fHandle = fOpen(path, FS_OPEN_READ);
+	if(fHandle < 0) return ret;
 	
-	return FR_OK;
+	imageSize = fSize(fHandle);
+	
+	if(imageSize < minImageSize || imageSize > maxImageSize)
+		goto done;	
+	
+	if(fRead(fHandle, &imageHeader, sizeof(NCSD_header)) != FR_OK)
+		goto done;
+	
+	if(!dev_rawnand->read_sector(0, 1, &physicalHeader))
+		goto done;
+	
+	if(memcmp(&imageHeader, &physicalHeader, sizeof(NCSD_header)))
+		goto done;
+	
+	/* success! */
+	
+	ret = FR_OK;
+	
+done:
+
+	fClose(fHandle);
+	
+	return ret;
 }
 
 s32 fSetNandProtection(bool protect)
