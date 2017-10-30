@@ -21,8 +21,7 @@
 #include "types.h"
 
 #define NAND_BACKUP_PATH	"sdmc:/3DS" // NAND backups standard path
-#define NAND_BACKUP_SIZE	1979711488 // <-- d0k3's NAND backup size
-#define DEVICE_BUFSIZE		(128 * 1024) // 128KiB
+#define DEVICE_BUFSIZE		(256 * 1024) // 256 KiB
 #define PROGRESS_WIDTH		20
 
 u32 menuPresetNandTools(void);
