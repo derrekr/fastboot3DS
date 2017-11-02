@@ -607,6 +607,53 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	return result;
 }
 
+u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) param;
+	
+	u32 result = 1;
+	
+	
+	// clear console
+	consoleSelect(term_con);
+	consoleClear();
+	
+	// check dev mode
+	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode))) {
+		ee_printf("Install firmware is not available!\nEnable dev mode to get access.\n");
+		goto fail;
+	}
+	
+	
+	char firm_path[256];
+	
+	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
+	updateScreens();
+	
+	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
+		return 1; // cancel by user
+	
+	
+	// select & clear console
+	consoleSelect(term_con);
+	consoleClear();
+	
+	
+	fail:
+	
+	ee_printf("\nPress B or HOME to return.");
+	updateScreens();
+	outputEndWait();
+
+	
+	return result;
+}
+
+u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	return menuDummyFunc(term_con, menu_con, param);
+}
+
 u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;

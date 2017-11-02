@@ -122,13 +122,13 @@ MenuInfo menu_fb3ds[] =
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuRestoreNand,		0 },
 			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuRestoreNand,		1 },
-			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuDummyFunc,			0 }
+			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuInstallFirm,		0 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&menuDummyFunc,			0 },
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds, 0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
