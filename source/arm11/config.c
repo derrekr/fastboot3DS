@@ -411,17 +411,22 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 	totalLen += keyLen;
 	totalLen += defLen;
 	
-	if(curLen != 0)
-		totalLen += 2;	// new line encoding
-	
 	if(totalLen > remainingLen)
 		return NULL;
 	
-	// insert line break if we already have any content
-	if(curLen != 0)
+	/* if there's no linebreak at the end already, add one */
+	if(curLen != 0 && !isEOL(filebuf[curLen - 1]))
 	{
-		filebuf[curLen++] = 0x0d;
-		filebuf[curLen++] = 0x0a;
+		totalLen += 2;	// size of new line encoding
+		
+		if(totalLen > remainingLen)
+			return NULL;
+		
+		if(curLen != 0)
+		{
+			filebuf[curLen++] = 0x0d;
+			filebuf[curLen++] = 0x0a;
+		}
 	}
 	
 	ee_sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
