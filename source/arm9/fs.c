@@ -712,7 +712,7 @@ fail:
 
 s32 fVerifyNandImage(const char *const path)
 {
-	const u32 maxImageSize = fGetDeviceSize(FS_DEVICE_NAND);
+	const u32 maxImageSize = fGetDeviceSize(FS_DEVICE_NAND) << 9;
 	u32 minImageSize = 0x200;
 
 	NCSD_header imageHeader;
