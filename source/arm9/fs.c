@@ -80,6 +80,9 @@ static inline const ProtNandRegion *getNandProtRegion(size_t startSector, size_t
 	if(startSector > ~writeSize)
 		panic();
 	
+	if(writeSize <= 0)
+		return NULL;
+	
 	writeEnd = startSector + writeSize;
 
 	for(size_t i=0; i < numProtNandRegions; i++)
@@ -87,7 +90,7 @@ static inline const ProtNandRegion *getNandProtRegion(size_t startSector, size_t
 		region = &protNandRegions[i];
 		regionEnd = region->sector + region->count;
 		
-		if(startSector <= regionEnd && writeEnd > region->sector)
+		if(startSector < regionEnd && writeEnd > region->sector)
 			return region;
 	}
 	
