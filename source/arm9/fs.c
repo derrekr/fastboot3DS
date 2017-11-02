@@ -223,6 +223,8 @@ s32 fFinalizeRawAccess(DevHandle handle)
 			fMount(drive);
 	}
 	
+	devStatTable[dev] = false;
+	
 	return FR_OK;
 }
 
