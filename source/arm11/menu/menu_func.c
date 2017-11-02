@@ -277,6 +277,10 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	else if (param == 0xFE) // loading from FIRM1
 	{
+		if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode))) {
+			ee_printf("Boot from FIRM1 is not available!\nEnable dev mode to get access.\n");
+			goto fail;
+		}
 		path = "firm1:";
 	}
 	else if (param == 0xFF) // user decision
@@ -469,6 +473,12 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// select & clear console
 	consoleSelect(term_con);
 	consoleClear();
+	
+	// check dev mode
+	if (forced && (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))) {
+		ee_printf("Forced restore is not available!\nEnable dev mode to get access.\n");
+		goto fail;
+	}
 	
 	// ensure SD mounted
 	if (!fsEnsureMounted("sdmc:"))
