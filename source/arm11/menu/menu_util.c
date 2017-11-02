@@ -268,7 +268,7 @@ bool userCancelHandler(bool cancelAllowed)
 		}
 		else
 		{
-			ee_printf("\nCancel is not allowed here.\n");
+			ee_printf("\n\nCancel is not allowed here.\n\n");
 		}
 		
 		hidGetPowerButton(true); // poweroff stopped

@@ -467,6 +467,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
+	bool forced = param; // if param != 0 -> forced restore
 	u32 result = 1;
 	
 	
@@ -496,13 +497,8 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	
 	char fpath[256];
-	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*nand*.bin", false))
+	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*.bin", false))
 		return 1; // canceled by user
-	
-	// may be only of interest when not doing forced restore
-	// *MISSING* check NAND backup validity (header, file size, crypto)
-	// *MISSING* ensure the NAND backup does not change the partitioning
-	// *MISSING* protect sector 0x00, sector 0x96 and the FIRM partitions for safe restore
 	
 	
 	// select & clear console
@@ -510,7 +506,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleClear();
 	
 	// check NAND backup (when not forced)
-	if (!param && (fVerifyNandImage(fpath) != 0))
+	if (!forced && (fVerifyNandImage(fpath) != 0))
 	{
 		ee_printf("%s\nNot a valid NAND backup for this 3DS!\n", fpath);
 		goto fail;
@@ -556,9 +552,10 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	
 	// setup NAND protection
-	if (fSetNandProtection(!param) != 0)
+	bool protected = !forced;
+	if (fSetNandProtection(protected) != 0)
 		panicMsg("Set NAND protection failed.");
-	ee_printf("NAND protection: %s\n", !param ? "enabled" : "disabled");
+	ee_printf("NAND protection: %s\n", protected ? "enabled" : "disabled");
 	
 	
 	// all done, ready to do the NAND backup
@@ -583,14 +580,8 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		}
 		
 		// check for user cancel request
-		if (userCancelHandler(true))
-		{
-			fClose(fHandle);
-			fFinalizeRawAccess(devHandle);
-			fFreeDeviceBuffer(dbufHandle);
-			fUnlink(fpath);
-			return 1;
-		}
+		// cancel is forbidden(!) here
+		userCancelHandler(false);
 	}
 	
 	// NAND access finalized
