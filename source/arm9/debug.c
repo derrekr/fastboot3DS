@@ -50,10 +50,8 @@ noreturn void panic()
 {
 	register u32 lr __asm__("lr");
 
-	//consoleInit(0, NULL, true);
+	enterCriticalSection();
 
-	//ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-	
 	fsUnmountAll();
 	//devs_close();
 	
@@ -71,10 +69,7 @@ noreturn void panicMsg(const char *msg)
 {
 	register u32 lr __asm__("lr");
 
-	/*consoleInit(0, NULL, true);
-
-	ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-	ee_printf("\nERROR MESSAGE:\n%s\n", msg);*/
+	enterCriticalSection();
 
 	fsUnmountAll();
 	//devs_close();
