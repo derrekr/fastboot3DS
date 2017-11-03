@@ -72,13 +72,13 @@ static inline bool isNandProtected()
 	return numProtNandRegions != 0;
 }
 
-static inline const ProtNandRegion *getNandProtRegion(size_t startSector, size_t writeSize)
+static inline ProtNandRegion *getNandProtRegion(size_t startSector, size_t writeSize)
 {
 	ProtNandRegion *region;
 	size_t regionEnd, writeEnd;
 	
 	if(startSector > ~writeSize)
-		panic();
+		return NULL;
 	
 	if(writeSize <= 0)
 		return NULL;
@@ -774,6 +774,7 @@ s32 fSetNandProtection(bool protect)
 		}
 	};
 
+	ProtNandRegion *region;
 	partitionStruct partInfo;
 
 	if(protect == isNandProtected())	// nothing to do here
@@ -790,7 +791,20 @@ s32 fSetNandProtection(bool protect)
 		{
 			if(partitionGetInfo(i, &partInfo))
 			{
-				if(partInfo.type == 3) // is firmware?
+				if(partInfo.type != 3) // is not a firmware?
+					continue;
+				
+				/* Check if we can merge two adjacent regions */
+				if(partInfo.sector)
+					region = getNandProtRegion(partInfo.sector - 1, 1);
+				else region = NULL;
+				
+				/* Found a previous region, merge */
+				if(region)
+				{
+					region->count += partInfo.count;
+				}
+				else	/* default case, register a new region */
 				{
 					protNandRegions[numProtNandRegions].sector = partInfo.sector;
 					protNandRegions[numProtNandRegions].count = partInfo.count;
