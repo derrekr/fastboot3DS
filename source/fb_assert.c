@@ -19,15 +19,19 @@
 #include "types.h"
 #ifdef ARM9
 	#include "arm9/hardware/interrupt.h"
+	#include "arm9/hardware/ndma.h"
 #elif ARM11
 	#include "arm11/fmt.h"
 	#include "arm11/hardware/interrupt.h"
 #endif
+#include "hardware/gfx.h"
 
 
 
 noreturn void __fb_assert(const char *const str, u32 line)
 {
+	enterCriticalSection();
+
 #ifdef ARM9
 	// Get rid of the warnings.
 	(void)str;
@@ -36,6 +40,14 @@ noreturn void __fb_assert(const char *const str, u32 line)
 	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
 #endif
 
-	enterCriticalSection();
-	while(1) __wfi();
+	while(1)
+	{
+#ifdef ARM9
+		const u32 color = RGB8_to_565(0, 0, 255)<<16 | RGB8_to_565(0, 0, 255);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
+#elif ARM11
+		__wfi();
+#endif
+	}
 }
