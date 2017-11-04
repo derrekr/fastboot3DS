@@ -40,8 +40,6 @@ static const char *NandFilepath = "nand:/fastboot3DS/fastbootcfg.txt";
 
 static const char *filepath;
 
-static s32 file;
-
 typedef struct {
 	char *textData;	// ptr to the first char of an attribute's data inside filebuf
 	u32 textLength;	// length of the above data, without '\0' ofc
@@ -107,6 +105,7 @@ static bool configDirty = false;
 bool loadConfigFile()
 {
 	FILINFO fileStat;
+	s32 file;
 	u32 fileSize;
 	bool createFile = false;
 	
@@ -231,6 +230,8 @@ bool configHasChanged()
 
 bool writeConfigFile()
 {
+	s32 file;
+	
 	if(!filebuf)
 		goto fail;
 
@@ -414,10 +415,15 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 	if(totalLen > remainingLen)
 		return NULL;
 	
+	totalLen += 2;	// size of new line encoding
+	
+	if(totalLen > remainingLen)
+		return NULL;
+	
 	/* if there's no linebreak at the end already, add one */
 	if(curLen != 0 && !isEOL(filebuf[curLen - 1]))
 	{
-		totalLen += 2;	// size of new line encoding
+		totalLen += 2;
 		
 		if(totalLen > remainingLen)
 			return NULL;
@@ -429,7 +435,8 @@ static char *writeAddDefinitionText(const char *keyName, const char *textData)
 		}
 	}
 	
-	ee_sprintf(&filebuf[curLen], "%s%s%s", keyName, def, textData);
+	/* format print line and terminate it */
+	ee_sprintf(&filebuf[curLen], "%s%s%s\r\n", keyName, def, textData);
 	
 	return &filebuf[curLen + keyLen + defLen];
 }

@@ -451,6 +451,8 @@ s32 fsWriteFromDeviceBuffer(s32 destHandle, u32 destOffset, u32 destSize, DevBuf
 				}
 				else
 				{
+					count = toWrite;
+					
 					// no prot regions found, do a normal write
 					if(!dev_rawnand->write_sector(sector, count, devBufPtr))
 						return -31;

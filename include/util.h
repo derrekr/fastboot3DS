@@ -20,7 +20,7 @@
 
 #include "types.h"
 
-#define min(a,b)	(u32) a < (u32) b ? (u32) a : (u32) b
+#define min(a,b)	((size_t) (a) <= (size_t) (b) ? (size_t) (a) : (size_t) (b))
 
 #define arrayEntries(array)	sizeof(array)/sizeof(*array)
 
