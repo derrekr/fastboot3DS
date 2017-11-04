@@ -21,11 +21,10 @@
 #include <string.h>
 #include "types.h"
 #include "arm11/menu/splash.h"
+#include "arm11/lz11.h"
 #include "hardware/gfx.h"
 
 
-
-void lz11Decompress(const void *in, void *out, u32 size);
 
 void getSplashDimensions(const void *const data, u32 *const width, u32 *const height)
 {
