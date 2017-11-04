@@ -85,9 +85,9 @@ bool drawSplashscreen(const void *const data, s32 startX, s32 startY)
 
 	if(isCompressed) free(imgData);
 
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP), 0, SCREEN_SIZE_TOP);
 	GFX_swapFramebufs();
+	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 
 	return true;
 }
