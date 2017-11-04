@@ -50,6 +50,8 @@ noreturn void panic()
 {
 	register u32 lr __asm__("lr");
 
+	enterCriticalSection();
+
 	consoleInit(SCREEN_SUB, NULL, false);
 
 	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
@@ -67,6 +69,8 @@ noreturn void panic()
 noreturn void panicMsg(const char *msg)
 {
 	register u32 lr __asm__("lr");
+
+	enterCriticalSection();
 
 	consoleInit(SCREEN_SUB, NULL, false);
 

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -17,37 +19,30 @@
  */
 
 #include "types.h"
-#ifdef ARM9
-	#include "arm9/hardware/interrupt.h"
-	#include "arm9/hardware/ndma.h"
-#elif ARM11
-	#include "arm11/fmt.h"
-	#include "arm11/hardware/interrupt.h"
-#endif
-#include "hardware/gfx.h"
 
 
+#define FLAG_ROTATED     (1u<<3)
+#define FLAG_COMPRESSED  (1u<<4)
+#define FLAG_SWAPPED     (1u<<5)
 
-noreturn void __fb_assert(const char *const str, u32 line)
+
+enum
 {
-	enterCriticalSection();
+	FORMAT_RGB565  = 0,
+	FORMAT_RGB8    = 1,
+	FORMAT_RGBA8   = 2,
+	FORMAT_INVALID = 7
+};
 
-#ifdef ARM9
-	// Get rid of the warnings.
-	(void)str;
-	(void)line;
-#elif ARM11
-	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
-#endif
+typedef struct
+{
+	u32 magic;
+	u16 width;
+	u16 height;
+	u32 flags;
+} SplashHeader;
 
-	while(1)
-	{
-#ifdef ARM9
-		const u32 color = RGB8_to_565(0, 0, 255)<<16 | RGB8_to_565(0, 0, 255);
-		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
-		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
-#elif ARM11
-		__wfi();
-#endif
-	}
-}
+
+
+void getSplashDimensions(const void *const data, u32 *const width, u32 *const height);
+bool drawSplashscreen(const void *const data, s32 startX, s32 startY);

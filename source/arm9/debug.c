@@ -24,6 +24,8 @@
 #include "fatfs/ff.h"
 #include "fsutils.h"
 #include "arm9/hardware/interrupt.h"
+#include "hardware/gfx.h"
+#include "arm9/hardware/ndma.h"
 
 static u32 debugHash = 0;
 
@@ -48,33 +50,38 @@ noreturn void panic()
 {
 	register u32 lr __asm__("lr");
 
-	//consoleInit(0, NULL, true);
+	enterCriticalSection();
 
-	//ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-	
 	fsUnmountAll();
 	//devs_close();
 	
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	while(1) __wfi();
+	while(1)
+	{
+		const u32 color = RGB8_to_565(255, 0, 0)<<16 | RGB8_to_565(255, 0, 0);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
+	}
 }
 
 noreturn void panicMsg(const char *msg)
 {
 	register u32 lr __asm__("lr");
 
-	/*consoleInit(0, NULL, true);
-
-	ee_printf("\x1b[41m\x1b[0J\x1b[9C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-	ee_printf("\nERROR MESSAGE:\n%s\n", msg);*/
+	enterCriticalSection();
 
 	fsUnmountAll();
 	//devs_close();
 	
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	while(1) __wfi();
+	while(1)
+	{
+		const u32 color = RGB8_to_565(255, 0, 0)<<16 | RGB8_to_565(255, 0, 0);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
+	}
 }
 
 // Expects the registers in the exception stack to be in the following order:
