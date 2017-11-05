@@ -765,7 +765,7 @@ done:
 
 s32 fSetNandProtection(bool protect)
 {
-	static const partitionStruct defaultProt[] = {
+	static const ProtNandRegion defaultProt[] = {
 		{
 			.sector = 0,
 			.count = 1,
