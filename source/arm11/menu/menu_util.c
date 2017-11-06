@@ -195,7 +195,9 @@ u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max)
 	for (; i < w; i++) res += ee_printf("\xB1");
 	ee_printf(ESC_RESET);
 	
-	res += ee_printf(" | %lu%% || %llu / %llu MiB\r", prog_p, curr / 0x100000, max / 0x100000);
+	res += ee_printf(" | %s%lu%%%s | %s%llu / %llu MiB%s\r",
+		(curr == max) ? ESC_SCHEME_GOOD : "", prog_p, (curr == max) ? ESC_RESET : "",
+		(curr == max) ? ESC_SCHEME_GOOD : "", curr / 0x100000, max / 0x100000, (curr == max) ? ESC_RESET : "");
 	
 	
 	return res;

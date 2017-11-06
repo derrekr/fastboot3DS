@@ -267,7 +267,6 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	if (param < 3) // loading from bootslot
 	{
 		// check if bootslot exists
-		ee_printf("Checking bootslot...\n");
 		if (!configDataExist(KBootOption1 + param))
 		{
 			ee_printf("Bootslot does not exist!\n");
@@ -368,7 +367,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_snprintf(fpath, 64, NAND_BACKUP_PATH "/%02X%02X%02X%02X%02X%02X_%s_nand.bin",
 		rtc[6], rtc[5], rtc[4], rtc[2], rtc[1], rtc[0], serial);
 	
-	ee_printf("Creating NAND backup:\n%s\n\nPreparing NAND backup...\n", fpath);
+	ee_printf(ESC_SCHEME_ACCENT1 "Creating NAND backup:\n%s\n" ESC_RESET "\nPreparing NAND backup...\n", fpath);
 	updateScreens();
 	
 	
@@ -445,7 +444,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// NAND access finalized
 	ee_printf_progress("NAND backup", PROGRESS_WIDTH, nand_size, nand_size);
-	ee_printf("\n\nNAND backup finished.\n");
+	ee_printf("\n" ESC_SCHEME_GOOD "NAND backup finished.\n" ESC_RESET);
 	result = 0;
 	
 	
@@ -464,6 +463,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 	
 	if (result != 0) fUnlink(fpath);
+	hidScanInput(); // throw away any input from impatient users
 	return result;
 }
 
@@ -514,7 +514,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		goto fail;
 	}
 	
-	ee_printf("Restoring NAND backup:\n%s\n\nPreparing NAND restore...\n", fpath);
+	ee_printf(ESC_SCHEME_ACCENT1 "Restoring NAND backup:\n%s\n" ESC_RESET "\nPreparing NAND restore...\n", fpath);
 	updateScreens();
 	
 	
@@ -590,8 +590,8 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	// NAND access finalized
-	ee_printf_progress("NAND restore", PROGRESS_WIDTH, nand_size, nand_size);
-	ee_printf("\n\nNAND restore finished.\n");
+	ee_printf_progress("NAND restore", PROGRESS_WIDTH, file_size, file_size);
+	ee_printf("\n" ESC_SCHEME_GOOD "NAND restore finished.\n" ESC_RESET);
 	result = 0;
 	
 	
