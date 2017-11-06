@@ -19,21 +19,23 @@
 #include <stdlib.h>
 #include "types.h"
 #include "arm11/hardware/hardware.h"
-#include "arm11/hardware/interrupt.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/power.h"
+#include "arm11/hardware/interrupt.h"
 #include "arm11/hardware/i2c.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_fb3ds.h"
 #include "arm11/menu/menu_util.h"
+#include "arm11/menu/splash.h"
+#include "arm11/console.h"
+#include "arm11/config.h"
+#include "arm11/debug.h"
+#include "arm11/firm.h"
+#include "arm11/fmt.h"
+#include "arm11/power.h"
 #include "hardware/pxi.h"
 #include "hardware/gfx.h"
-#include "arm11/firm.h"
-#include "arm11/console.h"
-#include "arm11/debug.h"
-#include "arm11/fmt.h"
+#include "banner_spla.h"
 #include "fsutils.h"
-#include "arm11/config.h"
 
 
 volatile bool g_continueBootloader = true;
@@ -108,24 +110,44 @@ int main(void)
 	// ... or not if we already got a firmware waiting in line
 	show_menu = show_menu ||
 		(!g_startFirmLaunch && ((bootmode == BootModeNormal) || hidIsHomeButtonHeldRaw()));
+	
+	// show splash if (bootmode != BootModeSilent)
+	if(show_menu || (bootmode != BootModeQuiet))
+	{
+		u32 w, h;
+		s32 x, y;
+		
+		GFX_init();
+		gfx_initialized = true;
+		
+		getSplashDimensions(banner_spla, &w, &h);
+		x = (SCREEN_WIDTH_TOP - w) >> 1;
+		y = (SCREEN_HEIGHT_TOP - h) >> 1;
+		
+		if (drawSplashscreen(banner_spla, x, y))
+		{
+			for (u32 i = 0; i < 64; i++) // VBlank * 64
+				GFX_waitForEvent(GFX_EVENT_PDC0, true); 
+		}
+	}
 
 	
 	// main loop
 	PrintConsole term_con;
 	while(!g_startFirmLaunch)
 	{
-		// init screens (if we'll need them below)
-		if((show_menu || err_string) && !gfx_initialized)
+		// init screens / console (if we'll need them below)
+		if(show_menu || err_string)
 		{
-			GFX_init();
-			// init and select terminal console
-			consoleInit(SCREEN_TOP, &term_con, true);
-			consoleSelect(&term_con);
+			if (!gfx_initialized) GFX_init();
 			gfx_initialized = true;
+			// init and select terminal console
+			consoleInit(SCREEN_TOP, &term_con, false); // <-- maybe not do this everytime? (!!!)
+			consoleSelect(&term_con);
 		}
 		
 		// if there is an error, output it to screen
-		if (err_string)
+		if(err_string)
 		{
 			ee_printf("%s\nPress B or HOME to enter menu.\n", err_string);
 			updateScreens();
