@@ -382,7 +382,8 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	// reserve space for NAND backup
-	ee_printf("NAND size: %lli MiB\nReserving space...\n", nand_size / 0x0100000);
+	ee_printf("NAND size: %lli MiB\nBuffer size: %lu kiB\nReserving space...\n",
+		nand_size / 0x0100000, (u32) DEVICE_BUFSIZE / 0x400);
 	updateScreens();
 	if ((fLseek(fHandle, nand_size) != 0) || (fTell(fHandle) != nand_size))
 	{
@@ -415,7 +416,8 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		s64 readBytes = (nand_size - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : nand_size - p;
 		s32 errcode = 0;
-		ee_printf_progress("NAND backup", PROGRESS_WIDTH, p, nand_size);
+		if (!(p % (DEVICE_BUFSIZE*4)))
+			ee_printf_progress("NAND backup", PROGRESS_WIDTH, p, nand_size);
 		updateScreens();
 		
 		if ((errcode = fReadToDeviceBuffer(devHandle, p, readBytes, dbufHandle)) != 0)
@@ -541,10 +543,12 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	
 	// check file size
-	ee_printf("File size: %lu MiB\n", fSize(fHandle) / 0x100000);
+	const s64 file_size = fSize(fHandle);
+	ee_printf("File size: %lu MiB\n", file_size / 0x100000);
 	ee_printf("NAND size: %lli MiB\n", nand_size / 0x100000);
+	ee_printf("Buffer size: %lu kiB\n", (u32) DEVICE_BUFSIZE / 0x400);
 	updateScreens();
-	if (fSize(fHandle) > nand_size)
+	if (file_size > nand_size)
 	{
 		ee_printf("Size exceeds available space!\n");
 		goto fail_close_handles;
@@ -560,11 +564,12 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// all done, ready to do the NAND backup
 	ee_printf("\n");
-	for (s64 p = 0; p < nand_size; p += DEVICE_BUFSIZE)
+	for (s64 p = 0; p < file_size; p += DEVICE_BUFSIZE)
 	{
-		s64 readBytes = (nand_size - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : nand_size - p;
+		s64 readBytes = (file_size - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : file_size - p;
 		s32 errcode = 0;
-		ee_printf_progress("NAND restore", PROGRESS_WIDTH, p, nand_size);
+		if (!(p % (DEVICE_BUFSIZE*4)))
+			ee_printf_progress("NAND restore", PROGRESS_WIDTH, p, file_size);
 		updateScreens();
 		
 		if ((errcode = fReadToDeviceBuffer(fHandle, p, readBytes, dbufHandle)) != 0)
