@@ -279,7 +279,7 @@ fail:
 static bool createConfigFile()
 {
 	// set default settings for new config files
-	const char *temp = "BOOT_MODE = Normal\n";
+	const char *temp = "BOOT_MODE = Normal\r\n";
 	bool ret;
 	
 	if(filebuf)
@@ -324,7 +324,7 @@ static char *findDefinition(const char *attrName)
 
 static inline bool isEOL(const char c)
 {
-	static const char LF = 0x0A, CR = 0x0D, NEL = 0x15;
+	const char LF = 0x0A, CR = 0x0D, NEL = 0x15;
 	
 	if(c == LF || c == CR || c == NEL)
 		return true;
@@ -792,9 +792,9 @@ static bool parseDevMode(AttributeEntryType *attr)
 	char *textData = attr->textData;
 	bool enabled;
 
-	if(strcmp(textData, devModeStates[0]) == 0)
+	if(strnicmp(textData, devModeStates[0], strlen(devModeStates[0])) == 0)
 		enabled = true;
-	else if(strcmp(textData, devModeStates[1]) == 0)
+	else if(strnicmp(textData, devModeStates[1],  strlen(devModeStates[1])) == 0)
 		enabled = false;
 	else
 	{
