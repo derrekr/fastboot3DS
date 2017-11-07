@@ -112,8 +112,8 @@ MenuInfo menu_fb3ds[] =
 		"Boot Mode Setup", 3, &menuPresetBootMode, MENU_FLAG_CONFIG,
 		{
 			{ "Set normal boot",			DESC_BOOT_NORMAL,			&menuSetBootMode,		0 },
-			{ "Set quiet boot",				DESC_BOOT_QUIET,			&menuSetBootMode,		1 },
-			{ "Set quick boot",				DESC_BOOT_QUICK,			&menuSetBootMode,		2 }
+			{ "Set quick boot",				DESC_BOOT_QUICK,			&menuSetBootMode,		1 },
+			{ "Set quiet boot",				DESC_BOOT_QUIET,			&menuSetBootMode,		2 }
 		}
 	},
 	{ // 7

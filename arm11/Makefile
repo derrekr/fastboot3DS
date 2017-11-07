@@ -131,7 +131,7 @@ $(OUTPUT).bin	:	$(OUTPUT).elf
 	@$(OBJCOPY) --gap-fill 0xFF -O binary $< $@
 	@echo built ... $(notdir $@)
 
-$(OFILES_SOURCES) : $(HFILES)
+$(OFILES_SOURCES) : $(HFILES) $(INTERMEDIATE_ASSETS)
 
 $(OUTPUT).elf	:	$(OFILES)
 

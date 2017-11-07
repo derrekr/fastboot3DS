@@ -39,8 +39,11 @@ static void hidIrqHandler(UNUSED u32 intSource);
 
 void hidInit(void)
 {
-	const u32 mcuInterruptMask = 0xFFFF1800u; // Standard bitmask at cold boot
-	I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mcuInterruptMask, 4);
+	// When set after a reboot from TWL_FIRM while holding the HOME button this will
+	// cause the MCU to spam IRQs infinitely after releasing the HOME button.
+	// mcuBugs++
+	//const u32 mcuInterruptMask = 0xFFFF1800u; // Standard bitmask at cold boot
+	//I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mcuInterruptMask, 4);
 
 	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
 	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
