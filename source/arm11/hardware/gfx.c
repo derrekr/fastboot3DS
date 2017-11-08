@@ -253,7 +253,7 @@ void GFX_init(void)
 		gfxSetupLcdTop();
 		gfxSetupLcdSub();
 
-		I2C_writeReg(I2C_DEV_MCU, 0x22, 0x2A);
+		I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3 | 1<<1); // Power on LCDs and backlight
 
 		// We must make sure the I2C bus is not used until this finishes
 		// otherwise the screens may not turn on on New 3DS.
