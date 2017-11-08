@@ -232,34 +232,3 @@ bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data)
 {
 	return I2C_writeRegBuf(devId, regAddr, &data, 1);
 }
-
-u8 i2cmcu_readreg_hid_irq(void)
-{
-	u8 data;
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, &data, 1)) return 0;
-	return data;
-}
-
-u8 i2cmcu_readreg_hid_held(void)
-{
-	u8 data[19];
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, data, sizeof(data))) return 0;
-	return data[18];
-}
-
-// aka i2cmcu_write_reg0x20_0x22
-bool i2cmcu_lcd_poweron(void)
-{
-	return I2C_writeReg(I2C_DEV_MCU, 0x22, 2); // bit1 = lcd power enable for both screens
-}
-
-// aka i2cmcu_write_reg0x20_0x22_2
-bool i2cmcu_lcd_backlight_poweron(void)
-{
-	return I2C_writeReg(I2C_DEV_MCU, 0x22, 0x28); // bit3 = lower screen, bit5 = upper
-}
-
-bool i2cmcu_lcd_poweroff(void)
-{
-	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1); // bit0 = lcd power disable for both screens (also disabled backlight)
-}

@@ -100,11 +100,35 @@ u8 I2C_readReg(I2cDevice devId, u8 regAddr);
  */
 bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data);
 
-u8 i2cmcu_readreg_hid_irq(void);
-u8 i2cmcu_readreg_hid_held(void);
-bool i2cmcu_lcd_poweron(void);
-bool i2cmcu_lcd_backlight_poweron(void);
-bool i2cmcu_lcd_poweroff(void);
+
+static inline u8 i2cmcu_readreg_hid_irq(void)
+{
+	u8 data;
+	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, &data, 1)) return 0;
+	return data;
+}
+
+static inline u8 i2cmcu_readreg_hid_held(void)
+{
+	u8 data[19];
+	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, data, sizeof(data))) return 0;
+	return data[18];
+}
+
+static inline bool i2cmcu_lcd_poweron(void)
+{
+	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<1); // bit1 = lcd power enable for both screens
+}
+
+static inline bool i2cmcu_lcd_backlight_poweron(void)
+{
+	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3); // bit3 = lower screen, bit5 = upper
+}
+
+static bool i2cmcu_lcd_poweroff(void)
+{
+	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1); // bit0 = lcd power disable for both screens (also disabled backlight)
+}
 
 #define MCU_HID_POWER_BUTTON_PRESSED       (1u)
 #define MCU_HID_POWER_BUTTON_LONG_PRESSED  (1u<<1)
