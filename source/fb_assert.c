@@ -22,6 +22,8 @@
 	#include "arm9/hardware/ndma.h"
 #elif ARM11
 	#include "arm11/fmt.h"
+	#include "ipc_handler.h"
+	#include "hardware/pxi.h"
 	#include "arm11/hardware/interrupt.h"
 #endif
 #include "hardware/gfx.h"
@@ -38,6 +40,10 @@ noreturn void __fb_assert(const char *const str, u32 line)
 	(void)line;
 #elif ARM11
 	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
+	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GFX_swapFramebufs();
+	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
 #endif
 
 	while(1)
@@ -47,9 +53,6 @@ noreturn void __fb_assert(const char *const str, u32 line)
 		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
 		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
 #elif ARM11
-		GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-		               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-		GFX_swapFramebufs();
 		__wfi();
 #endif
 	}

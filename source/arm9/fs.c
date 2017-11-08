@@ -823,3 +823,12 @@ s32 fSetNandProtection(bool protect)
 	return FR_OK;
 }
 
+void fsDeinit(void)
+{
+	for(u32 i = 0; i < FS_MAX_FILES; i++) fClose(i);
+	for(u32 i = 0; i < FS_MAX_DRIVES; i++) fUnmount(i);
+
+	dev_decnand->close();
+	dev_rawnand->close();
+	dev_sdcard->close();
+}

@@ -22,7 +22,7 @@
 #include "mem_map.h"
 #include "hardware/pxi.h"
 #include "fatfs/ff.h"
-#include "fsutils.h"
+#include "fs.h"
 #include "arm9/hardware/interrupt.h"
 #include "hardware/gfx.h"
 #include "arm9/hardware/ndma.h"
@@ -52,9 +52,7 @@ noreturn void panic()
 
 	enterCriticalSection();
 
-	fsUnmountAll();
-	//devs_close();
-	
+	fsDeinit();
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
 	while(1)
@@ -71,9 +69,7 @@ noreturn void panicMsg(const char *msg)
 
 	enterCriticalSection();
 
-	fsUnmountAll();
-	//devs_close();
-	
+	fsDeinit();
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
 	while(1)
@@ -144,9 +140,7 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	if(codeChanged) ee_printf("Attention: RO section data changed!!");*/
 
 	// avoid fs corruptions
-	fsUnmountAll();
-	//devs_close();
-
+	fsDeinit();
 	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
 	while(1) __wfi();

@@ -21,6 +21,8 @@
 #include "arm11/hardware/i2c.h"
 #include "hardware/cache.h"
 #include "arm11/hardware/interrupt.h"
+#include "ipc_handler.h"
+#include "hardware/pxi.h"
 
 
 
@@ -46,6 +48,7 @@ bool battery_ok(void)
 
 noreturn void power_off(void)
 {
+	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
 	i2cmcu_lcd_poweroff();
 
 	flushDCache();
@@ -58,6 +61,7 @@ noreturn void power_off(void)
 
 noreturn void power_reboot(void)
 {
+	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
 	i2cmcu_lcd_poweroff();
 
 	flushDCache();

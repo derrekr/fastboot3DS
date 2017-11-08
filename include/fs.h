@@ -89,3 +89,7 @@ s32 fRename(const char *const old, const char *const new);
 s32 fUnlink(const char *const path);
 s32 fVerifyNandImage(const char *const path);
 s32 fSetNandProtection(bool protect);
+
+#ifdef ARM9
+void fsDeinit(void);
+#endif
