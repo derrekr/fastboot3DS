@@ -117,7 +117,7 @@ static inline u8 i2cmcu_readreg_hid_held(void)
 
 static inline bool i2cmcu_lcd_poweron(void)
 {
-	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<1); // bit1 = lcd power enable for both screens
+	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3 | 1<<1); // bit1 = lcd power enable for both screens
 }
 
 static inline bool i2cmcu_lcd_backlight_poweron(void)
