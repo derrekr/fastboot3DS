@@ -114,17 +114,10 @@ int main(void)
 	// show splash if (bootmode != BootModeSilent)
 	if(show_menu || (bootmode != BootModeQuiet))
 	{
-		u32 w, h;
-		s32 x, y;
-		
 		GFX_init();
 		gfx_initialized = true;
 		
-		getSplashDimensions(banner_spla, &w, &h);
-		x = (SCREEN_WIDTH_TOP - w) >> 1;
-		y = (SCREEN_HEIGHT_TOP - h) >> 1;
-		
-		if (drawSplashscreen(banner_spla, x, y))
+		if (drawSplashscreen(banner_spla, -1, -1))
 		{
 			for (u32 i = 0; i < 64; i++) // VBlank * 64
 				GFX_waitForEvent(GFX_EVENT_PDC0, true); 
