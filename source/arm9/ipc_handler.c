@@ -138,10 +138,10 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 				g_startFirmLaunch = true;
 			}
 			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_PREPA_POWER):
+		case IPC_CMD_ID_MASK(IPC_CMD9_PREPARE_POWER):
 		case IPC_CMD_ID_MASK(IPC_CMD9_PANIC):
 		case IPC_CMD_ID_MASK(IPC_CMD9_EXCEPTION):
-			// Close and deinitalize everything.
+			fsDeinit();
 			break;
 		default:
 			panic();

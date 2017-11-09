@@ -63,11 +63,14 @@ void TIMER_stop(void);
 
 /**
  * @brief      Halts the CPU for the specified number of ticks.
- *             Use the macro below for a milliseconds version.
+ *             Use the function below for a milliseconds version.
  *
  * @param[in]  ticks  The number of ticks to sleep.
  */
 void TIMER_sleepTicks(u32 ticks);
 
 // Sleeps ms milliseconds. ms can be up to 32000.
-#define TIMER_sleepMs(ms)  TIMER_sleepTicks(TIMER_FREQ(0, 1000.0) * (ms))
+static inline void TIMER_sleepMs(u32 ms)
+{
+	TIMER_sleepTicks(TIMER_FREQ(0, 1000.0) * ms);
+}

@@ -253,7 +253,7 @@ void GFX_init(void)
 		gfxSetupLcdTop();
 		gfxSetupLcdSub();
 
-		I2C_writeReg(I2C_DEV_MCU, 0x22, 0x2A);
+		I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3 | 1<<1); // Power on LCDs and backlight
 
 		// We must make sure the I2C bus is not used until this finishes
 		// otherwise the screens may not turn on on New 3DS.
@@ -295,7 +295,6 @@ void GFX_returnFromLowPowerState(void)
 {
 	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, gfxIrqHandler);
 	i2cmcu_lcd_poweron();
-	i2cmcu_lcd_backlight_poweron();
 }
 
 void GFX_deinit(void)
@@ -309,8 +308,12 @@ void GFX_deinit(void)
 	// Temporary Luma workaround
 	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,
 	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0);
-	*((vu32*)(0x10400400+0x70)) = 0x00080341;            // Format GL_RGB8_OES
-	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3; // Stride 0
-	*((vu32*)(0x10400500+0x70)) = 0x00080301;            // Format GL_RGB8_OES
-	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3; // Stride 0
+	*((vu32*)(0x10400400+0x70)) = 0x00080341;                 // Format GL_RGB8_OES
+	*((vu32*)(0x10400400+0x78)) = 0;                          // Select first framebuffer
+	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;      // Stride 0
+	*((vu32*)(0x10400500+0x68)) = FRAMEBUF_SUB_A_1 + 0x17700; // Sub framebuffer first address
+	*((vu32*)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2 + 0x17700; // Sub framebuffer second address
+	*((vu32*)(0x10400500+0x70)) = 0x00080301;                 // Format GL_RGB8_OES
+	*((vu32*)(0x10400500+0x78)) = 0;                          // Select first framebuffer
+	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3;      // Stride 0
 }

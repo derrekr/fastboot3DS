@@ -24,6 +24,7 @@
 #include "arm11/fmt.h"
 #include "fs.h"
 #include "hardware/pxi.h"
+#include "ipc_handler.h"
 #include "hardware/gfx.h"
 #include "arm11/hardware/interrupt.h"
 
@@ -53,15 +54,12 @@ noreturn void panic()
 	enterCriticalSection();
 
 	consoleInit(SCREEN_SUB, NULL, false);
-
 	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
-
-	//fsUnmountAll();
-	//devs_close();
-
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
 	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
+
+	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
 
 	while(1) __wfi();
 }
@@ -73,16 +71,13 @@ noreturn void panicMsg(const char *msg)
 	enterCriticalSection();
 
 	consoleInit(SCREEN_SUB, NULL, false);
-
 	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
 	ee_printf("\nERROR MESSAGE:\n%s\n", msg);
-
-	//fsUnmountAll();
-	//devs_close();
-
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
 				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
+
+	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
 
 	while(1) __wfi();
 }
@@ -140,29 +135,11 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	}
 
 	//if(codeChanged) ee_printf("Attention: RO section data changed!!");
-
-	// avoid fs corruptions
-	//fsUnmountAll();
-	//devs_close();
-
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
 				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
+	PXI_sendCmd(IPC_CMD9_EXCEPTION, NULL, 0);
+
 	while(1) __wfi();
 }
-
-/*void dumpMem(u8 *mem, u32 size, char *filepath)
-{
-	FIL file;
-	UINT bytesWritten;
-
-	if(f_open(&file, filepath, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
-		return;
-		
-	f_write(&file, mem, size, &bytesWritten);
-	
-	f_sync(&file);
-
-	f_close(&file);
-}*/
