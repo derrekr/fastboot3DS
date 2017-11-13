@@ -23,6 +23,7 @@
 #include "arm9/debug.h"
 #include "fs.h"
 #include "arm9/firm.h"
+#include "firmwriter.h"
 
 
 
@@ -121,13 +122,10 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FSET_NAND_PROT):
 			result = fSetNandProtection(buf[0]);
 			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_READ_SECTORS):
+		case IPC_CMD_ID_MASK(IPC_CMD9_WRITE_FIRM_PART):
+			result = writeFirmPartition((const char *const)buf[0]);
 			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_WRITE_SECTORS):
-			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_MALLOC):
-			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_FREE):
+		case IPC_CMD_ID_MASK(IPC_CMD9_UPDATE_FASTBOOT):
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			result = loadVerifyFirm((const char *const)buf[0], buf[2]);

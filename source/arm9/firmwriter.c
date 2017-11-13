@@ -16,152 +16,51 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "firmwriter.h"
 #include "mem_map.h"
+#include "arm9/partitions.h"
+#include "arm9/firm.h"
 #include "arm9/dev.h"
-#include "fatfs/ff.h"
-#include "arm9/hardware/hid.h"
 #include "util.h"
-#include "arm9/firmwriter.h"
-#include "arm9/hardware/timer.h"
 
 
-static size_t totalToWrite;
-static size_t totalWritten;
-static size_t curSector;
-static void *blockData = NULL;
-static bool protectSig;
-static bool failure;
 
-/* sector: start sector								*/
-/* blockCount: firmware total length in sectors		*/
-/* preserveSignature: flag for sighax protection	*/
-bool firmwriterInit(size_t sector, size_t blockCount, bool preserveSignature)
+s32 writeFirmPartition(const char *const part)
 {
-	if(blockCount < FIRMWRITER_SECTORS_PER_BLOCK * 2)
-		return false;
+	if(!dev_decnand->is_active()) return -1;
 
-	totalToWrite = blockCount;
-	totalWritten = 0;
-	// + 1 block because we'll write the firm header afterwards
-	curSector = sector + FIRMWRITER_SECTORS_PER_BLOCK;
-	protectSig = preserveSignature;
-	failure = false;
+	size_t partInd, sector;
+	if(!partitionGetIndex(part, &partInd)) return -2;
+	if(!partitionGetSectorOffset(partInd, &sector)) return -3;
 
-	if(blockData)
+	size_t firmSize;
+	if(!firm_size(&firmSize)) return -4;
+
+	u8 *firmBuf = (u8*)FIRM_LOAD_ADDR;
+	u8 *const cmpBuf = (u8*)malloc(FIRMWRITER_BLK_SIZE);
+	if(!cmpBuf) return -5;
+
+	while(firmSize)
 	{
-		free(blockData);
-	}
+		const u32 writeSize = min(firmSize, FIRMWRITER_BLK_SIZE);
 
-	blockData = malloc(FIRMWRITER_SECTORS_PER_BLOCK * 0x200);
-	
-	return blockData != NULL;
-}
-
-/* returns number of sectors written, 0 == failure */
-size_t firmwriterWriteBlock()
-{
-	size_t numSectors;
-	
-	void *sourceBuf = (void *) FIRM_LOAD_ADDR + (totalWritten + FIRMWRITER_SECTORS_PER_BLOCK) * 0x200;
-
-	if(totalWritten >= totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK)
-		return 0;
-		
-	numSectors = min(FIRMWRITER_SECTORS_PER_BLOCK, totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK - totalWritten);
-
-	if(!dev_decnand->write_sector(curSector, numSectors, sourceBuf))
-	{
-		failure = true;
-		return 0;
-	}
-
-	/* read back data and compare */
-	if(!dev_decnand->read_sector(curSector, numSectors, blockData) ||
-		memcmp(sourceBuf, blockData, numSectors * 0x200) != 0)
-	{
-		failure = true;
-		return 0;
-	}
-
-	curSector += numSectors;
-	totalWritten += numSectors;
-
-	return numSectors;
-}
-
-bool firmwriterIsDone()
-{
-     if(failure)
-		return false;
-
-	 return totalWritten >= totalToWrite - FIRMWRITER_SECTORS_PER_BLOCK;
-}
-
-/* returns number of sectors written, 0 == failure */
-size_t firmwriterFinish()
-{
-	static firm_header header;
-	void *firmBuf = (void *) FIRM_LOAD_ADDR;
-	void *compBuf = blockData;
-	size_t sector = curSector - totalWritten - FIRMWRITER_SECTORS_PER_BLOCK;
-	
-	if(!firmwriterIsDone())
-	{
-		// ee_printf("firmwriter is not done yet.\n");
-		return false;
-	}
-
-	/* read signature from NAND if we want to keep sighax */
-	if(protectSig)
-	{
-		memcpy(blockData, firmBuf, FIRMWRITER_SECTORS_PER_BLOCK * 0x200);
-		
-		if(!dev_decnand->read_sector(sector, 1, &header))
+		if(!dev_decnand->write_sector(sector, writeSize>>9, firmBuf)) return -6;
+		if(!dev_decnand->read_sector(sector, writeSize>>9, cmpBuf)) return -6;
+		if(memcmp(firmBuf, cmpBuf, writeSize) != 0)
 		{
-			failure = true;
-			return 0;
+			free(cmpBuf);
+			return -7;
 		}
 
-		memcpy(blockData + 0x100, &header.signature, 0x100);
-		firmBuf = blockData;
-		compBuf = malloc(FIRMWRITER_SECTORS_PER_BLOCK * 0x200);
-		if(!compBuf)
-		{
-			failure = true;
-			goto end;
-		}
+		sector += writeSize>>9;
+		firmSize -= writeSize;
+		firmBuf += writeSize;
 	}
 
-	if(!dev_decnand->write_sector(sector, FIRMWRITER_SECTORS_PER_BLOCK, firmBuf))
-	{
-		failure = true;
-		goto end;
-	}
+	free(cmpBuf);
 
-	/* read back data and compare */
-	if(!dev_decnand->read_sector(sector, FIRMWRITER_SECTORS_PER_BLOCK, compBuf) ||
-		memcmp(firmBuf, compBuf, FIRMWRITER_SECTORS_PER_BLOCK * 0x200) != 0)
-	{
-		failure = true;
-	}
-	
-end:
-
-	if(compBuf != blockData)
-		free(compBuf);
-
-	if(blockData)
-	{
-		free(blockData);
-		blockData = NULL;
-	}
-	
-	if(failure)
-		return 0;
-
-	return FIRMWRITER_SECTORS_PER_BLOCK;
+	return 0;
 }

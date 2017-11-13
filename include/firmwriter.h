@@ -18,12 +18,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "arm9/firm.h"
+#include "types.h"
 
-/* in sectors */
-#define FIRMWRITER_SECTORS_PER_BLOCK	(0x1000 / 0x200)
 
-bool firmwriterInit(size_t sector, size_t blockCount, bool preserveSignature);
-size_t firmwriterWriteBlock();
-bool firmwriterIsDone();
-size_t firmwriterFinish();
+#define FIRMWRITER_BLK_SIZE (0x20000) // 128 KB blocks
+
+
+s32 writeFirmPartition(const char *const part);

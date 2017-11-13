@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -18,35 +16,18 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
 #include "types.h"
-#include "mem_map.h"
+#include "ipc_handler.h"
+#include "hardware/pxi.h"
 
 
-#define FIRM_MAX_SIZE        (0x00400000)
 
-
-typedef struct
+s32 writeFirmPartition(const char *const part)
 {
-	u32 offset;
-	u32 address;
-	u32 size;
-	u32 copyMethod;
-	u8 hash[0x20];
-} firm_sectionheader;
+	u32 cmdBuf[2];
+	cmdBuf[0] = (u32)part;
+	cmdBuf[1] = strlen(part) + 1;
 
-typedef struct
-{
-	u32 magic;
-	u32 priority;
-	u32 entrypointarm11;
-	u32 entrypointarm9;
-	u8 reserved2[0x30];
-	firm_sectionheader section[4];
-	u8 signature[0x100];
-} firm_header;
-
-
-
-bool firm_size(size_t *size);
-s32 loadVerifyFirm(const char *const path, bool skipHashCheck);
-noreturn void firmLaunch(int argc, const char **argv);
+	return PXI_sendCmd(IPC_CMD9_WRITE_FIRM_PART, cmdBuf, 2);
+}
