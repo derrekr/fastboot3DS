@@ -60,7 +60,7 @@
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."
 #define DESC_NAND_RESTORE	"Restore current NAND from a file.\nThis option preserves your fastboot3ds installation."
 #define DESC_NAND_RESTORE_F	"Restore current NAND from a file.\nWARNING: This will overwrite all of your flash memory, also overwriting fastboot3ds."
-#define DESC_FIRM_FLASH		"Flash firmware from file.\nWARNING: This will allow you to flash unsigned firmware, overwriting fastboot3ds. Using unsupported firmware can BRICK your console."
+#define DESC_FIRM_FLASH		"Flash firmware from file to FIRM1.\nWARNING: This will allow you to flash unsigned firmware, overwriting anything previously installed in FIRM1."
 
 #define DESC_CHANGE_BRIGHT	"Change fastboot3ds brightness. This may also affect firmware launched from within fastboot3ds."
 #define DESC_SET_CONTIG		"Enable/disable contiguous NAND backups.\nContiguous NAND backups may be required on certain CFWs to be bootable from SD cards."
@@ -122,13 +122,13 @@ MenuInfo menu_fb3ds[] =
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuRestoreNand,		0 },
 			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuRestoreNand,		1 },
-			{ "Flash firmware",				DESC_FIRM_FLASH,			&menuInstallFirm,		0 }
+			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds, 0 },
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuInstallFirm,		0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},

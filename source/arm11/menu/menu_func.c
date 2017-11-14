@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "firmwriter.h"
 #include "fs.h"
 #include "fsutils.h"
 #include "arm11/menu/menu_color.h"
@@ -544,7 +545,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// check file size
 	const s64 file_size = fSize(fHandle);
-	ee_printf("File size: %lu MiB\n", file_size / 0x100000);
+	ee_printf("File size: %lli MiB\n", file_size / 0x100000);
 	ee_printf("NAND size: %lli MiB\n", nand_size / 0x100000);
 	ee_printf("Buffer size: %lu kiB\n", (u32) DEVICE_BUFSIZE / 0x400);
 	updateScreens();
@@ -614,8 +615,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	(void) param;
-	
+	bool to_firm1 = param;
 	u32 result = 1;
 	
 	
@@ -632,7 +632,9 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	char firm_path[256];
 	
-	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
+	ee_printf_screen_center("%s\nPress [HOME] to cancel.",
+		to_firm1 ? "Select a firmware file to install." :
+		"Select fastboot3DS update file.");
 	updateScreens();
 	
 	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
@@ -643,6 +645,31 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleSelect(term_con);
 	consoleClear();
 	
+	ee_printf(ESC_SCHEME_ACCENT1 "%s:\n%s\n" ESC_RESET "\nLoading firmware... ",
+		(to_firm1) ? "Flashing firmware to FIRM1" : "Updating fastboot3DS from file", firm_path);
+	updateScreens();
+	
+	s32 res = loadVerifyFirm(firm_path, false);
+	if (res != 0)
+	{
+		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+		ee_printf("Firm %s error code %li!\n", (res > -8) ? "load" : "verify", res);
+		goto fail;
+	}
+	
+	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET "Flashing firmware... ");
+	updateScreens();
+	
+	res = writeFirmPartition(to_firm1 ? "firm1:" : "firm0:");
+	if (res != 0)
+	{
+		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+		ee_printf("Firm flash error code %li!\n", res);
+		goto fail;
+	}
+	
+	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET);
+	ee_printf(ESC_SCHEME_GOOD "\n%s was updated\n" ESC_RESET, to_firm1 ? "Firmware in FIRM1" : "fastboot3DS");
 	
 	fail:
 	

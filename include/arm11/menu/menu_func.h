@@ -39,10 +39,10 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
-u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 
+// everything below has to go
 u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
