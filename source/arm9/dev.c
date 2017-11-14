@@ -432,7 +432,7 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 		
 		sector += crypt_size;
 		count -= crypt_size;
-		buf += crypt_size;
+		buf += crypt_size<<9;
 	} while(count);
 	
 	free(crypto_buf);
