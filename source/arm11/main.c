@@ -135,7 +135,7 @@ int main(void)
 			if (!gfx_initialized) GFX_init();
 			gfx_initialized = true;
 			// init and select terminal console
-			consoleInit(SCREEN_TOP, &term_con, false); // <-- maybe not do this everytime? (!!!)
+			consoleInit(SCREEN_TOP, &term_con, true); // <-- maybe not do this everytime? (!!!)
 			consoleSelect(&term_con);
 		}
 		
