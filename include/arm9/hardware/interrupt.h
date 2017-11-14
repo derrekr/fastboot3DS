@@ -88,7 +88,7 @@ static inline void __wfi(void)
 	__asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0));
 }
 
-inline u32 enterCriticalSection(void)
+static inline u32 enterCriticalSection(void)
 {
 	u32 tmp;
 	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
@@ -96,7 +96,7 @@ inline u32 enterCriticalSection(void)
 	return tmp & 0x80u;
 }
 
-inline void leaveCriticalSection(u32 oldState)
+static inline void leaveCriticalSection(u32 oldState)
 {
 	u32 tmp;
 	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
