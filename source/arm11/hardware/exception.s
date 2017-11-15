@@ -67,8 +67,7 @@ ASM_FUNC irqHandler
 	srsfd sp!, #31               @ Store lr and spsr on system mode stack
 	cps #31                      @ Switch to system mode
 	stmfd sp!, {r0-r3, r12, lr}
-	mov r12, #0x17000000
-	orr r12, r12, #0xE00000
+	ldr r12, =0x17E00000
 	ldr r0, [r12, #0x10C]        @ REG_CPU_II_AKN
 	and r1, r0, #0x7F
 	cmp r1, #32
@@ -81,11 +80,15 @@ ASM_FUNC irqHandler
 	ldr r3, [r2, r1, lsl #2]
 	cmp r3, #0
 	beq irqHandler_skip_processing
-	stmfd sp!, {r0, r12}
+	and r2, sp, #4
+	sub sp, sp, r2               @ Adjust stack for ABI compliance
+	stmfd sp!, {r0, r2}
 	cpsie i
 	blx r3
 	cpsid i
-	ldmfd sp!, {r0, r12}
+	ldmfd sp!, {r0, r2}
+	add sp, sp, r2
+	ldr r12, =0x17E00000
 irqHandler_skip_processing:
 	str r0, [r12, #0x110]        @ REG_CPU_II_EOI
 	ldmfd sp!, {r0-r3, r12, lr}

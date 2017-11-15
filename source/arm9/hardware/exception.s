@@ -67,8 +67,8 @@ ASM_FUNC irqHandler
 	stmfd sp!, {r0-r3, r12, lr}
 	mov r12, #0x10000000
 	orr r12, #0x1000                 @ REG_IRQ_IE
-	ldm r12, {r1, r2}
-	and r1, r1, r2
+	ldrd r0, r1, [r12]
+	and r1, r0, r1
 	mov r3, #0x80000000
 	irqHandler_find_first_lp:
 		clz r2, r1
@@ -83,10 +83,15 @@ ASM_FUNC irqHandler
 	beq irqHandler_skip_processing
 	mrs r3, spsr
 	str r3, [sp, #-4]!
-	msr cpsr_c, #0x5F                @ System mode, IRQ enabled
-	str lr, [sp, #-4]!
+	msr cpsr_c, #0xDF                @ System mode, IRQ disabled
+	and r3, sp, #4
+	sub sp, sp, r3                   @ Adjust stack for ABI compliance
+	stmfd sp!, {r3, lr}
+	msr cpsr_c, #0x5F                @ IRQ enabled
 	blx r2
-	ldr lr, [sp], #4
+	msr cpsr_c, #0xDF                @ IRQ disabled
+	ldmfd sp!, {r3, lr}
+	add sp, sp, r3
 	msr cpsr_c, #0xD2                @ IRQ mode, IRQ disabled
 	ldr r0, [sp], #4
 	msr spsr_fsxc, r0

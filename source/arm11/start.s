@@ -245,9 +245,7 @@ deinitCpu:
 	bx r3
 
 
-.pool
 _sysmode_stacks:
 	.word A11_C0_STACK_END      @ Stack for core 0
 	.word A11_C1_STACK_END      @ Stack for core 1
-	.word 0                     @ New 3DS cores are not used at all
-	.word 0
+.pool
