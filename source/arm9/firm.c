@@ -33,11 +33,14 @@
 #include "fs.h"
 
 
-static const struct
+typedef struct
 {
 	u32 addr;
 	u32 size;
-} sectionWhitelist[] =
+} FirmWhitelist;
+
+
+static const FirmWhitelist bootWhitelist[] =
 {
 	{ // Unused ITCM data
 		ITCM_KERNEL_MIRROR, ITCM_SIZE - 0x4800
@@ -53,6 +56,25 @@ static const struct
 	},
 	{ // FCRAM
 		FCRAM_BASE, FCRAM_SIZE + FCRAM_N3DS_EXT_SIZE
+	}
+};
+
+static const FirmWhitelist installWhitelist[] =
+{
+	{ // ITCM
+		ITCM_KERNEL_MIRROR, ITCM_SIZE + ITCM_SIZE // Kernel and boot9 mirror
+	},
+	{ // ARM9 memory
+		A9_RAM_BASE, A9_RAM_SIZE + A9_RAM_N3DS_EXT_SIZE
+	},
+	{ // IO mem
+		IO_MEM_BASE, 0x400000
+	},
+	{ // VRAM
+		VRAM_BASE, VRAM_SIZE
+	},
+	{ // DSP memory + AXIWRAM
+		DSP_MEM_BASE, DSP_MEM_SIZE + AXIWRAM_SIZE
 	}
 };
 
@@ -161,7 +183,7 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	entry9(argc, argv, 0x3BEEFu);
 }
 
-s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
+s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 {
 	u32 firmSize;
 	const firm_header *const firmHdr = (firm_header*)FIRM_LOAD_ADDR;
@@ -225,12 +247,24 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck)
 		// Check section size
 		if(secSize >= firmSize || (secSize + secOffset > firmSize)) return -13;
 
+		const FirmWhitelist *list;
+		u32 listSize;
+		if(installMode)
+		{
+			list = installWhitelist;
+			listSize = arrayEntries(installWhitelist);
+		}
+		else
+		{
+			list = bootWhitelist;
+			listSize = arrayEntries(bootWhitelist);
+		}
 		const u32 secAddr = section->address;
 		bool allowed = false;
-		for(u32 n = 0; n < arrayEntries(sectionWhitelist); n++)
+		for(u32 n = 0; n < listSize; n++)
 		{
-			const u32 addr = sectionWhitelist[n].addr;
-			const u32 size = sectionWhitelist[n].size;
+			const u32 addr = list[n].addr;
+			const u32 size = list[n].size;
 
 			// Overflow check
 			if(secAddr > ~secSize) return -14;
