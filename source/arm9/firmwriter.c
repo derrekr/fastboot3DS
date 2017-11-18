@@ -50,8 +50,12 @@ s32 writeFirmPartition(const char *const part)
 	{
 		const u32 writeSize = min(firmSize, FIRMWRITER_BLK_SIZE);
 
-		if(!dev_decnand->write_sector(sector, writeSize>>9, firmBuf)) return -7;
-		if(!dev_decnand->read_sector(sector, writeSize>>9, cmpBuf)) return -7;
+		if(!dev_decnand->write_sector(sector, writeSize>>9, firmBuf) ||
+		   !dev_decnand->read_sector(sector, writeSize>>9, cmpBuf))
+		{
+			free(cmpBuf);
+			return -7;
+		}
 		if(memcmp(firmBuf, cmpBuf, writeSize) != 0)
 		{
 			free(cmpBuf);
@@ -87,6 +91,7 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 
 	// Check version
 	const u32 vers = *(u32*)((void*)updateBuffer + 0x210);
+	if(version) *version = vers;
 	if(vers < ((u32)VERS_MAJOR<<16 | VERS_MINOR)) return UPDATE_ERR_DOWNGRADE;
 
 	size_t partInd, sector;
@@ -109,7 +114,6 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 	}
 
 	free(firm0Buf);
-	if(version) *version = vers;
 
 	return 0;
 }
