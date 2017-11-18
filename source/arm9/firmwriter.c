@@ -25,6 +25,8 @@
 #include "arm9/firm.h"
 #include "arm9/dev.h"
 #include "util.h"
+#include "arm9/hardware/crypto.h"
+#include "fastboot3DS_pubkey_bin.h"
 
 
 
@@ -62,6 +64,52 @@ s32 writeFirmPartition(const char *const part)
 	}
 
 	free(cmpBuf);
+
+	return 0;
+}
+
+s32 loadVerifyUpdate(const char *const path, u32 *const version)
+{
+	if(!dev_decnand->is_active()) return -1;
+	if(loadVerifyFirm(path, false, true) < 0) return UPDATE_ERR_INVALID_FIRM;
+
+	u32 *updateBuffer = (u32*)FIRM_LOAD_ADDR;
+#ifdef NDEBUG
+	// Verify signature
+	if(!RSA_setKey2048(3, fastboot3DS_pubkey_bin, 0x01000100) ||
+	   !RSA_verify2048(updateBuffer + 0x40, updateBuffer, 0x100))
+		return UPDATE_ERR_INVALID_SIG;
+#endif
+
+	// verify fastboot magic
+	if(memcmp((void*)updateBuffer + 0x200, "FASTBOOT 3DS   ", 16) != 0)
+		return -4;
+
+	// Check version
+	const u32 vers = *(u32*)((void*)updateBuffer + 0x210);
+	if(vers < ((u32)VERS_MAJOR<<16 | VERS_MINOR)) return UPDATE_ERR_DOWNGRADE;
+
+	size_t partInd, sector;
+	if(!partitionGetIndex("firm0", &partInd)) return -6;
+	if(!partitionGetSectorOffset(partInd, &sector)) return -7;
+
+	u8 *firm0Buf = (u8*)malloc(0x200);
+	if(!firm0Buf) return -8;
+	if(!dev_decnand->read_sector(sector + 1, 1, firm0Buf))
+	{
+		free(firm0Buf);
+		return -9;
+	}
+
+	// verify fastboot is installed to firm0:/
+	if(memcmp(firm0Buf, "FASTBOOT 3DS   ", 16) != 0)
+	{
+		free(firm0Buf);
+		return UPDATE_ERR_NOT_INSTALLED;
+	}
+
+	free(firm0Buf);
+	if(version) *version = vers;
 
 	return 0;
 }

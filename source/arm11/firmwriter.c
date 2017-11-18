@@ -31,3 +31,14 @@ s32 writeFirmPartition(const char *const part)
 
 	return PXI_sendCmd(IPC_CMD9_WRITE_FIRM_PART, cmdBuf, 2);
 }
+
+s32 loadVerifyUpdate(const char *const path, u32 *const version)
+{
+	u32 cmdBuf[4];
+	cmdBuf[0] = (u32)path;
+	cmdBuf[1] = strlen(path) + 1;
+	cmdBuf[2] = (u32)version;
+	cmdBuf[3] = sizeof(u32);
+
+	return PXI_sendCmd(IPC_CMD9_LOAD_VERIFY_UPDATE, cmdBuf, 4);
+}

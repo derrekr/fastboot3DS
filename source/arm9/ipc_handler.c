@@ -125,8 +125,6 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_WRITE_FIRM_PART):
 			result = writeFirmPartition((const char *const)buf[0]);
 			break;
-		case IPC_CMD_ID_MASK(IPC_CMD9_UPDATE_FASTBOOT):
-			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			result = loadVerifyFirm((const char *const)buf[0], buf[2], false);
 			break;
@@ -135,6 +133,9 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 				extern volatile bool g_startFirmLaunch;
 				g_startFirmLaunch = true;
 			}
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_UPDATE):
+			result = loadVerifyUpdate((const char *const)buf[0], (u32 *const)buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_PREPARE_POWER):
 		case IPC_CMD_ID_MASK(IPC_CMD9_PANIC):
