@@ -160,6 +160,8 @@ u32 fGetDeviceSize(FsDevice dev)
 
 s32 fPrepareRawAccess(FsDevice dev)
 {
+	s32 err;
+
 	if((u32)dev >= FS_MAX_DEVICES) return -30;
 	if(devStatTable[dev]) return -31;
 	
@@ -171,12 +173,16 @@ s32 fPrepareRawAccess(FsDevice dev)
 	switch(dev)
 	{
 		case FS_DEVICE_SDMC:
-			fUnmount(FS_DRIVE_SDMC);
+			err = fUnmount(FS_DRIVE_SDMC);
+			if(err != FR_OK) return err;
 			break;
 		case FS_DEVICE_NAND:
-			fUnmount(FS_DRIVE_TWLN);
-			fUnmount(FS_DRIVE_TWLP);
-			fUnmount(FS_DRIVE_NAND);
+			err = fUnmount(FS_DRIVE_TWLN);
+			if(err != FR_OK) return err;
+			err = fUnmount(FS_DRIVE_TWLP);
+			if(err != FR_OK) return err;
+			err = fUnmount(FS_DRIVE_NAND);
+			if(err != FR_OK) return err;
 			break;
 		default:
 			return -30; //panic();
@@ -213,6 +219,7 @@ static inline bool usesRawAccess(FsDevice dev)
 s32 fFinalizeRawAccess(DevHandle handle)
 {
 	FsDevice dev;
+	s32 err = FR_OK;
 	
 	if(!isValidDevHandle(handle)) return -30;
 	
@@ -223,12 +230,17 @@ s32 fFinalizeRawAccess(DevHandle handle)
 	for(u32 drive = 0; drive < FS_MAX_DRIVES; drive++)
 	{
 		if(fsStatBackupTable[drive])
-			fMount(drive);
+		{
+			err = fMount(drive);
+			if(err != FR_OK) goto fail;
+		}
 	}
 	
 	devStatTable[dev] = false;
 	
-	return FR_OK;
+fail:
+	
+	return err;
 }
 
 static bool devBufAllocate(DevBuf *devBuf, u32 size)
