@@ -334,6 +334,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;
 	(void) param;
+	s32 error = 0;
 	u32 result = 1;
 	
 	// select & clear console
@@ -400,7 +401,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		fClose(fHandle);
 		fUnlink(fpath);
-		ee_printf("Cannot open NAND device!\n");
+		ee_printf("Cannot open NAND device (error %li)!\n", devHandle);
 		goto fail;
 	}
 	
@@ -435,9 +436,9 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		// check for user cancel request
 		if (userCancelHandler(true))
 		{
-			fClose(fHandle);
 			fFinalizeRawAccess(devHandle);
 			fFreeDeviceBuffer(dbufHandle);
+			fClose(fHandle);
 			fUnlink(fpath);
 			return 1;
 		}
@@ -451,9 +452,10 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	fail_close_handles:
 	
-	fClose(fHandle);
-	fFinalizeRawAccess(devHandle);
+	if ((error = fFinalizeRawAccess(devHandle)))
+		ee_printf("Failed closing NAND handle (error %li)!\n", error);
 	fFreeDeviceBuffer(dbufHandle);
+	fClose(fHandle);
 	
 	
 	fail:
@@ -471,6 +473,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	bool forced = param; // if param != 0 -> forced restore
+	s32 error = 0;
 	u32 result = 1;
 	
 	
@@ -523,7 +526,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	s32 fHandle;
 	if ((fHandle = fOpen(fpath, FS_OPEN_EXISTING | FS_OPEN_READ)) < 0)
 	{
-		ee_printf("Cannot open file!\n");
+		ee_printf("Cannot open file (error %li)!\n", fHandle);
 		goto fail;
 	}
 	
@@ -533,7 +536,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		fClose(fHandle);
 		fUnlink(fpath);
-		ee_printf("Cannot open NAND device!\n");
+		ee_printf("Cannot open NAND device (error %li)!\n", devHandle);
 		goto fail;
 	}
 	
@@ -597,10 +600,11 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	
 	fail_close_handles:
-	
-	fClose(fHandle);
-	fFinalizeRawAccess(devHandle);
+
+	if ((error = fFinalizeRawAccess(devHandle)))
+		ee_printf("Failed closing NAND handle (error %li)!\n", error);
 	fFreeDeviceBuffer(dbufHandle);
+	fClose(fHandle);
 	
 	
 	fail:
