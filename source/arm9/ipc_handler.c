@@ -123,7 +123,7 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 			result = fSetNandProtection(buf[0]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_WRITE_FIRM_PART):
-			result = writeFirmPartition((const char *const)buf[0]);
+			result = writeFirmPartition((const char *const)buf[0], (bool)buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_FIRM):
 			result = loadVerifyFirm((const char *const)buf[0], buf[2], false);

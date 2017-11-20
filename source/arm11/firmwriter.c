@@ -23,13 +23,14 @@
 
 
 
-s32 writeFirmPartition(const char *const part)
+s32 writeFirmPartition(const char *const part, bool replaceSig)
 {
-	u32 cmdBuf[2];
+	u32 cmdBuf[3];
 	cmdBuf[0] = (u32)part;
 	cmdBuf[1] = strlen(part) + 1;
+	cmdBuf[2] = replaceSig;
 
-	return PXI_sendCmd(IPC_CMD9_WRITE_FIRM_PART, cmdBuf, 2);
+	return PXI_sendCmd(IPC_CMD9_WRITE_FIRM_PART, cmdBuf, 3);
 }
 
 s32 loadVerifyUpdate(const char *const path, u32 *const version)

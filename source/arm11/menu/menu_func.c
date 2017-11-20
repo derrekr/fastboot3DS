@@ -655,7 +655,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET "Flashing firmware... ");
 	updateScreens();
 	
-	res = writeFirmPartition(firm_drv);
+	res = writeFirmPartition(firm_drv, false);
 	if (res != 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
@@ -736,7 +736,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	ee_printf(ESC_SCHEME_GOOD "v%lu.%lu\n" ESC_RESET "Flashing firmware... ", (version >> 16) & 0xFFFF, version & 0xFFFF);
 	updateScreens();
 	
-	res = writeFirmPartition("firm0:");
+	res = writeFirmPartition("firm0:", true);
 	if (res != 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
