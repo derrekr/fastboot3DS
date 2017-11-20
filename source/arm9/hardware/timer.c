@@ -40,7 +40,7 @@
 
 
 // For TIMER_sleep()
-static u32 overflows;
+static vu32 overflows;
 
 
 
@@ -84,6 +84,11 @@ void TIMER_sleep(u32 ms)
 
 static void timerSleepHandler(UNUSED u32 id)
 {
-	overflows--;
-	if(!overflows) REG_TIMER3_CNT = 0;
+	u32 tmp = overflows;
+	if(!--tmp)
+	{
+		REG_TIMER3_CNT = 0;
+		return;
+	}
+	overflows = tmp;
 }
