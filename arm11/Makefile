@@ -36,12 +36,13 @@ endif
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -marm -mthumb-interwork
 
 CFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
-			-ffast-math -ffunction-sections -Wall -Wextra
+			-ffast-math -ffunction-sections -Wall -Wextra -Wno-unused-function
 
 CFLAGS	+=	$(INCLUDE) $(DEFINES)
 
 CXXFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -fno-rtti -fno-exceptions -fstrict-aliasing \
-				-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections -Wall -Wextra
+				-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections -Wall -Wextra \
+				-Wno-unused-function
 
 ASFLAGS	:=	$(ARCH) -g -flto $(INCLUDE) $(DEFINES)
 LDFLAGS	=	$(ARCH) -g -flto -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
