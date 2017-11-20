@@ -80,15 +80,12 @@ ASM_FUNC irqHandler
 	ldr r3, [r2, r1, lsl #2]
 	cmp r3, #0
 	beq irqHandler_skip_processing
-	and r2, sp, #4
-	sub sp, sp, r2               @ Adjust stack for ABI compliance
-	stmfd sp!, {r0, r2}
 	cpsie i
+	str r0, [sp, #-4]!
 	blx r3
-	cpsid i
-	ldmfd sp!, {r0, r2}
-	add sp, sp, r2
+	ldr r0, [sp], #4
 	ldr r12, =0x17E00000
+	cpsid i
 irqHandler_skip_processing:
 	str r0, [r12, #0x110]        @ REG_CPU_II_EOI
 	ldmfd sp!, {r0-r3, r12, lr}

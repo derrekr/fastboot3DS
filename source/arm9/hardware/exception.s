@@ -65,8 +65,7 @@ exceptionHandler_skip_other_mode:
 ASM_FUNC irqHandler
 	sub lr, lr, #4
 	stmfd sp!, {r0-r3, r12, lr}
-	mov r12, #0x10000000
-	orr r12, #0x1000                 @ REG_IRQ_IE
+	ldr r12, =0x10001000             @ REG_IRQ_IE
 	ldrd r0, r1, [r12]
 	and r1, r0, r1
 	mov r3, #0x80000000
@@ -82,19 +81,12 @@ ASM_FUNC irqHandler
 	cmp r2, #0
 	beq irqHandler_skip_processing
 	mrs r3, spsr
-	str r3, [sp, #-4]!
-	msr cpsr_c, #0xDF                @ System mode, IRQ disabled
-	and r3, sp, #4
-	sub sp, sp, r3                   @ Adjust stack for ABI compliance
+	msr cpsr_c, #0x5F                @ System mode, IRQ enabled
 	stmfd sp!, {r3, lr}
-	msr cpsr_c, #0x5F                @ IRQ enabled
 	blx r2
-	msr cpsr_c, #0xDF                @ IRQ disabled
 	ldmfd sp!, {r3, lr}
-	add sp, sp, r3
 	msr cpsr_c, #0xD2                @ IRQ mode, IRQ disabled
-	ldr r0, [sp], #4
-	msr spsr_fsxc, r0
+	msr spsr_fsxc, r3
 irqHandler_skip_processing:
 	ldmfd sp!, {r0-r3, r12, pc}^
 
