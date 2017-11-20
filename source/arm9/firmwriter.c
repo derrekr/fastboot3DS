@@ -87,7 +87,7 @@ s32 writeFirmPartition(const char *const part, bool replaceSig)
 
 	u8 *firmBuf = (u8*)FIRM_LOAD_ADDR;
 	if(replaceSig)
-		memcpy(firmBuf + 0x100, sighaxNandSigs[CFG_UNITINFO], 0x100);
+		memcpy(firmBuf + 0x100, sighaxNandSigs[CFG_UNITINFO != 0], 0x100);
 
 	u8 *const cmpBuf = (u8*)malloc(FIRMWRITER_BLK_SIZE);
 	if(!cmpBuf) return -6;
