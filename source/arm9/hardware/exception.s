@@ -30,7 +30,7 @@
 
 
 ASM_FUNC undefInstrHandler
-	msr cpsr_f, #(0<<29)        @ Abuse conditional flags in cpsr for temporary exception type storage
+	msr cpsr_f, #(0<<29)           @ Abuse conditional flags in cpsr for temporary exception type storage
 	b exceptionHandler
 ASM_FUNC prefetchAbortHandler
 	msr cpsr_f, #(1<<29)
@@ -81,12 +81,14 @@ ASM_FUNC irqHandler
 	cmp r2, #0
 	beq irqHandler_skip_processing
 	mrs r3, spsr
+	str r3, [sp, #-4]!
 	msr cpsr_c, #0x5F                @ System mode, IRQ enabled
-	stmfd sp!, {r3, lr}
+	str lr, [sp, #-4]!               @ A single ldr/str can't be interrupted
 	blx r2
-	ldmfd sp!, {r3, lr}
+	ldr lr, [sp], #4
 	msr cpsr_c, #0xD2                @ IRQ mode, IRQ disabled
-	msr spsr_fsxc, r3
+	ldr r0, [sp], #4
+	msr spsr_fsxc, r0
 irqHandler_skip_processing:
 	ldmfd sp!, {r0-r3, r12, pc}^
 
