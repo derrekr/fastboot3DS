@@ -615,7 +615,8 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	bool to_firm1 = param;
+	char firm_drv[8] = { 'f', 'i', 'r', 'm', '0' + param, ':', '\0' };
+	char firm_path[256];
 	u32 result = 1;
 	
 	
@@ -629,24 +630,18 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		goto fail;
 	}
 	
-	
-	char firm_path[256];
-	
-	ee_printf_screen_center("%s\nPress [HOME] to cancel.",
-		to_firm1 ? "Select a firmware file to install." :
-		"Select fastboot3DS update file.");
+	// file selector
+	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
 	updateScreens();
-	
 	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
 		return 1; // cancel by user
 	
 	
-	// select & clear console
+	// load and install firm
 	consoleSelect(term_con);
 	consoleClear();
 	
-	ee_printf(ESC_SCHEME_ACCENT1 "%s:\n%s\n" ESC_RESET "\nLoading firmware... ",
-		(to_firm1) ? "Flashing firmware to FIRM1" : "Updating fastboot3DS from file", firm_path);
+	ee_printf(ESC_SCHEME_ACCENT1 "Flashing firmware to %s:\n%s\n" ESC_RESET "\nLoading firmware... ", firm_drv, firm_path);
 	updateScreens();
 	
 	s32 res = loadVerifyFirm(firm_path, false);
@@ -660,7 +655,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET "Flashing firmware... ");
 	updateScreens();
 	
-	res = writeFirmPartition(to_firm1 ? "firm1:" : "firm0:");
+	res = writeFirmPartition(firm_drv);
 	if (res != 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
@@ -669,7 +664,9 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET);
-	ee_printf(ESC_SCHEME_GOOD "\n%s was updated\n" ESC_RESET, to_firm1 ? "Firmware in FIRM1" : "fastboot3DS");
+	ee_printf(ESC_SCHEME_GOOD "\nFirmware in %s was flashed.\n" ESC_RESET, firm_drv);
+	result = 0;
+	
 	
 	fail:
 	
@@ -683,7 +680,83 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	return menuDummyFunc(term_con, menu_con, param);
+	(void) param;
+	
+	char firm_path[256];
+	u32 result = 1;
+	
+	
+	// file browser dialogue
+	consoleSelect(term_con);
+	consoleClear();
+	
+	ee_printf_screen_center("Select fastboot3DS update file.\nPress [HOME] to cancel.");
+	updateScreens();
+	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
+		return 1; // cancel by user
+	
+	
+	// verify and install update
+	consoleSelect(term_con);
+	consoleClear();
+	
+	ee_printf(ESC_SCHEME_ACCENT1 "Updating fastboot3DS from file:\n%s\n" ESC_RESET "\nLoading firmware... ", firm_path);
+	updateScreens();
+	
+	u32 version = 0;
+	s32 res = loadVerifyUpdate(firm_path, &version);
+	if (res != 0)
+	{
+		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+		switch ( res )
+		{
+			case UPDATE_ERR_INVALID_FIRM:
+				ee_printf("Firm validation failed.\n");
+				break;
+				
+			case UPDATE_ERR_INVALID_SIG:
+				ee_printf("Not a fastboot3DS update firmware.\n");
+				break;
+				
+			case UPDATE_ERR_DOWNGRADE:
+				ee_printf("A newer version is already installed.\n");
+				break;
+				
+			case UPDATE_ERR_NOT_INSTALLED:
+				ee_printf("Update is not possible.\n");
+				break;
+				
+			default:
+				ee_printf("Update error code %li!\n", res);
+				break;
+		}
+		goto fail;
+	}
+	
+	ee_printf(ESC_SCHEME_GOOD "v%lu.%lu\n" ESC_RESET "Flashing firmware... ", (version >> 16) & 0xFFFF, version & 0xFFFF);
+	updateScreens();
+	
+	res = writeFirmPartition("firm0:");
+	if (res != 0)
+	{
+		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+		ee_printf("Firm flash error code %li!\n", res);
+		goto fail;
+	}
+	
+	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET);
+	ee_printf(ESC_SCHEME_GOOD "\nfastboot3DS was updated.\n" ESC_RESET);
+	result = 0;
+	
+	
+	fail:
+	
+	ee_printf("\nPress B or HOME to return.");
+	updateScreens();
+	outputEndWait();
+
+	
+	return result;
 }
 
 u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)

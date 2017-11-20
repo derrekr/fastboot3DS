@@ -33,8 +33,6 @@
 	} \
 }
 
-#define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
-
 #define DESC_CONTINUE		"Continue booting the first available boot slot.\nNo function if boot slots are not set up."
 #define DESC_BOOT_MENU		"Display a boot menu, allowing you to select which boot slot to boot from. Also includes boot slot and boot mode setup."
 #define DESC_BOOT_FILE		"Select a firmware file to boot."
@@ -43,7 +41,7 @@
 #define DESC_MISC			"Enter miscellaneous submenu, including the update tool and credits section."
 
 #define DESC_BOOT_SLOT(x)	"Boot the firmware in slot #" #x "."
-#define DESC_BOOT_FIRM1		"Boot the firmware in FIRM1."
+#define DESC_BOOT_FIRM1		"Boot the firmware in firm1:."
 #define DESC_BOOT_SETUP     "Change boot settings."
 
 #define DESC_SLOT_SETUP(x)	"Change boot settings for slot #" #x "."
@@ -60,16 +58,19 @@
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."
 #define DESC_NAND_RESTORE	"Restore current NAND from a file.\nThis option preserves your fastboot3ds installation."
 #define DESC_NAND_RESTORE_F	"Restore current NAND from a file.\nWARNING: This will overwrite all of your flash memory, also overwriting fastboot3ds."
-#define DESC_FIRM_FLASH		"Flash firmware from file to FIRM1.\nWARNING: This will allow you to flash unsigned firmware, overwriting anything previously installed in FIRM1."
+#define DESC_FIRM_FLASH		"Flash firmware from file to firm1:.\nWARNING: This will allow you to flash unsigned firmware, overwriting anything previously installed in firm1:."
+
+#define DESC_UPDATE			"Update fastboot3ds. Only signed updates are allowed."
+#define DESC_CREDITS    	"Show fastboot3ds credits."
+
+// unused definitions below:
+#define LOREM "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
 
 #define DESC_CHANGE_BRIGHT	"Change fastboot3ds brightness. This may also affect firmware launched from within fastboot3ds."
 #define DESC_SET_CONTIG		"Enable/disable contiguous NAND backups.\nContiguous NAND backups may be required on certain CFWs to be bootable from SD cards."
 
 #define DESC_ENABLE_CONTIG	"Select to enable contiguous NAND backups."
 #define DESC_DISABLE_CONTIG	"Select to disable contiguous NAND backups."
-
-#define DESC_UPDATE			"Update fastboot3ds. Only signed updates are allowed."
-#define DESC_CREDITS    	"Show fastboot3ds credits."
 
 
 MenuInfo menu_fb3ds[] =
@@ -91,7 +92,7 @@ MenuInfo menu_fb3ds[] =
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
 			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 },
-			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE },
+			{ "Boot from firm1:",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE },
 			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 }
 			
 		}
@@ -122,13 +123,13 @@ MenuInfo menu_fb3ds[] =
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuRestoreNand,		0 },
 			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuRestoreNand,		1 },
-			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
+			{ "Flash firmware to firm1:",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
 		}
 	},
 	{ // 8
 		"Miscellaneous", 2, NULL, 0,
 		{
-			{ "Update fastboot3DS",			DESC_UPDATE,				&menuInstallFirm,		0 },
+			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds,	0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
