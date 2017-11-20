@@ -143,8 +143,7 @@ bool sdmmc_sd_init(void)
 		// thanks yellows8
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
-		/* poll and sleep */
-		unsigned timeout = 260; // In ms. 256 works. 260 for safety.
+		u32 timeout = 260; // In ms. 256 works. 260 for safety.
 
 		do {
 			// if sd card is ready, stop polling
@@ -153,7 +152,6 @@ bool sdmmc_sd_init(void)
 
 			TIMER_sleep(2);
 			timeout -= 2;
-
 		} while(timeout);
 		
 		if(!timeout)	// we timed out
@@ -263,6 +261,7 @@ bool sdmmc_dnand_init(void)
 {
 	if(!dev_dnand.dev.initialized)
 	{
+		partitionsReset();
 		if(!dev_rnand.initialized)
 		{
 			if(!sdmmc_rnand_init()) return false;
@@ -277,14 +276,13 @@ bool sdmmc_dnand_init(void)
 		if(sdmmc_nand_readsectors(0, 1, (void*)&header)) return false;
 
 		// Check "NCSD" magic
-		if(header.magic != 0x4453434E) return false;
+		if(memcmp(&header.magic, "NCSD", 4) != 0) return false;
 
 		// Collect partition info...
 		for(int i = 0; i < MAX_PARTITIONS; i++)
 		{
 			u8 type = header.partFsType[i];
 			size_t sector = header.partitions[i].mediaOffset;
-			
 			size_t index = partitionAdd(sector, header.partitions[i].mediaSize, type);
 
 			switch(type)
@@ -346,10 +344,10 @@ bool sdmmc_dnand_init(void)
 
 bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 {
+	if(!dev_dnand.dev.initialized) return false;
+
 	size_t index;
 	u8 keyslot;
-	
-	if(!dev_dnand.dev.initialized) return false;
 
 	fb_assert(count != 0);
 	fb_assert(buf != NULL);
@@ -357,7 +355,6 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 	if(!partitionFind(sector, count, &index)) return false;
 		
 	partitionGetKeyslot(index, &keyslot);
-
 	if(keyslot == 0xFF) return false; // unknown partition type
 
 	AES_ctx *ctx;
@@ -383,18 +380,18 @@ bool sdmmc_dnand_read_sector(u32 sector, u32 count, void *buf)
 }
 
 bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
-{	
-	size_t index;
-	u8 keyslot;
-	
+{
 	if(!dev_dnand.dev.initialized) return false;
 
+	size_t index;
+	u8 keyslot;
+
 	fb_assert(count != 0);
+	fb_assert(buf != NULL);
 
 	if(!partitionFind(sector, count, &index)) return false;
-		
-	partitionGetKeyslot(index, &keyslot);
 
+	partitionGetKeyslot(index, &keyslot);
 	if(keyslot == 0xFF) return false; // unknown partition type
 
 	const size_t crypto_sec_size = min(count, 0x1000>>9);
@@ -429,20 +426,19 @@ bool sdmmc_dnand_write_sector(u32 sector, u32 count, const void *buf)
 			free(crypto_buf);
 			return false;
 		}
-		
+
 		sector += crypt_size;
 		count -= crypt_size;
 		buf += crypt_size<<9;
 	} while(count);
-	
+
 	free(crypto_buf);
-	
+
 	return true;
 }
 
 bool sdmmc_dnand_close(void)
 {
-	partitionsReset();
 	dev_dnand.dev.initialized = false;
 	return true;
 }
