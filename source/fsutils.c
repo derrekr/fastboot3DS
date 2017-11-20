@@ -19,10 +19,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "arm11/dev.h"
 #include "fsutils.h"
 #include "util.h"
 #include "fs.h"
+
+
 
 bool fsEnsureMounted(const char *path)
 {
@@ -32,10 +33,6 @@ bool fsEnsureMounted(const char *path)
 	{
 		res = fMount(FS_DRIVE_SDMC);
 	}
-	else if(strncmp(path, "nand:", 5) == 0)
-	{
-		res = fMount(FS_DRIVE_NAND);
-	}
 	else if(strncmp(path, "twln:", 5) == 0)
 	{
 		res = fMount(FS_DRIVE_TWLN);
@@ -43,6 +40,10 @@ bool fsEnsureMounted(const char *path)
 	else if(strncmp(path, "twlp:", 5) == 0)
 	{
 		res = fMount(FS_DRIVE_TWLP);
+	}
+	else if(strncmp(path, "nand:", 5) == 0)
+	{
+		res = fMount(FS_DRIVE_NAND);
 	}
 	else
 	{
@@ -55,10 +56,10 @@ bool fsEnsureMounted(const char *path)
 
 void fsUnmountAll()
 {
-	fUnmount(FS_DRIVE_SDMC);
 	fUnmount(FS_DRIVE_NAND);
-	fUnmount(FS_DRIVE_TWLN);
 	fUnmount(FS_DRIVE_TWLP);
+	fUnmount(FS_DRIVE_TWLN);
+	fUnmount(FS_DRIVE_SDMC);
 }
 
 u32 fsMountNandFilesystems()
@@ -75,9 +76,8 @@ u32 fsMountNandFilesystems()
 void fsUnmountNandFilesystems()
 {
 	fUnmount(FS_DRIVE_NAND);
-	fUnmount(FS_DRIVE_TWLN);
 	fUnmount(FS_DRIVE_TWLP);
-	// dev_decnand->close(); // ?
+	fUnmount(FS_DRIVE_TWLN);
 }
 
 bool fsMountSdmc()

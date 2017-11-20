@@ -152,7 +152,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 	// special handling when in root
 	if(!*path)
 	{
-		const char* root_paths[] = { "sdmc:", "nand:", "twln:", "twlp:" };
+		const char* root_paths[] = { "sdmc:", "twln:", "twlp:", "nand:" };
 		
 		for(u32 i = 0; i < sizeof(root_paths) / sizeof(const char*); i++)
 		{
