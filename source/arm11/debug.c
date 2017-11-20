@@ -28,7 +28,9 @@
 #include "hardware/gfx.h"
 #include "arm11/hardware/interrupt.h"
 
+
 static u32 debugHash = 0;
+
 
 
 void debugHashCodeRoData()

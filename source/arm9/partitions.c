@@ -30,6 +30,8 @@
 static partitionStruct partitions[MAX_PARTITIONS];
 static size_t numPartitions;
 
+
+
 static inline int findPartition(const char *name)
 {
 	size_t namelen = strlen(name);

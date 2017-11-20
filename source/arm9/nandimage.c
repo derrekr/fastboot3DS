@@ -23,6 +23,8 @@
 #include "arm9/nandimage.h"
 #include "util.h"
 
+
+
 int validateNandImage(const char *filePath)
 {
 	FIL file;

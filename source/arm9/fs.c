@@ -65,6 +65,7 @@ static ProtNandRegion protNandRegions[MAX_PARTITIONS + 2]  = {0};
 static size_t numProtNandRegions;
 
 
+
 static bool isFileHandleValid(s32 handle);
 
 static inline bool isNandProtected()

@@ -29,7 +29,6 @@
 #define REG_SCU_INVAL_TAG  *((vu32*)(SCU_REGS_BASE + 0x0C))
 
 
-
 // Mem permissions
 #define PERM_NO_ACC                            (0b000000u)
 #define PERM_PRIV_RW_USR_NO_ACC                (0b000001u)
