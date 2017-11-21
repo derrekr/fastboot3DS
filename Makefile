@@ -35,16 +35,16 @@ checkarm11:
 	@$(MAKE) -j4 --no-print-directory -C arm11
 
 #---------------------------------------------------------------------------------
-$(TARGET).firm: arm9/$(TARGET).bin arm11/$(TARGET).bin
+$(TARGET).firm: arm9/$(TARGET)9.bin arm11/$(TARGET)11.bin
 	firm_builder $(TARGET).firm $(ENTRY9) $(ENTRY11) $(SECTION0_ADR) $(SECTION0_TYPE) \
-		arm9/$(TARGET).bin $(SECTION1_ADR) $(SECTION1_TYPE) arm11/$(TARGET).bin
+		arm9/$(TARGET)9.bin $(SECTION1_ADR) $(SECTION1_TYPE) arm11/$(TARGET)11.bin
 
 #---------------------------------------------------------------------------------
-arm9/$(TARGET).bin:
+arm9/$(TARGET)9.bin:
 	@$(MAKE) -j4 --no-print-directory -C arm9
 	
 #---------------------------------------------------------------------------------
-arm11/$(TARGET).bin:
+arm11/$(TARGET)11.bin:
 	@$(MAKE) -j4 --no-print-directory -C arm11
 
 #---------------------------------------------------------------------------------
@@ -57,6 +57,6 @@ release: clean
 	@$(MAKE) -j4 --no-print-directory -C arm9 NO_DEBUG=1
 	@$(MAKE) -j4 --no-print-directory -C arm11 NO_DEBUG=1
 	firm_builder $(TARGET).firm $(ENTRY9) $(ENTRY11) $(SECTION0_ADR) $(SECTION0_TYPE) \
-		arm9/$(TARGET).bin $(SECTION1_ADR) $(SECTION1_TYPE) arm11/$(TARGET).bin
+		arm9/$(TARGET)9.bin $(SECTION1_ADR) $(SECTION1_TYPE) arm11/$(TARGET)11.bin
 	@7z a -mx -m0=ARM -m1=LZMA $(TARGET)$(VERS_STRING).7z $(TARGET).firm
 	@7z u -mx -m0=PPMD $(TARGET)$(VERS_STRING).7z LICENSE.txt README.md

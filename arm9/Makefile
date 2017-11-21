@@ -114,7 +114,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).bin $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET)9.bin $(TARGET)9.elf
 
 
 #---------------------------------------------------------------------------------
@@ -125,13 +125,13 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-$(OUTPUT).bin	:	$(OUTPUT).elf
+$(OUTPUT)9.bin	:	$(OUTPUT)9.elf
 	@$(OBJCOPY) --gap-fill 0xFF -O binary $< $@
 	@echo built ... $(notdir $@)
 
 $(OFILES_SOURCES) : $(HFILES)
 
-$(OUTPUT).elf	:	$(OFILES)
+$(OUTPUT)9.elf	:	$(OFILES)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
