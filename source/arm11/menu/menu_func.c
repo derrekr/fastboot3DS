@@ -659,7 +659,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET "Flashing firmware... ");
 	updateScreens();
 	
-	res = writeFirmPartition(firm_drv, false);
+	res = writeFirmPartition(firm_drv, true);
 	if (res != 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
@@ -668,7 +668,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET);
-	ee_printf(ESC_SCHEME_GOOD "\nFirmware in %s was flashed.\n" ESC_RESET, firm_drv);
+	ee_printf(ESC_SCHEME_GOOD "\nFirm was flashed to %s.\n" ESC_RESET, firm_drv);
 	result = 0;
 	
 	
