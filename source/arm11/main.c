@@ -69,6 +69,7 @@ int main(void)
 		keysToString(kHeld & 0xfff, combo_str);
 		err_ptr += ee_sprintf(err_ptr, "Keys held on boot: %s\n", combo_str);
 		
+		bool has_error = false;
 		for(u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
 		{
 			if(!configDataExist(KBootOption1 + i) ||
@@ -80,17 +81,13 @@ int main(void)
 			{
 				char* path = (char*) configGetData(KBootOption1 + i);
 				err_ptr += ee_sprintf(err_ptr, "Keys match boot slot #%lu.\nBoot path is %s\n", (i+1), path);
-				g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0);
+				has_error = !(g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0));
 				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 				break;
 			}
 		}
 		
-		if (!g_startFirmLaunch)
-		{
-			err_ptr += ee_sprintf(err_ptr, "Firmware not loaded!\nKeys may not match a boot slot.\n");
-		}
-		else
+		if (!has_error)
 		{
 			free(err_string);
 			err_string = NULL;
