@@ -151,7 +151,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	if (configDataExist(KBootOption1 + slot))
 		start = (char*) configGetData(KBootOption1 + slot);
 	
-	res_path = (char*) malloc(256);
+	res_path = (char*) malloc(FF_MAX_LFN + 1);
 	if (!res_path) panicMsg("Out of memory");
 	
 	ee_printf_screen_center("Select a firmware file for slot #%lu.\nPress [HOME] to cancel.", slot + 1);
@@ -258,7 +258,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	char path_store[256];
+	char path_store[FF_MAX_LFN + 1];
 	char* path;
 	
 	// select & clear console
@@ -502,7 +502,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_screen_center("Select a NAND backup for restore.\nPress [HOME] to cancel.");
 	updateScreens();
 	
-	char fpath[256];
+	char fpath[FF_MAX_LFN + 1];
 	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*.bin", false))
 		return 1; // canceled by user
 	
@@ -620,7 +620,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	char firm_drv[8] = { 'f', 'i', 'r', 'm', '0' + param, ':', '\0' };
-	char firm_path[256];
+	char firm_path[FF_MAX_LFN + 1];
 	u32 result = 1;
 	
 	
@@ -686,7 +686,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 {
 	(void) param;
 	
-	char firm_path[256];
+	char firm_path[FF_MAX_LFN + 1];
 	u32 result = 1;
 	
 	

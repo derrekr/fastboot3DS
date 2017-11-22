@@ -125,7 +125,7 @@ static void sortDirBuffer(DirBufferEntry* dir_buffer, s32 n_entries)
 					min0 = cmp1;
 				continue;
 			}
-			if(strnicmp(min0->fname, cmp1->fname, 256) > 0)
+			if(strnicmp(min0->fname, cmp1->fname, FF_MAX_LFN + 1) > 0)
 			{
 				min0 = cmp1;
 			}
@@ -313,11 +313,11 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	// res_path has to be at least 256 byte long (including '\0') and
 	// is also used as temporary buffer
 	*res_path = '\0'; // root dir if start is NULL
-	if(start) strncpy(res_path, start, 256);
+	if(start) strncpy(res_path, start, FF_MAX_LFN + 1);
     
     // handle allow_root
     if (!allow_root && (strncmp(res_path, "sdmc:", 5) != 0))
-         strncpy(res_path, "sdmc:", 256);
+         strncpy(res_path, "sdmc:", FF_MAX_LFN + 1);
 	
 	// check res_path, fix if required
 	char* lastname = NULL;
@@ -356,7 +356,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		{
 			for (s32 i = 0; i < n_entries; i++)
 			{
-				if (strncmp(dir_buffer[i].fname, lastname, 256) == 0)
+				if (strncmp(dir_buffer[i].fname, lastname, FF_MAX_LFN + 1) == 0)
 				{
 					index = i;
 					break;
@@ -410,7 +410,7 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				// build new res_path
 				char* name = &(res_path[strlen(res_path)]);
 				if (name > res_path) *(name++) = '/';
-				strncpy(name, dir_buffer[index].fname, (256 - (name - res_path)));
+				strncpy(name, dir_buffer[index].fname, ((FF_MAX_LFN + 1) - (name - res_path)));
 				
 				// is this a dir?
 				is_dir = dir_buffer[index].is_dir;
