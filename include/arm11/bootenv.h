@@ -19,20 +19,21 @@
  */
 
 #include "types.h"
-
-
-#define FIRMWRITER_BLK_SIZE (0x20000) // 128 KB blocks
+#include "ipc_handler.h"
+#include "hardware/pxi.h"
 
 
 enum
 {
-	UPDATE_ERR_INVALID_FIRM  = -2, // Corrupted FIRM
-	UPDATE_ERR_INVALID_SIG   = -3, // Signature verification error
-	UPDATE_ERR_DOWNGRADE     = -5, // Update file is a lower version than installed
-	UPDATE_ERR_NOT_INSTALLED = -10 // fastboot3DS is not installed in firm0:/
+	BOOTENV_COLD_BOOT   = 0,
+	BOOTENV_NATIVE_FIRM = 1,
+	BOOTENV_TWL_FIRM    = 3,
+	BOOTENV_AGB_FIRM    = 7
 };
 
 
 
-s32 writeFirmPartition(const char *const part, bool replaceSig);
-s32 loadVerifyUpdate(const char *const path, u32 *const version);
+static inline u32 getBootEnv(void)
+{
+	return PXI_sendCmd(IPC_CMD9_GET_BOOT_ENV, NULL, 0);
+}
