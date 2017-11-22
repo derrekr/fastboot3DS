@@ -24,6 +24,7 @@
 #include "fs.h"
 #include "arm9/firm.h"
 #include "firmwriter.h"
+#include "mem_map.h"
 
 
 
@@ -136,6 +137,9 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_LOAD_VERIFY_UPDATE):
 			result = loadVerifyUpdate((const char *const)buf[0], (u32 *const)buf[2]);
+			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_GET_BOOT_ENV):
+			result = CFG_BOOTENV;
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_PREPARE_POWER):
 		case IPC_CMD_ID_MASK(IPC_CMD9_PANIC):
