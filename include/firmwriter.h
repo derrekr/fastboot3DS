@@ -24,10 +24,13 @@
 #define FIRMWRITER_BLK_SIZE (0x20000) // 128 KB blocks
 
 
-#define UPDATE_ERR_INVALID_FIRM  (-2)  // Corrupted FIRM
-#define UPDATE_ERR_INVALID_SIG   (-3)  // Signature verification error
-#define UPDATE_ERR_DOWNGRADE     (-5)  // Update file is a lower version than installed
-#define UPDATE_ERR_NOT_INSTALLED (-10) // fastboot3DS is not installed in firm0:/
+enum
+{
+	UPDATE_ERR_INVALID_FIRM  = -2, // Corrupted FIRM
+	UPDATE_ERR_INVALID_SIG   = -3, // Signature verification error
+	UPDATE_ERR_DOWNGRADE     = -5, // Update file is a lower version than installed
+	UPDATE_ERR_NOT_INSTALLED = -10 // fastboot3DS is not installed in firm0:/
+};
 
 
 
