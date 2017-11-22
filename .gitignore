@@ -3,10 +3,10 @@ arm11/build/
 eclipse_project/
 fastboot3DS.sublime-project
 fastboot3DS.sublime-workspace
-arm9/fastboot3DS.bin
-arm11/fastboot3DS.bin
-arm9/fastboot3DS.elf
-arm11/fastboot3DS.elf
+arm9/fastboot3DS9.bin
+arm11/fastboot3DS11.bin
+arm9/fastboot3DS9.elf
+arm11/fastboot3DS11.elf
 fastboot3DS.firm
 fastboot3DS*.7z
 fastboot3DS_priv.key
