@@ -84,6 +84,21 @@ static vu8* i2cGetBusRegsBase(u8 busId)
 	return base;
 }
 
+void I2C_init(void)
+{
+	i2cWaitBusy(i2cGetBusRegsBase(0) + 1);
+	REG_I2C1_CNTEX = 2;  // ?
+	REG_I2C1_SCL = 1280; // ?
+
+	i2cWaitBusy(i2cGetBusRegsBase(1) + 1);
+	REG_I2C2_CNTEX = 2;  // ?
+	REG_I2C2_SCL = 1280; // ?
+
+	i2cWaitBusy(i2cGetBusRegsBase(2) + 1);
+	REG_I2C3_CNTEX = 2;  // ?
+	REG_I2C3_SCL = 1280; // ?
+}
+
 static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, vu8 *regsBase)
 {
 	const u8 devAddr = i2cDevTable[devId].devAddr;
@@ -134,21 +149,6 @@ static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, vu8 *regsBa
 
 	if(i < 8) return true;
 	else return false;
-}
-
-void I2C_init(void)
-{
-	i2cWaitBusy(i2cGetBusRegsBase(0));
-	REG_I2C1_CNTEX = 2;  // ?
-	REG_I2C1_SCL = 1280; // ?
-
-	i2cWaitBusy(i2cGetBusRegsBase(1));
-	REG_I2C2_CNTEX = 2;  // ?
-	REG_I2C2_SCL = 1280; // ?
-
-	i2cWaitBusy(i2cGetBusRegsBase(2));
-	REG_I2C3_CNTEX = 2;  // ?
-	REG_I2C3_SCL = 1280; // ?
 }
 
 bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
