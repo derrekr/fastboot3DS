@@ -109,15 +109,15 @@ void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask);
 
 static inline void __wfi(void)
 {
-	__asm__ __volatile__("wfi" : :);
+	__asm__ __volatile__("wfi" : : : "memory");
 }
 
 static inline void enterCriticalSection(void)
 {
-	__asm__ __volatile__("cpsid i" : :);
+	__asm__ __volatile__("cpsid i" : : : "memory");
 }
 
 static inline void leaveCriticalSection(void)
 {
-	__asm__ __volatile__("cpsie i" : :);
+	__asm__ __volatile__("cpsie i" : : : "memory");
 }
