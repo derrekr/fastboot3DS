@@ -40,7 +40,7 @@
 
 
 // For TIMER_sleep()
-static vu32 overflows;
+static u32 overflows;
 
 
 
@@ -76,6 +76,8 @@ void TIMER_sleep(u32 ms)
 {
 	REG_TIMER3_VAL = TIMER_FREQ_1024(1000.0);
 	overflows = ms;
+	// Make sure overflows is set before REG_TIMER3_CNT.
+	__asm__ __volatile__("" : : : "memory");
 
 	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_PRESCALER_1024;
 
