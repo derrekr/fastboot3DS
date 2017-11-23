@@ -144,6 +144,8 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, 
 		if(id < 32) privIrqHandlerTable[cpuId][id] = handler;
 		else irqHandlerTable[id - 32] = handler;
 	}
+	// Must set the handler before enabling the IRQ.
+	__asm__ __volatile__("" : : : "memory");
 
 	u32 shift = (id % 4 * 8) + 4;
 	u32 tmp = REGs_GID_IPRIO[id>>2] & ~(0xFu<<shift);
@@ -167,7 +169,8 @@ void IRQ_unregisterHandler(Interrupt id)
 	enterCriticalSection();
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
-
+	// Must disable the IRQ before removing the handler.
+	__asm__ __volatile__("" : : : "memory");
 	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (IrqHandler)NULL;
 	else irqHandlerTable[id - 32] = (IrqHandler)NULL;
 

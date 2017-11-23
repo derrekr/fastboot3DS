@@ -43,6 +43,8 @@ void IRQ_registerHandler(Interrupt id, IrqHandler handler)
 	const u32 oldState = enterCriticalSection();
 
 	irqHandlerTable[id] = handler;
+	// Must set the handler before enabling the IRQ.
+	__asm__ __volatile__("" : : : "memory");
 	REG_IRQ_IE |= 1u<<id;
 
 	leaveCriticalSection(oldState);
@@ -53,6 +55,8 @@ void IRQ_unregisterHandler(Interrupt id)
 	const u32 oldState = enterCriticalSection();
 
 	REG_IRQ_IE &= ~(1u<<id);
+	// Must disable the IRQ before removing the handler.
+	__asm__ __volatile__("" : : : "memory");
 	irqHandlerTable[id] = (IrqHandler)NULL;
 
 	leaveCriticalSection(oldState);
