@@ -506,9 +506,19 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*.bin", false))
 		return 1; // canceled by user
 	
-	
 	// select & clear console
 	consoleSelect(term_con);
+	consoleClear();
+	
+	// ask the user for confirmation
+	if (forced)
+	{
+		if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to force-restore a NAND image to\nyour system. Doing this with an incompatible\nNAND image will **BRICK** your console! Make\nsure you backed up your important data!")) return 1;
+	}
+	else
+	{
+		if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to restore a NAND image to\nyour system. Make sure you have backups of\nyour important data!")) return 1; 
+	}
 	consoleClear();
 	
 	// check NAND backup (when not forced)
@@ -641,8 +651,12 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		return 1; // cancel by user
 	
 	
-	// load and install firm
+	// select and clear console
 	consoleSelect(term_con);
+	consoleClear();
+	
+	// ask the user for confirmation
+	if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to install a firmware to %s.\nFlashing incompatible firmwares may lead to\nunexpected results.", firm_drv)) return 1;
 	consoleClear();
 	
 	ee_printf(ESC_SCHEME_ACCENT1 "Flashing firmware to %s:\n%s\n" ESC_RESET "\nLoading firmware... ", firm_drv, firm_path);
