@@ -31,10 +31,8 @@ static inline void spinlockLock(u32 *lock)
 	                     "   strexeq %0, %2, [%1]\n"
 	                     "   teqeq %0, #0\n"
 	                     "   bne 1b\n"
-	                     "   mcr p15, 0, %0, c7, c10, 5"
-	                     : "=&r" (tmp)
-	                     : "r" (lock), "r" (1)
-	                     : "cc", "memory");
+	                     "   mcr p15, 0, %0, c7, c10, 5" // DMB
+	                     : "=&r" (tmp) : "r" (lock), "r" (1) : "cc", "memory");
 }
 
 static inline void spinlockUnlock(u32 *lock)
@@ -43,7 +41,5 @@ static inline void spinlockUnlock(u32 *lock)
 	                     "str %0, [%1]\n"
 	                     "mcr p15, 0, %0, c7, c10, 4\n" // DSB
 	                     "sev"
-	                     :
-	                     : "r" (0), "r" (lock)
-	                     : "memory");
+	                     : : "r" (0), "r" (lock) : "memory");
 }
