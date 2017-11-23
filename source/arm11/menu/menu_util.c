@@ -158,10 +158,10 @@ u32 ee_printf_screen_center(const char *const fmt, ...)
 {
 	u32 res = 0;
 	
-	char buf[256];
+	char buf[512];
 	va_list args;
 	va_start(args, fmt);
-	ee_vsnprintf(buf, 256, fmt, args);
+	ee_vsnprintf(buf, 512, fmt, args);
 	va_end(args);
 	
 	PrintConsole *con = consoleGet();
@@ -221,6 +221,40 @@ void updateScreens(void)
 				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+}
+
+bool askConfirmation(const char *const fmt, ...)
+{
+	char buf[512];
+	char* instr = buf;
+	u32 kDown = 0, kHeld = 0;
+	
+	va_list args;
+	va_start(args, fmt);
+	instr += ee_vsnprintf(buf, 512, fmt, args);
+	va_end(args);
+	
+	ee_snprintf(instr, 512 - (instr-buf), "\n \nPress [A] + [LEFT] to confirm\nPress [B] or [HOME] to cancel");
+	ee_printf_screen_center(buf);
+	updateScreens();
+	
+	do
+	{
+		GFX_waitForEvent(GFX_EVENT_PDC0, true);
+		
+		if(hidGetPowerButton(false)) // handle power button
+			break;
+		
+		hidScanInput();
+		kDown = hidKeysDown();
+		kHeld = hidKeysHeld();
+		
+		if ((kHeld & KEY_A) && (kHeld & KEY_DLEFT)) return true;
+		if (kDown & (KEY_SHELL)) sleepmode();
+	}
+	while (!(kDown & (KEY_B|KEY_HOME)));
+	
+	return false;
 }
 
 void outputEndWait(void)
