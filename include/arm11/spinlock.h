@@ -26,9 +26,10 @@ static inline void spinlockLock(u32 *lock)
 {
 	u32 tmp;
 	__asm__ __volatile__("1: ldrex %0, [%1]\n"
-	                     "   strex %0, %2, [%1]\n"
 	                     "   teq %0, #0\n"
 	                     "   wfene\n"
+	                     "   strexeq %0, %2, [%1]\n"
+	                     "   teqeq %0, #0\n"
 	                     "   bne 1b\n"
 	                     "   mcr p15, 0, %0, c7, c10, 5"
 	                     : "=&r" (tmp)
