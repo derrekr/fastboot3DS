@@ -9,17 +9,16 @@
 #define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
 
 
-static vu32 kHeld, kDown, kUp;
+static u32 kHeld, kDown, kUp;
 
 
 
 void hidScanInput(void)
 {
 	u32 kOld = kHeld;
-	u32 tmpKHeld = REG_HID_PAD;
-	kHeld = tmpKHeld;
-	kDown = (~kOld) & tmpKHeld;
-	kUp = kOld & (~tmpKHeld);
+	kHeld = REG_HID_PAD;
+	kDown = (~kOld) & kHeld;
+	kUp = kOld & (~kHeld);
 }
 
 u32 hidKeysHeld(void)
