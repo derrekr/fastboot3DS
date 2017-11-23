@@ -23,23 +23,19 @@
 
 
 #define I2C1_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x61000)
-#define REG_I2C1_DATA   *((vu8* )(I2C1_REGS_BASE + 0x00))
-#define REG_I2C1_CNT    *((vu8* )(I2C1_REGS_BASE + 0x01))
-#define REG_I2C1_CNTEX  *((vu16*)(I2C1_REGS_BASE + 0x02))
-#define REG_I2C1_SCL    *((vu16*)(I2C1_REGS_BASE + 0x04))
 
 #define I2C2_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x44000)
-#define REG_I2C2_DATA   *((vu8* )(I2C2_REGS_BASE + 0x00))
-#define REG_I2C2_CNT    *((vu8* )(I2C2_REGS_BASE + 0x01))
-#define REG_I2C2_CNTEX  *((vu16*)(I2C2_REGS_BASE + 0x02))
-#define REG_I2C2_SCL    *((vu16*)(I2C2_REGS_BASE + 0x04))
 
 #define I2C3_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x48000)
-#define REG_I2C3_DATA   *((vu8* )(I2C3_REGS_BASE + 0x00))
-#define REG_I2C3_CNT    *((vu8* )(I2C3_REGS_BASE + 0x01))
-#define REG_I2C3_CNTEX  *((vu16*)(I2C3_REGS_BASE + 0x02))
-#define REG_I2C3_SCL    *((vu16*)(I2C3_REGS_BASE + 0x04))
 
+
+typedef struct
+{
+	vu8  REG_I2C_DATA;
+	vu8  REG_I2C_CNT;
+	vu16 REG_I2C_CNTEX;
+	vu16 REG_I2C_SCL;
+} I2cRegs;
 
 static const struct
 {
@@ -69,77 +65,89 @@ static const struct
 
 
 
-static void i2cWaitBusy(vu8 *cntReg)
+static void i2cWaitBusy(I2cRegs *const regs)
 {
-	while(*cntReg & I2C_ENABLE);
+	while(regs->REG_I2C_CNT & I2C_ENABLE);
 }
 
-static vu8* i2cGetBusRegsBase(u8 busId)
+static I2cRegs* i2cGetBusRegsBase(u8 busId)
 {
-	vu8 *base;
-	if(!busId)          base = (vu8*)I2C1_REGS_BASE;
-	else if(busId == 1) base = (vu8*)I2C2_REGS_BASE;
-	else                base = (vu8*)I2C3_REGS_BASE;
+	I2cRegs *base;
+	switch(busId)
+	{
+		case 0:
+			base = (I2cRegs*)I2C1_REGS_BASE;
+			break;
+		case 1:
+			base = (I2cRegs*)I2C2_REGS_BASE;
+			break;
+		case 2:
+			base = (I2cRegs*)I2C3_REGS_BASE;
+			break;
+		default:
+			base = NULL;
+	}
 
 	return base;
 }
 
 void I2C_init(void)
 {
-	i2cWaitBusy(i2cGetBusRegsBase(0) + 1);
-	REG_I2C1_CNTEX = 2;  // ?
-	REG_I2C1_SCL = 1280; // ?
+	I2cRegs *regs = i2cGetBusRegsBase(0); // Bus 1
+	i2cWaitBusy(regs);
+	regs->REG_I2C_CNTEX = 2;  // ?
+	regs->REG_I2C_SCL = 1280; // ?
 
-	i2cWaitBusy(i2cGetBusRegsBase(1) + 1);
-	REG_I2C2_CNTEX = 2;  // ?
-	REG_I2C2_SCL = 1280; // ?
+	regs = i2cGetBusRegsBase(1); // Bus 2
+	i2cWaitBusy(regs);
+	regs->REG_I2C_CNTEX = 2;  // ?
+	regs->REG_I2C_SCL = 1280; // ?
 
-	i2cWaitBusy(i2cGetBusRegsBase(2) + 1);
-	REG_I2C3_CNTEX = 2;  // ?
-	REG_I2C3_SCL = 1280; // ?
+	regs = i2cGetBusRegsBase(2); // Bus 3
+	i2cWaitBusy(regs);
+	regs->REG_I2C_CNTEX = 2;  // ?
+	regs->REG_I2C_SCL = 1280; // ?
 }
 
-static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, vu8 *regsBase)
+static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, I2cRegs *const regs)
 {
 	const u8 devAddr = i2cDevTable[devId].devAddr;
-	vu8 *const i2cData = regsBase;
-	vu8 *const i2cCnt  = regsBase + 1;
 
 
 	u32 i = 0;
 	for(; i < 8; i++)
 	{
-		i2cWaitBusy(i2cCnt);
+		i2cWaitBusy(regs);
 
 		// Select device and start.
-		*i2cData = devAddr;
-		*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_START;
-		i2cWaitBusy(i2cCnt);
-		if(!I2C_GET_ACK(*i2cCnt)) // If ack flag is 0 it failed.
+		regs->REG_I2C_DATA = devAddr;
+		regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_START;
+		i2cWaitBusy(regs);
+		if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 		{
-			*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
+			regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
 			continue;
 		}
 
 		// Select register and change direction to write.
-		*i2cData = regAddr;
-		*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE;
-		i2cWaitBusy(i2cCnt);
-		if(!I2C_GET_ACK(*i2cCnt)) // If ack flag is 0 it failed.
+		regs->REG_I2C_DATA = regAddr;
+		regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE;
+		i2cWaitBusy(regs);
+		if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 		{
-			*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
+			regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
 			continue;
 		}
 
 		// Select device in read mode for read transfer.
 		if(read)
 		{
-			*i2cData = devAddr | 1u; // Set bit 0 for read.
-			*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_START;
-			i2cWaitBusy(i2cCnt);
-			if(!I2C_GET_ACK(*i2cCnt)) // If ack flag is 0 it failed.
+			regs->REG_I2C_DATA = devAddr | 1u; // Set bit 0 for read.
+			regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_START;
+			i2cWaitBusy(regs);
+			if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 			{
-				*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
+				regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
 				continue;
 			}
 		}
@@ -155,11 +163,10 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 {
 	enterCriticalSection(); // TODO: Instead of blocking other interrupts we need locks.
 	const u8 busId = i2cDevTable[devId].busId;
-	vu8 *const i2cData = i2cGetBusRegsBase(busId);
-	vu8 *const i2cCnt  = i2cData + 1;
+	I2cRegs *const regs = i2cGetBusRegsBase(busId);
 
 
-	if(!i2cStartTransfer(devId, regAddr, true, i2cData))
+	if(!i2cStartTransfer(devId, regAddr, true, regs))
 	{
 		leaveCriticalSection();
 		return false;
@@ -167,14 +174,14 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 
 	while(--size)
 	{
-		*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_READ | I2C_ACK;
-		i2cWaitBusy(i2cCnt);
-		*out++ = *i2cData;
+		regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_READ | I2C_ACK;
+		i2cWaitBusy(regs);
+		*out++ = regs->REG_I2C_DATA;
 	}
 
-	*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_READ | I2C_STOP;
-	i2cWaitBusy(i2cCnt);
-	*out = *i2cData; // Last byte
+	regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_READ | I2C_STOP;
+	i2cWaitBusy(regs);
+	*out = regs->REG_I2C_DATA; // Last byte
 
 	leaveCriticalSection();
 	return true;
@@ -184,11 +191,10 @@ bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 {
 	enterCriticalSection(); // TODO: Instead of blocking other interrupts we need locks.
 	const u8 busId = i2cDevTable[devId].busId;
-	vu8 *const i2cData = i2cGetBusRegsBase(busId);
-	vu8 *const i2cCnt  = i2cData + 1;
+	I2cRegs *const regs = i2cGetBusRegsBase(busId);
 
 
-	if(!i2cStartTransfer(devId, regAddr, false, i2cData))
+	if(!i2cStartTransfer(devId, regAddr, false, regs))
 	{
 		leaveCriticalSection();
 		return false;
@@ -196,23 +202,23 @@ bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 
 	while(--size)
 	{
-		*i2cData = *in++;
-		*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE;
-		i2cWaitBusy(i2cCnt);
-		if(!I2C_GET_ACK(*i2cCnt)) // If ack flag is 0 it failed.
+		regs->REG_I2C_DATA = *in++;
+		regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE;
+		i2cWaitBusy(regs);
+		if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 		{
-			*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
+			regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
 			leaveCriticalSection();
 			return false;
 		}
 	}
 
-	*i2cData = *in;
-	*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE | I2C_STOP;
-	i2cWaitBusy(i2cCnt);
-	if(!I2C_GET_ACK(*i2cCnt)) // If ack flag is 0 it failed.
+	regs->REG_I2C_DATA = *in;
+	regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE | I2C_STOP;
+	i2cWaitBusy(regs);
+	if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 	{
-		*i2cCnt = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
+		regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
 		leaveCriticalSection();
 		return false;
 	}
