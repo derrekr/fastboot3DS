@@ -92,7 +92,7 @@ MenuInfo menu_fb3ds[] =
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
 			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 },
-			{ "Boot from firm1:",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE },
+			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE },
 			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 }
 			
 		}
@@ -123,7 +123,7 @@ MenuInfo menu_fb3ds[] =
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuRestoreNand,		0 },
 			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuRestoreNand,		1 },
-			{ "Flash firmware to firm1:",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
+			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
 		}
 	},
 	{ // 8

@@ -20,10 +20,12 @@
 #include "types.h"
 #include "arm11/hardware/hardware.h"
 #include "arm11/hardware/hid.h"
+#include "arm11/menu/bootslot_store.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_fb3ds.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/splash.h"
+#include "arm11/bootenv.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/debug.h"
@@ -36,7 +38,7 @@
 
 
 volatile bool g_continueBootloader = true;
-volatile bool g_startFirmLaunch = false;
+volatile u32 g_startFirmLaunch = 0;
 
 
 
@@ -81,7 +83,7 @@ int main(void)
 			{
 				char* path = (char*) configGetData(KBootOption1 + i);
 				err_ptr += ee_sprintf(err_ptr, "Keys match boot slot #%lu.\nBoot path is %s\n", (i+1), path);
-				has_error = !(g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0));
+				has_error = !(g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? (i+1) : 0);
 				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 				break;
 			}
@@ -95,15 +97,43 @@ int main(void)
 	}
 	
 	
+	// boot env handling (only on reboots)
+	u32 prevBootSlot = getBootEnv() ? readStoredBootslot() : 0;
+	if (!err_string && !g_startFirmLaunch && prevBootSlot)
+	{
+		err_string = (char*) malloc(512);
+		char* err_ptr = err_string;
+		if(!err_string) panicMsg("Out of memory");
+		err_ptr += ee_sprintf(err_ptr, "Rebooting to boot slot #%lu...\n", prevBootSlot);
+		
+		if(!configDataExist(KBootOption1 + (prevBootSlot-1)))
+		{
+			err_ptr += ee_sprintf(err_ptr, "Could not find entry in config!\n");
+		}
+		else
+		{
+			char* path = (char*) configGetData(KBootOption1 + (prevBootSlot-1));
+			err_ptr += ee_sprintf(err_ptr, "Boot path is %s\n", path);
+			g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? prevBootSlot : 0;
+			err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", prevBootSlot, g_startFirmLaunch ? "success" : "failed");
+		}
+		
+		if (g_startFirmLaunch)
+		{
+			free(err_string);
+			err_string = NULL;
+		}
+	}
+	
+	
 	// get bootmode from config
 	u32 bootmode = BootModeNormal;
 	if(configDataExist(KBootMode))
 		bootmode = *(u32*) configGetData(KBootMode);
 	
-	// show menu if either bootmode is normal or HOME is held
-	// ... or not if we already got a firmware waiting in line
-	show_menu = show_menu ||
-		(!g_startFirmLaunch && ((bootmode == BootModeNormal) || hidIsHomeButtonHeldRaw()));
+	// show menu if bootmode is normal and no firmware is waiting in line
+	// ... or always if the HOME button is pressed
+	show_menu = show_menu || (!g_startFirmLaunch && (bootmode == BootModeNormal)) || hidIsHomeButtonHeldRaw();
 	
 	// show splash if (bootmode != BootModeSilent)
 	if(show_menu || (bootmode != BootModeQuiet))
@@ -188,7 +218,7 @@ int main(void)
 
 				char* path = (char*) configGetData(KBootOption1 + i);
 				err_ptr += ee_sprintf(err_ptr, "Trying boot slot #%lu.\nBoot path is %s\n", (i+1), path);
-				g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0);
+				g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? (i+1) : 0;
 				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 				break;
 			}
@@ -219,7 +249,11 @@ int main(void)
 	if(hidGetPowerButton(true)) power_off();
 
 	// firm launch
-	if(g_startFirmLaunch) firmLaunch();
+	if(g_startFirmLaunch)
+	{
+		storeBootslot((g_startFirmLaunch <= 3) ? g_startFirmLaunch : 0);
+		firmLaunch();
+	}
 	
 	
 	// reaching here was never intended....

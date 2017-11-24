@@ -18,10 +18,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "types.h"
+#include "arm11/hardware/i2c.h"
 
+#define BOOTSLOT_STORE_REG	((u8) 0x1E)
 
-// true: skip/leave menu
-extern volatile bool g_continueBootloader;
-
-// 0 if no FIRM loaded / 1...3 FIRM loaded from slot / > 3 FIRM loaded from elsewhere
-extern volatile u32 g_startFirmLaunch;  
+#define readStoredBootslot()	I2C_readReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG)
+#define storeBootslot(slot)		I2C_writeReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG, (u8) slot)

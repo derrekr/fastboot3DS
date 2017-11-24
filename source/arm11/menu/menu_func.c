@@ -307,7 +307,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	ee_printf("\nFirm load success, launching firm..."); // <-- you will never see this
-	g_startFirmLaunch = true;
+	g_startFirmLaunch = (param < 3) ? (param + 1) : param;
 	
 	return 0;
 	
