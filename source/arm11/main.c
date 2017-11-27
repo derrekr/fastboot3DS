@@ -200,6 +200,13 @@ int main(void)
 					break;
 				}
 			}
+			// boot env handling (only on reboots) for firm1:
+			else if (prevBootSlot == 0xFE)
+			{
+				err_ptr += ee_sprintf(err_ptr, "Rebooting to firm1:...\n");
+				g_startFirmLaunch = (loadVerifyFirm("firm1:", false) >= 0) ? prevBootSlot : 0;
+				err_ptr += ee_sprintf(err_ptr, "Load firm1: %s.\n", g_startFirmLaunch ? "success" : "failed");
+			}
 			// boot env handling (only on reboots) -> try previous slot
 			else
 			{
@@ -250,7 +257,9 @@ int main(void)
 	// firm launch
 	if(g_startFirmLaunch)
 	{
-		storeBootslot((g_startFirmLaunch <= 3) ? g_startFirmLaunch : 0);
+		if((g_startFirmLaunch <= 3) || (g_startFirmLaunch == 0xFE))
+			storeBootslot(g_startFirmLaunch);
+		else storeBootslot(0);
 		firmLaunch();
 	}
 	
