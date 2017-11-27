@@ -97,43 +97,17 @@ int main(void)
 	}
 	
 	
-	// boot env handling (only on reboots)
+	// get bootmode from config and previous bootslot from I2C
 	u32 prevBootSlot = getBootEnv() ? readStoredBootslot() : 0;
-	if (!err_string && !g_startFirmLaunch && prevBootSlot)
-	{
-		err_string = (char*) malloc(512);
-		char* err_ptr = err_string;
-		if(!err_string) panicMsg("Out of memory");
-		err_ptr += ee_sprintf(err_ptr, "Rebooting to boot slot #%lu...\n", prevBootSlot);
-		
-		if(!configDataExist(KBootOption1 + (prevBootSlot-1)))
-		{
-			err_ptr += ee_sprintf(err_ptr, "Could not find entry in config!\n");
-		}
-		else
-		{
-			char* path = (char*) configGetData(KBootOption1 + (prevBootSlot-1));
-			err_ptr += ee_sprintf(err_ptr, "Boot path is %s\n", path);
-			g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? prevBootSlot : 0;
-			err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", prevBootSlot, g_startFirmLaunch ? "success" : "failed");
-		}
-		
-		if (g_startFirmLaunch)
-		{
-			free(err_string);
-			err_string = NULL;
-		}
-	}
-	
-	
-	// get bootmode from config
 	u32 bootmode = BootModeNormal;
 	if(configDataExist(KBootMode))
 		bootmode = *(u32*) configGetData(KBootMode);
 	
-	// show menu if bootmode is normal and no firmware is waiting in line
+	// show menu if bootmode is normal, no firmware is waiting in line and not rebooting to slot
 	// ... or always if the HOME button is pressed
-	show_menu = show_menu || (!g_startFirmLaunch && (bootmode == BootModeNormal)) || hidIsHomeButtonHeldRaw();
+	show_menu = show_menu ||
+		(!g_startFirmLaunch && !prevBootSlot && (bootmode == BootModeNormal)) ||
+		hidIsHomeButtonHeldRaw();
 	
 	// show splash if (bootmode != BootModeSilent)
 	if(show_menu || (bootmode != BootModeQuiet))
@@ -208,19 +182,40 @@ int main(void)
 			err_string = (char*) malloc(512);
 			char* err_ptr = err_string;
 			if(!err_string) panicMsg("Out of memory");
-		
-			err_ptr += ee_sprintf(err_ptr, "Continuing bootloader...\n");
-			for (u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+			
+			// previous bootslot not known -> try all autoboot slots
+			if (!prevBootSlot)
 			{
-				// FIRM not set for slot or slot not set to autoboot
-				if (!configDataExist(KBootOption1 + i) || configDataExist(KBootOption1Buttons + i))
-					continue;
+				err_ptr += ee_sprintf(err_ptr, "Continuing bootloader...\n");
+				for (u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+				{
+					// FIRM not set for slot or slot not set to autoboot
+					if (!configDataExist(KBootOption1 + i) || configDataExist(KBootOption1Buttons + i))
+						continue;
 
-				char* path = (char*) configGetData(KBootOption1 + i);
-				err_ptr += ee_sprintf(err_ptr, "Trying boot slot #%lu.\nBoot path is %s\n", (i+1), path);
-				g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? (i+1) : 0;
-				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
-				break;
+					char* path = (char*) configGetData(KBootOption1 + i);
+					err_ptr += ee_sprintf(err_ptr, "Trying boot slot #%lu.\nBoot path is %s\n", (i+1), path);
+					g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? (i+1) : 0;
+					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
+					break;
+				}
+			}
+			// boot env handling (only on reboots) -> try previous slot
+			else
+			{
+				err_ptr += ee_sprintf(err_ptr, "Rebooting to boot slot #%lu...\n", prevBootSlot);
+		
+				if(!configDataExist(KBootOption1 + (prevBootSlot-1)))
+				{
+					err_ptr += ee_sprintf(err_ptr, "Could not find entry in config!\n");
+				}
+				else
+				{
+					char* path = (char*) configGetData(KBootOption1 + (prevBootSlot-1));
+					err_ptr += ee_sprintf(err_ptr, "Boot path is %s\n", path);
+					g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? prevBootSlot : 0;
+					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", prevBootSlot, g_startFirmLaunch ? "success" : "failed");
+				}
 			}
 			
 			if (!g_startFirmLaunch)
