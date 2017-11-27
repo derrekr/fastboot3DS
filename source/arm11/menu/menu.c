@@ -97,10 +97,12 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	consoleSelect(desc_con);
 	consoleClear();
 	
+	
 	// print title at the top
 	const char* title = "fastboot 3DS " VERS_STRING;
 	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
 	ee_printf(ESC_SCHEME_ACCENT0 "%s" ESC_RESET, title);
+	
 	
 	// get bootinfo
 	const char* mount_paths[] = { MOUNT_STATE_PATHS };
@@ -113,10 +115,46 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	ee_printf(" %s\n\n", bootinfo.bootEnv);
 	for (u32 i = 0; i < sizeof(mount_paths) / sizeof(const char*); i++)
 	{
-		ee_printf(" %s %s\n", mount_paths[i], ((bootinfo.mountState >> i) & 0x1) ?
-			ESC_SCHEME_GOOD "mounted ok" ESC_RESET :
-			ESC_SCHEME_BAD "not mounted" ESC_RESET);
+		ee_printf(" " ESC_SCHEME_WEAK "%s" ESC_RESET " %s\n", mount_paths[i],
+			((bootinfo.mountState >> i) & 0x1) ?
+			 ESC_SCHEME_GOOD "mounted" ESC_RESET :
+			 ESC_SCHEME_BAD "not mounted" ESC_RESET);
 	}
+	
+	
+	// print config
+	u32 conw = desc_con->consoleWidth;
+	
+	// print boot mode
+	consoleSetCursor(desc_con, conw - 11 - 1, 4);
+	if(configDataExist(KBootMode))
+	{
+		char* bootmode = configCopyText(KBootMode);
+		ee_printf("%6.6s boot", bootmode);
+		if (bootmode) free(bootmode);
+	}
+	else
+	{
+		ee_printf(ESC_SCHEME_WEAK "unknown boot" ESC_RESET);
+	}
+	
+	// print slot config
+	for(u32 i = 0; i < 3; i++)
+	{
+		consoleSetCursor(desc_con, conw - 16 - 1, 6 + i);
+		ee_printf(ESC_SCHEME_WEAK "slot %lu: " ESC_RESET, i + 1);
+		if(configDataExist(KBootOption1 + i))
+			ee_printf((configDataExist(KBootOption1Buttons + i)) ? "keycombo" : ESC_SCHEME_GOOD "autoboot" ESC_RESET);
+		else ee_printf(ESC_SCHEME_WEAK "<vacant>" ESC_RESET);
+	}
+	
+	// print dev mode config
+	if(configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
+	{
+		consoleSetCursor(desc_con, conw - 14 - 1, 6 + 3 + 1);
+		ee_printf(ESC_SCHEME_BAD "devmode active" ESC_RESET);
+	}
+	
 	
 	// get description, check if available
 	MenuEntry* entry = &(curr_menu->entries[index]);
