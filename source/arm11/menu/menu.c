@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
+#include "arm11/menu/bootinfo.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/menu_color.h"
@@ -100,6 +101,22 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	const char* title = "fastboot 3DS " VERS_STRING;
 	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
 	ee_printf(ESC_SCHEME_ACCENT0 "%s" ESC_RESET, title);
+	
+	// get bootinfo
+	const char* mount_paths[] = { MOUNT_STATE_PATHS };
+	bootInfo bootinfo;
+	getBootInfo(&bootinfo);
+	
+	// print bootinfo
+	consoleSetCursor(desc_con, 0, 4);
+	ee_printf(" Model: %s\n", bootinfo.model);
+	ee_printf(" %s\n\n", bootinfo.bootEnv);
+	for (u32 i = 0; i < sizeof(mount_paths) / sizeof(const char*); i++)
+	{
+		ee_printf(" %s %s\n", mount_paths[i], ((bootinfo.mountState >> i) & 0x1) ?
+			ESC_SCHEME_GOOD "mounted ok" ESC_RESET :
+			ESC_SCHEME_BAD "not mounted" ESC_RESET);
+	}
 	
 	// get description, check if available
 	MenuEntry* entry = &(curr_menu->entries[index]);

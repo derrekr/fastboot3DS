@@ -246,7 +246,11 @@ int main(void)
 	if(err_string) free(err_string);
 	
 	// power off
-	if(hidGetPowerButton(true)) power_off();
+	if(hidGetPowerButton(true))
+	{
+		storeBootslot(0);
+		power_off();
+	}
 
 	// firm launch
 	if(g_startFirmLaunch)
