@@ -787,7 +787,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleClear();
 	
 	// credits
-	term_con->cursorY = 4;
+	term_con->cursorY = 2;
 	ee_printf(ESC_SCHEME_ACCENT0);
 	ee_printf_line_center("Fastboot3DS Credits");
 	ee_printf_line_center("===================");
@@ -797,6 +797,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf(ESC_SCHEME_WEAK);
 	ee_printf_line_center("derrek");
 	ee_printf_line_center("profi200");
+	ee_printf_line_center("d0k3 (menu code)");
 	ee_printf_line_center("");
 	ee_printf(ESC_SCHEME_STD);
 	ee_printf_line_center("Thanks to:");
@@ -806,7 +807,9 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_line_center("smea");
 	ee_printf_line_center("Normmatt (for sdmmc code)");
 	ee_printf_line_center("WinterMute (for console code)");
-	ee_printf_line_center("d0k3 (for menu code)");
+	ee_printf_line_center("Luma 3DS devs (for fmt.c/gfx code)");
+	ee_printf_line_center("mtheall (for LZ11 decompress code)");
+	ee_printf_line_center("devkitPro (for the toolchain/makefiles)");
 	ee_printf_line_center("");
 	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
