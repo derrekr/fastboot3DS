@@ -807,6 +807,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_line_center("smea");
 	ee_printf_line_center("Normmatt (for sdmmc code)");
 	ee_printf_line_center("WinterMute (for console code)");
+	ee_printf_line_center("ctrulib devs (for HID code)");
 	ee_printf_line_center("Luma 3DS devs (for fmt.c/gfx code)");
 	ee_printf_line_center("mtheall (for LZ11 decompress code)");
 	ee_printf_line_center("devkitPro (for the toolchain/makefiles)");
