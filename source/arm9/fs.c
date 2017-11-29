@@ -202,7 +202,7 @@ static inline bool isValidDevHandle(DevHandle handle)
 	return true;
 }
 
-static inline FsDevice getDeviceFromHanlde(DevBufHandle handle)
+static inline FsDevice getDeviceFromHandle(DevBufHandle handle)
 {
 	// for now only nand is supported.
 	(void) handle;
@@ -224,13 +224,13 @@ s32 fFinalizeRawAccess(DevHandle handle)
 	
 	if(!isValidDevHandle(handle)) return -30;
 	
-	dev = getDeviceFromHanlde(handle);
+	dev = getDeviceFromHandle(handle);	
 	
 	if(!usesRawAccess(dev)) return -31;
 	
 	for(u32 drive = 0; drive < FS_MAX_DRIVES; drive++)
 	{
-		if(fsStatBackupTable[drive])
+		if(fsStatBackupTable[drive] && !fsStatTable[drive])
 		{
 			err = fMount(drive);
 			if(err != FR_OK) goto fail;
@@ -309,7 +309,7 @@ s32 fReadToDeviceBuffer(s32 sourceHandle, u32 sourceOffset, u32 sourceSize, DevB
 		if(!isValidDevHandle(sourceHandle))
 			return -30;
 	
-		dev = getDeviceFromHanlde(sourceHandle);
+		dev = getDeviceFromHandle(sourceHandle);
 	
 		if(!usesRawAccess(dev))
 			return -30;
@@ -382,7 +382,7 @@ s32 fsWriteFromDeviceBuffer(s32 destHandle, u32 destOffset, u32 destSize, DevBuf
 		if(!isValidDevHandle(destHandle))
 			return -30;
 	
-		dev = getDeviceFromHanlde(destHandle);
+		dev = getDeviceFromHandle(destHandle);
 	
 		if(!usesRawAccess(dev))
 			return -30;
