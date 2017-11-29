@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200, d0k3
@@ -18,10 +16,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "types.h"
+#include "arm11/hardware/i2c.h"
+#include "arm11/menu/bootslot_store.h"
 
-#define FIRM1_BOOT_SLOT		0xFE
-#define INVALID_BOOT_SLOT	0xFF
+#define BOOTSLOT_STORE_REG	((u8) 0x1E)
 
-u8 readStoredBootslot(void);
-bool storeBootslot(u8 slot);
+
+static u8 stored_slot = INVALID_BOOT_SLOT;
+
+
+u8 readStoredBootslot(void)
+{
+	if (stored_slot == INVALID_BOOT_SLOT)
+		stored_slot = I2C_readReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG);
+	
+	return stored_slot;
+}
+
+bool storeBootslot(u8 slot)
+{
+	if (slot == INVALID_BOOT_SLOT) // 0xFF is not allowed
+		slot = 0; 
+	
+	if (slot != stored_slot)
+	{
+		stored_slot = slot;
+		return I2C_writeReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG, (u8) slot);
+	}
+	else
+	{
+		return true;
+	}
+}

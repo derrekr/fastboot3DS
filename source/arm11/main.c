@@ -201,7 +201,7 @@ int main(void)
 				}
 			}
 			// boot env handling (only on reboots) for firm1:
-			else if (prevBootSlot == 0xFE)
+			else if (prevBootSlot == FIRM1_BOOT_SLOT)
 			{
 				err_ptr += ee_sprintf(err_ptr, "Rebooting to firm1:...\n");
 				g_startFirmLaunch = (loadVerifyFirm("firm1:", false) >= 0) ? prevBootSlot : 0;

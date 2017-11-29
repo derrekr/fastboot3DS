@@ -51,8 +51,8 @@
 #define DESC_CLEAR_SLOT(x)	"Reset and disable boot slot #" #x ".    "
 
 #define DESC_BOOT_NORMAL	"In normal boot mode, you will be presented with the fastboot3ds menu upon boot."
-#define DESC_BOOT_QUICK		"In quick boot mode, splash is displayed and the boot is continued via the first available autoboot slot. To enter fastboot3ds menu, hold the HOME button at startup."
-#define DESC_BOOT_QUIET		"In quiet boot mode, splash is not displayed and the boot is continued via the first available autoboot slot. To enter fastboot3ds menu, hold the HOME button at startup."
+#define DESC_BOOT_QUICK		"In quick boot mode, splash is displayed and the boot is continued via the first available autoboot slot.\n \n! To enter the menu, hold the HOME button at boot !"
+#define DESC_BOOT_QUIET		"In quiet boot mode, splash is not displayed and the boot is continued via the first available autoboot slot.\n \n! To enter the menu, hold the HOME button at boot !"
 #define DESC_CHANGE_BOOT	"Change fastboot3ds boot mode. This allows you to set up how your console boots."
 
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."

@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include "types.h"
 #include "arm11/menu/bootinfo.h"
+#include "arm11/menu/bootslot_store.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/menu_color.h"
@@ -124,34 +125,47 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// print config
 	u32 conw = desc_con->consoleWidth;
+	u32 curY = 4;
 	
 	// print boot mode
-	consoleSetCursor(desc_con, conw - 11 - 1, 4);
+	consoleSetCursor(desc_con, conw - 15 - 1, curY++);
 	if(configDataExist(KBootMode))
 	{
 		char* bootmode = configCopyText(KBootMode);
-		ee_printf("%6.6s boot", bootmode);
+		ee_printf("%6.6s bootmode", bootmode);
 		if (bootmode) free(bootmode);
 	}
 	else
 	{
-		ee_printf(ESC_SCHEME_WEAK "unknown boot" ESC_RESET);
+		ee_printf(ESC_SCHEME_WEAK "unknown bootmode" ESC_RESET);
 	}
 	
+	// reboot slot
+	u32 prevSlot = readStoredBootslot();
+	consoleSetCursor(desc_con, conw - 19 - 1, curY++);
+	if ((prevSlot >= 1) && (prevSlot <= 3))
+		ee_printf("    " "Reboot slot: #%lu", prevSlot);
+	else if (prevSlot == FIRM1_BOOT_SLOT)
+		ee_printf(" " "Reboot slot: firm1");
+	else
+		ee_printf("  " "Reboot slot: auto");
+	
 	// print slot config
+	curY++;
 	for(u32 i = 0; i < 3; i++)
 	{
-		consoleSetCursor(desc_con, conw - 16 - 1, 6 + i);
+		consoleSetCursor(desc_con, conw - 16 - 1, curY++);
 		ee_printf(ESC_SCHEME_WEAK "slot %lu: " ESC_RESET, i + 1);
 		if(configDataExist(KBootOption1 + i))
-			ee_printf((configDataExist(KBootOption1Buttons + i)) ? "keycombo" : ESC_SCHEME_GOOD "autoboot" ESC_RESET);
-		else ee_printf(ESC_SCHEME_WEAK "<vacant>" ESC_RESET);
+			ee_printf((configDataExist(KBootOption1Buttons + i)) ? "keycombo" : "autoboot");
+		else ee_printf("   -    ");
 	}
 	
 	// print dev mode config
+	curY++;
 	if(configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
 	{
-		consoleSetCursor(desc_con, conw - 14 - 1, 6 + 3 + 1);
+		consoleSetCursor(desc_con, conw - 14 - 1, curY);
 		ee_printf(ESC_SCHEME_BAD "devmode active" ESC_RESET);
 	}
 	
