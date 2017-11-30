@@ -107,6 +107,7 @@ bool loadConfigFile()
 	FILINFO fileStat;
 	s32 file;
 	u32 fileSize;
+	bool SdPresent;
 	bool createFile = false;
 	
 	if(filebuf)
@@ -114,8 +115,12 @@ bool loadConfigFile()
 	
 	configDirty = false;
 	
-	// first, try SD card fatfs
-	if(true) // !!! if(bootInfo.sd_status == 2)
+	
+	/* first, try SD card fatfs */
+	
+	SdPresent = fIsDevActive(FS_DEVICE_SDMC);
+	
+	if(SdPresent)
 	{
 		filepath = SdmcFilepath;
 		
@@ -125,7 +130,7 @@ bool loadConfigFile()
 			createFile = true;
 		}
 	}
-	else
+	else	/* use NAND */
 	{
 		filepath = NandFilepath;
 		
