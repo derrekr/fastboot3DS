@@ -52,6 +52,12 @@ u32 fGetDeviceSize(FsDevice dev)
 	return PXI_sendCmd(IPC_CMD9_FGET_DEV_SIZE, &cmdBuf, 1);
 }
 
+bool fIsDevActive(FsDevice dev)
+{
+	const u32 cmdBuf = dev;
+	return PXI_sendCmd(IPC_CMD9_FIS_DEV_ACTIVE, &cmdBuf, 1);
+}
+
 s32 fPrepareRawAccess(FsDevice dev)
 {
 	const u32 cmdBuf = dev;

@@ -182,6 +182,23 @@ u32 fGetDeviceSize(FsDevice dev)
 	return 0;
 }
 
+bool fIsDevActive(FsDevice dev)
+{
+	switch(dev)
+	{
+		case FS_DEVICE_SDMC:
+			return dev_sdcard->is_active();
+			break;
+		case FS_DEVICE_NAND:
+			return dev_rawnand->is_active();
+			break;
+		default:
+			break;
+	}
+	
+	return false;
+}
+
 s32 fPrepareRawAccess(FsDevice dev)
 {
 	s32 err;
