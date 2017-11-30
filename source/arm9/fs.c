@@ -126,6 +126,29 @@ s32 fUnmount(FsDrive drive)
 	else return -res;
 }
 
+static bool isDriveMounted(FsDrive drive)
+{
+	if((u32)drive >= FS_MAX_DRIVES) return false;
+	
+	return fsStatTable[drive];
+}
+
+static s32 ensureUnmounted(FsDrive drive)
+{
+	if(!isDriveMounted(drive))
+		return FR_OK;
+	
+	return fUnmount(drive);
+}
+
+static s32 ensureMounted(FsDrive drive)
+{
+	if(isDriveMounted(drive))
+		return FR_OK;
+	
+	return fMount(drive);
+}
+
 s32 fGetFree(FsDrive drive, u64 *size)
 {
 	if((u32)drive >= FS_MAX_DRIVES) return -30;
@@ -174,15 +197,15 @@ s32 fPrepareRawAccess(FsDevice dev)
 	switch(dev)
 	{
 		case FS_DEVICE_SDMC:
-			err = fUnmount(FS_DRIVE_SDMC);
+			err = ensureUnmounted(FS_DRIVE_SDMC);
 			if(err != FR_OK) return err;
 			break;
 		case FS_DEVICE_NAND:
-			err = fUnmount(FS_DRIVE_TWLN);
+			err = ensureUnmounted(FS_DRIVE_TWLN);
 			if(err != FR_OK) return err;
-			err = fUnmount(FS_DRIVE_TWLP);
+			err = ensureUnmounted(FS_DRIVE_TWLP);
 			if(err != FR_OK) return err;
-			err = fUnmount(FS_DRIVE_NAND);
+			err = ensureUnmounted(FS_DRIVE_NAND);
 			if(err != FR_OK) return err;
 			break;
 		default:
@@ -230,9 +253,9 @@ s32 fFinalizeRawAccess(DevHandle handle)
 	
 	for(u32 drive = 0; drive < FS_MAX_DRIVES; drive++)
 	{
-		if(fsStatBackupTable[drive] && !fsStatTable[drive])
+		if(fsStatBackupTable[drive])
 		{
-			err = fMount(drive);
+			err = ensureMounted(drive);
 			if(err != FR_OK) goto fail;
 		}
 	}
