@@ -116,26 +116,29 @@ bool loadConfigFile()
 	configDirty = false;
 	
 	
-	/* first, try SD card fatfs */
+	/* first, try NAND fatfs */
 	
-	SdPresent = fIsDevActive(FS_DEVICE_SDMC);
+	filepath = NandFilepath;
 	
-	if(SdPresent)
+	// does the config file exist?
+	if (fStat(filepath, &fileStat) != FR_OK)
 	{
-		filepath = SdmcFilepath;
+		SdPresent = fIsDevActive(FS_DEVICE_SDMC);
 		
-		// does the config file exist?
-		if(fStat(filepath, &fileStat) != FR_OK)
+		// try SD instead
+		if(SdPresent)
 		{
-			createFile = true;
+			filepath = SdmcFilepath;
+			
+			if(fStat(filepath, &fileStat) != FR_OK)
+			{
+				// create the file on SD
+				createFile = true;
+			}
 		}
-	}
-	else	/* use NAND */
-	{
-		filepath = NandFilepath;
-		
-		if(fStat(filepath, &fileStat) != FR_OK)
+		else
 		{
+			// create the file on NAND
 			createFile = true;
 		}
 	}
