@@ -37,7 +37,7 @@ int main(void)
 
 	hardwareDeinit();
 	// TODO: Proper argc/v passing needs to be implemented.
-	firmLaunch(1, (const char**)(ITCM_KERNEL_MIRROR + 0x7470));
+	firmLaunch();
 
 	return 0;
 }

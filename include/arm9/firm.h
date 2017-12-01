@@ -49,4 +49,4 @@ typedef struct
 
 bool firm_size(size_t *size);
 s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode);
-noreturn void firmLaunch(int argc, const char **argv);
+noreturn void firmLaunch(void);

@@ -31,6 +31,7 @@
 #include "arm9/partitions.h"
 #include "arm9/dev.h"
 #include "fs.h"
+#include "hardware/gfx.h"
 
 
 typedef struct
@@ -77,6 +78,8 @@ static const FirmWhitelist installWhitelist[] =
 		DSP_MEM_BASE, DSP_MEM_SIZE + AXIWRAM_SIZE
 	}
 };
+
+static int firmLaunchArgc = 1;
 
 
 
@@ -287,18 +290,44 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 		}
 	}
 
-	((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[0] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7474));
-	strncpy_s((void*)(ITCM_KERNEL_MIRROR + 0x7474), path, 256, 256);
+	((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[0] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7490));
+	strncpy_s((void*)(ITCM_KERNEL_MIRROR + 0x7490), path, 256, 256);
 
-	return 0;
+	if(!installMode && firmHdr->reserved2[0] & 1) // Adjust argc/v if screen init flag is set.
+	{
+		static const struct
+		{
+			u8 *fb1TopLeft;
+			u8 *fb1TopRight;
+			u8 *fb1Bottom;
+			u8 *fb2TopLeft;
+			u8 *fb2TopRight;
+			u8 *fb2Bottom;
+		} fbs =
+		{
+			(u8*)FRAMEBUF_TOP_A_1,
+			(u8*)FRAMEBUF_TOP_A_1,
+			(u8*)FRAMEBUF_SUB_A_1 + 0x17700,
+			(u8*)FRAMEBUF_TOP_A_2,
+			(u8*)FRAMEBUF_TOP_A_2,
+			(u8*)FRAMEBUF_SUB_A_2 + 0x17700
+		};
+
+		memcpy((void*)(ITCM_KERNEL_MIRROR + 0x7478), &fbs, sizeof(fbs));
+		((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[1] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7478));
+		firmLaunchArgc++;
+
+		return 1;
+	}
+	else return 0;
 }
 
-noreturn void firmLaunch(int argc, const char **argv)
+noreturn void firmLaunch(void)
 {
 	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
 
 	deinitCpu();
 
-	((void (*)(int, const char**))A9_STUB_ENTRY)(argc, argv);
+	((void (*)(int, const char**))A9_STUB_ENTRY)(firmLaunchArgc, (const char**)(ITCM_KERNEL_MIRROR + 0x7470));
 	while(1);
 }

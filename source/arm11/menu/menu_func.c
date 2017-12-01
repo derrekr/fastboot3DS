@@ -300,7 +300,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// try load and verify
 	ee_printf("\nLoading %s...\n", path);
 	s32 res = loadVerifyFirm(path, false);
-	if (res != 0)
+	if (res < 0)
 	{
 		ee_printf("Firm %s error code %li!\n", (res > -8) ? "load" : "verify", res);
 		goto fail;
@@ -663,7 +663,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	
 	s32 res = loadVerifyFirm(firm_path, false);
-	if (res != 0)
+	if (res < 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 		ee_printf("Firm %s error code %li!\n", (res > -8) ? "load" : "verify", res);
