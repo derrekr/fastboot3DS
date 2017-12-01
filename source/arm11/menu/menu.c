@@ -128,11 +128,11 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	u32 curY = 4;
 	
 	// print boot mode
-	consoleSetCursor(desc_con, conw - 15 - 1, curY++);
+	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
 	if(configDataExist(KBootMode))
 	{
 		char* bootmode = configCopyText(KBootMode);
-		ee_printf("%6.6s bootmode", bootmode);
+		ee_printf("%7.7s bootmode", bootmode);
 		if (bootmode) free(bootmode);
 	}
 	else

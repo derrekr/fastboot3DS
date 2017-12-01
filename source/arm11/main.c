@@ -243,6 +243,9 @@ int main(void)
 	}
 	
 	
+	// deinit GFX if it was initialized
+	if(gfx_initialized) GFX_deinit();
+		
 	// deinit filesystem
 	fsUnmountAll();
 	
@@ -252,9 +255,6 @@ int main(void)
 	// power off
 	if(hidGetPowerButton(true))
 	{
-		// deinit GFX if it was initialized
-		if(gfx_initialized) GFX_deinit();
-	
 		storeBootslot(0);
 		power_off();
 	}
@@ -262,14 +262,11 @@ int main(void)
 	// firm launch
 	if(g_startFirmLaunch)
 	{
-		// make sure GFX init is in the right state
-		if(gfx_initialized && (firm_err != 1))
-		{
-			GFX_deinit();
-		}
-		else if(!gfx_initialized && (firm_err == 1))
+		// make sure GFX is in the right state
+		if(!gfx_initialized && (firm_err == 1))
 		{
 			GFX_init();
+			GFX_deinit();
 		}
 		
 		// store the bootslot (if coming from slot or firm1:)
