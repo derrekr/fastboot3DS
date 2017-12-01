@@ -46,6 +46,8 @@ int main(void)
 {
 	bool show_menu = false;
 	bool gfx_initialized = false;
+	
+	s32 firm_err = 0; // local result of loadVerifyFirm()
 	char* err_string = NULL;
 	
 	
@@ -71,7 +73,6 @@ int main(void)
 		keysToString(kHeld & 0xfff, combo_str);
 		err_ptr += ee_sprintf(err_ptr, "Keys held on boot: %s\n", combo_str);
 		
-		bool has_error = false;
 		for(u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
 		{
 			if(!configDataExist(KBootOption1 + i) ||
@@ -83,13 +84,14 @@ int main(void)
 			{
 				char* path = (char*) configGetData(KBootOption1 + i);
 				err_ptr += ee_sprintf(err_ptr, "Keys match boot slot #%lu.\nBoot path is %s\n", (i+1), path);
-				has_error = !(g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? (i+1) : 0);
+				firm_err = loadVerifyFirm(path, false);
+				if (firm_err >= 0) g_startFirmLaunch = i + 1;
 				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 				break;
 			}
 		}
 		
-		if (!has_error)
+		if (firm_err >= 0)
 		{
 			free(err_string);
 			err_string = NULL;
@@ -195,7 +197,8 @@ int main(void)
 
 					char* path = (char*) configGetData(KBootOption1 + i);
 					err_ptr += ee_sprintf(err_ptr, "Trying boot slot #%lu.\nBoot path is %s\n", (i+1), path);
-					g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? (i+1) : 0;
+					firm_err = loadVerifyFirm(path, false);
+					if (firm_err >= 0) g_startFirmLaunch = i + 1;
 					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 					break;
 				}
@@ -204,7 +207,8 @@ int main(void)
 			else if (prevBootSlot == FIRM1_BOOT_SLOT)
 			{
 				err_ptr += ee_sprintf(err_ptr, "Rebooting to firm1:...\n");
-				g_startFirmLaunch = (loadVerifyFirm("firm1:", false) >= 0) ? prevBootSlot : 0;
+				firm_err = loadVerifyFirm("firm1:", false);
+				if (firm_err >= 0) g_startFirmLaunch = prevBootSlot;
 				err_ptr += ee_sprintf(err_ptr, "Load firm1: %s.\n", g_startFirmLaunch ? "success" : "failed");
 			}
 			// boot env handling (only on reboots) -> try previous slot
@@ -220,7 +224,8 @@ int main(void)
 				{
 					char* path = (char*) configGetData(KBootOption1 + (prevBootSlot-1));
 					err_ptr += ee_sprintf(err_ptr, "Boot path is %s\n", path);
-					g_startFirmLaunch = (loadVerifyFirm(path, false) >= 0) ? prevBootSlot : 0;
+					firm_err = loadVerifyFirm(path, false);
+					if (firm_err >= 0) g_startFirmLaunch = prevBootSlot;
 					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", prevBootSlot, g_startFirmLaunch ? "success" : "failed");
 				}
 			}
@@ -238,9 +243,6 @@ int main(void)
 	}
 	
 	
-	// deinit GFX if it was initialized
-	if(gfx_initialized) GFX_deinit();
-	
 	// deinit filesystem
 	fsUnmountAll();
 	
@@ -250,6 +252,9 @@ int main(void)
 	// power off
 	if(hidGetPowerButton(true))
 	{
+		// deinit GFX if it was initialized
+		if(gfx_initialized) GFX_deinit();
+	
 		storeBootslot(0);
 		power_off();
 	}
@@ -257,9 +262,22 @@ int main(void)
 	// firm launch
 	if(g_startFirmLaunch)
 	{
-		if((g_startFirmLaunch <= 3) || (g_startFirmLaunch == 0xFE))
+		// make sure GFX init is in the right state
+		if(gfx_initialized && (firm_err != 1))
+		{
+			GFX_deinit();
+		}
+		else if(!gfx_initialized && (firm_err == 1))
+		{
+			GFX_init();
+		}
+		
+		// store the bootslot (if coming from slot or firm1:)
+		if((g_startFirmLaunch <= 3) || (g_startFirmLaunch == FIRM1_BOOT_SLOT))
 			storeBootslot(g_startFirmLaunch);
 		else storeBootslot(0);
+		
+		// launch firm
 		firmLaunch();
 	}
 	
