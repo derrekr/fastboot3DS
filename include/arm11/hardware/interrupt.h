@@ -112,12 +112,17 @@ static inline void __wfi(void)
 	__asm__ __volatile__("wfi" : : : "memory");
 }
 
-static inline void enterCriticalSection(void)
+static inline u32 enterCriticalSection(void)
 {
-	__asm__ __volatile__("cpsid i" : : : "memory");
+	u32 tmp;
+	__asm__ __volatile__("mrs %0, cpsr\n"
+	                     "cpsid i" : "=r" (tmp) : : "memory");
+	return tmp & 0x80;
 }
 
-static inline void leaveCriticalSection(void)
+static inline void leaveCriticalSection(u32 oldState)
 {
-	__asm__ __volatile__("cpsie i" : : : "memory");
+	u32 tmp;
+	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
+	__asm__ __volatile__("msr cpsr_c, %0" : : "r" ((tmp & ~0x80u) | oldState) : "memory");
 }

@@ -34,8 +34,8 @@ void hardwareInit(void)
 	if(!getCpuId())
 	{
 		I2C_init();
-		PXI_init();
 		hidInit();
+		PXI_init();
 	}
 	else
 	{
@@ -44,7 +44,7 @@ void hardwareInit(void)
 		((void (*)(void))0x0001004C)();
 	}
 
-	leaveCriticalSection(); // Enables interrupts
+	leaveCriticalSection(0); // Enables interrupts
 }
 
 /*void hardwareDeinit(void)

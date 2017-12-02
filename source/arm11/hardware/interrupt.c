@@ -133,7 +133,7 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, 
 	const u32 cpuId = getCpuId();
 	if(!cpuMask) cpuMask = 1u<<cpuId;
 
-	enterCriticalSection();
+	u32 oldState = enterCriticalSection();
 
 	if(handler)
 	{
@@ -155,30 +155,30 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, 
 
 	REGs_GID_ENA_SET[id>>5] = 1u<<(id % 32);
 
-	leaveCriticalSection();
+	leaveCriticalSection(oldState);
 }
 
 void IRQ_unregisterHandler(Interrupt id)
 {
-	enterCriticalSection();
+	u32 oldState = enterCriticalSection();
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
 	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (IrqHandler)NULL;
 	else irqHandlerTable[id - 32] = (IrqHandler)NULL;
 
-	leaveCriticalSection();
+	leaveCriticalSection(oldState);
 }
 
 void IRQ_setPriority(Interrupt id, u8 prio)
 {
-	enterCriticalSection();
+	u32 oldState = enterCriticalSection();
 
 	u32 shift = (id % 4 * 8) + 4;
 	u32 tmp = REGs_GID_IPRIO[id>>2] & ~(0xFu<<shift);
 	REGs_GID_IPRIO[id>>2] = tmp | (u32)prio<<shift;
 
-	leaveCriticalSection();
+	leaveCriticalSection(oldState);
 }
 
 void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask)

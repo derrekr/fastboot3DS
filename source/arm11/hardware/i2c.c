@@ -19,7 +19,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/hardware/i2c.h"
-#include "arm11/hardware/interrupt.h"
+#include "arm11/spinlock.h"
 
 
 #define I2C1_REGS_BASE  (IO_MEM_ARM9_ARM11 + 0x61000)
@@ -161,14 +161,15 @@ static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, I2cRegs *co
 
 bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 {
-	enterCriticalSection(); // TODO: Instead of blocking other interrupts we need locks.
+	static u32 lock;
+	spinlockLock(&lock); // TODO: Don't block interrupts.
 	const u8 busId = i2cDevTable[devId].busId;
 	I2cRegs *const regs = i2cGetBusRegsBase(busId);
 
 
 	if(!i2cStartTransfer(devId, regAddr, true, regs))
 	{
-		leaveCriticalSection();
+		spinlockUnlock(&lock);
 		return false;
 	}
 
@@ -183,20 +184,21 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 	i2cWaitBusy(regs);
 	*out = regs->REG_I2C_DATA; // Last byte
 
-	leaveCriticalSection();
+	spinlockUnlock(&lock);
 	return true;
 }
 
 bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 {
-	enterCriticalSection(); // TODO: Instead of blocking other interrupts we need locks.
+	static u32 lock;
+	spinlockLock(&lock); // TODO: Don't block interrupts.
 	const u8 busId = i2cDevTable[devId].busId;
 	I2cRegs *const regs = i2cGetBusRegsBase(busId);
 
 
 	if(!i2cStartTransfer(devId, regAddr, false, regs))
 	{
-		leaveCriticalSection();
+		spinlockUnlock(&lock);
 		return false;
 	}
 
@@ -208,7 +210,7 @@ bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 		if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 		{
 			regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
-			leaveCriticalSection();
+			spinlockUnlock(&lock);
 			return false;
 		}
 	}
@@ -219,11 +221,11 @@ bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 	if(!I2C_GET_ACK(regs->REG_I2C_CNT)) // If ack flag is 0 it failed.
 	{
 		regs->REG_I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
-		leaveCriticalSection();
+		spinlockUnlock(&lock);
 		return false;
 	}
 
-	leaveCriticalSection();
+	spinlockUnlock(&lock);
 	return true;
 }
 

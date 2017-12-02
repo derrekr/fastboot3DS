@@ -34,7 +34,7 @@ void hardwareInit(void)
 	AES_init();
 	RSA_init();
 
-	leaveCriticalSection(0u); // Enables interrupts
+	leaveCriticalSection(0); // Enables interrupts
 }
 
 void hardwareDeinit(void)
