@@ -158,7 +158,7 @@ bool loadConfigFile()
 	
 	if(fileSize > MAX_FILE_SIZE)
 	{
-		ee_printf("Invalid config-file size!\n");
+		//ee_printf("Invalid config-file size!\n");
 		return false;
 	}
 	
@@ -166,7 +166,7 @@ bool loadConfigFile()
 	
 	if(!filebuf)
 	{
-		ee_printf("Out of memory!\n");
+		//ee_printf("Out of memory!\n");
 		return false;
 	}
 	
@@ -174,13 +174,13 @@ bool loadConfigFile()
 	{
 		if((file = fOpen(filepath, FS_OPEN_READ)) < 0)
 		{
-			ee_printf("Failed to open config-file for reading!\n");
+			//ee_printf("Failed to open config-file for reading!\n");
 			goto fail;
 		}
 		
 		if(fRead(file, filebuf, fileSize) != FR_OK)
 		{
-			ee_printf("Failed to read from config-file!\n");
+			//ee_printf("Failed to read from config-file!\n");
 			fClose(file);
 			goto fail;
 		}
