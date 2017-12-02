@@ -33,6 +33,8 @@ void hardwareInit(void)
 	PXI_init();
 	AES_init();
 	RSA_init();
+
+	leaveCriticalSection(0u); // Enables interrupts
 }
 
 void hardwareDeinit(void)

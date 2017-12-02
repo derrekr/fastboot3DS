@@ -34,8 +34,6 @@ void IRQ_init(void)
 {
 	REG_IRQ_IE = 0;
 	REG_IRQ_IF = 0xFFFFFFFFu;
-
-	leaveCriticalSection(0u); // Abuse it to enable IRQ
 }
 
 void IRQ_registerHandler(Interrupt id, IrqHandler handler)

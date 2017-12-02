@@ -126,8 +126,6 @@ void IRQ_init(void)
 		tmp = REG_CPU_II_AKN; // Aknowledge
 		REG_CPU_II_EOI = tmp; // End of interrupt
 	} while(tmp != 1023);
-
-	leaveCriticalSection(); // Enables interrupts
 }
 
 void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, IrqHandler handler)

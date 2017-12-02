@@ -43,6 +43,8 @@ void hardwareInit(void)
 		deinitCpu();
 		((void (*)(void))0x0001004C)();
 	}
+
+	leaveCriticalSection(); // Enables interrupts
 }
 
 /*void hardwareDeinit(void)
