@@ -31,7 +31,7 @@
 #include "arm11/hardware/hid.h"
 #include "arm11/debug.h"
 #include "arm11/config.h"
-// #include "arm11/fmt.h"
+#include "arm11/fmt.h"
 
 #define MAX_FILE_SIZE	(0x4000u - 1)
 
