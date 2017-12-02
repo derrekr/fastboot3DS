@@ -35,7 +35,6 @@ int main(void)
 
 	while(!g_startFirmLaunch) __wfi();
 
-	hardwareDeinit();
 	// TODO: Proper argc/v passing needs to be implemented.
 	firmLaunch();
 

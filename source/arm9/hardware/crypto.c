@@ -184,11 +184,6 @@ void AES_init(void)
 	setupKeys();
 }
 
-void AES_deinit(void)
-{
-	REG_AESCNT = AES_MAC_SIZE(4) | AES_FLUSH_WRITE_FIFO | AES_FLUSH_READ_FIFO;
-}
-
 void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScrambler, const u32 key[4])
 {
 	fb_assert(keyslot < 0x40);

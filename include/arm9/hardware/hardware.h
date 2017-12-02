@@ -21,4 +21,4 @@
 
 
 void hardwareInit(void);
-void hardwareDeinit(void);
+//void hardwareDeinit(void);
