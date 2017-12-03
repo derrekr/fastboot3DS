@@ -78,7 +78,7 @@ MenuInfo menu_fb3ds[] =
 	{
 		"Main Menu", 6, NULL, 0, 
 		{
-			{ "Continue boot",				DESC_CONTINUE,				&menuContinueBoot,		0 },
+			{ "Continue boot",				DESC_CONTINUE,				NULL,					MENU_LEAVE_PARAM },
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
 			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					7 },

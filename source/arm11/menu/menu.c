@@ -276,7 +276,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 last_index = (u32) -1;
 	
 	// main menu processing loop
-	while (!g_startFirmLaunch && !g_continueBootloader) {
+	while (!g_startFirmLaunch) {
 		// update menu and description (on demand)
 		if ((index != last_index) || (curr_menu != last_menu)) {
 			menuDraw(curr_menu, menu_con, index);
@@ -304,6 +304,12 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		}
 		else if ((kDown & KEY_A) && (curr_menu->entries[index].function == NULL))
 		{
+			u32 next_menu_idx = curr_menu->entries[index].param;
+			
+			// special handling for MENU_LEAVE_PARAM
+			if (next_menu_idx == MENU_LEAVE_PARAM)
+				break;
+			
 			// store previous menu and index for return
 			if (menu_lvl < MENU_MAX_DEPTH)
 			{
@@ -312,7 +318,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 				menu_lvl++;
 			}
 			// enter submenu
-			curr_menu = info + curr_menu->entries[index].param;
+			curr_menu = info + next_menu_idx;
 			index = 0;
 		}
 		else if (kDown & KEY_A)

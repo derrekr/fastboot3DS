@@ -21,6 +21,8 @@
 #include "types.h"
 #include "arm11/console.h"
 
+#define MENU_LEAVE_PARAM	((u32) -1)
+
 #define MENU_MAX_ENTRIES	8
 #define MENU_MAX_DEPTH		4
 
