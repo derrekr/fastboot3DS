@@ -45,6 +45,7 @@ enum BootModes {
 #define numKeys  KLast
 
 bool loadConfigFile();
+bool configIsLoaded();
 bool configHasChanged();
 FsDevice configGetStorageLocation();
 bool writeConfigFile();

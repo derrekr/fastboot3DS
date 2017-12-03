@@ -229,6 +229,11 @@ static void unloadConfigFile()
 	}
 }
 
+bool configIsLoaded()
+{
+	return configLoaded;
+}
+
 bool configHasChanged()
 {
 	return configDirty;
@@ -236,6 +241,9 @@ bool configHasChanged()
 
 FsDevice configGetStorageLocation()
 {
+	if(!configLoaded)
+		panic();
+
 	if(filepath == SdmcFilepath)
 		return FS_DEVICE_SDMC;
 	
