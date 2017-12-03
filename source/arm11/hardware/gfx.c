@@ -283,6 +283,10 @@ void GFX_init(void)
 
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
+
+	// On certain N3DS consoles the first framebuffer swap on cold boot
+	// can cause graphics corruption if we don't wait for the first VBlank.
+	GFX_waitForEvent(GFX_EVENT_PDC0, true);
 }
 
 void GFX_enterLowPowerState(void)
