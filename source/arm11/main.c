@@ -37,7 +37,6 @@
 #include "fsutils.h"
 
 
-volatile bool g_continueBootloader = true;
 volatile u32 g_startFirmLaunch = 0;
 
 
@@ -114,7 +113,7 @@ int main(void)
 	// show splash if (bootmode != BootModeSilent)
 	if(show_menu || (bootmode != BootModeQuiet))
 	{
-		GFX_init();
+		if (!gfx_initialized) GFX_init();
 		gfx_initialized = true;
 		
 		if (drawSplashscreen(banner_spla, -1, -1))
@@ -161,7 +160,6 @@ int main(void)
 			consoleInit(SCREEN_SUB, &menu_con, false);
 
 			// run menu
-			g_continueBootloader = false;
 			menuProcess(&menu_con, &term_con, menu_fb3ds);
 			
 			// clear consoles and screen
@@ -179,7 +177,7 @@ int main(void)
 		}
 		
 		// search for a bootable firmware (all slots)
-		if (g_continueBootloader && !g_startFirmLaunch)
+		if (!g_startFirmLaunch)
 		{
 			err_string = (char*) malloc(512);
 			char* err_ptr = err_string;
@@ -280,5 +278,6 @@ int main(void)
 	
 	
 	// reaching here was never intended....
+	panicMsg("Reached code end!");
 	return 0;
 }

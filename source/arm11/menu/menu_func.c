@@ -320,16 +320,6 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	return 1;
 }
 
-u32 menuContinueBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
-{
-	// all the relevant stuff handled outside
-	(void) term_con;
-	(void) menu_con;
-	(void) param;
-	g_continueBootloader = true;
-	return 0;
-}
-
 u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;
