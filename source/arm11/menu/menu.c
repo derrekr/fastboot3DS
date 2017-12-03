@@ -127,6 +127,18 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	u32 conw = desc_con->consoleWidth;
 	u32 curY = 4;
 	
+	// print config location
+	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
+	if(!configIsLoaded())
+	{
+		ee_printf("Config not found");
+	}
+	else
+	{
+		FsDevice loc_conf = configGetStorageLocation();
+		ee_printf("Config from %s", (loc_conf == FS_DEVICE_SDMC) ? "SDMC" : "NAND");
+	}
+	
 	// print boot mode
 	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
 	if(configDataExist(KBootMode))
@@ -137,18 +149,8 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	}
 	else
 	{
-		ee_printf(ESC_SCHEME_WEAK "unknown bootmode" ESC_RESET);
+		ee_printf("bootmode not set");
 	}
-	
-	// reboot slot
-	u32 prevSlot = readStoredBootslot();
-	consoleSetCursor(desc_con, conw - 19 - 1, curY++);
-	if ((prevSlot >= 1) && (prevSlot <= 3))
-		ee_printf("    " "Reboot slot: #%lu", prevSlot);
-	else if (prevSlot == FIRM1_BOOT_SLOT)
-		ee_printf(" " "Reboot slot: firm1");
-	else
-		ee_printf("  " "Reboot slot: auto");
 	
 	// print slot config
 	curY++;
@@ -160,6 +162,17 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 			ee_printf((configDataExist(KBootOption1Buttons + i)) ? "keycombo" : "autoboot");
 		else ee_printf("   -    ");
 	}
+	
+	// reboot slot
+	u32 prevSlot = readStoredBootslot();
+	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
+	ee_printf(ESC_SCHEME_WEAK "reboot: " ESC_RESET);
+	if ((prevSlot >= 1) && (prevSlot <= 3))
+		ee_printf(" slot %lu ", prevSlot);
+	else if (prevSlot == FIRM1_BOOT_SLOT)
+		ee_printf(" firm1: ");
+	else
+		ee_printf("autoboot");
 	
 	// print dev mode config
 	curY++;
