@@ -36,6 +36,12 @@ s32 fUnmount(FsDrive drive)
 	return PXI_sendCmd(IPC_CMD9_FUNMOUNT, &cmdBuf, 1);
 }
 
+bool fIsDriveMounted(FsDrive drive)
+{
+	const u32 cmdBuf = drive;
+	return PXI_sendCmd(IPC_CMD9_FIS_DRIVE_MOUNTED, &cmdBuf, 1);
+}
+
 s32 fGetFree(FsDrive drive, u64 *size)
 {
 	u32 cmdBuf[3];

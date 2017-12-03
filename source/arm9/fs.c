@@ -126,7 +126,7 @@ s32 fUnmount(FsDrive drive)
 	else return -res;
 }
 
-static bool isDriveMounted(FsDrive drive)
+bool fIsDriveMounted(FsDrive drive)
 {
 	if((u32)drive >= FS_MAX_DRIVES) return false;
 	
@@ -135,7 +135,7 @@ static bool isDriveMounted(FsDrive drive)
 
 static s32 ensureUnmounted(FsDrive drive)
 {
-	if(!isDriveMounted(drive))
+	if(!fIsDriveMounted(drive))
 		return FR_OK;
 	
 	return fUnmount(drive);
@@ -143,7 +143,7 @@ static s32 ensureUnmounted(FsDrive drive)
 
 static s32 ensureMounted(FsDrive drive)
 {
-	if(isDriveMounted(drive))
+	if(fIsDriveMounted(drive))
 		return FR_OK;
 	
 	return fMount(drive);

@@ -45,6 +45,9 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 		case IPC_CMD_ID_MASK(IPC_CMD9_FUNMOUNT):
 			result = fUnmount(buf[0]);
 			break;
+		case IPC_CMD_ID_MASK(IPC_CMD9_FIS_DRIVE_MOUNTED):
+			result = fIsDriveMounted(buf[0]);
+			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_FGETFREE):
 			result = fGetFree(buf[2], (u64*)buf[0]);
 			break;

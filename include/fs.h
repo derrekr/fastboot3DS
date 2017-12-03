@@ -63,6 +63,7 @@ typedef s32 DevBufHandle;
 
 s32  fMount(FsDrive drive);
 s32  fUnmount(FsDrive drive);
+bool fIsDriveMounted(FsDrive drive);
 s32  fGetFree(FsDrive drive, u64 *size);
 u32  fGetDeviceSize(FsDevice dev);
 bool fIsDevActive(FsDevice dev);
