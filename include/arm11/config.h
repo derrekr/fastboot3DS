@@ -18,6 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "fs.h"
 
 enum Keys {
 	KBootOption1 = 0,
@@ -45,6 +46,7 @@ enum BootModes {
 
 bool loadConfigFile();
 bool configHasChanged();
+FsDevice configGetStorageLocation();
 bool writeConfigFile();
 void *configCopyText(int key);
 const void *configGetData(int key);

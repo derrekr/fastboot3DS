@@ -24,9 +24,7 @@
 #include <ctype.h>
 #include "types.h"
 #include "mem_map.h"
-#include "fs.h"
 #include "util.h"
-// #include "arm9/hardware/interrupt.h"
 #include "fsutils.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/debug.h"
@@ -234,6 +232,14 @@ static void unloadConfigFile()
 bool configHasChanged()
 {
 	return configDirty;
+}
+
+FsDevice configGetStorageLocation()
+{
+	if(filepath == SdmcFilepath)
+		return FS_DEVICE_SDMC;
+	
+	return FS_DEVICE_NAND;
 }
 
 bool writeConfigFile()
