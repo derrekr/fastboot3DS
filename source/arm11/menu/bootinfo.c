@@ -23,7 +23,7 @@
 #include "arm11/menu/bootinfo.h"
 #include "arm11/bootenv.h"
 #include "arm11/fmt.h"
-#include "fsutils.h"
+#include "fs.h"
 
 
 // System models.
@@ -75,7 +75,6 @@ void getBootInfo(bootInfo* info)
 		
 	// Mounted drives.
 	info->mountState = 0;
-	const char* mount_paths[] = { MOUNT_STATE_PATHS };
-	for (u32 i = 0; i < sizeof(mount_paths) / sizeof(const char*); i++)
-		info->mountState |= (fsEnsureMounted(mount_paths[i]) ? 1 : 0) << i;
+	for (FsDrive i = FS_DRIVE_SDMC; i <= FS_DRIVE_NAND; i++)
+		info->mountState |= (fIsDriveMounted(i) ? 1 : 0) << i;
 }

@@ -33,6 +33,7 @@
 #include "arm11/fmt.h"
 #include "arm11/main.h"
 #include "hardware/gfx.h"
+#include "fs.h" // for drive names
 
 
 
@@ -106,7 +107,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	
 	// get bootinfo
-	const char* mount_paths[] = { MOUNT_STATE_PATHS };
+	const char* mount_paths[] = { FS_DRIVE_NAMES };
 	bootInfo bootinfo;
 	getBootInfo(&bootinfo);
 	
