@@ -96,5 +96,17 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
 	REG_PXI_SYNC = PXI_DATA_SENT(words) | PXI_TRIGGER_SYNC_IRQ;
 
 	while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
-	return REG_PXI_RECV;
+	const u32 res = REG_PXI_RECV;
+
+#ifdef ARM11
+	// The CPU may do speculative prefetches of data after the first invalidation
+	// so we need to do it again. Not sure if this is a ARMv6+ thing.
+	for(u32 i = inBufs; i < inBufs + outBufs; i++)
+	{
+		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
+		invalidateDCacheRange(outBuf->ptr, outBuf->size);
+	}
+#endif
+
+	return res;
 }
