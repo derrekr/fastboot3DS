@@ -20,8 +20,6 @@
 
 #include "types.h"
 
-#define MOUNT_STATE_PATHS "sdmc:", "twln:", "twlp:", "nand:"
-
 
 typedef struct {
     char model[24];
