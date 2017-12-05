@@ -16,6 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm11/bootenv.h"
 #include "arm11/hardware/i2c.h"
 #include "arm11/menu/bootslot_store.h"
 
@@ -27,6 +28,10 @@ static u8 stored_slot = INVALID_BOOT_SLOT;
 
 u8 readStoredBootslot(void)
 {
+	// stored slot is always zero on cold boots
+	if (getBootEnv() == BOOTENV_COLD_BOOT)
+		return 0;
+	
 	if (stored_slot == INVALID_BOOT_SLOT)
 		stored_slot = I2C_readReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG);
 	
