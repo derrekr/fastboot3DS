@@ -37,7 +37,7 @@
 #include "fsutils.h"
 
 
-volatile u32 g_startFirmLaunch = 0;
+volatile bool g_startFirmLaunch = false;
 
 
 
@@ -83,8 +83,14 @@ int main(void)
 			{
 				char* path = (char*) configGetData(KBootOption1 + i);
 				err_ptr += ee_sprintf(err_ptr, "Keys match boot slot #%lu.\nBoot path is %s\n", (i+1), path);
+				
 				firm_err = loadVerifyFirm(path, false);
-				if (firm_err >= 0) g_startFirmLaunch = i + 1;
+				if (firm_err >= 0)
+				{
+					g_startFirmLaunch = true;
+					storeBootslot(i + 1);
+				}
+				
 				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 				break;
 			}
@@ -195,8 +201,14 @@ int main(void)
 
 					char* path = (char*) configGetData(KBootOption1 + i);
 					err_ptr += ee_sprintf(err_ptr, "Trying boot slot #%lu.\nBoot path is %s\n", (i+1), path);
+					
 					firm_err = loadVerifyFirm(path, false);
-					if (firm_err >= 0) g_startFirmLaunch = i + 1;
+					if (firm_err >= 0)
+					{
+						g_startFirmLaunch = true;
+						storeBootslot(i + 1);
+					}
+					
 					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
 					break;
 				}
@@ -205,8 +217,10 @@ int main(void)
 			else if (prevBootSlot == FIRM1_BOOT_SLOT)
 			{
 				err_ptr += ee_sprintf(err_ptr, "Rebooting to firm1:...\n");
+				
 				firm_err = loadVerifyFirm("firm1:", false);
-				if (firm_err >= 0) g_startFirmLaunch = prevBootSlot;
+				g_startFirmLaunch = (firm_err >= 0);
+				
 				err_ptr += ee_sprintf(err_ptr, "Load firm1: %s.\n", g_startFirmLaunch ? "success" : "failed");
 			}
 			// boot env handling (only on reboots) -> try previous slot
@@ -222,8 +236,11 @@ int main(void)
 				{
 					char* path = (char*) configGetData(KBootOption1 + (prevBootSlot-1));
 					err_ptr += ee_sprintf(err_ptr, "Boot path is %s\n", path);
+					
 					firm_err = loadVerifyFirm(path, false);
-					if (firm_err >= 0) g_startFirmLaunch = prevBootSlot;
+					g_startFirmLaunch = (firm_err >= 0);
+					// no need to store the bootslot here as it stays as is
+					
 					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", prevBootSlot, g_startFirmLaunch ? "success" : "failed");
 				}
 			}
@@ -266,11 +283,6 @@ int main(void)
 			GFX_init();
 			GFX_deinit();
 		}
-		
-		// store the bootslot (if coming from slot or firm1:)
-		if((g_startFirmLaunch <= 3) || (g_startFirmLaunch == FIRM1_BOOT_SLOT))
-			storeBootslot(g_startFirmLaunch);
-		else storeBootslot(0);
 		
 		// launch firm
 		firmLaunch();

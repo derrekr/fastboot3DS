@@ -25,6 +25,7 @@
 #include "firmwriter.h"
 #include "fs.h"
 #include "fsutils.h"
+#include "arm11/menu/bootslot_store.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_func.h"
@@ -307,7 +308,11 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	ee_printf("\nFirm load success, launching firm..."); // <-- you will never see this
-	g_startFirmLaunch = (param < 3) ? (param + 1) : param;
+	g_startFirmLaunch = true;
+	
+	// store the bootslot
+	u32 slot = (param < 3) ? (param + 1) : (param == 0xFE) ? FIRM1_BOOT_SLOT : 0;
+	storeBootslot(slot);
 	
 	return 0;
 	

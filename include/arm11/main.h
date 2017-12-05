@@ -20,4 +20,4 @@
 
 
 // 0 if no FIRM loaded / 1...3 FIRM loaded from slot / > 3 FIRM loaded from elsewhere
-extern volatile u32 g_startFirmLaunch;  
+extern volatile bool g_startFirmLaunch;  
