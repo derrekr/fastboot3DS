@@ -874,6 +874,7 @@ u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	return 0;
 }
 
+/*
 u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;
@@ -955,3 +956,4 @@ u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	return 0;
 }
+*/

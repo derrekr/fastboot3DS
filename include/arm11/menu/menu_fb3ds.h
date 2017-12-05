@@ -76,14 +76,14 @@
 MenuInfo menu_fb3ds[] =
 {
 	{
-		"Main Menu", 6, NULL, 0, 
+		"Main Menu", 5, NULL, 0, 
 		{
 			{ "Continue boot",				DESC_CONTINUE,				NULL,					MENU_LEAVE_PARAM },
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
 			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					7 },
 			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					8 },
-			{ "Debug...",					LOREM,	    				NULL,					9 }
+			// { "Debug...",					LOREM,	    				NULL,					9 }
 		}
 	},
 	{ // 1
@@ -132,12 +132,12 @@ MenuInfo menu_fb3ds[] =
 			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds,	0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
-	},
+	}/*,
 	{ // 9
 		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
 			{ "View current settings",		LOREM,						&debugSettingsView,		0 },
 			{ "Escape sequence test",		LOREM,						&debugEscapeTest,		0 } 
 		}
-	}
+	}*/
 };
