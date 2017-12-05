@@ -76,10 +76,11 @@
 MenuInfo menu_fb3ds[] =
 {
 	{
-		"Main Menu", 5, NULL, 0, 
+		"Main Menu", 6, NULL, 0, 
 		{
 			{ "Continue boot",				DESC_CONTINUE,				NULL,					MENU_LEAVE_PARAM },
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
+			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 },
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
 			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					7 },
 			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					8 },
@@ -87,14 +88,12 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 1
-		"Boot Menu", 5, &menuPresetBootMenu, MENU_FLAG_SLOTS,
+		"Boot Menu", 4, &menuPresetBootMenu, MENU_FLAG_SLOTS,
 		{
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
 			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 },
-			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE },
-			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 }
-			
+			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE }
 		}
 	},
 	{ // 2
