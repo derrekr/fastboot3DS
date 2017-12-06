@@ -268,7 +268,10 @@ int main(void)
 	
 	// power off
 	if(hidGetPowerButton(true))
+	{
+		storeBootslot(0);
 		power_off();
+	}
 
 	// firm launch
 	if(g_startFirmLaunch)
