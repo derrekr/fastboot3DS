@@ -101,7 +101,11 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	
 	// print title at the top
+#ifdef NDEBUG
 	const char* title = "fastboot3DS " VERS_STRING;
+#else
+	const char* title = "fastboot3DS " VERS_STRING " (debug)";
+#endif
 	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
 	ee_printf(ESC_SCHEME_ACCENT0 "%s" ESC_RESET, title);
 	
