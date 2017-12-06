@@ -17,13 +17,13 @@
  */
 
 #include "types.h"
+#include "ipc_handler.h"
+#include "hardware/pxi.h"
 #ifdef ARM9
 	#include "arm9/hardware/interrupt.h"
 	#include "arm9/hardware/ndma.h"
 #elif ARM11
 	#include "arm11/fmt.h"
-	#include "ipc_handler.h"
-	#include "hardware/pxi.h"
 	#include "arm11/hardware/interrupt.h"
 #endif
 #include "hardware/gfx.h"
@@ -38,6 +38,7 @@ noreturn void __fb_assert(const char *const str, u32 line)
 	// Get rid of the warnings.
 	(void)str;
 	(void)line;
+	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
 #elif ARM11
 	ee_printf("Assertion failed: %s:%" PRIu32, str, line);
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
