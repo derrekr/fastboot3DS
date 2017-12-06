@@ -25,6 +25,9 @@
 #include "types.h"
 
 
+#define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
+
+
 #define HID_KEY_MASK_ALL          ((KEY_SHELL << 1) - 1)
 #define HID_VERBOSE_MODE_BUTTONS  (KEY_SELECT | KEY_START)
 

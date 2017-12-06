@@ -28,9 +28,6 @@
 #include "arm11/hardware/gpio.h"
 
 
-#define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
-
-
 static u32 kHeld = 0, kDown = 0, kUp = 0;
 static vu32 homeShellState = 0, powerWifiState = 0;
 

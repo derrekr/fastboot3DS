@@ -27,6 +27,8 @@
 #include "ipc_handler.h"
 #include "hardware/gfx.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/hid.h"
 
 
 static u32 debugHash = 0;
@@ -63,6 +65,14 @@ noreturn void panic()
 
 	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
 
+	// Wait for any button.
+	do
+	{
+		hidScanInput();
+	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
+
+	i2cmcu_lcd_poweroff();
+	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
 	while(1) __wfi();
 }
 
@@ -81,6 +91,14 @@ noreturn void panicMsg(const char *msg)
 
 	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
 
+	// Wait for any button.
+	do
+	{
+		hidScanInput();
+	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
+
+	i2cmcu_lcd_poweroff();
+	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
 	while(1) __wfi();
 }
 
@@ -143,5 +161,13 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 
 	PXI_sendCmd(IPC_CMD9_EXCEPTION, NULL, 0);
 
+	// Wait for any button.
+	do
+	{
+		hidScanInput();
+	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
+
+	i2cmcu_lcd_poweroff();
+	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
 	while(1) __wfi();
 }
