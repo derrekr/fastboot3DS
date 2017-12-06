@@ -418,8 +418,15 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				lastname = NULL;
 				break;
 			}
-			else if ((kDown & KEY_B) && *res_path)
+			else if (kDown & KEY_B)
 			{
+				// if in root: return to menu
+				if (!*res_path)
+				{
+					result = false;
+					break;
+				}
+				
 				// if not in root: return to previous path
 				// (the name of this path will be stored in lastname)
 				lastname = strrchr(res_path, '/');
