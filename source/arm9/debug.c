@@ -21,6 +21,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "hardware/pxi.h"
+#include "ipc_handler.h"
 #include "fatfs/ff.h"
 #include "fs.h"
 #include "arm9/hardware/interrupt.h"
@@ -28,7 +29,9 @@
 #include "arm9/hardware/ndma.h"
 
 
+#ifndef NDEBUG
 static u32 debugHash = 0;
+#endif
 
 
 
@@ -55,11 +58,11 @@ noreturn void panic()
 	enterCriticalSection();
 
 	fsDeinit();
-	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
+	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
 	while(1)
 	{
-		const u32 color = RGB8_to_565(255, 0, 0)<<16 | RGB8_to_565(255, 0, 0);
+		const u32 color = RGB8_to_565(0, 255, 0)<<16 | RGB8_to_565(0, 255, 0);
 		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
 		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
 	}
@@ -72,11 +75,11 @@ noreturn void panicMsg(UNUSED const char *msg)
 	enterCriticalSection();
 
 	fsDeinit();
-	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
+	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
 	while(1)
 	{
-		const u32 color = RGB8_to_565(255, 0, 0)<<16 | RGB8_to_565(255, 0, 0);
+		const u32 color = RGB8_to_565(0, 255, 0)<<16 | RGB8_to_565(0, 255, 0);
 		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
 		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
 	}
@@ -88,9 +91,14 @@ noreturn void guruMeditation(UNUSED u8 type, UNUSED const u32 *excStack)
 {
 	// avoid fs corruptions
 	fsDeinit();
-	//PXI_sendWord(PXI_CMD_ALLOW_POWER_OFF);
 
-	while(1) __wfi();
+	PXI_sendCmd(IPC_CMD11_EXCEPTION, NULL, 0);
+	while(1)
+	{
+		const u32 color = RGB8_to_565(255, 0, 0)<<16 | RGB8_to_565(255, 0, 0);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_1, color, SCREEN_SIZE_SUB);
+		NDMA_fill((u32*)FRAMEBUF_SUB_A_2, color, SCREEN_SIZE_SUB);
+	}
 }
 
 void dumpMem(u8 *mem, u32 size, char *filepath)
