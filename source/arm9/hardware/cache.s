@@ -59,7 +59,8 @@ ASM_FUNC flushDCache
 		add r1, r1, #0x40000000
 		cmp r1, #0
 		bne flushDCache_outer_lp
-	b drainWriteBufferFlushInvalidate
+	mcr p15, 0, r1, c7, c10, 4         @ Drain write buffer
+	bx lr
 
 
 ASM_FUNC flushInvalidateDCache
@@ -75,7 +76,6 @@ ASM_FUNC flushInvalidateDCache
 		add r1, r1, #0x40000000
 		cmp r1, #0
 		bne flushInvalidateDCache_outer_lp
-drainWriteBufferFlushInvalidate:
 	mcr p15, 0, r1, c7, c10, 4         @ Drain write buffer
 	bx lr
 
@@ -88,7 +88,9 @@ ASM_FUNC flushDCacheRange
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt flushDCacheRange_lp
-	b drainWriteBufferFlushInvalidateRange
+	mov r0, #0
+	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
+	bx lr
 
 
 ASM_FUNC flushInvalidateDCacheRange
@@ -99,7 +101,6 @@ ASM_FUNC flushInvalidateDCacheRange
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt flushInvalidateDCacheRange_lp
-drainWriteBufferFlushInvalidateRange:
 	mov r0, #0
 	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
 	bx lr
@@ -123,6 +124,8 @@ ASM_FUNC invalidateDCacheRange
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt invalidateDCacheRange_lp
+	mov r0, #0
+	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
 	bx lr
 
 
