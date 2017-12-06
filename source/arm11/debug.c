@@ -31,7 +31,9 @@
 #include "arm11/hardware/hid.h"
 
 
+#ifndef NDEBUG
 static u32 debugHash = 0;
+#endif
 
 
 
