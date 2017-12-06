@@ -58,5 +58,6 @@ release: clean
 	@$(MAKE) -j4 --no-print-directory -C arm11 NO_DEBUG=1
 	firm_builder $(TARGET).firm $(ENTRY9) $(ENTRY11) $(SECTION0_ADR) $(SECTION0_TYPE) \
 		arm9/$(TARGET)9.bin $(SECTION1_ADR) $(SECTION1_TYPE) arm11/$(TARGET)11.bin
+	@bash signFirm.sh
 	@7z a -mx -m0=ARM -m1=LZMA $(TARGET)$(VERS_STRING).7z $(TARGET).firm
 	@7z u -mx -m0=PPMD $(TARGET)$(VERS_STRING).7z LICENSE.txt README.md
