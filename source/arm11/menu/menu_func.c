@@ -594,8 +594,14 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		}
 		
 		// check for user cancel request
-		// cancel is forbidden(!) here
-		userCancelHandler(false);
+		// cancel is forbidden(!) here, but we need to handle force poweroff
+		if (userCancelHandler(false))
+		{
+			fFinalizeRawAccess(devHandle);
+			fFreeDeviceBuffer(dbufHandle);
+			fClose(fHandle);
+			return 1;
+		}
 	}
 	
 	// NAND access finalized
@@ -884,6 +890,7 @@ u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleSelect(term_con);
 	consoleClear();
 	
+	ee_printf("Config has changed: %s\n", configHasChanged() ? "true" : "false");
 	ee_printf("Write config: %s\n", writeConfigFile() ? "success" : "failed");
 	ee_printf("Load config: %s\n", loadConfigFile() ? "success" : "failed");
 	
