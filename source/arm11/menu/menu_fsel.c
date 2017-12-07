@@ -435,6 +435,8 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 					*(lastname++) = '\0';
 				else if (allow_root)
 					*res_path = '\0';
+				else
+					result = false;
 				break;
 			}
 			else if (kHeld & (KEY_DDOWN|KEY_DUP|KEY_DLEFT|KEY_DRIGHT) && n_entries)
