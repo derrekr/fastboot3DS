@@ -188,7 +188,7 @@ s32 fStat(const char *const path, FsFileInfo *fi)
 	cmdBuf[0] = (u32)path;
 	cmdBuf[1] = strlen(path) + 1;
 	cmdBuf[2] = (u32)fi;
-	cmdBuf[3] = sizeof(FsFileInfo);
+	cmdBuf[3] = (fi ? sizeof(FsFileInfo) : 0);
 
 	return PXI_sendCmd(IPC_CMD9_FSTAT, cmdBuf, 4);
 }

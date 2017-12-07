@@ -80,12 +80,12 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
 	for(u32 i = 0; i < inBufs; i++)
 	{
 		const IpcBuffer *const inBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
-		flushDCacheRange(inBuf->ptr, inBuf->size);
+		if(inBuf->ptr && inBuf->size) flushDCacheRange(inBuf->ptr, inBuf->size);
 	}
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
 		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
-		invalidateDCacheRange(outBuf->ptr, outBuf->size);
+		if(outBuf->ptr && outBuf->size) invalidateDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
 	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
@@ -104,7 +104,7 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
 	for(u32 i = inBufs; i < inBufs + outBufs; i++)
 	{
 		const IpcBuffer *const outBuf = (IpcBuffer*)&buf[i * sizeof(IpcBuffer) / 4];
-		invalidateDCacheRange(outBuf->ptr, outBuf->size);
+		if(outBuf->ptr && outBuf->size) invalidateDCacheRange(outBuf->ptr, outBuf->size);
 	}
 #endif
 
