@@ -321,23 +321,29 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 	
 	// check res_path, fix if required
 	char* lastname = NULL;
-	FsFileInfo fno;
-	if (fStat(res_path, &fno) != FR_OK)
+	s32 dhandle;
+	// is this a dir?
+	if ((dhandle = fOpenDir(res_path)) >= 0)
 	{
-		*res_path = '\0';
+		fCloseDir(dhandle);
 	}
 	// not a dir -> must be a file
-	else if (!(fno.fattrib & AM_DIR))
+	else if (fStat(res_path, NULL) == FR_OK)
 	{
 		lastname = strrchr(res_path, '/');
 		if (!lastname)
 			panicMsg("Invalid path");
 		*(lastname++) = '\0';
 		
-		s32 dhandle = fOpenDir(res_path);
+		dhandle = fOpenDir(res_path);
 		if (dhandle < 0)
 			panicMsg("Filesystem corruption");
 		fCloseDir(dhandle);
+	}
+	// neither file nor dir
+	else
+	{
+		*res_path = '\0';
 	}
 	
 	bool is_dir = true; // we are not finished while we have a dir in res_path

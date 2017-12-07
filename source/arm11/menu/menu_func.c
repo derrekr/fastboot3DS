@@ -705,7 +705,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	ee_printf_screen_center("Select fastboot3DS update file.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
+	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*.firm", true))
 		return 1; // cancel by user
 	
 	
