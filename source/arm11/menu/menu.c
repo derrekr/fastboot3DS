@@ -294,7 +294,12 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 last_index = (u32) -1;
 	
 	// main menu processing loop
-	while (!g_startFirmLaunch) {
+	while (!g_startFirmLaunch)
+	{
+		// handle power button
+		if(hidGetPowerButton(false))
+			break; // deinits & poweroff outside of this function
+		
 		// update menu and description (on demand)
 		if ((index != last_index) || (curr_menu != last_menu)) {
 			menuDraw(curr_menu, menu_con, index);
@@ -307,10 +312,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			GFX_swapFramebufs();
 		}
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
-		
-		// handle power button
-		if(hidGetPowerButton(false))
-			break; // deinits & poweroff outside of this function
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
