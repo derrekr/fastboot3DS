@@ -20,7 +20,7 @@
 
 #include "types.h"
 
-#define FIRM1_BOOT_SLOT		0xFE
+#define N_BOOTSLOTS			3
 #define INVALID_BOOT_SLOT	0xFF
 
 u8 readStoredBootslot(void);

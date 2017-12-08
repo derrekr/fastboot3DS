@@ -31,7 +31,6 @@ void NAKED firmLaunchStub(void)
 
 	REG_PXI_SYNC = 0; // Disable all IRQs
 	// Tell ARM9 we are ready
-	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = 0xA8E4u;
 
 	// Wait for entry address
@@ -39,7 +38,6 @@ void NAKED firmLaunchStub(void)
 	u32 entry = REG_PXI_RECV;
 
 	// Tell ARM9 we got the entry
-	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = 0x94C6u;
 	REG_PXI_CNT = 0; // Disable PXI
 

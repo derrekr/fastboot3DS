@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include "types.h"
 #include "arm11/menu/bootinfo.h"
-#include "arm11/menu/bootslot_store.h"
+#include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/menu_color.h"
@@ -46,10 +46,16 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 	
 	
 	// handle flags
-	u32	slot = (flags & MENU_FLAG_SLOTS) ? index :
-		(flags & MENU_FLAG_SLOT(1)) ? 0 :
-		(flags & MENU_FLAG_SLOT(2)) ? 1 :
-		(flags & MENU_FLAG_SLOT(3)) ? 2 : (u32) -1;
+	u32	slot = -1;
+	if (flags & MENU_FLAG_SLOTS)
+	{
+		slot = index;
+	}
+	else
+	{
+		MENU_GET_FLAGSLOT(slot, flags);
+		slot--;
+	}
 	
 	// boot mode description
 	if ((flags & MENU_FLAG_BOOTMODE) && (index == 3))
@@ -64,7 +70,7 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 		else desc_ptr += ee_sprintf(desc_ptr, "\n \ncurrent: - not set up -");
 	}
 	// boot slot description
-	else if (slot < 3)
+	else if (slot < N_BOOTSLOTS)
 	{
 		// get strings for path and keycombo
 		char slot_path_store[24+1];
@@ -159,7 +165,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// print slot config
 	curY++;
-	for(u32 i = 0; i < 3; i++)
+	for(u32 i = 0; i < N_BOOTSLOTS; i++)
 	{
 		consoleSetCursor(desc_con, conw - 16 - 1, curY++);
 		ee_printf(ESC_SCHEME_WEAK "slot %lu: " ESC_RESET, i + 1);
@@ -174,8 +180,6 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	ee_printf(ESC_SCHEME_WEAK "reboot: " ESC_RESET);
 	if ((prevSlot >= 1) && (prevSlot <= 3))
 		ee_printf(" slot %lu ", prevSlot);
-	else if (prevSlot == FIRM1_BOOT_SLOT)
-		ee_printf(" firm1: ");
 	else
 		ee_printf("autoboot");
 	
@@ -294,7 +298,12 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 last_index = (u32) -1;
 	
 	// main menu processing loop
-	while (!g_startFirmLaunch) {
+	while (!g_startFirmLaunch)
+	{
+		// handle power button
+		if(hidGetPowerButton(false))
+			break; // deinits & poweroff outside of this function
+		
 		// update menu and description (on demand)
 		if ((index != last_index) || (curr_menu != last_menu)) {
 			menuDraw(curr_menu, menu_con, index);
@@ -307,10 +316,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			GFX_swapFramebufs();
 		}
 		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
-		
-		// handle power button
-		if(hidGetPowerButton(false))
-			break; // deinits & poweroff outside of this function
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();

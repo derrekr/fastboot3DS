@@ -68,8 +68,8 @@ static void hidIrqHandler(UNUSED u32 intSource)
 u32 hidGetPowerButton(bool resetState)
 {
 	u32 tmp = powerWifiState;
-	// Mask out power button pressed and long pressed and keep WiFi button state.
-	if(resetState) powerWifiState = tmp & 4;
+	// Mask out power button pressed and keep power button long pressed + WiFi button state.
+	if(resetState) powerWifiState = tmp & 6;
 	return tmp & 3;
 }
 

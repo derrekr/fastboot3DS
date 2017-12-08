@@ -19,6 +19,7 @@
  */
 
 #include "types.h"
+#include "arm11/menu/bootslot.h"
 #include "arm11/console.h"
 
 #define MENU_LEAVE_PARAM	((u32) -1)
@@ -33,9 +34,10 @@
 
 #define MENU_FLAG_SLOTS		(1<<0)
 #define MENU_FLAG_SLOT(x)	(1<<x)
-#define MENU_FLAG_BOOTMODE	(1<<3)
-#define MENU_FLAG_CONFIG	(1<<10)
+#define MENU_FLAG_BOOTMODE	(1<<(N_BOOTSLOTS+1))
+#define MENU_FLAG_CONFIG	(1<<(N_BOOTSLOTS+2))
 
+#define MENU_GET_FLAGSLOT(x,flags)	for (x = N_BOOTSLOTS; (x > 0) && !((flags >> x) & 0x1); x--)
 
 /**
  * @brief Menu entry description struct, used by MenuInfo.

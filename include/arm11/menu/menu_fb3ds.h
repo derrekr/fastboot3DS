@@ -19,9 +19,16 @@
  */
 
 #include "types.h"
+#include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_func.h"
 
+#define SUBENTRY_SLOT_BOOT(x) \
+	{ "Boot [slot " #x "]",				DESC_BOOT_SLOT(x),			&menuLaunchFirm,		(x-1) }
+	
+#define SUBENTRY_SLOT_SETUP(x, m) \
+	{ "Setup [slot " #x "]...",			DESC_SLOT_SETUP(x),			NULL,					(x+m-1) }
+	
 #define SUBMENU_SLOT_SETUP(x) \
 { \
 	"Boot Slot #" #x " Setup", 4, &menuPresetSlotConfig##x, MENU_FLAG_SLOT(x) | MENU_FLAG_CONFIG, \
@@ -41,7 +48,6 @@
 #define DESC_MISC			"Enter miscellaneous submenu, including the update tool and credits section."
 
 #define DESC_BOOT_SLOT(x)	"Boot the firmware in slot #" #x "."
-#define DESC_BOOT_FIRM1		"Boot the firmware in firm1:."
 #define DESC_BOOT_SETUP     "Change boot settings."
 
 #define DESC_SLOT_SETUP(x)	"Change boot settings for slot #" #x "."
@@ -82,33 +88,29 @@ MenuInfo menu_fb3ds[] =
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
 			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 },
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
-			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					7 },
-			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					8 },
-			// { "Debug...",					LOREM,	    				NULL,					9 }
+			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					4 },
+			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					5 },
+			{ "Debug...",					LOREM,	    				NULL,					9 }
 		}
 	},
 	{ // 1
-		"Boot Menu", 4, &menuPresetBootMenu, MENU_FLAG_SLOTS,
+		"Boot Menu", N_BOOTSLOTS, &menuPresetBootMenu, MENU_FLAG_SLOTS,
 		{
-			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
-			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
-			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 },
-			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE }
+			SUBENTRY_SLOT_BOOT(1),
+			SUBENTRY_SLOT_BOOT(2),
+			SUBENTRY_SLOT_BOOT(3)
 		}
 	},
 	{ // 2
-		"Boot Setup", 4, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
+		"Boot Setup", N_BOOTSLOTS + 1, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
 		{
-			{ "Setup [slot 1]...",			DESC_SLOT_SETUP(1),			NULL,					3 },
-			{ "Setup [slot 2]...",			DESC_SLOT_SETUP(2),			NULL,					4 },
-			{ "Setup [slot 3]...",			DESC_SLOT_SETUP(3),			NULL,					5 },
-			{ "Change boot mode...",		DESC_CHANGE_BOOT,			NULL,					6 }
+			SUBENTRY_SLOT_SETUP(1,6),
+			SUBENTRY_SLOT_SETUP(2,6),
+			SUBENTRY_SLOT_SETUP(3,6),
+			{ "Change boot mode...",		DESC_CHANGE_BOOT,			NULL,					3 }
 		}
 	},
-	SUBMENU_SLOT_SETUP(1), // 3
-	SUBMENU_SLOT_SETUP(2), // 4
-	SUBMENU_SLOT_SETUP(3), // 5
-	{ // 6
+	{ // 3
 		"Boot Mode Setup", 3, &menuPresetBootMode, MENU_FLAG_CONFIG,
 		{
 			{ "Set normal boot",			DESC_BOOT_NORMAL,			&menuSetBootMode,		0 },
@@ -116,7 +118,7 @@ MenuInfo menu_fb3ds[] =
 			{ "Set quiet boot",				DESC_BOOT_QUIET,			&menuSetBootMode,		2 }
 		}
 	},
-	{ // 7
+	{ // 4
 		"NAND Tools", 4, &menuPresetNandTools, 0,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
@@ -125,14 +127,17 @@ MenuInfo menu_fb3ds[] =
 			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
 		}
 	},
-	{ // 8
+	{ // 5
 		"Miscellaneous", 2, NULL, 0,
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds,	0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
-	}/*,
-	{ // 9
+	},
+	SUBMENU_SLOT_SETUP(1), // 6
+	SUBMENU_SLOT_SETUP(2), // 7
+	SUBMENU_SLOT_SETUP(3), // 8
+	/*{ // 9
 		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
 			{ "View current settings",		LOREM,						&debugSettingsView,		0 },

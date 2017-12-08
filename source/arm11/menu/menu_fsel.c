@@ -29,6 +29,7 @@
 #include "arm11/menu/menu_color.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/timer.h"
+#include "arm11/config.h"
 #include "arm11/console.h"
 #include "arm11/debug.h"
 #include "arm11/fmt.h"
@@ -67,15 +68,10 @@ static bool matchName(const char* path, const char* pattern)
 		}
 	}
 	
-	// handling the asterisk (matches one or more chars in path)
+	// handling the asterisk (matches any # of chars in path)
 	if ((*(pattern+1) == '?') || (*(pattern+1) == '*'))
 	{
 		// stupid user/dev shenanigans, failure
-		return false;
-	}
-	else if (*path == '\0')
-	{
-		// asterisk, but end reached on path, failure
 		return false;
 	}
 	else if (*(pattern+1) == '\0')
@@ -86,7 +82,7 @@ static bool matchName(const char* path, const char* pattern)
 	else
 	{
 		// we couldn't really go without recursion here
-		for (path++; *path != '\0'; path++)
+		for (; *path != '\0'; path++)
 		{
 			if (matchName(path, pattern + 1) == true) return true;
 		}
@@ -153,6 +149,9 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 	if(!*path)
 	{
 		const char* root_paths[] = { "sdmc:", "twln:", "twlp:", "nand:" };
+		const char* firm_paths[] = { "firm1:" };
+		const u32 firm_size = 0x400000; // 4MB
+		bool devmode = configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode));
 		
 		for(u32 i = 0; i < sizeof(root_paths) / sizeof(const char*); i++)
 		{
@@ -163,6 +162,20 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 			dir_buffer[n_entries].is_dir = 1;
 			dir_buffer[n_entries].fname = mallocpyString(root_paths[i]);
 			n_entries++;
+		}
+		
+		if(devmode)
+		{
+			for(u32 i = 0; i < sizeof(firm_paths) / sizeof(const char*); i++)
+			{
+				if (!matchName(firm_paths[i], pattern))
+					continue;
+				
+				dir_buffer[n_entries].fsize = firm_size;
+				dir_buffer[n_entries].is_dir = 0;
+				dir_buffer[n_entries].fname = mallocpyString(firm_paths[i]);
+				n_entries++;
+			}
 		}
 		
 		return n_entries;
@@ -354,8 +367,17 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		s32 scroll = 0;
 		s32 index = 0;
 		
-		if(n_entries < 0)
-			panicMsg("Filesystem corruption in dir");
+		if (n_entries < 0)
+		{
+			panicMsg("Filesystem failure!\nDid you pull the SD card?");
+			/*if (*res_path)
+			{
+				// return to root if error encountered
+				*res_path = '\0';
+				lastname = NULL;
+				continue;
+			} else panicMsg("Root filesystem failure!");*/
+		}
 		
 		// find lastname in listing
 		if (lastname)

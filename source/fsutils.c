@@ -88,15 +88,18 @@ bool fsMountSdmc()
 bool fsCreateFileWithPath(const char *filepath)
 {
 	const size_t maxBufSize = 0x100;
-	FILINFO fno;
+	s32 fhandle;
 	
 	
-	/* is the file already there? */
-	if (fStat(filepath, &fno) == 0)
-		return !(fno.fattrib & AM_DIR);
+	/* try to create the file */
+	if ((fhandle = fOpen(filepath, FS_CREATE_ALWAYS)) >= 0)
+	{
+		fClose(fhandle);
+		return true;
+	}
 	
 	
-	/* if not: create containing folders and the file */
+	/* if that didn't work: create containing folders and the file */
 	char *tempBuf = (char *) malloc(maxBufSize);
 	char *tempPtr = tempBuf;
 	
@@ -119,7 +122,7 @@ bool fsCreateFileWithPath(const char *filepath)
 	*tempPtr = '\0';
 	
 	/* touch file */
-	s32 fhandle = fOpen(tempBuf, FS_CREATE_ALWAYS);
+	fhandle = fOpen(tempBuf, FS_CREATE_ALWAYS);
 	if (fhandle < 0) goto fail;
 	fClose(fhandle);
 	

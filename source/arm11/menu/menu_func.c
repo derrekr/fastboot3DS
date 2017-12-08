@@ -25,7 +25,7 @@
 #include "firmwriter.h"
 #include "fs.h"
 #include "fsutils.h"
-#include "arm11/menu/bootslot_store.h"
+#include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_func.h"
@@ -52,7 +52,7 @@ u32 menuPresetNandTools(void)
 	u32 res = 0xFF;
 	
 	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
-		res &= ~((1 << 2) | (1 << 3));
+		res &= ~((1 << 2) | (1 << 3)); // disable forced restore and firmware flash
 	
 	return res;
 }
@@ -61,16 +61,13 @@ u32 menuPresetBootMenu(void)
 {
 	u32 res = 0xFF;
 	
-	for (u32 i = 0; i < 3; i++)
+	for (u32 i = 0; i < N_BOOTSLOTS; i++)
 	{
 		if (!configDataExist(KBootOption1 + i))
 		{
 			res &= ~(1 << i);
 		}
 	}
-	
-	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
-		res &= ~(1 << 3);
 	
 	return res;
 }
@@ -79,7 +76,7 @@ u32 menuPresetBootConfig(void)
 {
 	u32 res = 0;
 	
-	for (u32 i = 0; i < 3; i++)
+	for (u32 i = 0; i < N_BOOTSLOTS; i++)
 	{
 		if (configDataExist(KBootOption1 + i))
 		{
@@ -88,7 +85,7 @@ u32 menuPresetBootConfig(void)
 	}
 	
 	if (configDataExist(KBootMode))
-		res |= 1 << 3;
+		res |= 1 << N_BOOTSLOTS;
 	
 	return res;
 }
@@ -159,7 +156,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	
 	u32 res = 0;
-	if (menuFileSelector(res_path, menu_con, start, "*.firm", true))
+	if (menuFileSelector(res_path, menu_con, start, "*firm*", true))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 	
 	free(res_path);
@@ -266,7 +263,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleSelect(term_con);
 	consoleClear();
 		
-	if (param < 3) // loading from bootslot
+	if (param < N_BOOTSLOTS) // loading from bootslot
 	{
 		// check if bootslot exists
 		if (!configDataExist(KBootOption1 + param))
@@ -276,21 +273,13 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		}
 		path = (char*) configGetData(KBootOption1 + param);
 	}
-	else if (param == 0xFE) // loading from FIRM1
-	{
-		if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode))) {
-			ee_printf("Boot from FIRM1 is not available!\nEnable dev mode to get access.\n");
-			goto fail;
-		}
-		path = "firm1:";
-	}
 	else if (param == 0xFF) // user decision
 	{
 		ee_printf_screen_center("Select a firmware file to boot.\nPress [HOME] to cancel.");
 		updateScreens();
 		
 		path = path_store;
-		if (!menuFileSelector(path, menu_con, NULL, "*.firm", true))
+		if (!menuFileSelector(path, menu_con, NULL, "*firm*", true))
 			return 1;
 		
 		// back to terminal console
@@ -311,7 +300,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	g_startFirmLaunch = true;
 	
 	// store the bootslot
-	u32 slot = (param < 3) ? (param + 1) : (param == 0xFE) ? FIRM1_BOOT_SLOT : 0;
+	u32 slot = (param < N_BOOTSLOTS) ? (param + 1) : 0;
 	storeBootslot(slot);
 	
 	return 0;
@@ -594,8 +583,14 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		}
 		
 		// check for user cancel request
-		// cancel is forbidden(!) here
-		userCancelHandler(false);
+		// cancel is forbidden(!) here, but we need to handle force poweroff
+		if (userCancelHandler(false))
+		{
+			fFinalizeRawAccess(devHandle);
+			fFreeDeviceBuffer(dbufHandle);
+			fClose(fHandle);
+			return 1;
+		}
 	}
 	
 	// NAND access finalized
@@ -642,7 +637,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// file selector
 	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
+	if (!menuFileSelector(firm_path, menu_con, NULL, "*firm*", true))
 		return 1; // cancel by user
 	
 	
@@ -705,7 +700,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	ee_printf_screen_center("Select fastboot3DS update file.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*.firm", true))
+	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*firm*", true))
 		return 1; // cancel by user
 	
 	
@@ -884,6 +879,7 @@ u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleSelect(term_con);
 	consoleClear();
 	
+	ee_printf("Config has changed: %s\n", configHasChanged() ? "true" : "false");
 	ee_printf("Write config: %s\n", writeConfigFile() ? "success" : "failed");
 	ee_printf("Load config: %s\n", loadConfigFile() ? "success" : "failed");
 	

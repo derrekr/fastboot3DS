@@ -279,12 +279,17 @@ bool userCancelHandler(bool cancelAllowed)
 {
 	hidScanInput();
 	u32 kDown = hidKeysDown();
+	u32 powerHeld = hidGetPowerButton(false);
+	
+	// detect force poweroff
+	if (powerHeld & (1<<1))
+		return true;
 	
 	if (kDown & KEY_SHELL)
 	{
 		sleepmode();
 	}
-	else if (kDown & (KEY_HOME|KEY_B) || hidGetPowerButton(false))
+	else if (kDown & (KEY_HOME|KEY_B) || powerHeld)
 	{
 		if (cancelAllowed)
 		{
@@ -296,9 +301,11 @@ bool userCancelHandler(bool cancelAllowed)
 			
 				hidScanInput();
 				kDown = hidKeysDown();
+				powerHeld = hidGetPowerButton(false);
 				
 				if (kDown & KEY_SHELL) sleepmode();
 				if (kDown & KEY_A) return true;
+				if (powerHeld & (1<<1)) return true;
 			}
 			while (!(kDown & KEY_B));
 		}
