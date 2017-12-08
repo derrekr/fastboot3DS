@@ -367,8 +367,17 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		s32 scroll = 0;
 		s32 index = 0;
 		
-		if(n_entries < 0)
-			panicMsg("Filesystem corruption in dir");
+		if (n_entries < 0)
+		{
+			panicMsg("Filesystem failure!\nDid you pull the SD card?");
+			/*if (*res_path)
+			{
+				// return to root if error encountered
+				*res_path = '\0';
+				lastname = NULL;
+				continue;
+			} else panicMsg("Root filesystem failure!");*/
+		}
 		
 		// find lastname in listing
 		if (lastname)
