@@ -20,7 +20,7 @@
 #include "types.h"
 #include "arm11/hardware/hardware.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/menu/bootslot_store.h"
+#include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_fb3ds.h"
 #include "arm11/menu/menu_util.h"
@@ -71,7 +71,7 @@ int main(void)
 		keysToString(kHeld & 0xfff, combo_str);
 		err_ptr += ee_sprintf(err_ptr, "Keys held on boot: %s\n", combo_str);
 		
-		for(u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+		for(u32 i = 0; (i < N_BOOTSLOTS) && !g_startFirmLaunch; i++)
 		{
 			if(!configDataExist(KBootOption1 + i) ||
 				!configDataExist(KBootOption1Buttons + i))
@@ -192,7 +192,7 @@ int main(void)
 			if (!nextBootSlot)
 			{
 				err_ptr += ee_sprintf(err_ptr, "Continuing bootloader...\n");
-				for (u32 i = 0; (i < 3) && !g_startFirmLaunch; i++)
+				for (u32 i = 0; (i < N_BOOTSLOTS) && !g_startFirmLaunch; i++)
 				{
 					// FIRM not set for slot or slot not set to autoboot
 					if (!configDataExist(KBootOption1 + i) || configDataExist(KBootOption1Buttons + i))
