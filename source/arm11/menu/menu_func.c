@@ -25,7 +25,7 @@
 #include "firmwriter.h"
 #include "fs.h"
 #include "fsutils.h"
-#include "arm11/menu/bootslot_store.h"
+#include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_func.h"
@@ -52,7 +52,7 @@ u32 menuPresetNandTools(void)
 	u32 res = 0xFF;
 	
 	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
-		res &= ~((1 << 2) | (1 << 3));
+		res &= ~((1 << 2) | (1 << 3)); // disable forced restore and firmware flash
 	
 	return res;
 }
@@ -61,16 +61,13 @@ u32 menuPresetBootMenu(void)
 {
 	u32 res = 0xFF;
 	
-	for (u32 i = 0; i < 3; i++)
+	for (u32 i = 0; i < N_BOOTSLOTS; i++)
 	{
 		if (!configDataExist(KBootOption1 + i))
 		{
 			res &= ~(1 << i);
 		}
 	}
-	
-	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
-		res &= ~(1 << 3);
 	
 	return res;
 }
@@ -79,7 +76,7 @@ u32 menuPresetBootConfig(void)
 {
 	u32 res = 0;
 	
-	for (u32 i = 0; i < 3; i++)
+	for (u32 i = 0; i < N_BOOTSLOTS; i++)
 	{
 		if (configDataExist(KBootOption1 + i))
 		{
@@ -88,7 +85,7 @@ u32 menuPresetBootConfig(void)
 	}
 	
 	if (configDataExist(KBootMode))
-		res |= 1 << 3;
+		res |= 1 << N_BOOTSLOTS;
 	
 	return res;
 }
@@ -266,7 +263,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleSelect(term_con);
 	consoleClear();
 		
-	if (param < 3) // loading from bootslot
+	if (param < N_BOOTSLOTS) // loading from bootslot
 	{
 		// check if bootslot exists
 		if (!configDataExist(KBootOption1 + param))
@@ -303,7 +300,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	g_startFirmLaunch = true;
 	
 	// store the bootslot
-	u32 slot = (param < 3) ? (param + 1) : 0;
+	u32 slot = (param < N_BOOTSLOTS) ? (param + 1) : 0;
 	storeBootslot(slot);
 	
 	return 0;

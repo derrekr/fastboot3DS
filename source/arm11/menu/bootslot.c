@@ -18,7 +18,7 @@
 
 #include "arm11/bootenv.h"
 #include "arm11/hardware/i2c.h"
-#include "arm11/menu/bootslot_store.h"
+#include "arm11/menu/bootslot.h"
 
 #define BOOTSLOT_STORE_REG	((u8) 0x1E)
 
@@ -34,6 +34,10 @@ u8 readStoredBootslot(void)
 	
 	if (stored_slot == INVALID_BOOT_SLOT)
 		stored_slot = I2C_readReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG);
+	
+	// slot must not exceed # of boot slots
+	if (stored_slot > N_BOOTSLOTS)
+		stored_slot = 0;
 	
 	return stored_slot;
 }
