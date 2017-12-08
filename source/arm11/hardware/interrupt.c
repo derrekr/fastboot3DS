@@ -56,8 +56,8 @@
 #define REG_GID_PRIME_CELL3  *((vu32*)(GID_REGS_BASE + 0xFFC))
 
 
-IrqHandler privIrqHandlerTable[4][32] = {0}; // Table for private MPCore interrupts
-IrqHandler irqHandlerTable[96] = {0};        // There are 96 external interrupts (total 128)
+IrqHandler irqHandlerTable[224] = {0}; // First 32 interrupts are private to each core (4 * 32).
+                                       // 96 external interrupts (total 128).
 
 
 
@@ -135,11 +135,7 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, 
 
 	const u32 oldState = enterCriticalSection();
 
-	if(handler)
-	{
-		if(id < 32) privIrqHandlerTable[cpuId][id] = handler;
-		else irqHandlerTable[id - 32] = handler;
-	}
+	if(handler) irqHandlerTable[(id < 32 ? 32 * cpuId + id : 96u + id)] = handler;
 
 	u32 shift = (id % 4 * 8) + 4;
 	u32 tmp = REGs_GID_IPRIO[id>>2] & ~(0xFu<<shift);
@@ -164,8 +160,7 @@ void IRQ_unregisterHandler(Interrupt id)
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
-	if(id < 32) privIrqHandlerTable[getCpuId()][id] = (IrqHandler)NULL;
-	else irqHandlerTable[id - 32] = (IrqHandler)NULL;
+	irqHandlerTable[(id < 32 ? 32 * getCpuId() + id : 96u + id)] = (IrqHandler)NULL;
 
 	leaveCriticalSection(oldState);
 }

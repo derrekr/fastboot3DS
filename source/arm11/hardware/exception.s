@@ -24,7 +24,6 @@
 
 .extern deinitCpu
 .extern guruMeditation
-.extern privIrqHandlerTable
 .extern irqHandlerTable
 
 
@@ -71,12 +70,11 @@ ASM_FUNC irqHandler
 	ldr r0, [r12, #0x10C]        @ REG_CPU_II_AKN
 	and r1, r0, #0x7F
 	cmp r1, #32
-	ldrlo r2, =privIrqHandlerTable
+	ldr r2, =irqHandlerTable
 	mrclo p15, 0, r3, c0, c0, 5  @ Get CPU ID
 	andlo r3, r3, #3
-	addlo r2, r2, r3, lsl #7
-	ldrhs r2, =irqHandlerTable
-	subhs r1, r1, #32
+	addlo r1, r1, r3, lsl #5
+	addhs r1, r1, #96
 	ldr r3, [r2, r1, lsl #2]
 	cmp r3, #0
 	beq irqHandler_skip_processing
