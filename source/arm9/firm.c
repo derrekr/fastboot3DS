@@ -170,7 +170,6 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 	      REG_NDMA2_CNT & NDMA_ENABLE || REG_NDMA3_CNT & NDMA_ENABLE);
 
 	// Tell ARM11 its entrypoint
-	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
 	REG_PXI_SEND = entry11;
 
 	while(1)
