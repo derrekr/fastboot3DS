@@ -173,3 +173,19 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
 	while(1) __wfi();
 }
+
+void debugMemdump(const char *filepath, void *mem, size_t size)
+{
+	s32 file;
+
+	if((file = fOpen(filepath, FS_CREATE_ALWAYS | FS_OPEN_WRITE)) < 0)
+	{
+		return;
+	}
+		
+	fWrite(file, mem, size);
+	
+	fSync(file);
+
+	fClose(file);
+}
