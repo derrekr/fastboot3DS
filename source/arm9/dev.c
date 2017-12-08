@@ -25,6 +25,8 @@
 #include "arm9/ncsd.h"
 #include "arm9/hardware/sdmmc.h"
 #include "arm9/hardware/spiflash.h"
+#include "arm9/hardware/interrupt.h"
+#include "fs.h"
 #include "arm9/hardware/crypto.h"
 #include "hardware/cache.h"
 #include "arm9/hardware/timer.h"
@@ -131,6 +133,8 @@ dev_struct dev_wififlash = {
 const dev_struct *dev_flash = &dev_wififlash;
 
 
+static void sdioHandler(UNUSED u32 id);
+
 // -------------------------------- sd card glue functions --------------------------------
 bool sdmmc_sd_init(void)
 {
@@ -159,9 +163,24 @@ bool sdmmc_sd_init(void)
 
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
+		IRQ_registerHandler(IRQ_SDIO_1, sdioHandler);
 	}
 
 	return true;
+}
+
+static void sdioHandler(UNUSED u32 id)
+{
+	// Hacky way to detect SD pulls. We need a proper MMC driver.
+	if(!(sdmmc_read16(REG_SDSTATUS0) & TMIO_STAT0_SIGSTATE))
+	{
+		const u32 oldState = enterCriticalSection();
+
+		dev_sd.initialized = false;
+		fUnmount(FS_DRIVE_SDMC);
+
+		leaveCriticalSection(oldState);
+	}
 }
 
 bool sdmmc_sd_read_sector(u32 sector, u32 count, void *buf)
