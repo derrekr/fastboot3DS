@@ -212,16 +212,6 @@ int main(void)
 					break;
 				}
 			}
-			// boot env handling (only on reboots) for firm1:
-			else if (nextBootSlot == FIRM1_BOOT_SLOT)
-			{
-				err_ptr += ee_sprintf(err_ptr, "Rebooting to firm1:...\n");
-				
-				firm_err = loadVerifyFirm("firm1:", false);
-				g_startFirmLaunch = (firm_err >= 0);
-				
-				err_ptr += ee_sprintf(err_ptr, "Load firm1: %s.\n", g_startFirmLaunch ? "success" : "failed");
-			}
 			// boot env handling (only on reboots) -> try previous slot
 			else
 			{

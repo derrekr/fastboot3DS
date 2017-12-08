@@ -41,7 +41,6 @@
 #define DESC_MISC			"Enter miscellaneous submenu, including the update tool and credits section."
 
 #define DESC_BOOT_SLOT(x)	"Boot the firmware in slot #" #x "."
-#define DESC_BOOT_FIRM1		"Boot the firmware in firm1:."
 #define DESC_BOOT_SETUP     "Change boot settings."
 
 #define DESC_SLOT_SETUP(x)	"Change boot settings for slot #" #x "."
@@ -88,12 +87,11 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 1
-		"Boot Menu", 4, &menuPresetBootMenu, MENU_FLAG_SLOTS,
+		"Boot Menu", 3, &menuPresetBootMenu, MENU_FLAG_SLOTS,
 		{
 			{ "Boot [slot 1]",				DESC_BOOT_SLOT(1),			&menuLaunchFirm,		0x00 },
 			{ "Boot [slot 2]",				DESC_BOOT_SLOT(2),			&menuLaunchFirm,		0x01 },
-			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 },
-			{ "Boot from FIRM1",			DESC_BOOT_FIRM1,			&menuLaunchFirm,		0xFE }
+			{ "Boot [slot 3]",				DESC_BOOT_SLOT(3),			&menuLaunchFirm,		0x02 }
 		}
 	},
 	{ // 2

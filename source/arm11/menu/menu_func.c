@@ -159,7 +159,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	
 	u32 res = 0;
-	if (menuFileSelector(res_path, menu_con, start, "*.firm", true))
+	if (menuFileSelector(res_path, menu_con, start, "*firm*", true))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
 	
 	free(res_path);
@@ -276,21 +276,13 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		}
 		path = (char*) configGetData(KBootOption1 + param);
 	}
-	else if (param == 0xFE) // loading from FIRM1
-	{
-		if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode))) {
-			ee_printf("Boot from FIRM1 is not available!\nEnable dev mode to get access.\n");
-			goto fail;
-		}
-		path = "firm1:";
-	}
 	else if (param == 0xFF) // user decision
 	{
 		ee_printf_screen_center("Select a firmware file to boot.\nPress [HOME] to cancel.");
 		updateScreens();
 		
 		path = path_store;
-		if (!menuFileSelector(path, menu_con, NULL, "*.firm", true))
+		if (!menuFileSelector(path, menu_con, NULL, "*firm*", true))
 			return 1;
 		
 		// back to terminal console
@@ -311,7 +303,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	g_startFirmLaunch = true;
 	
 	// store the bootslot
-	u32 slot = (param < 3) ? (param + 1) : (param == 0xFE) ? FIRM1_BOOT_SLOT : 0;
+	u32 slot = (param < 3) ? (param + 1) : 0;
 	storeBootslot(slot);
 	
 	return 0;
@@ -648,7 +640,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// file selector
 	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, NULL, "*.firm", true))
+	if (!menuFileSelector(firm_path, menu_con, NULL, "*firm*", true))
 		return 1; // cancel by user
 	
 	
@@ -711,7 +703,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	ee_printf_screen_center("Select fastboot3DS update file.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*.firm", true))
+	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*firm*", true))
 		return 1; // cancel by user
 	
 	

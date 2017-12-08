@@ -174,8 +174,6 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	ee_printf(ESC_SCHEME_WEAK "reboot: " ESC_RESET);
 	if ((prevSlot >= 1) && (prevSlot <= 3))
 		ee_printf(" slot %lu ", prevSlot);
-	else if (prevSlot == FIRM1_BOOT_SLOT)
-		ee_printf(" firm1: ");
 	else
 		ee_printf("autoboot");
 	
