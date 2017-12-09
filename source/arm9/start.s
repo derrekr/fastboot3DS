@@ -98,7 +98,13 @@ _start:
 	sub r1, r1, r0
 	bl clearMem
 	@ Setup newlib heap
+	mov r0, #IO_MEM_BASE        @ CFG9 regs
+	ldr r1, [r0, #0xFFC]        @ REG_CFG9_MPCORECFG
+	tst r1, #2                  @ Test for New 3DS bit
+	movne r1, #1
+	strne r1, [r0, #0x200]      @ REG_CFG9_EXTMENTCNT9
 	mov r0, #A9_HEAP_END
+	addne r0, #A9_RAM_N3DS_EXT_SIZE
 	ldr r1, =fake_heap_end
 	str r0, [r1]
 	blx __libc_init_array       @ Initialize ctors and dtors
