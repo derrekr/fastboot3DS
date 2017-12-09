@@ -165,6 +165,16 @@ void IRQ_unregisterHandler(Interrupt id)
 	leaveCriticalSection(oldState);
 }
 
+void IRQ_enable(Interrupt id)
+{
+	REGs_GID_ENA_SET[id>>5] = 1u<<(id % 32);
+}
+
+void IRQ_disable(Interrupt id)
+{
+	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
+}
+
 void IRQ_setPriority(Interrupt id, u8 prio)
 {
 	const u32 oldState = enterCriticalSection();

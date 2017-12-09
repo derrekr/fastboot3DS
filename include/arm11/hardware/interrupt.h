@@ -91,6 +91,20 @@ void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, 
 void IRQ_unregisterHandler(Interrupt id);
 
 /**
+ * @brief      Reenables a previously disabled but registered interrupt.
+ *
+ * @param[in]  id    The interrupt ID. Must be <128.
+ */
+void IRQ_enable(Interrupt id);
+
+/**
+ * @brief      Disables a previously registered interrupt temporarily.
+ *
+ * @param[in]  id    The interrupt ID. Must be <128.
+ */
+void IRQ_disable(Interrupt id);
+
+/**
  * @brief      Sets the priority of an interrupt.
  *
  * @param[in]  id    The interrupt ID. Must be <128.
