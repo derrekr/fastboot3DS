@@ -98,7 +98,10 @@ MenuInfo menu_fb3ds[] =
 		{
 			SUBENTRY_SLOT_BOOT(1),
 			SUBENTRY_SLOT_BOOT(2),
-			SUBENTRY_SLOT_BOOT(3)
+			SUBENTRY_SLOT_BOOT(3),
+			SUBENTRY_SLOT_BOOT(4),
+			SUBENTRY_SLOT_BOOT(5),
+			SUBENTRY_SLOT_BOOT(6)
 		}
 	},
 	{ // 2
@@ -107,6 +110,9 @@ MenuInfo menu_fb3ds[] =
 			SUBENTRY_SLOT_SETUP(1,6),
 			SUBENTRY_SLOT_SETUP(2,6),
 			SUBENTRY_SLOT_SETUP(3,6),
+			SUBENTRY_SLOT_SETUP(4,6),
+			SUBENTRY_SLOT_SETUP(5,6),
+			SUBENTRY_SLOT_SETUP(6,6),
 			{ "Change boot mode...",		DESC_CHANGE_BOOT,			NULL,					3 }
 		}
 	},
@@ -137,7 +143,10 @@ MenuInfo menu_fb3ds[] =
 	SUBMENU_SLOT_SETUP(1), // 6
 	SUBMENU_SLOT_SETUP(2), // 7
 	SUBMENU_SLOT_SETUP(3), // 8
-	/*{ // 9
+	SUBMENU_SLOT_SETUP(4), // 9
+	SUBMENU_SLOT_SETUP(5), // 10
+	SUBMENU_SLOT_SETUP(6), // 11
+	/*{ // 12
 		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
 			{ "View current settings",		LOREM,						&debugSettingsView,		0 },
