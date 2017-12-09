@@ -21,8 +21,8 @@
 #include "types.h"
 
 #define NAND_BACKUP_PATH	"sdmc:/3DS" // NAND backups standard path
-#define DEVICE_BUFSIZE		(256 * 1024) // 256 KiB
 #define PROGRESS_WIDTH		20
+#define DEVICE_BUFSIZE		(512 * 1024) // 256 KiB
 
 u32 menuPresetNandTools(void);
 u32 menuPresetBootMenu(void);
