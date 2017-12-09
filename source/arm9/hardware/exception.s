@@ -88,7 +88,7 @@ ASM_FUNC irqHandler
 	ldr lr, [sp], #4
 	msr cpsr_c, #0xD2                @ IRQ mode, IRQ disabled
 	ldr r0, [sp], #4
-	msr spsr_fsxc, r0
+	msr spsr_cxsf, r0
 irqHandler_skip_processing:
 	ldmfd sp!, {r0-r3, r12, pc}^
 

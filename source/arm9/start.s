@@ -52,11 +52,11 @@
 
 
 __start__:
-	.string "FASTBOOT 3DS   "
+	.string "fastboot3DS    "
 	.word   (VERS_MAJOR<<16 | VERS_MINOR)
 
 _start:
-	msr cpsr_fsxc, #0xD3         @ Disable all interrupts, SVC mode
+	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
 
 	@ Control register:
 	@ [19] ITCM load mode         : disabled
@@ -72,7 +72,6 @@ _start:
 	@ [0]  MPU                    : disabled
 	ldr r0, =0x2078
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-
 	mov r0, #0
 	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
@@ -82,13 +81,13 @@ _start:
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 
 	mov sp, #0                  @ SVC mode sp (Unused, aborts)
-	msr cpsr_fsxc, #0xD7        @ Abort mode
+	msr cpsr_cxsf, #0xD7        @ Abort mode
 	mov sp, #A9_EXC_STACK_END
-	msr cpsr_fsxc, #0xDB        @ Undefined mode
+	msr cpsr_cxsf, #0xDB        @ Undefined mode
 	mov sp, #A9_EXC_STACK_END
-	msr cpsr_fsxc, #0xD2        @ IRQ mode
+	msr cpsr_cxsf, #0xD2        @ IRQ mode
 	ldr sp, =A9_IRQ_STACK_END
-	msr cpsr_fsxc, #0xDF        @ System mode
+	msr cpsr_cxsf, #0xDF        @ System mode
 	ldr sp, =A9_STACK_END
 
 	bl setupMpu
@@ -98,12 +97,10 @@ _start:
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
 	bl clearMem
-
 	@ Setup newlib heap
 	mov r0, #A9_HEAP_END
 	ldr r1, =fake_heap_end
 	str r0, [r1]
-
 	blx __libc_init_array       @ Initialize ctors and dtors
 
 	mov r0, #0                  @ argc
@@ -111,8 +108,7 @@ _start:
 	blx main
 	_start_lp:
 		mov r0, #0
-		@ Wait for interrupt
-		mcr p15, 0, r0, c7, c0, 4
+		mcr p15, 0, r0, c7, c0, 4 @ Wait for interrupt
 		b _start_lp
 
 
@@ -146,7 +142,6 @@ setupTcms:
 	mov r1, #(ITCM_BASE | 0x24) @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
 	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
 	mcr p15, 0, r1, c9, c1, 1   @ Write ITCM region reg
-
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	orr r0, r0, #0x50000        @ Enable DTCM and ITCM
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
@@ -320,8 +315,8 @@ _init:
 
 deinitCpu:
 	mov r3, lr
-	msr cpsr_fsxc, #0xDF        @ System mode
 
+	msr cpsr_cxsf, #0xDF        @ System mode
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
 	mov r1, #6
@@ -337,7 +332,6 @@ deinitCpu:
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-
 	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
 	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
 	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer

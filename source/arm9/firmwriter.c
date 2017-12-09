@@ -134,7 +134,7 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 #endif
 
 	// verify fastboot magic
-	if(memcmp((void*)updateBuffer + 0x200, "FASTBOOT 3DS   ", 16) != 0)
+	if(memcmp((void*)updateBuffer + 0x200, "fastboot3DS    ", 16) != 0)
 		return -4;
 
 	// Check version
@@ -155,7 +155,7 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 	}
 
 	// verify fastboot is installed to firm0:/
-	if(memcmp(firm0Buf, "FASTBOOT 3DS   ", 16) != 0)
+	if(memcmp(firm0Buf, "fastboot3DS    ", 16) != 0)
 	{
 		free(firm0Buf);
 		return UPDATE_ERR_NOT_INSTALLED;
