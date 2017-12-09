@@ -369,14 +369,13 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 		
 		if (n_entries < 0)
 		{
-			panicMsg("Filesystem failure!\nDid you pull the SD card?");
-			/*if (*res_path)
+			if (*res_path)
 			{
 				// return to root if error encountered
 				*res_path = '\0';
 				lastname = NULL;
 				continue;
-			} else panicMsg("Root filesystem failure!");*/
+			} else panicMsg("Root filesystem failure!");
 		}
 		
 		// find lastname in listing
