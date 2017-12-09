@@ -118,11 +118,9 @@ s32 fUnmount(FsDrive drive)
 	if(!fsStatTable[drive]) return -31;
 
 	FRESULT res = f_mount(NULL, fsPathTable[drive], 0);
-	if(res == FR_OK)
-	{
-		fsStatTable[drive] = false;
-		return FR_OK;
-	}
+	fsStatTable[drive] = false;
+
+	if(res == FR_OK) return FR_OK;
 	else return -res;
 }
 
@@ -624,12 +622,10 @@ s32 fClose(s32 handle)
 	if(fHandles == 0 || !isFileHandleValid(handle)) return -30;
 
 	FRESULT res = f_close(&fTable[handle]);
-	if(res == FR_OK)
-	{
-		fStatTable[handle] = false;
-		fHandles--;
-		return FR_OK;
-	}
+	fStatTable[handle] = false;
+	fHandles--;
+
+	if(res == FR_OK) return FR_OK;
 	else return -res;
 }
 
@@ -706,12 +702,10 @@ s32 fCloseDir(s32 handle)
 	if(dHandles == 0 || !isDirHandleValid(handle)) return -30;
 
 	FRESULT res = f_closedir(&dTable[handle]);
-	if(res == FR_OK)
-	{
-		dStatTable[handle] = false;
-		dHandles--;
-		return FR_OK;
-	}
+	dStatTable[handle] = false;
+	dHandles--;
+
+	if(res == FR_OK) return FR_OK;
 	else return -res;
 }
 

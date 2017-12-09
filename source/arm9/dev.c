@@ -176,7 +176,7 @@ static void sdioHandler(UNUSED u32 id)
 	{
 		const u32 oldState = enterCriticalSection();
 
-		dev_sd.initialized = false;
+		sdmmc_sd_close();
 		fUnmount(FS_DRIVE_SDMC);
 
 		leaveCriticalSection(oldState);
