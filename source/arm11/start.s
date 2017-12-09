@@ -94,14 +94,12 @@ _start:
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	mov r0, #0
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
-
 	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
 	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
 
 	mrc p15, 0, r4, c0, c0, 5   @ Get CPU ID
 	ands r4, r4, #3
-
 	bleq stubExceptionVectors   @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
 	mov sp, #0                  @ SVC mode sp (unused, aborts)
@@ -125,12 +123,10 @@ _start:
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
 	bl clearMem
-
 	@ Setup newlib heap
 	ldr r0, =A11_HEAP_END
 	ldr r1, =fake_heap_end
 	str r0, [r1]
-
 	blx __libc_init_array       @ Initialize ctors and dtors
 
 	@ Wakeup core 1.
@@ -141,7 +137,6 @@ _start:
 	mov r3, #1<<17
 	orr r3, r3, #1
 	str r3, [r1]
-
 _start_skip_bss_init_array:
 	ldr r2, =0xFFFF70F
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
@@ -218,8 +213,8 @@ _init:
 
 deinitCpu:
 	mov r3, lr
-	cpsid aif, #31              @ System mode
 
+	cpsid aif, #31              @ System mode
 	bl stubExceptionVectors
 	bl flushDCache
 	mov r2, #0
@@ -238,10 +233,9 @@ deinitCpu:
 	                            @ Instruction folding, SMP mode: the CPU is taking part in coherency
 	                            @ and L1 parity checking
 	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
-
-	mcr p15, 0, r2, c7, c7, 0  @ Invalidate Both Caches. Also flushes the branch target cache
-	mcr p15, 0, r2, c7, c10, 4 @ Data Synchronization Barrier
-	mcr p15, 0, r2, c7, c5, 4  @ Flush Prefetch Buffer
+	mcr p15, 0, r2, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
+	mcr p15, 0, r2, c7, c10, 4  @ Data Synchronization Barrier
+	mcr p15, 0, r2, c7, c5, 4   @ Flush Prefetch Buffer
 	bx r3
 
 
