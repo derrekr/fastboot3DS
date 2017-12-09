@@ -56,6 +56,25 @@ int main(void)
 	loadConfigFile();
 	
 	
+	// get bootmode from config, previous bootslot from I2C
+	u32 nextBootSlot = readStoredBootslot();
+	u32 bootmode = BootModeNormal;
+	if(configDataExist(KBootMode))
+		bootmode = *(u32*) configGetData(KBootMode);
+	
+	// show menu if bootmode is normal or HOME button is pressed
+	show_menu = (!nextBootSlot && (bootmode == BootModeNormal)) || hidIsHomeButtonHeldRaw();
+	
+	// show splash if (bootmode != BootModeQuiet)
+	bool splash_wait = false;
+	if(show_menu || (bootmode != BootModeQuiet))
+	{
+		if (!gfx_initialized) GFX_init();
+		gfx_initialized = true;
+		splash_wait = drawSplashscreen(banner_spla, -1, -1);
+	}
+	
+	
 	// check keys held at boot
 	hidScanInput();
 	u32 kHeld = hidKeysHeld();
@@ -103,28 +122,17 @@ int main(void)
 	}
 	
 	
-	// get bootmode from config, bootslot from I2C
-	u32 nextBootSlot = readStoredBootslot();
-	u32 bootmode = BootModeNormal;
-	if(configDataExist(KBootMode))
-		bootmode = *(u32*) configGetData(KBootMode);
-	
-	// show menu if bootmode is normal, no firmware is waiting in line and not rebooting to slot
-	// ... or always if the HOME button is pressed
-	show_menu = show_menu ||
-		(!g_startFirmLaunch && !nextBootSlot && (bootmode == BootModeNormal)) ||
-		hidIsHomeButtonHeldRaw();
-	
-	// show splash if (bootmode != BootModeSilent)
-	if(show_menu || (bootmode != BootModeQuiet))
+	if (splash_wait)
 	{
-		if (!gfx_initialized) GFX_init();
-		gfx_initialized = true;
-		
-		if (drawSplashscreen(banner_spla, -1, -1))
+		for (u32 i = 0; i < 64; i++) // VBlank * 64
 		{
-			for (u32 i = 0; i < 64; i++) // VBlank * 64
-				GFX_waitForEvent(GFX_EVENT_PDC0, true); 
+			GFX_waitForEvent(GFX_EVENT_PDC0, true); 
+			hidScanInput();
+			if (hidKeysDown() & KEY_HOME)
+			{
+				show_menu = true;
+				g_startFirmLaunch = false;
+			}
 		}
 	}
 
