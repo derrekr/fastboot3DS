@@ -294,7 +294,7 @@ static bool devBufAllocate(DevBuf *devBuf, u32 size)
 
 s32 fCreateDeviceBuffer(u32 size)
 {
-	if(!size || size > 0x80000) return -30;
+	if(!size || size > 0x180000) return -30;
 	if(devBuf.mem) return -31;
 	
 	if(!devBufAllocate(&devBuf, size))
