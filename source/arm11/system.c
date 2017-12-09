@@ -44,5 +44,5 @@ void systemInit(void)
 		((void (*)(void))0x0001004C)();
 	}
 
-	leaveCriticalSection(0); // Enables interrupts
+	__asm__ __volatile__("cpsie i" : : : "memory"); // Enables interrupts
 }
