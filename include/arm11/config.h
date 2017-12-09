@@ -24,15 +24,32 @@ enum Keys {
 	KBootOption1 = 0,
 	KBootOption2,
 	KBootOption3,
-	KBootOption1NandImage,
-	KBootOption2NandImage,
-	KBootOption3NandImage,
+	KBootOption4,
+	KBootOption5,
+	KBootOption6,
+	KBootOption7,
+	KBootOption8,
+	KBootOption9,
+	
 	KBootOption1Buttons,
 	KBootOption2Buttons,
 	KBootOption3Buttons,
+	KBootOption4Buttons,
+	KBootOption5Buttons,
+	KBootOption6Buttons,
+	KBootOption7Buttons,
+	KBootOption8Buttons,
+	KBootOption9Buttons,
+	
 	KBootMode,
 	KDevMode,
-	// ...
+
+	/*
+	KBootOption1NandImage,
+	KBootOption2NandImage,
+	KBootOption3NandImage,
+	*/
+	
 	KLast
 };
 
@@ -43,6 +60,7 @@ enum BootModes {
 };
 
 #define numKeys  KLast
+#define CONFIG_MAX_BOOTSLOTS	9
 
 bool loadConfigFile();
 bool configIsLoaded();

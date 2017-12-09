@@ -67,29 +67,31 @@ static const char *keyStrings[] = {
 	"BOOT_OPTION1",
 	"BOOT_OPTION2",
 	"BOOT_OPTION3",
-	"BOOT_OPTION1_NAND_IMAGE",
-	"BOOT_OPTION2_NAND_IMAGE",
-	"BOOT_OPTION3_NAND_IMAGE",
+	"BOOT_OPTION4",
+	"BOOT_OPTION5",
+	"BOOT_OPTION6",
+	"BOOT_OPTION7",
+	"BOOT_OPTION8",
+	"BOOT_OPTION9",
+	
 	"BOOT_OPTION1_BUTTONS",
 	"BOOT_OPTION2_BUTTONS",
 	"BOOT_OPTION3_BUTTONS",
+	"BOOT_OPTION4_BUTTONS",
+	"BOOT_OPTION5_BUTTONS",
+	"BOOT_OPTION6_BUTTONS",
+	"BOOT_OPTION7_BUTTONS",
+	"BOOT_OPTION8_BUTTONS",
+	"BOOT_OPTION9_BUTTONS",
+
 	"BOOT_MODE",
 	"DEV_MODE"
-};
-
-static FunctionsEntryType keyFunctions[] = {
-	{ parseBootOption,		writeBootOption },
-	{ parseBootOption,		writeBootOption },
-	{ parseBootOption,		writeBootOption },
-	/* use the same functions for nand image option */
-	{ parseBootOption,		writeBootOption },
-	{ parseBootOption,		writeBootOption },
-	{ parseBootOption,		writeBootOption },
-	{ parseBootOptionPad,	writeBootOptionPad },
-	{ parseBootOptionPad,	writeBootOptionPad },
-	{ parseBootOptionPad,	writeBootOptionPad },
-	{ parseBootMode,		writeBootMode },
-	{ parseDevMode,			writeDevMode }
+	
+	/*
+	"BOOT_OPTION1_NAND_IMAGE",
+	"BOOT_OPTION2_NAND_IMAGE",
+	"BOOT_OPTION3_NAND_IMAGE",
+	*/
 };
 
 static AttributeEntryType attributes[numKeys];
@@ -98,6 +100,27 @@ static char *filebuf = NULL;
 
 static bool configLoaded = false;
 static bool configDirty = false;
+
+static const FunctionsEntryType *getKeyFunction(int key)
+{
+	static const FunctionsEntryType keyFunctions[] = {
+		{ parseBootOption,		writeBootOption },
+		{ parseBootOptionPad,	writeBootOptionPad },
+		{ parseBootMode,		writeBootMode },
+		{ parseDevMode,			writeDevMode }
+	};
+	
+	if(key <= KBootOption9 && key >= KBootOption1)
+		return &keyFunctions[0];
+	if(key <= KBootOption9Buttons && key >= KBootOption1Buttons)
+		return &keyFunctions[1];
+	if(key == KBootMode)
+		return &keyFunctions[2];
+	if(key == KDevMode)
+		return &keyFunctions[3];
+
+	return NULL;
+}
 
 /* This loads the config file from SD card or eMMC and parses it */
 bool loadConfigFile()
@@ -379,6 +402,7 @@ static u32 parseDefinition(char *attrData)
 static bool parseConfigFile()
 {
 	AttributeEntryType *curAttr;
+	const FunctionsEntryType *keyFunc;
 	u32 len;
 	char *text;
 	
@@ -407,9 +431,11 @@ static bool parseConfigFile()
 			continue;
 		}
 		else
-		{	// TODO: what to do if ret == false ?
-			//ee_printf("Parsing attr text with size %i\n%s\n", curAttr->textLength, curAttr->textData);
-			keyFunctions[i].parse(curAttr);
+		{
+			keyFunc = getKeyFunction(i);
+			if(keyFunc && keyFunc->parse)
+				keyFunc->parse(curAttr);
+			else curAttr->data = NULL;
 		}
 	}
 	
@@ -908,6 +934,7 @@ const char *configGetKeyText(int key)
 bool configSetKeyData(int key, const void *data)
 {
 	AttributeEntryType *attr;
+	const FunctionsEntryType *keyFunc;
 	
 	if(!configLoaded)
 		return false;
@@ -917,10 +944,12 @@ bool configSetKeyData(int key, const void *data)
 	
 	attr = &attributes[key];
 	
-	if(!keyFunctions[key].write)
+	keyFunc = getKeyFunction(key);
+	
+	if(!keyFunc || !keyFunc->write)
 		panicMsg("Unimplemented key function!");
 	
-	if(keyFunctions[key].write(attr, data, key))
+	if(keyFunc->write(attr, data, key))
 	{
 		configDirty = true;
 		return true;
