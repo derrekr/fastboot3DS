@@ -46,6 +46,7 @@
 .extern fake_heap_end
 .extern setupMmu
 .extern __libc_init_array
+.extern systemInit
 .extern main
 
 .section ".crt0", "ax"
@@ -145,6 +146,7 @@ _start_skip_bss_init_array:
 	clrex
 	cpsie a
 
+	blx systemInit
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main

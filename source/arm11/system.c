@@ -26,7 +26,7 @@
 
 
 
-void hardwareInit(void)
+void systemInit(void)
 {
 	IRQ_init();
 	TIMER_init();
@@ -46,7 +46,3 @@ void hardwareInit(void)
 
 	leaveCriticalSection(0); // Enables interrupts
 }
-
-/*void hardwareDeinit(void)
-{
-}*/

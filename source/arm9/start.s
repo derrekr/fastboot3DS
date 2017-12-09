@@ -41,6 +41,7 @@
 .extern fake_heap_start
 .extern fake_heap_end
 .extern __libc_init_array
+.extern systemInit
 .extern main
 .extern irqHandler
 .extern undefInstrHandler
@@ -109,6 +110,7 @@ _start:
 	str r0, [r1]
 	blx __libc_init_array       @ Initialize ctors and dtors
 
+	blx systemInit
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main

@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -18,7 +16,23 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "types.h"
+#include "arm9/hardware/interrupt.h"
+#include "arm9/hardware/ndma.h"
+#include "arm9/hardware/timer.h"
+#include "hardware/pxi.h"
+#include "arm9/hardware/crypto.h"
 
 
-void hardwareInit(void);
-//void hardwareDeinit(void);
+
+void systemInit(void)
+{
+	IRQ_init();
+	NDMA_init();
+	TIMER_init();
+	PXI_init();
+	AES_init();
+	RSA_init();
+
+	leaveCriticalSection(0); // Enables interrupts
+}
