@@ -129,6 +129,7 @@ bool loadConfigFile()
 	s32 file;
 	u32 fileSize;
 	bool SdPresent;
+	bool adpotChanges = false;
 	bool createFile = false;
 	
 	if(filebuf)
@@ -144,12 +145,19 @@ bool loadConfigFile()
 	if(SdPresent)
 	{
 		filepath = SdmcFilepath;
-		
-		// does the config file exist?
-		if(fStat(filepath, &fileStat) != FR_OK)
+	
+		// does the config file not exist yet?
+		if(fStat(SdmcFilepath, &fileStat) != FR_OK)
 		{
+			if(fStat(NandFilepath, &fileStat) == FR_OK)
+			{
+				/*	no config on SD, but there is one on the NAND,
+					so just load it and save it later on.	*/
+				adpotChanges = true;
+			}
+			
 			createFile = true;
-		}
+		}	
 	}
 	else	/* use NAND */
 	{
@@ -167,7 +175,13 @@ bool loadConfigFile()
 		if(!createConfigFile())
 			return false;
 		
-		// does it work now?
+		if(adpotChanges)
+		{
+			// created file on SD, load config from NAND
+			filepath = NandFilepath;
+		}
+		
+		// retrieve size
 		if(fStat(filepath, &fileStat) != FR_OK)
 			return false;
 	}
@@ -211,6 +225,13 @@ bool loadConfigFile()
 	
 	if(!parseConfigFile())
 		goto fail;
+	
+	// we loaded a file we want to adpot?
+	if(adpotChanges)
+	{
+		filepath = SdmcFilepath;
+		configDirty = true;
+	}
 	
 	return true;
 	
