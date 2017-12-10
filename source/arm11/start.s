@@ -98,6 +98,7 @@ _start:
 	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
 	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
+	clrex
 
 	mrc p15, 0, r4, c0, c0, 5   @ Get CPU ID
 	ands r4, r4, #3
@@ -143,7 +144,6 @@ _start_skip_bss_init_array:
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
 	blx setupMmu
 	bl setupVfp
-	clrex
 	cpsie a
 
 	blx systemInit
