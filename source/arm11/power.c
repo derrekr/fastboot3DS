@@ -18,21 +18,31 @@
 
 #include "types.h"
 #include "util.h"
-#include "arm11/hardware/mcu.h"
-#include "hardware/cache.h"
-#include "arm11/hardware/interrupt.h"
 #include "ipc_handler.h"
+#include "arm11/hardware/mcu.h"
+#include "arm11/hardware/timer.h"
+#include "arm11/hardware/interrupt.h"
+#include "hardware/cache.h"
+#include "hardware/gfx.h"
 #include "hardware/pxi.h"
 
 
 
-noreturn void power_off(void)
+static void power_safe_halt(void)
 {
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
 	MCU_powerOffLCDs();
+	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
+
+	// give the screens a bit of time to turn off
+	TIMER_sleepMs(400);
 
 	flushDCache();
 	__asm__ __volatile__("cpsid aif" : : : "memory");
+}
+
+noreturn void power_off(void)
+{
+	power_safe_halt();
 
 	MCU_triggerPowerOff();
 
@@ -41,11 +51,7 @@ noreturn void power_off(void)
 
 noreturn void power_reboot(void)
 {
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	MCU_powerOffLCDs();
-
-	flushDCache();
-	__asm__ __volatile__("cpsid aif" : : : "memory");
+	power_safe_halt();
 
 	MCU_triggerReboot();
 
