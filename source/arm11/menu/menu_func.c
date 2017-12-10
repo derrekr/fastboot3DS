@@ -408,8 +408,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		s64 readBytes = (nand_size - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : nand_size - p;
 		s32 errcode = 0;
-		if (!(p % (DEVICE_BUFSIZE*4)))
-			ee_printf_progress("NAND backup", PROGRESS_WIDTH, p, nand_size);
+		ee_printf_progress("NAND backup", PROGRESS_WIDTH, p, nand_size);
 		updateScreens();
 		
 		if ((errcode = fReadToDeviceBuffer(devHandle, p, readBytes, dbufHandle)) != 0)
@@ -482,7 +481,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	BatteryState battery;
 	getBatteryState(&battery);
 	if ((battery.percent <= 20) && !battery.charging) {
-		ee_printf("Battery below 20% and not charging.\nPlug in the charger and retry.\n");
+		ee_printf("Battery below 20%% and not charging.\nPlug in the charger and retry.\n");
 		goto fail;
 	}
 	
@@ -581,8 +580,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		s64 readBytes = (file_size - p > DEVICE_BUFSIZE) ? DEVICE_BUFSIZE : file_size - p;
 		s32 errcode = 0;
-		if (!(p % (DEVICE_BUFSIZE*4)))
-			ee_printf_progress("NAND restore", PROGRESS_WIDTH, p, file_size);
+		ee_printf_progress("NAND restore", PROGRESS_WIDTH, p, file_size);
 		updateScreens();
 		
 		if ((errcode = fReadToDeviceBuffer(fHandle, p, readBytes, dbufHandle)) != 0)
