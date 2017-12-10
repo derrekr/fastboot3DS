@@ -810,7 +810,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf(ESC_SCHEME_WEAK);
 	ee_printf_line_center("derrek");
 	ee_printf_line_center("profi200");
-	ee_printf_line_center("d0k3 (menu code)");
+	ee_printf_line_center("d0k3");
 	ee_printf_line_center("");
 	ee_printf(ESC_SCHEME_STD);
 	ee_printf_line_center("Thanks to:");
