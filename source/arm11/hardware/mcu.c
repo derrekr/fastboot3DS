@@ -85,7 +85,7 @@ bool MCU_readBatteryChargeState(void)
 	
 	state = I2C_readReg(I2C_DEV_MCU, RegExHW);
 	
-	return (state & (1u << 4)) == 1;
+	return (bool) (state & (1u << 4));
 }
 
 u8 MCU_readSystemModel(void)
