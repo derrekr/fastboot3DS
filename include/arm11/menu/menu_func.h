@@ -19,10 +19,11 @@
  */
 
 #include "types.h"
+#include "mem_map.h"
 
 #define NAND_BACKUP_PATH	"sdmc:/3DS" // NAND backups standard path
+#define DEVICE_BUFSIZE		((((REG_PDN_MPCORE_CFG>>1)&0x1) ? 1024 : 512) * 1024) // 1024 / 512 KiB
 #define PROGRESS_WIDTH		20
-#define DEVICE_BUFSIZE		(512 * 1024) // 256 KiB
 
 u32 menuPresetNandTools(void);
 u32 menuPresetBootMenu(void);
