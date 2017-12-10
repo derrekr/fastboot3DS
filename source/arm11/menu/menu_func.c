@@ -25,6 +25,7 @@
 #include "firmwriter.h"
 #include "fs.h"
 #include "fsutils.h"
+#include "arm11/menu/battery.h"
 #include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
@@ -474,6 +475,14 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// check dev mode
 	if (forced && (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))) {
 		ee_printf("Forced restore is not available!\nEnable dev mode to get access.\n");
+		goto fail;
+	}
+	
+	// check battery
+	BatteryState battery;
+	getBatteryState(&battery);
+	if ((battery.percent <= 20) && !battery.charging) {
+		ee_printf("Battery below 20% and not charging.\nPlug in the charger and retry.\n");
 		goto fail;
 	}
 	

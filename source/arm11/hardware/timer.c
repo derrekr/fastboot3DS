@@ -20,6 +20,7 @@
 #include "mem_map.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/hardware/interrupt.h"
+#include "fb_assert.h"
 #include "arm11/event.h"
 
 
@@ -41,8 +42,10 @@ void TIMER_init(void)
 
 void TIMER_start(u8 prescaler, u32 ticks, bool autoReload, bool enableIrq)
 {
+	fb_assert(prescaler > 0);
+
 	REG_TIMER_LOAD = ticks;
-	REG_TIMER_CNT = prescaler<<8 | (enableIrq ? TIMER_IRQ_ENABLE : 0) |
+	REG_TIMER_CNT = (prescaler - 1)<<8 | (enableIrq ? TIMER_IRQ_ENABLE : 0) |
 	                (autoReload ? TIMER_AUTO_RELOAD : TIMER_SINGLE_SHOT) | TIMER_ENABLE;
 }
 
@@ -60,7 +63,7 @@ void TIMER_stop(void)
 void TIMER_sleepTicks(u32 ticks)
 {
 	REG_TIMER_LOAD = ticks;
-	REG_TIMER_CNT = 0u<<8 | TIMER_IRQ_ENABLE | TIMER_SINGLE_SHOT | TIMER_ENABLE;
+	REG_TIMER_CNT = TIMER_IRQ_ENABLE | TIMER_SINGLE_SHOT | TIMER_ENABLE;
 
 	while(REG_TIMER_COUNTER) __wfe();
 
