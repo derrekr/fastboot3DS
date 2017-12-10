@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
+#include "arm11/menu/battery.h"
 #include "arm11/menu/bootinfo.h"
 #include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
@@ -35,7 +36,7 @@
 #include "hardware/gfx.h"
 #include "fs.h" // for drive names
 
-
+static BatteryState battery;
 
 void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 {
@@ -124,7 +125,10 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	// print bootinfo
 	consoleSetCursor(desc_con, 0, 4);
 	ee_printf(" Model: %s\n", bootinfo.model);
-	ee_printf(" %s\n\n", bootinfo.bootEnv);
+	ee_printf(" %s\n", bootinfo.bootEnv);
+	ee_printf(" Battery: %s%lu%s %%" ESC_RESET "\n\n",
+		((battery.percent <= 20) && !battery.charging) ? ESC_SCHEME_BAD : ESC_SCHEME_GOOD,
+		battery.percent, (battery.charging) ? "+" : "");
 	for (u32 i = 0; i < sizeof(mount_paths) / sizeof(const char*); i++)
 	{
 		ee_printf(" " ESC_SCHEME_WEAK "%s" ESC_RESET " %s\n", mount_paths[i],
@@ -297,6 +301,9 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 index = 0;
 	u32 last_index = (u32) -1;
 	
+	u64 n_vblanks = 0;
+	getBatteryState(&battery);
+	
 	// main menu processing loop
 	while (!g_startFirmLaunch)
 	{
@@ -304,8 +311,12 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		if(hidGetPowerButton(false))
 			break; // deinits & poweroff outside of this function
 		
+		// handle battery state
+		if ((++n_vblanks % 250) == 0)
+			getBatteryState(&battery);
+		
 		// update menu and description (on demand)
-		if ((index != last_index) || (curr_menu != last_menu)) {
+		if ((index != last_index) || (curr_menu != last_menu) || (n_vblanks % 250 == 0)) {
 			menuDraw(curr_menu, menu_con, index);
 			menuShowDesc(curr_menu, desc_con, index);
 			last_index = index;
