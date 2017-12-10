@@ -26,7 +26,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "hardware/gfx.h"
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm11/event.h"
 
@@ -252,7 +252,7 @@ void GFX_init(void)
 		gfxSetupLcdTop();
 		gfxSetupLcdSub();
 
-		I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3 | 1<<1); // Power on LCDs and backlight
+		MCU_powerOnLCDs(); // Power on LCDs and backlight
 	}
 	else
 	{
@@ -288,13 +288,13 @@ void GFX_init(void)
 void GFX_enterLowPowerState(void)
 {
 	IRQ_disable(IRQ_PDC0);
-	i2cmcu_lcd_poweroff();
+	MCU_powerOffLCDs();
 }
 
 void GFX_returnFromLowPowerState(void)
 {
 	IRQ_enable(IRQ_PDC0);
-	i2cmcu_lcd_poweron();
+	MCU_powerOnLCDs();
 }
 
 void GFX_deinit(void)
