@@ -721,7 +721,17 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	consoleSelect(term_con);
 	consoleClear();
 	
-	ee_printf(ESC_SCHEME_ACCENT1 "Updating fastboot3DS from file:\n%s\n" ESC_RESET "\nLoading firmware... ", firm_path);
+	ee_printf(ESC_SCHEME_ACCENT1 "Updating fastboot3DS from file:\n%s\n" ESC_RESET "\nChecking battery... ", firm_path);
+	
+	BatteryState battery;
+	getBatteryState(&battery);
+	if ((battery.percent <= 5) && !battery.charging) {
+		ee_printf(ESC_SCHEME_BAD "low!\n" ESC_RESET);
+		ee_printf("Battery below 5%% and not charging.\nPlug in the charger and retry.\n");
+		goto fail;
+	} else ee_printf(ESC_SCHEME_GOOD "ok\n" ESC_RESET);
+
+	ee_printf("Loading firmware... ");
 	updateScreens();
 	
 	u32 version = 0;
