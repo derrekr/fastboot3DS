@@ -17,14 +17,18 @@
  */
 
 #include "types.h"
+#include "hardware/pxi.h"
 #include "arm11/start.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/hardware/i2c.h"
-#include "hardware/pxi.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/hardware/hid.h"
 
-
+static void systemRestoreHwState(void)
+{
+	MCU_disableLEDs();
+}
 
 void systemInit(void)
 {
@@ -36,6 +40,7 @@ void systemInit(void)
 		I2C_init();
 		hidInit();
 		PXI_init();
+		systemRestoreHwState();
 	}
 	else
 	{
@@ -46,3 +51,4 @@ void systemInit(void)
 
 	__asm__ __volatile__("cpsie i" : : : "memory"); // Enables interrupts
 }
+

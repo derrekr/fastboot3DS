@@ -16,36 +16,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "types.h"
-#include "util.h"
+/*
+ *  Based on code from https://github.com/smealum/ctrulib
+ */
+
+#include "mem_map.h"
 #include "arm11/hardware/i2c.h"
-#include "hardware/cache.h"
-#include "arm11/hardware/interrupt.h"
-#include "ipc_handler.h"
-#include "hardware/pxi.h"
+#include "arm11/hardware/mcu.h"
 
-noreturn void power_off(void)
+enum McuRegisters {
+	RegBattery = 0x0B,
+	RegWifiLED = 0x2A,
+	Reg3DLED = 0x2C,
+};
+
+void MCU_disableLEDs(void)
 {
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	i2cmcu_lcd_poweroff();
-
-	flushDCache();
-	__asm__ __volatile__("cpsid aif" : :);
-
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
-
-	while(1) __wfi();
+	// disable wifi LED
+	I2C_writeReg(I2C_DEV_MCU, RegWifiLED, 0);
+	
+	// disable 3D LED
+	I2C_writeReg(I2C_DEV_MCU, Reg3DLED, 0);
 }
 
-noreturn void power_reboot(void)
+u8 MCU_readBatteryLevel(void)
 {
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	i2cmcu_lcd_poweroff();
+	u8 state;
 
-	flushDCache();
-	__asm__ __volatile__("cpsid aif" : :);
-
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u << 2);
-
-	while(1) __wfi();
+	if(!I2C_readRegBuf(I2C_DEV_MCU, RegBattery, &state, 1))
+		return 0;
+	
+	return state;
 }

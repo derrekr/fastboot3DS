@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -17,35 +19,6 @@
  */
 
 #include "types.h"
-#include "util.h"
-#include "arm11/hardware/i2c.h"
-#include "hardware/cache.h"
-#include "arm11/hardware/interrupt.h"
-#include "ipc_handler.h"
-#include "hardware/pxi.h"
 
-noreturn void power_off(void)
-{
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	i2cmcu_lcd_poweroff();
-
-	flushDCache();
-	__asm__ __volatile__("cpsid aif" : :);
-
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
-
-	while(1) __wfi();
-}
-
-noreturn void power_reboot(void)
-{
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	i2cmcu_lcd_poweroff();
-
-	flushDCache();
-	__asm__ __volatile__("cpsid aif" : :);
-
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u << 2);
-
-	while(1) __wfi();
-}
+void MCU_disableLEDs(void);
+u8 MCU_readBatteryLevel(void);
