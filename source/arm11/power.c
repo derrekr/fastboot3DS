@@ -18,7 +18,7 @@
 
 #include "types.h"
 #include "util.h"
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "hardware/cache.h"
 #include "arm11/hardware/interrupt.h"
 #include "ipc_handler.h"
@@ -27,12 +27,12 @@
 noreturn void power_off(void)
 {
 	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	i2cmcu_lcd_poweroff();
+	MCU_powerOffLCDs();
 
 	flushDCache();
 	__asm__ __volatile__("cpsid aif" : :);
 
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
+	MCU_triggerPowerOff();
 
 	while(1) __wfi();
 }
@@ -40,12 +40,12 @@ noreturn void power_off(void)
 noreturn void power_reboot(void)
 {
 	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-	i2cmcu_lcd_poweroff();
+	MCU_powerOffLCDs();
 
 	flushDCache();
 	__asm__ __volatile__("cpsid aif" : :);
 
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u << 2);
+	MCU_triggerReboot();
 
 	while(1) __wfi();
 }

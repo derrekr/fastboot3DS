@@ -27,7 +27,7 @@
 #include "ipc_handler.h"
 #include "hardware/gfx.h"
 #include "arm11/hardware/interrupt.h"
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/hardware/hid.h"
 
 
@@ -73,8 +73,8 @@ noreturn void panic()
 		hidScanInput();
 	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
 
-	i2cmcu_lcd_poweroff();
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
+	MCU_powerOffLCDs();
+	MCU_triggerPowerOff();
 	while(1) __wfi();
 }
 
@@ -99,8 +99,8 @@ noreturn void panicMsg(const char *msg)
 		hidScanInput();
 	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
 
-	i2cmcu_lcd_poweroff();
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
+	MCU_powerOffLCDs();
+	MCU_triggerPowerOff();
 	while(1) __wfi();
 }
 
@@ -169,8 +169,8 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 		hidScanInput();
 	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
 
-	i2cmcu_lcd_poweroff();
-	I2C_writeReg(I2C_DEV_MCU, 0x20, 1u);
+	MCU_powerOffLCDs();
+	MCU_triggerPowerOff();
 	while(1) __wfi();
 }
 

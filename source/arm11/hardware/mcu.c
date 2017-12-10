@@ -26,6 +26,9 @@
 
 enum McuRegisters {
 	RegBattery = 0x0B,
+	RegExHW = 0x0F,
+	RegPower = 0x20,
+	RegLCDs = 0x22,
 	RegWifiLED = 0x2A,
 	Reg3DLED = 0x2C,
 };
@@ -39,6 +42,28 @@ void MCU_disableLEDs(void)
 	I2C_writeReg(I2C_DEV_MCU, Reg3DLED, 0);
 }
 
+void MCU_powerOnLCDs(void)
+{
+	// bit1 = lcd power enable for both screens
+	I2C_writeReg(I2C_DEV_MCU, RegLCDs, 1<<5 | 1<<3 | 1<<1);
+}
+
+void MCU_powerOffLCDs(void)
+{
+	// bit0 = lcd power disable for both screens (also disables backlight)
+	I2C_writeReg(I2C_DEV_MCU, RegLCDs, 1);
+}
+
+void MCU_triggerPowerOff(void)
+{
+	I2C_writeReg(I2C_DEV_MCU, RegPower, 1);
+}
+
+void MCU_triggerReboot(void)
+{
+	I2C_writeReg(I2C_DEV_MCU, RegPower, 1u << 2);
+}
+
 u8 MCU_readBatteryLevel(void)
 {
 	u8 state;
@@ -47,4 +72,13 @@ u8 MCU_readBatteryLevel(void)
 		return 0;
 	
 	return state;
+}
+
+bool MCU_readBatteryChargeState(void)
+{
+	u8 state;
+	
+	state = I2C_readReg(I2C_DEV_MCU, RegExHW);
+	
+	return (state & (1u << 4)) == 1;
 }

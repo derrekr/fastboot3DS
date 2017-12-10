@@ -21,4 +21,9 @@
 #include "types.h"
 
 void MCU_disableLEDs(void);
+void MCU_powerOnLCDs(void);
+void MCU_powerOffLCDs(void);
+void MCU_triggerPowerOff(void);
+void MCU_triggerReboot(void);
 u8 MCU_readBatteryLevel(void);
+bool MCU_readBatteryChargeState(void);
