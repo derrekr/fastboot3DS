@@ -31,6 +31,8 @@ enum McuRegisters {
 	RegLCDs = 0x22,
 	RegWifiLED = 0x2A,
 	Reg3DLED = 0x2C,
+	RegRTC = 0x30,
+	RegSysModel = 0x7F
 };
 
 void MCU_disableLEDs(void)
@@ -82,3 +84,22 @@ bool MCU_readBatteryChargeState(void)
 	
 	return (state & (1u << 4)) == 1;
 }
+
+u8 MCU_readSystemModel(void)
+{
+	u8 sysinfo[0x13];
+
+	if(!I2C_readRegBuf(I2C_DEV_MCU, RegSysModel, sysinfo, sizeof sysinfo))
+		return 0xFF;
+	
+	return sysinfo[9];
+}
+
+void MCU_readRTC(void *rtc)
+{
+	if(!rtc) return;
+	
+	I2C_readRegBuf(I2C_DEV_MCU, RegRTC, rtc, 8);
+}
+
+

@@ -32,7 +32,7 @@
 #include "arm11/menu/menu_func.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/debug.h"
@@ -353,7 +353,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// current state of the RTC
 	u8 rtc[8] = { 0 };
-	I2C_readRegBuf(I2C_DEV_MCU, 0x30, rtc, 8); // ignore the return value
+	MCU_readRTC(rtc);
 	
 	// create NAND backup filename
 	char fpath[64];

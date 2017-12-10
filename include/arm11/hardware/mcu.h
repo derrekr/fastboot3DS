@@ -27,3 +27,5 @@ void MCU_triggerPowerOff(void);
 void MCU_triggerReboot(void);
 u8 MCU_readBatteryLevel(void);
 bool MCU_readBatteryChargeState(void);
+u8 MCU_readSystemModel(void);
+void MCU_readRTC(void *rtc);

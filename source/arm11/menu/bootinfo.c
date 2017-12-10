@@ -19,7 +19,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/menu/bootinfo.h"
 #include "arm11/bootenv.h"
 #include "arm11/fmt.h"
@@ -58,9 +58,8 @@ void getBootInfo(bootInfo* info)
 	ee_snprintf(info->model, 24, "<unknown model>");
 
 	// Get MCU system information.
-	u8 mcu_sysinfo[0x13];
-	if ((int_model >= NUM_MODELS) && I2C_readRegBuf(I2C_DEV_MCU, 0x7F, mcu_sysinfo, sizeof(mcu_sysinfo)))
-		int_model = mcu_sysinfo[0x09]; // System model.
+	if (int_model >= NUM_MODELS)
+		int_model = MCU_readSystemModel();
 	if (int_model < NUM_MODELS)
 		ee_snprintf(info->model, 24, "%s (%s)", s_modelNames[int_model].name, s_modelNames[int_model].product_code);
 	
