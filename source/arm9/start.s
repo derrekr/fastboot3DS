@@ -81,7 +81,7 @@ _start:
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 
-	mov sp, #0                  @ SVC mode sp (Unused, aborts)
+	mov sp, #0                  @ unused SVC mode sp
 	msr cpsr_cxsf, #0xD7        @ Abort mode
 	mov sp, #A9_EXC_STACK_END
 	msr cpsr_cxsf, #0xDB        @ Undefined mode

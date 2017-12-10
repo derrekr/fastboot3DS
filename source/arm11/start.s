@@ -103,16 +103,16 @@ _start:
 	ands r4, r4, #3
 	bleq stubExceptionVectors   @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
-	mov sp, #0                  @ SVC mode sp (unused, aborts)
-	cpsid aif, #23              @ Abort mode
+	mov sp, #0                  @ unused SVC mode sp
+	cps #23                     @ Abort mode
 	ldr sp, =A11_EXC_STACK_END
-	cpsid aif, #27              @ Undefined mode
+	cps #27                     @ Undefined mode
 	ldr sp, =A11_EXC_STACK_END
-	cpsid aif, #17              @ FIQ mode
+	cps #17                     @ FIQ mode
 	mov sp, #0                  @ Unused
-	cpsid aif, #18              @ IRQ mode
-	mov sp, #0                  @ IRQ mode stack is not needed
-	cpsid aif, #31              @ System mode
+	cps #18                     @ IRQ mode
+	mov sp, #0                  @ not needed
+	cps #31                     @ System mode
 	adr r2, _sysmode_stacks
 	ldr sp, [r2, r4, lsl #2]
 
