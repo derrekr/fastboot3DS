@@ -22,6 +22,7 @@
 
 
 
+void MCU_init(void);
 void MCU_disableLEDs(void);
 void MCU_powerOnLCDs(void);
 void MCU_powerOffLCDs(void);

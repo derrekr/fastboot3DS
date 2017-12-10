@@ -42,6 +42,7 @@ void systemInit(void)
 		I2C_init();
 		hidInit();
 		PXI_init();
+		MCU_init();
 		systemRestoreHwState();
 	}
 	else

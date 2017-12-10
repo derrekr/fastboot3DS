@@ -38,6 +38,11 @@ enum McuRegisters {
 
 
 
+void MCU_init(void)
+{
+	I2C_init();
+}
+
 void MCU_disableLEDs(void)
 {
 	// disable wifi LED

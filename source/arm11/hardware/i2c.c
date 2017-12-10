@@ -93,6 +93,12 @@ static I2cRegs* i2cGetBusRegsBase(u8 busId)
 
 void I2C_init(void)
 {
+	static bool initialized;
+	
+	/* run-once */
+	if(initialized)
+		return;
+
 	I2cRegs *regs = i2cGetBusRegsBase(0); // Bus 1
 	i2cWaitBusy(regs);
 	regs->REG_I2C_CNTEX = 2;  // ?
@@ -107,6 +113,8 @@ void I2C_init(void)
 	i2cWaitBusy(regs);
 	regs->REG_I2C_CNTEX = 2;  // ?
 	regs->REG_I2C_SCL = 1280; // ?
+	
+	initialized = true;
 }
 
 static bool i2cStartTransfer(I2cDevice devId, u8 regAddr, bool read, I2cRegs *const regs)
