@@ -293,7 +293,8 @@ bool userCancelHandler(bool cancelAllowed)
 	{
 		if (cancelAllowed)
 		{
-			ee_printf("\n\nCancel current operation?\n(A to confirm, B to continue)\n\n");
+			ee_printf("\r%60.60s\r", ""); // delete current line
+			ee_printf("Cancel current operation?\n(A to confirm, B to continue)\n\n");
 			updateScreens();
 			do
 			{
@@ -311,7 +312,8 @@ bool userCancelHandler(bool cancelAllowed)
 		}
 		else
 		{
-			ee_printf("\n\nCancel is not allowed here.\n\n");
+			ee_printf("\r%60.60s\r", ""); // delete current line
+			ee_printf("Cancel is not allowed here.\n\n");
 		}
 		
 		hidGetPowerButton(true); // poweroff stopped
