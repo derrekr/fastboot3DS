@@ -24,13 +24,15 @@
 #include "ipc_handler.h"
 #include "hardware/pxi.h"
 
+
+
 noreturn void power_off(void)
 {
 	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
 	MCU_powerOffLCDs();
 
 	flushDCache();
-	__asm__ __volatile__("cpsid aif" : :);
+	__asm__ __volatile__("cpsid aif" : : : "memory");
 
 	MCU_triggerPowerOff();
 
@@ -43,7 +45,7 @@ noreturn void power_reboot(void)
 	MCU_powerOffLCDs();
 
 	flushDCache();
-	__asm__ __volatile__("cpsid aif" : :);
+	__asm__ __volatile__("cpsid aif" : : : "memory");
 
 	MCU_triggerReboot();
 
