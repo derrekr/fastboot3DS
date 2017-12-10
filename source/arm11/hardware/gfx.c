@@ -163,15 +163,21 @@ static void gfxSetupFramebuffers(void)
 
 void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 buf1v, u32 buf1Sz, u32 val1)
 {
-	REGs_PSC0[0] = (u32)buf0a>>3;            // Start address
-	REGs_PSC0[1] = ((u32)buf0a + buf0Sz)>>3; // End address 
-	REGs_PSC0[2] = val0;                     // Fill value
-	REGs_PSC0[3] = buf0v | 1u;               // Pattern + start
+	if(buf0a)
+	{
+		REGs_PSC0[0] = (u32)buf0a>>3;            // Start address
+		REGs_PSC0[1] = ((u32)buf0a + buf0Sz)>>3; // End address 
+		REGs_PSC0[2] = val0;                     // Fill value
+		REGs_PSC0[3] = buf0v | 1u;               // Pattern + start
+	}
 
-	REGs_PSC1[0] = (u32)buf1a>>3;            // Start address
-	REGs_PSC1[1] = ((u32)buf1a + buf1Sz)>>3; // End address
-	REGs_PSC1[2] = val1;                     // Fill value
-	REGs_PSC1[3] = buf1v | 1u;               // Pattern + start
+	if(buf1a)
+	{
+		REGs_PSC1[0] = (u32)buf1a>>3;            // Start address
+		REGs_PSC1[1] = ((u32)buf1a + buf1Sz)>>3; // End address
+		REGs_PSC1[2] = val1;                     // Fill value
+		REGs_PSC1[3] = buf1v | 1u;               // Pattern + start
+	}
 }
 
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
