@@ -46,6 +46,7 @@
 .extern fake_heap_end
 .extern setupMmu
 .extern __libc_init_array
+.extern systemInit
 .extern main
 
 .section ".crt0", "ax"
@@ -97,21 +98,22 @@ _start:
 	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
 	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
 	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
+	clrex
 
 	mrc p15, 0, r4, c0, c0, 5   @ Get CPU ID
 	ands r4, r4, #3
 	bleq stubExceptionVectors   @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
-	mov sp, #0                  @ SVC mode sp (unused, aborts)
-	cpsid aif, #23              @ Abort mode
+	mov sp, #0                  @ unused SVC mode sp
+	cps #23                     @ Abort mode
 	ldr sp, =A11_EXC_STACK_END
-	cpsid aif, #27              @ Undefined mode
+	cps #27                     @ Undefined mode
 	ldr sp, =A11_EXC_STACK_END
-	cpsid aif, #17              @ FIQ mode
+	cps #17                     @ FIQ mode
 	mov sp, #0                  @ Unused
-	cpsid aif, #18              @ IRQ mode
-	mov sp, #0                  @ IRQ mode stack is not needed
-	cpsid aif, #31              @ System mode
+	cps #18                     @ IRQ mode
+	mov sp, #0                  @ not needed
+	cps #31                     @ System mode
 	adr r2, _sysmode_stacks
 	ldr sp, [r2, r4, lsl #2]
 
@@ -142,9 +144,9 @@ _start_skip_bss_init_array:
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
 	blx setupMmu
 	bl setupVfp
-	clrex
 	cpsie a
 
+	blx systemInit
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main

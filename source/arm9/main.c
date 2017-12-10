@@ -18,7 +18,6 @@
 
 #include "types.h"
 #include "mem_map.h"
-#include "arm9/hardware/hardware.h"
 #include "arm9/debug.h"
 #include "arm9/hardware/interrupt.h"
 #include "arm9/firm.h"
@@ -30,7 +29,6 @@ volatile bool g_startFirmLaunch = false;
 
 int main(void)
 {
-	hardwareInit();
 	debugHashCodeRoData();
 
 	while(!g_startFirmLaunch) __wfi();

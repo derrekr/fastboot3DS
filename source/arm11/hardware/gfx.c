@@ -287,13 +287,13 @@ void GFX_init(void)
 
 void GFX_enterLowPowerState(void)
 {
-	IRQ_unregisterHandler(IRQ_PDC0);
+	IRQ_disable(IRQ_PDC0);
 	i2cmcu_lcd_poweroff();
 }
 
 void GFX_returnFromLowPowerState(void)
 {
-	IRQ_registerHandler(IRQ_PDC0, 14, 0, true, gfxIrqHandler);
+	IRQ_enable(IRQ_PDC0);
 	i2cmcu_lcd_poweron();
 }
 

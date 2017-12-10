@@ -17,36 +17,22 @@
  */
 
 #include "types.h"
-#include "arm11/start.h"
-#include "arm11/hardware/interrupt.h"
-#include "arm11/hardware/timer.h"
-#include "arm11/hardware/i2c.h"
+#include "arm9/hardware/interrupt.h"
+#include "arm9/hardware/ndma.h"
+#include "arm9/hardware/timer.h"
 #include "hardware/pxi.h"
-#include "arm11/hardware/hid.h"
+#include "arm9/hardware/crypto.h"
 
 
 
-void hardwareInit(void)
+void systemInit(void)
 {
 	IRQ_init();
+	NDMA_init();
 	TIMER_init();
-
-	if(!getCpuId())
-	{
-		I2C_init();
-		hidInit();
-		PXI_init();
-	}
-	else
-	{
-		// We don't need core 1 yet so back it goes into boot11.
-		deinitCpu();
-		((void (*)(void))0x0001004C)();
-	}
+	PXI_init();
+	AES_init();
+	RSA_init();
 
 	leaveCriticalSection(0); // Enables interrupts
 }
-
-/*void hardwareDeinit(void)
-{
-}*/

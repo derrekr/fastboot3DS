@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include "types.h"
-#include "arm11/hardware/hardware.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
@@ -49,8 +48,7 @@ int main(void)
 	char* err_string = NULL;
 	
 	
-	// init hardware / filesystem / load config
-	hardwareInit();
+	// filesystem / load config
 	fsMountSdmc();
 	fsMountNandFilesystems();
 	loadConfigFile();

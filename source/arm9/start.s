@@ -41,6 +41,7 @@
 .extern fake_heap_start
 .extern fake_heap_end
 .extern __libc_init_array
+.extern systemInit
 .extern main
 .extern irqHandler
 .extern undefInstrHandler
@@ -80,7 +81,7 @@ _start:
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 
-	mov sp, #0                  @ SVC mode sp (Unused, aborts)
+	mov sp, #0                  @ unused SVC mode sp
 	msr cpsr_cxsf, #0xD7        @ Abort mode
 	mov sp, #A9_EXC_STACK_END
 	msr cpsr_cxsf, #0xDB        @ Undefined mode
@@ -109,6 +110,7 @@ _start:
 	str r0, [r1]
 	blx __libc_init_array       @ Initialize ctors and dtors
 
+	blx systemInit
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main

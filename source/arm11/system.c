@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -19,15 +17,32 @@
  */
 
 #include "types.h"
-#include "arm9/ncsd.h"
-#include "fatfs/ff.h"
+#include "arm11/start.h"
+#include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/timer.h"
+#include "arm11/hardware/i2c.h"
+#include "hardware/pxi.h"
+#include "arm11/hardware/hid.h"
 
 
-#define NANDIMG_ERROR_BADPATH	-1
-#define NANDIMG_ERROR_NEXISTS	-2
-#define NANDIMG_ERROR_NCONTS	-3
 
+void systemInit(void)
+{
+	IRQ_init();
+	TIMER_init();
 
+	if(!getCpuId())
+	{
+		I2C_init();
+		hidInit();
+		PXI_init();
+	}
+	else
+	{
+		// We don't need core 1 yet so back it goes into boot11.
+		deinitCpu();
+		((void (*)(void))0x0001004C)();
+	}
 
-int validateNandImage(const char *filePath);
-bool isNandImageCompatible(FIL *file);
+	__asm__ __volatile__("cpsie i" : : : "memory"); // Enables interrupts
+}
