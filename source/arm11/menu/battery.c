@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200, d0k3
@@ -19,11 +17,11 @@
  */
  
 
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/menu/battery.h"
  
 void getBatteryState(BatteryState *battery)
 {
-	battery->percent = I2C_readReg(I2C_DEV_MCU, 0x0B);
-	battery->charging = (I2C_readReg(I2C_DEV_MCU, 0x0F) & (1<<4));
+	battery->percent = MCU_readBatteryLevel();
+	battery->charging = MCU_readBatteryChargeState();
 }
