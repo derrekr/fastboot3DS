@@ -24,6 +24,7 @@
 #include "arm11/hardware/i2c.h"
 #include "arm11/hardware/mcu.h"
 
+
 enum McuRegisters {
 	RegBattery = 0x0B,
 	RegExHW = 0x0F,
@@ -34,6 +35,8 @@ enum McuRegisters {
 	RegRTC = 0x30,
 	RegSysModel = 0x7F
 };
+
+
 
 void MCU_disableLEDs(void)
 {

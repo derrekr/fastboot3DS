@@ -25,6 +25,8 @@
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/hid.h"
 
+
+
 static void systemRestoreHwState(void)
 {
 	MCU_disableLEDs();
@@ -51,4 +53,3 @@ void systemInit(void)
 
 	__asm__ __volatile__("cpsie i" : : : "memory"); // Enables interrupts
 }
-
