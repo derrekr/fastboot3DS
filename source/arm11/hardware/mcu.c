@@ -31,6 +31,7 @@ enum McuRegisters {
 	RegPower = 0x20,
 	RegLCDs = 0x22,
 	RegWifiLED = 0x2A,
+	RegCamLED = 0x2B,
 	Reg3DLED = 0x2C,
 	RegRTC = 0x30,
 	RegSysModel = 0x7F
@@ -50,6 +51,9 @@ void MCU_disableLEDs(void)
 	
 	// disable 3D LED
 	I2C_writeReg(I2C_DEV_MCU, Reg3DLED, 0);
+	
+	// disable camera LED
+	I2C_writeReg(I2C_DEV_MCU, RegCamLED, 0);
 }
 
 void MCU_powerOnLCDs(void)
