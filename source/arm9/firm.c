@@ -314,7 +314,7 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 
 		memcpy((void*)(ITCM_KERNEL_MIRROR + 0x7478), &fbs, sizeof(fbs));
 		((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[1] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7478));
-		firmLaunchArgc++;
+		firmLaunchArgc = 2;
 
 		return 1;
 	}
