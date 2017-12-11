@@ -59,7 +59,7 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 	}
 	
 	// boot mode description
-	if ((flags & MENU_FLAG_BOOTMODE) && (index == 3))
+	if ((flags & MENU_FLAG_BOOTMODE) && (index == N_BOOTSLOTS))
 	{
 		if (configDataExist(KBootMode))
 		{
@@ -182,7 +182,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	u32 prevSlot = readStoredBootslot();
 	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
 	ee_printf(ESC_SCHEME_WEAK "reboot: " ESC_RESET);
-	if ((prevSlot >= 1) && (prevSlot <= 3))
+	if ((prevSlot >= 1) && (prevSlot <= N_BOOTSLOTS))
 		ee_printf(" slot %lu ", prevSlot);
 	else
 		ee_printf("autoboot");
