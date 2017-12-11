@@ -79,7 +79,7 @@ static const FirmWhitelist installWhitelist[] =
 	}
 };
 
-static int firmLaunchArgc = 1;
+static int firmLaunchArgc;
 
 
 
@@ -289,8 +289,8 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 		}
 	}
 
-	((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[0] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7490));
 	strncpy_s((void*)(ITCM_KERNEL_MIRROR + 0x7490), path, 256, 256);
+	((const char**)(ITCM_KERNEL_MIRROR + 0x7470))[0] = ((const char*)(ITCM_KERNEL_MIRROR + 0x7490));
 
 	if(!installMode && firmHdr->reserved2[0] & 1) // Adjust argc/v if screen init flag is set.
 	{
@@ -318,7 +318,11 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 
 		return 1;
 	}
-	else return 0;
+	else
+	{
+		firmLaunchArgc = 1;
+		return 0;
+	}
 }
 
 noreturn void firmLaunch(void)
