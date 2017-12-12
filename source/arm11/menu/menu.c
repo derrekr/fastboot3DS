@@ -21,13 +21,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "types.h"
+#include "arm11/hardware/hid.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/menu/battery.h"
 #include "arm11/menu/bootinfo.h"
 #include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/menu_color.h"
-#include "arm11/hardware/hid.h"
 #include "arm11/config.h"
 #include "arm11/console.h"
 #include "arm11/debug.h"
@@ -37,6 +38,27 @@
 #include "fs.h" // for drive names
 
 static BatteryState battery;
+
+void menuClearTop(void)
+{
+	memset((void*) RENDERBUF_TOP, 0, SCREEN_SIZE_TOP);
+}
+
+void menuDrawBorder(u16 color)
+{
+	u16 *fb = (u16*)RENDERBUF_TOP;
+	
+	for(u32 x = 0; x < SCREEN_WIDTH_TOP; x++)
+	{
+		for(u32 y = 0; y < SCREEN_HEIGHT_TOP; y++)
+		{
+			if((x < BORDER_WIDTH) || (x >= (SCREEN_WIDTH_TOP - BORDER_WIDTH)) ||
+			   (y < BORDER_WIDTH) || (y >= (SCREEN_HEIGHT_TOP - BORDER_WIDTH)))
+			   *fb = color;
+			fb++;
+		}
+	}
+}
 
 void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 {
@@ -302,7 +324,13 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 last_index = (u32) -1;
 	
 	u64 n_vblanks = 0;
+	u16 borderColor = 0;
 	getBatteryState(&battery);
+	
+	// get color for topscreen border
+	u8 rtc[8];
+	MCU_readRTC(rtc);
+	borderColor = consoleGetRGB565Color((rtc[0] % 6) + 1);
 	
 	// main menu processing loop
 	while (!g_startFirmLaunch)
@@ -319,6 +347,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		if ((index != last_index) || (curr_menu != last_menu) || (n_vblanks % 250 == 0)) {
 			menuDraw(curr_menu, menu_con, index);
 			menuShowDesc(curr_menu, desc_con, index);
+			menuDrawBorder(borderColor);
 			last_index = index;
 			last_menu = curr_menu;
 
@@ -359,6 +388,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
+			menuClearTop(); // clear top screen for the function that follows
 			(*(entry->function))(desc_con, menu_con, entry->param);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
@@ -389,5 +419,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		}
 	}
 
+	menuClearTop();
 	return 0;
 }
