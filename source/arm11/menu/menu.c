@@ -321,12 +321,8 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			menuShowDesc(curr_menu, desc_con, index);
 			last_index = index;
 			last_menu = curr_menu;
-
-			GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-						0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-			GFX_swapFramebufs();
-		}
-		GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+			updateScreens(); // update screens (VBlank included)
+		} else GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();

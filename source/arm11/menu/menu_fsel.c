@@ -401,12 +401,8 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			if (index != last_index) {
 				browserDraw(res_path, dir_buffer, n_entries, menu_con, index, &scroll);
 				last_index = index;
-
-				GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-							   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
-				GFX_swapFramebufs();
-			}
-			GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+				updateScreens(); // update screens (VBlank included)
+			} else GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
 			
 			// directional button cooldown
 			for (u32 i = dbutton_cooldown; i > 0; i--)
