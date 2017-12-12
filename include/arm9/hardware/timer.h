@@ -78,11 +78,13 @@ void TIMER_start(Timer timer, TimerPrescaler prescaler, u16 ticks, bool enableIr
 u16 TIMER_getTicks(Timer timer);
 
 /**
- * @brief      Stops a timer.
+ * @brief      Stops a timer and returns the current number of ticks.
  *
  * @param[in]  timer  The timer to stop.
+ *
+ * @return     The number of ticks.
  */
-void TIMER_stop(Timer timer);
+u16 TIMER_stop(Timer timer);
 
 /**
  * @brief      Halts the CPU for the specified number of milliseconds.
