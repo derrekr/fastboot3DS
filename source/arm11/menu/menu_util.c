@@ -215,13 +215,16 @@ void clearTop(void)
 
 void drawTopBorder(void)
 {
+	static u16 color = 0;
 	u16 *fb = (u16*)RENDERBUF_TOP;
-	u16 color = 0;
 	
 	// get "random" color (from RTC seconds)
-	u8 rtc[8];
-	MCU_readRTC(rtc);
-	color = consoleGetRGB565Color((rtc[0] % 6) + 1);
+	if (!color)
+	{
+		u8 rtc[8];
+		MCU_readRTC(rtc);
+		color = consoleGetRGB565Color((rtc[0] % 6) + 1);
+	}
 	
 	for(u32 x = 0; x < SCREEN_WIDTH_TOP; x++)
 	{
