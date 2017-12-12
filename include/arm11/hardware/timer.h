@@ -57,9 +57,11 @@ void TIMER_start(u8 prescaler, u32 ticks, bool autoReload, bool enableIrq);
 u32 TIMER_getTicks(void);
 
 /**
- * @brief      Stops the timer.
+ * @brief      Stops the timer and returns the current number of ticks.
+ *
+ * @return     The number of ticks.
  */
-void TIMER_stop(void);
+u32 TIMER_stop(void);
 
 /**
  * @brief      Halts the CPU for the specified number of ticks.

@@ -67,9 +67,11 @@ u16 TIMER_getTicks(Timer timer)
 	return REG_TIMER_VAL(timer);
 }
 
-void TIMER_stop(Timer timer)
+u16 TIMER_stop(Timer timer)
 {
 	REG_TIMER_CNT(timer) = 0;
+
+	return REG_TIMER_VAL(timer);
 }
 
 void TIMER_sleep(u32 ms)

@@ -54,10 +54,12 @@ u32 TIMER_getTicks(void)
 	return REG_TIMER_COUNTER;
 }
 
-void TIMER_stop(void)
+u32 TIMER_stop(void)
 {
 	REG_TIMER_CNT = 0;
 	REG_TIMER_INT_STAT = 1;
+
+	return REG_TIMER_COUNTER;
 }
 
 void TIMER_sleepTicks(u32 ticks)
