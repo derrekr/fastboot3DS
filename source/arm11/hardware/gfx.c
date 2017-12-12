@@ -182,6 +182,8 @@ void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 
 
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
 {
+	if(!in || !out) return;
+
 	REGs_TRANS_ENGINE[0] = (u32)in>>3;
 	REGs_TRANS_ENGINE[1] = (u32)out>>3;
 	REGs_TRANS_ENGINE[2] = indim;
@@ -195,6 +197,8 @@ void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
 // Copies every second line of a 240x400 framebuffer.
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 {
+	if(!in || !out) return;
+
 	REGs_TRANS_ENGINE[0] = (u32)in>>3;
 	REGs_TRANS_ENGINE[1] = (u32)out>>3;
 	REGs_TRANS_ENGINE[4] = 1u<<3;
@@ -204,10 +208,10 @@ void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 	REGs_TRANS_ENGINE[6] = 1;
 }
 
-void GFX_setBrightness(u32 brightness)
+void GFX_setBrightness(u32 top, u32 sub)
 {
-	REG_LCD_BACKLIGHT_MAIN = brightness;
-	REG_LCD_BACKLIGHT_SUB = brightness;
+	REG_LCD_BACKLIGHT_MAIN = top;
+	REG_LCD_BACKLIGHT_SUB = sub;
 }
 
 void* GFX_getFramebuffer(u8 screen)
@@ -250,8 +254,7 @@ void GFX_init(void)
 		*((vu32*)0x1020200C) &= 0xFFFEFFFE;
 		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
 		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
-		REG_LCD_BACKLIGHT_MAIN = DEFAULT_BRIGHTNESS;
-		REG_LCD_BACKLIGHT_SUB = DEFAULT_BRIGHTNESS;
+		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
 		*((vu32*)0x10202244) = 0x1023E;
 		*((vu32*)0x10202A44) = 0x1023E;
 
@@ -264,8 +267,7 @@ void GFX_init(void)
 	{
 		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
 		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
-		REG_LCD_BACKLIGHT_MAIN = DEFAULT_BRIGHTNESS;
-		REG_LCD_BACKLIGHT_SUB = DEFAULT_BRIGHTNESS;
+		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
 		gfxSetupFramebuffers();
 	}
 
