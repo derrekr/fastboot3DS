@@ -19,12 +19,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "hardware/gfx.h"
 #include "arm11/hardware/hid.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
+
+#define BORDER_WIDTH	2 // in pixel
 
 
 char* mallocpyString(const char* str)
@@ -147,7 +151,7 @@ u32 ee_printf_line_center(const char *const fmt, ...)
 	va_end(args);
 	
 	PrintConsole* con = consoleGet();
-	int pad = (con->consoleWidth - strlen(buf)) / 2;
+	int pad = (con->windowWidth - strlen(buf)) / 2;
 	if (pad < 0) pad = 0;
 	con->cursorX = 0;
 	
@@ -165,8 +169,8 @@ u32 ee_printf_screen_center(const char *const fmt, ...)
 	va_end(args);
 	
 	PrintConsole *con = consoleGet();
-	int x = (con->consoleWidth - stringGetWidth(buf)) >> 1;
-	int y = (con->consoleHeight - stringGetHeight(buf)) >> 1;
+	int x = (con->windowWidth - stringGetWidth(buf)) >> 1;
+	int y = (con->windowHeight - stringGetHeight(buf)) >> 1;
 	
 	consoleClear();
 	for (char* str = strtok(buf, "\n"); str != NULL; str = strtok(NULL, "\n"))
@@ -201,6 +205,34 @@ u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max)
 	
 	
 	return res;
+}
+
+void clearTop(void)
+{
+	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, NULL, 0, 0, 0);
+	GFX_waitForEvent(GFX_EVENT_PSC0, true);
+}
+
+void drawTopBorder(void)
+{
+	u16 *fb = (u16*)RENDERBUF_TOP;
+	u16 color = 0;
+	
+	// get "random" color (from RTC seconds)
+	u8 rtc[8];
+	MCU_readRTC(rtc);
+	color = consoleGetRGB565Color((rtc[0] % 6) + 1);
+	
+	for(u32 x = 0; x < SCREEN_WIDTH_TOP; x++)
+	{
+		for(u32 y = 0; y < SCREEN_HEIGHT_TOP; y++)
+		{
+			if((x < BORDER_WIDTH) || (x >= (SCREEN_WIDTH_TOP - BORDER_WIDTH)) ||
+			   (y < BORDER_WIDTH) || (y >= (SCREEN_HEIGHT_TOP - BORDER_WIDTH)))
+			   *fb = color;
+			fb++;
+		}
+	}
 }
 
 // only intended to be ran when the shell is closed

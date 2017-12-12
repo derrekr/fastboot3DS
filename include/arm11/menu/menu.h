@@ -31,7 +31,6 @@
 #define MENU_OFFSET_BUTTONS	18
 #define MENU_WIDTH			28
 #define WORDWRAP_WIDTH		58
-#define BORDER_WIDTH		 2
 
 #define MENU_FLAG_SLOTS		(1<<0)
 #define MENU_FLAG_SLOT(x)	(1<<x)

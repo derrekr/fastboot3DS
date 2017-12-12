@@ -145,8 +145,10 @@ int main(void)
 			if (!gfx_initialized) GFX_init();
 			gfx_initialized = true;
 			// init and select terminal console
-			consoleInit(SCREEN_TOP, &term_con, true); // <-- maybe not do this everytime? (!!!)
+			consoleInit(SCREEN_TOP, &term_con, true);
+			consoleSetWindow(&term_con, 1, 1, 64, 22);
 			consoleSelect(&term_con);
+			drawTopBorder();
 		}
 		
 		// if there is an error, output it to screen
@@ -178,6 +180,7 @@ int main(void)
 			consoleClear();
 			consoleSelect(&term_con);
 			consoleClear();
+			clearTop();
 			updateScreens();
 			
 			// write config (if something changed)

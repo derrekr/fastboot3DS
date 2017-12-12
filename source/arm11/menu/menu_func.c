@@ -175,7 +175,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	(void) menu_con;
 	
 	const u32 y_center = 7;
-	const u32 y_instr = 21;
+	const u32 y_instr = 12;
 	const u32 slot = param & 0xF;
 	
 	// don't allow setting this up if firm is not set
@@ -207,7 +207,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		ee_printf(ESC_SCHEME_WEAK);
 		ee_printf_line_center("Hold button(s) to setup.");
 		ee_printf_line_center("Currently held buttons:");
-		ee_printf(ESC_SCHEME_STD);
+		ee_printf(ESC_SCHEME_ACCENT1);
 		ee_printf_line_center(button_str);
 		ee_printf(ESC_RESET);
 		
@@ -800,7 +800,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleClear();
 	
 	// credits
-	term_con->cursorY = 2;
+	term_con->cursorY = 1;
 	ee_printf(ESC_SCHEME_ACCENT0);
 	ee_printf_line_center("Fastboot3DS Credits");
 	ee_printf_line_center("===================");
@@ -861,7 +861,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		configSetKeyData(KDevMode, &enabled);
 		
 		consoleClear();
-		term_con->cursorY = 10;
+		term_con->cursorY = 9;
 		ee_printf(ESC_SCHEME_ACCENT1);
 		ee_printf_line_center("You are now a developer!");
 		ee_printf(ESC_RESET);

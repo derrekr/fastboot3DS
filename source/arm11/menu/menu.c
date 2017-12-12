@@ -34,32 +34,9 @@
 #include "arm11/debug.h"
 #include "arm11/fmt.h"
 #include "arm11/main.h"
-#include "hardware/gfx.h"
 #include "fs.h" // for drive names
 
 static BatteryState battery;
-
-void menuClearTop(void)
-{
-	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, NULL, 0, 0, 0);
-	GFX_waitForEvent(GFX_EVENT_PSC0, true);
-}
-
-void menuDrawBorder(u16 color)
-{
-	u16 *fb = (u16*)RENDERBUF_TOP;
-	
-	for(u32 x = 0; x < SCREEN_WIDTH_TOP; x++)
-	{
-		for(u32 y = 0; y < SCREEN_HEIGHT_TOP; y++)
-		{
-			if((x < BORDER_WIDTH) || (x >= (SCREEN_WIDTH_TOP - BORDER_WIDTH)) ||
-			   (y < BORDER_WIDTH) || (y >= (SCREEN_HEIGHT_TOP - BORDER_WIDTH)))
-			   *fb = color;
-			fb++;
-		}
-	}
-}
 
 void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 {
@@ -136,7 +113,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 #else
 	const char* title = "fastboot3DS " VERS_STRING " (debug)";
 #endif
-	consoleSetCursor(desc_con, (desc_con->consoleWidth - strlen(title)) >> 1, 1);
+	consoleSetCursor(desc_con, (desc_con->windowWidth - strlen(title)) >> 1, 0);
 	ee_printf(ESC_SCHEME_ACCENT0 "%s" ESC_RESET, title);
 	
 	
@@ -146,15 +123,15 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	getBootInfo(&bootinfo);
 	
 	// print bootinfo
-	consoleSetCursor(desc_con, 0, 4);
-	ee_printf(" Model: %s\n", bootinfo.model);
-	ee_printf(" %s\n", bootinfo.bootEnv);
-	ee_printf(" Battery: %s%lu%s %%" ESC_RESET "\n\n",
+	consoleSetCursor(desc_con, 0, 3);
+	ee_printf("Model: %s\n", bootinfo.model);
+	ee_printf("%s\n", bootinfo.bootEnv);
+	ee_printf("Battery: %s%lu%s %%" ESC_RESET "\n\n",
 		((battery.percent <= 20) && !battery.charging) ? ESC_SCHEME_BAD : ESC_SCHEME_GOOD,
 		battery.percent, (battery.charging) ? "+" : "");
 	for (u32 i = 0; i < sizeof(mount_paths) / sizeof(const char*); i++)
 	{
-		ee_printf(" " ESC_SCHEME_WEAK "%s" ESC_RESET " %s\n", mount_paths[i],
+		ee_printf(ESC_SCHEME_WEAK "%s" ESC_RESET " %s\n", mount_paths[i],
 			((bootinfo.mountState >> i) & 0x1) ?
 			 ESC_SCHEME_GOOD "mounted" ESC_RESET :
 			 ESC_SCHEME_BAD "not mounted" ESC_RESET);
@@ -162,11 +139,11 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	
 	// print config
-	u32 conw = desc_con->consoleWidth;
-	u32 curY = 4;
+	u32 conw = desc_con->windowWidth;
+	u32 curY = 3;
 	
 	// print config location
-	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
+	consoleSetCursor(desc_con, conw - 16, curY++);
 	if(!configIsLoaded())
 	{
 		ee_printf("Config not found");
@@ -178,7 +155,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	}
 	
 	// print boot mode
-	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
+	consoleSetCursor(desc_con, conw - 16, curY++);
 	if(configDataExist(KBootMode))
 	{
 		char* bootmode = configCopyText(KBootMode);
@@ -194,7 +171,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	curY++;
 	for(u32 i = 0; i < N_BOOTSLOTS; i++)
 	{
-		consoleSetCursor(desc_con, conw - 16 - 1, curY++);
+		consoleSetCursor(desc_con, conw - 16, curY++);
 		ee_printf(ESC_SCHEME_WEAK "slot %lu: " ESC_RESET, i + 1);
 		if(configDataExist(KBootOption1 + i))
 			ee_printf((configDataExist(KBootOption1Buttons + i)) ? "keycombo" : "autoboot");
@@ -203,7 +180,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// reboot slot
 	u32 prevSlot = readStoredBootslot();
-	consoleSetCursor(desc_con, conw - 16 - 1, curY++);
+	consoleSetCursor(desc_con, conw - 16, curY++);
 	ee_printf(ESC_SCHEME_WEAK "reboot: " ESC_RESET);
 	if ((prevSlot >= 1) && (prevSlot <= N_BOOTSLOTS))
 		ee_printf(" slot %lu ", prevSlot);
@@ -214,7 +191,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	curY++;
 	if(configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
 	{
-		consoleSetCursor(desc_con, conw - 14 - 1, curY);
+		consoleSetCursor(desc_con, conw - 14, curY);
 		ee_printf(ESC_SCHEME_BAD "devmode active" ESC_RESET);
 	}
 	
@@ -235,12 +212,12 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	// get width, height
 	int desc_width = stringGetWidth(desc_ww);
 	int desc_height = stringGetHeight(desc_ww);
-	desc_width = (desc_width > desc_con->consoleWidth) ? desc_con->consoleWidth : desc_width;
-	desc_height = (desc_height > desc_con->consoleHeight) ? desc_con->consoleHeight : desc_height;
+	desc_width = (desc_width > desc_con->windowWidth) ? desc_con->windowWidth : desc_width;
+	desc_height = (desc_height > desc_con->windowHeight) ? desc_con->windowHeight : desc_height;
 	
 	// write to console
-	int desc_x = (desc_con->consoleWidth - desc_width) >> 1;
-	int desc_y = (desc_con->consoleHeight - 2 - desc_height);
+	int desc_x = (desc_con->windowWidth - desc_width) >> 1;
+	int desc_y = (desc_con->windowHeight - 1 - desc_height);
 	
 	consoleSetCursor(desc_con, desc_x, desc_y++);
 	ee_printf(ESC_SCHEME_ACCENT1 "%s:\n" ESC_RESET, name);
@@ -263,8 +240,8 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 void menuDraw(MenuInfo* curr_menu, PrintConsole* menu_con, u32 index)
 {
 	// const u32 menu_block_height = curr_menu->n_entries + 5; // +5 for title and button instructions
-	int menu_x = (menu_con->consoleWidth - MENU_WIDTH) >> 1;
-	// int menu_y = MENU_DISP_Y + ((menu_con->consoleHeight - menu_block_height) >> 1);
+	int menu_x = (menu_con->windowWidth - MENU_WIDTH) >> 1;
+	// int menu_y = MENU_DISP_Y + ((menu_con->windowHeight - menu_block_height) >> 1);
 	int menu_y = MENU_OFFSET_TITLE;
 	int menu_preset = 0xFF;
 	
@@ -325,13 +302,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	u32 last_index = (u32) -1;
 	
 	u64 n_vblanks = 0;
-	u16 borderColor = 0;
 	getBatteryState(&battery);
-	
-	// get color for topscreen border
-	u8 rtc[8];
-	MCU_readRTC(rtc);
-	borderColor = consoleGetRGB565Color((rtc[0] % 6) + 1);
 	
 	// main menu processing loop
 	while (!g_startFirmLaunch)
@@ -348,7 +319,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		if ((index != last_index) || (curr_menu != last_menu) || (n_vblanks % 250 == 0)) {
 			menuDraw(curr_menu, menu_con, index);
 			menuShowDesc(curr_menu, desc_con, index);
-			menuDrawBorder(borderColor);
 			last_index = index;
 			last_menu = curr_menu;
 
@@ -389,7 +359,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
-			menuClearTop(); // clear top screen for the function that follows
 			(*(entry->function))(desc_con, menu_con, entry->param);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
@@ -420,6 +389,5 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		}
 	}
 
-	menuClearTop();
 	return 0;
 }

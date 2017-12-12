@@ -250,7 +250,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
  */
 void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entries, PrintConsole* menu_con, s32 index, s32* scroll)
 {
-	int brws_x = (menu_con->consoleWidth - BRWS_WIDTH) >> 1;
+	int brws_x = (menu_con->windowWidth - BRWS_WIDTH) >> 1;
 	int brws_y = BRWS_OFFSET_TITLE;
 	char temp_str[BRWS_WIDTH + 1];
 	char byte_str[32];
