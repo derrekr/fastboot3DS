@@ -27,6 +27,7 @@
 #include "fsutils.h"
 #include "arm11/menu/battery.h"
 #include "arm11/menu/bootslot.h"
+#include "arm11/menu/menu.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_func.h"
@@ -38,7 +39,6 @@
 #include "arm11/debug.h"
 #include "arm11/fmt.h"
 #include "arm11/firm.h"
-#include "arm11/main.h"
 
 
 
@@ -128,11 +128,18 @@ u32 menuPresetBootMode(void)
 }
 
 
+u32 menuReturn(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) term_con;
+	(void) menu_con;
+	return param;
+}
+
 u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) term_con;
 	(void) menu_con;
-	u32 res = (configSetKeyData(KBootMode, &param)) ? 0 : 1;
+	u32 res = (configSetKeyData(KBootMode, &param)) ? MENU_OK : MENU_FAIL;
 	
 	return res;
 }
@@ -150,7 +157,7 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	{
 		configDeleteKey(KBootOption1Buttons + slot);
 		configDeleteKey(KBootOption1 + slot);
-		return 0;
+		return MENU_OK;
 	}
 	
 	if (configDataExist(KBootOption1 + slot))
@@ -162,9 +169,9 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_screen_center("Select a firmware file for slot #%lu.\nPress [HOME] to cancel.", slot + 1);
 	updateScreens();
 	
-	u32 res = 0;
+	u32 res = MENU_OK;
 	if (menuFileSelector(res_path, menu_con, start, "*firm*", true))
-		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? 0 : 1;
+		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? MENU_OK : MENU_FAIL;
 	
 	free(res_path);
 	return res;
@@ -180,13 +187,13 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// don't allow setting this up if firm is not set
 	if (!configDataExist(KBootOption1 + slot))
-		return 0;
+		return MENU_OK;
 	
 	// if bit4 of param is set, delete boot keys and return
 	if (param & 0x10)
 	{
 		configDeleteKey(KBootOption1Buttons + slot);
-		return 0;
+		return MENU_OK;
 	}
 	
 	hidScanInput();
@@ -237,7 +244,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			do
 			{
 				GFX_waitForEvent(GFX_EVENT_PDC0, true);
-				if(hidGetPowerButton(false)) return 1;
+				if(hidGetPowerButton(false)) return MENU_FAIL;
 				
 				hidScanInput();
 				kHeldNew = hidKeysHeld();
@@ -246,7 +253,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			while ((kHeld == kHeldNew) && (++vBlanks < 100));
 			
 			// check HOME key
-			if (kHeldNew & KEY_HOME) return 1;
+			if (kHeldNew & KEY_HOME) return MENU_FAIL;
 		}
 		while (!((kHeld|kHeldNew) & 0xfff));
 		// repeat checks until actual buttons are held
@@ -256,7 +263,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	// if we arrive here, we have a button combo
-	u32 res = (configSetKeyData(KBootOption1Buttons + slot, &kHeld)) ? 0 : 1;
+	u32 res = (configSetKeyData(KBootOption1Buttons + slot, &kHeld)) ? MENU_OK : MENU_FAIL;
 	
 	return res;
 }
@@ -287,7 +294,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		
 		path = path_store;
 		if (!menuFileSelector(path, menu_con, NULL, "*firm*", true))
-			return 1;
+			return MENU_FAIL;
 		
 		// back to terminal console
 		consoleSelect(term_con);
@@ -304,13 +311,12 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	ee_printf("\nFirm load success, launching firm..."); // <-- you will never see this
-	g_startFirmLaunch = true;
 	
 	// store the bootslot
 	u32 slot = (param < N_BOOTSLOTS) ? (param + 1) : 0;
 	storeBootslot(slot);
 	
-	return 0;
+	return MENU_RET_FIRMLOADED;
 	
 	fail:
 	
@@ -318,7 +324,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	outputEndWait();
 	
-	return 1;
+	return MENU_FAIL;
 }
 
 u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
@@ -326,7 +332,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	(void) menu_con;
 	(void) param;
 	s32 error = 0;
-	u32 result = 1;
+	u32 result = MENU_FAIL;
 	
 	// select & clear console
 	consoleSelect(term_con);
@@ -430,14 +436,14 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			fFreeDeviceBuffer(dbufHandle);
 			fClose(fHandle);
 			fUnlink(fpath);
-			return 1;
+			return MENU_FAIL;
 		}
 	}
 	
 	// NAND access finalized
 	ee_printf_progress("NAND backup", PROGRESS_WIDTH, nand_size, nand_size);
 	ee_printf("\n" ESC_SCHEME_GOOD "NAND backup finished.\n" ESC_RESET);
-	result = 0;
+	result = MENU_OK;
 	
 	
 	fail_close_handles:
@@ -455,7 +461,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	outputEndWait();
 
 	
-	if (result != 0) fUnlink(fpath);
+	if (result != MENU_OK) fUnlink(fpath);
 	hidScanInput(); // throw away any input from impatient users
 	return result;
 }
@@ -464,7 +470,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	bool forced = param; // if param != 0 -> forced restore
 	s32 error = 0;
-	u32 result = 1;
+	u32 result = MENU_FAIL;
 	
 	
 	// select & clear console
@@ -502,7 +508,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	char fpath[FF_MAX_LFN + 1];
 	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*.bin", false))
-		return 1; // canceled by user
+		return MENU_FAIL; // canceled by user
 	
 	// select & clear console
 	consoleSelect(term_con);
@@ -511,11 +517,11 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// ask the user for confirmation
 	if (forced)
 	{
-		if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to force-restore a NAND image to\nyour system. Doing this with an incompatible\nNAND image will **BRICK** your console! Make\nsure you backed up your important data!")) return 1;
+		if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to force-restore a NAND image to\nyour system. Doing this with an incompatible\nNAND image will **BRICK** your console! Make\nsure you backed up your important data!")) return MENU_FAIL;
 	}
 	else
 	{
-		if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to restore a NAND image to\nyour system. Make sure you have backups of\nyour important data!")) return 1; 
+		if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to restore a NAND image to\nyour system. Make sure you have backups of\nyour important data!")) return MENU_FAIL; 
 	}
 	consoleClear();
 	
@@ -602,14 +608,14 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			fFinalizeRawAccess(devHandle);
 			fFreeDeviceBuffer(dbufHandle);
 			fClose(fHandle);
-			return 1;
+			return MENU_FAIL;
 		}
 	}
 	
 	// NAND access finalized
 	ee_printf_progress("NAND restore", PROGRESS_WIDTH, file_size, file_size);
 	ee_printf("\n" ESC_SCHEME_GOOD "NAND restore finished.\n" ESC_RESET);
-	result = 0;
+	result = MENU_OK;
 	
 	
 	fail_close_handles:
@@ -634,7 +640,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	char firm_drv[8] = { 'f', 'i', 'r', 'm', '0' + param, ':', '\0' };
 	char firm_path[FF_MAX_LFN + 1];
-	u32 result = 1;
+	u32 result = MENU_FAIL;
 	
 	
 	// clear console
@@ -651,7 +657,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
 	updateScreens();
 	if (!menuFileSelector(firm_path, menu_con, NULL, "*firm*", true))
-		return 1; // cancel by user
+		return MENU_FAIL; // cancel by user
 	
 	
 	// select and clear console
@@ -659,7 +665,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleClear();
 	
 	// ask the user for confirmation
-	if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to install a firmware to %s.\nFlashing incompatible firmwares may lead to\nunexpected results.", firm_drv)) return 1;
+	if (!askConfirmation(ESC_SCHEME_BAD "WARNING:" ESC_RESET "\nYou're about to install a firmware to %s.\nFlashing incompatible firmwares may lead to\nunexpected results.", firm_drv)) return MENU_FAIL;
 	consoleClear();
 	
 	ee_printf(ESC_SCHEME_ACCENT1 "Flashing firmware to %s:\n%s\n" ESC_RESET "\nLoading firmware... ", firm_drv, firm_path);
@@ -686,7 +692,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET);
 	ee_printf(ESC_SCHEME_GOOD "\nFirm was flashed to %s.\n" ESC_RESET, firm_drv);
-	result = 0;
+	result = MENU_OK;
 	
 	
 	fail:
@@ -714,7 +720,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	ee_printf_screen_center("Select fastboot3DS update file.\nPress [HOME] to cancel.");
 	updateScreens();
 	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*firm*", true))
-		return 1; // cancel by user
+		return MENU_FAIL; // cancel by user
 	
 	
 	// verify and install update
@@ -776,8 +782,8 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	}
 	
 	ee_printf(ESC_SCHEME_GOOD "OK\n" ESC_RESET);
-	ee_printf(ESC_SCHEME_GOOD "\nfastboot3DS was updated.\n" ESC_RESET);
-	result = 0;
+	ee_printf(ESC_SCHEME_GOOD "\nfastboot3DS was updated.\nSystem will reboot.\n" ESC_RESET);
+	result = MENU_RET_REBOOT;
 	
 	
 	fail:
@@ -873,9 +879,10 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 	
 	
-	return 0;
+	return MENU_OK;
 }
 
+/*
 u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;
@@ -889,10 +896,9 @@ u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	outputEndWait();
 
-	return 0;
+	return MENU_OK;
 }
 
-/*
 u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;

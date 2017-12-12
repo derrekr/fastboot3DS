@@ -35,14 +35,13 @@
 #include "fsutils.h"
 
 
-volatile bool g_startFirmLaunch = false;
-
-
 
 int main(void)
 {
+	bool startFirmLaunch = false;
 	bool show_menu = false;
 	bool gfx_initialized = false;
+	u32 menu_ret = MENU_OK;
 	
 	s32 firm_err = 0; // local result of loadVerifyFirm()
 	char* err_string = NULL;
@@ -88,7 +87,7 @@ int main(void)
 		keysToString(kHeld & 0xfff, combo_str);
 		err_ptr += ee_sprintf(err_ptr, "Keys held on boot: %s\n", combo_str);
 		
-		for(u32 i = 0; (i < N_BOOTSLOTS) && !g_startFirmLaunch; i++)
+		for(u32 i = 0; (i < N_BOOTSLOTS) && !startFirmLaunch; i++)
 		{
 			if(!configDataExist(KBootOption1 + i) ||
 				!configDataExist(KBootOption1Buttons + i))
@@ -103,11 +102,11 @@ int main(void)
 				firm_err = loadVerifyFirm(path, false);
 				if (firm_err >= 0)
 				{
-					g_startFirmLaunch = true;
+					startFirmLaunch = true;
 					storeBootslot(i + 1);
 				}
 				
-				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
+				err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), startFirmLaunch ? "success" : "failed");
 				break;
 			}
 		}
@@ -129,7 +128,7 @@ int main(void)
 			if (hidKeysDown() & KEY_HOME)
 			{
 				show_menu = true;
-				g_startFirmLaunch = false;
+				startFirmLaunch = false;
 			}
 		}
 	}
@@ -137,7 +136,7 @@ int main(void)
 	
 	// main loop
 	PrintConsole term_con;
-	while(!g_startFirmLaunch)
+	while(!startFirmLaunch)
 	{
 		// init screens / console (if we'll need them below)
 		if(show_menu || err_string)
@@ -173,7 +172,7 @@ int main(void)
 			consoleInit(SCREEN_SUB, &menu_con, false);
 
 			// run menu
-			menuProcess(&menu_con, &term_con, menu_fb3ds);
+			menu_ret = menuProcess(&menu_con, &term_con, menu_fb3ds);
 			
 			// clear consoles and screen
 			consoleSelect(&menu_con);
@@ -188,10 +187,17 @@ int main(void)
 			
 			// check POWER button
 			if(hidGetPowerButton(false)) break;
+			
+			// check menu return value
+			if (menu_ret == MENU_RET_FIRMLOADED)
+				startFirmLaunch = true;
+			else if ((menu_ret == MENU_RET_POWEROFF) || (menu_ret == MENU_RET_REBOOT))
+				break;
+			
 		}
 		
 		// search for a bootable firmware (all slots)
-		if (!g_startFirmLaunch)
+		if (!startFirmLaunch)
 		{
 			err_string = (char*) malloc(512);
 			char* err_ptr = err_string;
@@ -201,7 +207,7 @@ int main(void)
 			if (!nextBootSlot)
 			{
 				err_ptr += ee_sprintf(err_ptr, "Continuing bootloader...\n");
-				for (u32 i = 0; (i < N_BOOTSLOTS) && !g_startFirmLaunch; i++)
+				for (u32 i = 0; (i < N_BOOTSLOTS) && !startFirmLaunch; i++)
 				{
 					// FIRM not set for slot or slot not set to autoboot
 					if (!configDataExist(KBootOption1 + i) || configDataExist(KBootOption1Buttons + i))
@@ -213,11 +219,11 @@ int main(void)
 					firm_err = loadVerifyFirm(path, false);
 					if (firm_err >= 0)
 					{
-						g_startFirmLaunch = true;
+						startFirmLaunch = true;
 						storeBootslot(i + 1);
 					}
 					
-					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), g_startFirmLaunch ? "success" : "failed");
+					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), startFirmLaunch ? "success" : "failed");
 					break;
 				}
 			}
@@ -236,14 +242,14 @@ int main(void)
 					err_ptr += ee_sprintf(err_ptr, "Boot path is %s\n", path);
 					
 					firm_err = loadVerifyFirm(path, false);
-					g_startFirmLaunch = (firm_err >= 0);
+					startFirmLaunch = (firm_err >= 0);
 					// no need to store the bootslot here as it stays as is
 					
-					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", nextBootSlot, g_startFirmLaunch ? "success" : "failed");
+					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", nextBootSlot, startFirmLaunch ? "success" : "failed");
 				}
 			}
 			
-			if (!g_startFirmLaunch)
+			if (!startFirmLaunch)
 			{
 				err_ptr += ee_sprintf(err_ptr, "Firmware not loaded!\nAre boot slots properly set up?\n");
 			}
@@ -266,14 +272,21 @@ int main(void)
 	if(err_string) free(err_string);
 	
 	// power off
-	if(hidGetPowerButton(true))
+	if(hidGetPowerButton(true) || (menu_ret == MENU_RET_POWEROFF))
 	{
 		storeBootslot(0);
 		power_off();
 	}
+	
+	// reboot
+	if(menu_ret == MENU_RET_REBOOT)
+	{
+		storeBootslot(0);
+		power_reboot();
+	}
 
 	// firm launch
-	if(g_startFirmLaunch)
+	if(startFirmLaunch)
 	{
 		// make sure GFX is in the right state
 		if(!gfx_initialized && (firm_err == 1))

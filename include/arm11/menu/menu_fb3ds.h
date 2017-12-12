@@ -84,7 +84,7 @@ MenuInfo menu_fb3ds[] =
 	{
 		"Main Menu", 6, NULL, 0, 
 		{
-			{ "Continue boot",				DESC_CONTINUE,				NULL,					MENU_LEAVE_PARAM },
+			{ "Continue boot",				DESC_CONTINUE,				&menuReturn,			MENU_RET_CONTINUE },
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
 			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 },
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },

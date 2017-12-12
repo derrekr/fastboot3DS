@@ -22,7 +22,16 @@
 #include "arm11/menu/bootslot.h"
 #include "arm11/console.h"
 
-#define MENU_LEAVE_PARAM	((u32) -1)
+
+enum
+{
+	MENU_OK,
+	MENU_FAIL,
+	MENU_RET_CONTINUE,
+	MENU_RET_FIRMLOADED,
+	MENU_RET_POWEROFF,
+	MENU_RET_REBOOT
+};
 
 #define MENU_MAX_ENTRIES	8
 #define MENU_MAX_DEPTH		4

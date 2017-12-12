@@ -33,7 +33,6 @@
 #include "arm11/console.h"
 #include "arm11/debug.h"
 #include "arm11/fmt.h"
-#include "arm11/main.h"
 #include "fs.h" // for drive names
 
 static BatteryState battery;
@@ -305,7 +304,8 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	getBatteryState(&battery);
 	
 	// main menu processing loop
-	while (!g_startFirmLaunch)
+	u32 menu_ret = MENU_OK;
+	while (menu_ret < MENU_RET_CONTINUE)
 	{
 		// handle power button
 		if(hidGetPowerButton(false))
@@ -336,10 +336,6 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			u32 next_menu_idx = curr_menu->entries[index].param;
 			
-			// special handling for MENU_LEAVE_PARAM
-			if (next_menu_idx == MENU_LEAVE_PARAM)
-				break;
-			
 			// store previous menu and index for return
 			if (menu_lvl < MENU_MAX_DEPTH)
 			{
@@ -355,7 +351,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		{
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
-			(*(entry->function))(desc_con, menu_con, entry->param);
+			menu_ret = (*(entry->function))(desc_con, menu_con, entry->param);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
 		}
@@ -385,5 +381,5 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		}
 	}
 
-	return 0;
+	return menu_ret;
 }
