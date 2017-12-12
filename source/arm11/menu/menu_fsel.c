@@ -284,10 +284,12 @@ void browserDraw(const char* curr_path, DirBufferEntry* dir_buffer, s32 n_entrie
 		DirBufferEntry* entry = &(dir_buffer[pos]);
 		bool is_selected = (pos == index);
 		
-		if(entry->is_dir)
-			strncpy(byte_str, *curr_path ? "(DIR)" : "(DRV)", 31);
-		else
+		if(!entry->is_dir)
 			formatBytes(byte_str, entry->fsize);
+		else if (!*curr_path)
+			strncpy(byte_str, (strncmp(entry->fname, "sdmc:", 5+1) == 0) ? "(SD Card)" : "(System)", 31);
+		else
+			strncpy(byte_str, "(DIR)", 31);
 		
 		consoleSetCursor(menu_con, brws_x, brws_y++);
 		truncateString(temp_str, entry->fname, BRWS_WIDTH-13, 8);
