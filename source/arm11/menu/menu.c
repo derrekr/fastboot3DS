@@ -41,7 +41,8 @@ static BatteryState battery;
 
 void menuClearTop(void)
 {
-	memset((void*) RENDERBUF_TOP, 0, SCREEN_SIZE_TOP);
+	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, NULL, 0, 0, 0);
+	GFX_waitForEvent(GFX_EVENT_PSC0, true);
 }
 
 void menuDrawBorder(u16 color)
