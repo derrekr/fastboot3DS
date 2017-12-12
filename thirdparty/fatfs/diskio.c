@@ -39,8 +39,6 @@ DSTATUS disk_status (
 			if(!dev_sdcard->is_active()) stat = STA_NOINIT;
 			break;
 		case FATFS_DEV_NUM_TWL_NAND:
-			if(!dev_decnand->is_active()) stat = STA_NOINIT;
-			break;
 		case FATFS_DEV_NUM_CTR_NAND:
 			if(!dev_decnand->is_active()) stat = STA_NOINIT;
 			break;
