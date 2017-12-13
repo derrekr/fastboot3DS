@@ -218,60 +218,19 @@ clearMem_check_zero:
         ((r0) | (r1<<4) | (r2<<8) | (r3<<12) | (r4<<16) | (r5<<20) | (r6<<24) | (r7<<28))
 
 setupMpu:
-	@ Region 0: ITCM kernel mirror 32 KB
-	@ Region 1: ARM9 internal mem + N3DS extension 2 MB
-	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
-	@ Region 3: VRAM 8 MB
-	@ Region 4: DSP mem and AXIWRAM 1 MB
-	@ Region 5: DTCM 16 KB
-	@ Region 6: Exception vectors + ARM9 bootrom 64 KB
-	@ Region 7: - (reserved)
-	ldr r0, =MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
-	mcr p15, 0, r0, c6, c0, 0
-	ldr r1, =MAKE_REGION(A9_RAM_BASE,        REGION_2MB)
-	mcr p15, 0, r1, c6, c1, 0
-	ldr r2, =MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
-	mcr p15, 0, r2, c6, c2, 0
-	ldr r3, =MAKE_REGION(VRAM_BASE,          REGION_8MB)
-	mcr p15, 0, r3, c6, c3, 0
-	ldr r0, =MAKE_REGION(DSP_MEM_BASE,       REGION_1MB)
-	mcr p15, 0, r0, c6, c4, 0
-	ldr r1, =MAKE_REGION(DTCM_BASE,          REGION_16KB)
-	mcr p15, 0, r1, c6, c5, 0
-	ldr r2, =MAKE_REGION(BOOT9_BASE,         REGION_64KB)
-	mcr p15, 0, r2, c6, c6, 0
-	mov r3, #0
-	mcr p15, 0, r3, c6, c7, 0
+	adr r0, _mpu_regions        @ Table at end of file
+	ldm r0, {r1-r10}
+	mcr p15, 0, r1, c6, c0, 0   @ Write MPU region reg 0-7
+	mcr p15, 0, r2, c6, c1, 0
+	mcr p15, 0, r3, c6, c2, 0
+	mcr p15, 0, r4, c6, c3, 0
+	mcr p15, 0, r5, c6, c4, 0
+	mcr p15, 0, r6, c6, c5, 0
+	mcr p15, 0, r7, c6, c6, 0
+	mcr p15, 0, r8, c6, c7, 0
 
-	@ Data access permissions:
-	@ Region 0: User = --, Privileged = RW
-	@ Region 1: User = --, Privileged = RW
-	@ Region 2: User = --, Privileged = RW
-	@ Region 3: User = --, Privileged = RW
-	@ Region 4: User = --, Privileged = RW
-	@ Region 5: User = --, Privileged = RW
-	@ Region 6: User = --, Privileged = RO
-	@ Region 7: User = --, Privileged = --
-	ldr r0, =MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-                              PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-                              PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
-	mcr p15, 0, r0, c5, c0, 2   @ Write data access permissions
-
-	@ Instruction access permissions:
-	@ Region 0: User = --, Privileged = RO
-	@ Region 1: User = --, Privileged = RO
-	@ Region 2: User = --, Privileged = --
-	@ Region 3: User = --, Privileged = --
-	@ Region 4: User = --, Privileged = --
-	@ Region 5: User = --, Privileged = --
-	@ Region 6: User = --, Privileged = RO
-	@ Region 7: User = --, Privileged = --
-	ldr r1, =MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
-                              PER_NO_ACC,             PER_NO_ACC,
-                              PER_NO_ACC,             PER_NO_ACC,
-                              PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
-	mcr p15, 0, r1, c5, c0, 3   @ Write instruction access permissions
+	mcr p15, 0, r9, c5, c0, 2   @ Write data access permissions
+	mcr p15, 0, r10, c5, c0, 3  @ Write instruction access permissions
 
 	@ Data cachable bits:
 	@ Region 0 = no
@@ -306,8 +265,8 @@ setupMpu:
 	@ Region 5 = no
 	@ Region 6 = yes
 	@ Region 7 = no
-	mov r2, #0b01011010
-	mcr p15, 0, r2, c3, c0, 0   @ Write bufferable bits
+	@mov r2, #0b01011010        @ Same as data cachable bits
+	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
@@ -346,4 +305,48 @@ deinitCpu:
 	bx r3
 
 
+_mpu_regions:
+	@ Region 0: ITCM kernel mirror 32 KB
+	@ Region 1: ARM9 internal mem + N3DS extension 2 MB
+	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
+	@ Region 3: VRAM 8 MB
+	@ Region 4: DSP mem and AXIWRAM 1 MB
+	@ Region 5: DTCM 16 KB
+	@ Region 6: Exception vectors + ARM9 bootrom 64 KB
+	@ Region 7: - (reserved)
+	.word MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
+	.word MAKE_REGION(A9_RAM_BASE,        REGION_2MB)
+	.word MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
+	.word MAKE_REGION(VRAM_BASE,          REGION_8MB)
+	.word MAKE_REGION(DSP_MEM_BASE,       REGION_1MB)
+	.word MAKE_REGION(DTCM_BASE,          REGION_16KB)
+	.word MAKE_REGION(BOOT9_BASE,         REGION_64KB)
+	.word 0
+_mpu_permissions:
+	@ Data access permissions:
+	@ Region 0: User = --, Privileged = RW
+	@ Region 1: User = --, Privileged = RW
+	@ Region 2: User = --, Privileged = RW
+	@ Region 3: User = --, Privileged = RW
+	@ Region 4: User = --, Privileged = RW
+	@ Region 5: User = --, Privileged = RW
+	@ Region 6: User = --, Privileged = RO
+	@ Region 7: User = --, Privileged = --
+	.word MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
+	                       PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
+	                       PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
+	                       PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
+	@ Instruction access permissions:
+	@ Region 0: User = --, Privileged = RO
+	@ Region 1: User = --, Privileged = RO
+	@ Region 2: User = --, Privileged = --
+	@ Region 3: User = --, Privileged = --
+	@ Region 4: User = --, Privileged = --
+	@ Region 5: User = --, Privileged = --
+	@ Region 6: User = --, Privileged = RO
+	@ Region 7: User = --, Privileged = --
+	.word MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
+	                       PER_NO_ACC,             PER_NO_ACC,
+	                       PER_NO_ACC,             PER_NO_ACC,
+	                       PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
 .pool
