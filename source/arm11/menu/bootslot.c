@@ -45,7 +45,10 @@ u8 readStoredBootslot(void)
 bool storeBootslot(u8 slot)
 {
 	if (slot == INVALID_BOOT_SLOT) // 0xFF is not allowed
-		slot = 0; 
+		slot = 0;
+        
+    if (getBootEnv() != BOOTENV_COLD_BOOT) // store slot only on cold boot
+		return true;
 	
 	if (slot != stored_slot)
 	{
