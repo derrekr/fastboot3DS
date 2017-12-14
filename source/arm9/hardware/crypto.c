@@ -643,13 +643,22 @@ void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess
 #define RSA_REGS_BASE   (IO_MEM_ARM9_ONLY + 0xB000)
 #define REG_RSA_CNT     *((vu32*)(RSA_REGS_BASE + 0x000))
 #define REG_RSA_UNK_F0  *((vu32*)(RSA_REGS_BASE + 0x0F0))
-#define REG_RSA_SLOT0    ((vu32*)(RSA_REGS_BASE + 0x100))
-#define REG_RSA_SLOT1    ((vu32*)(RSA_REGS_BASE + 0x110))
-#define REG_RSA_SLOT2    ((vu32*)(RSA_REGS_BASE + 0x120))
-#define REG_RSA_SLOT3    ((vu32*)(RSA_REGS_BASE + 0x130))
+#define REGs_RSA_SLOT0   ((vu32*)(RSA_REGS_BASE + 0x100))
+#define REGs_RSA_SLOT1   ((vu32*)(RSA_REGS_BASE + 0x110))
+#define REGs_RSA_SLOT2   ((vu32*)(RSA_REGS_BASE + 0x120))
+#define REGs_RSA_SLOT3   ((vu32*)(RSA_REGS_BASE + 0x130))
+#define rsaSlots         ((RsaSlot*)(RSA_REGS_BASE + 0x100))
 #define REG_RSA_EXP      ((vu32*)(RSA_REGS_BASE + 0x200))
 #define REG_RSA_MOD      (       (RSA_REGS_BASE + 0x400))
 #define REG_RSA_TXT      (       (RSA_REGS_BASE + 0x800))
+
+typedef struct
+{
+	vu32 REG_RSA_SLOTCNT;
+	vu32 REG_RSA_SLOTSIZE;
+	vu32 REG_RSA_SLOT_UNK_0x8;
+	vu32 REG_RSA_SLOT_UNK_0xC;
+} RsaSlot;
 
 
 void RSA_init(void)
@@ -675,20 +684,17 @@ bool RSA_setKey2048(u8 keyslot, const u8 *const mod, u32 exp)
 	fb_assert(keyslot < 4);
 	fb_assert(mod != NULL);
 
+	RsaSlot *slot = &rsaSlots[keyslot];
 	rsaWaitBusy();
-	vu32 *const slot = &REG_RSA_SLOT0[keyslot<<2];
-	// RSA_SLOTCNT
-	if(slot[0] & RSA_KEY_WR_PROT) return false;
+	if(slot->REG_RSA_SLOTCNT & RSA_KEY_WR_PROT) return false;
 	// Unset key if bit 31 is not set. No idea why but boot9 does this.
-	if(!(slot[0] & RSA_KEY_UNK_BIT31)) slot[0] &= ~RSA_KEY_STAT_SET;
+	if(!(slot->REG_RSA_SLOTCNT & RSA_KEY_UNK_BIT31)) slot->REG_RSA_SLOTCNT &= ~RSA_KEY_STAT_SET;
 
 	REG_RSA_CNT = RSA_INPUT_NORMAL | RSA_INPUT_BIG | RSA_KEYSLOT(keyslot);
 	memset((void*)REG_RSA_EXP, 0, 0x100 - 4);
 	REG_RSA_EXP[(0x100>>2) - 1] = exp;
 
-	// RSA_SLOTSIZE
-	if(slot[1] != RSA_SLOTSIZE_2048) return false;
-
+	if(slot->REG_RSA_SLOTSIZE != RSA_SLOTSIZE_2048) return false;
 	memcpy((void*)REG_RSA_MOD, mod, 0x100);
 
 	return true;
@@ -699,16 +705,15 @@ bool RSA_decrypt2048(void *const decSig, const void *const encSig)
 	fb_assert(decSig != NULL);
 	fb_assert(encSig != NULL);
 
+	const u8 keyslot = RSA_GET_KEYSLOT;
 	rsaWaitBusy();
-	const u8 keyslot = (REG_RSA_CNT & RSA_KEYSLOT(0xFu))>>4;
-	if(!(REG_RSA_SLOT0[keyslot<<2] & RSA_KEY_STAT_SET)) return false;
+	if(!(rsaSlots[keyslot].REG_RSA_SLOTCNT & RSA_KEY_STAT_SET)) return false;
 
 	REG_RSA_CNT |= RSA_INPUT_NORMAL | RSA_INPUT_BIG;
 	memcpy((void*)REG_RSA_TXT, encSig, 0x100);
 
 	REG_RSA_CNT |= RSA_ENABLE;
 	rsaWaitBusy();
-
 	memcpy(decSig, (void*)REG_RSA_TXT, 0x100);
 
 	return true;

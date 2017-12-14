@@ -263,6 +263,7 @@ void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess
 #define RSA_ENABLE          (1u)
 #define RSA_UNK_BIT1        (1u<<1)
 #define RSA_KEYSLOT(k)      ((k)<<4)
+#define RSA_GET_KEYSLOT     ((REG_RSA_CNT & RSA_KEYSLOT(0xFu))>>4)
 #define RSA_INPUT_BIG       (1u<<8)
 #define RSA_INPUT_LITTLE    (0u)
 #define RSA_INPUT_NORMAL    (1u<<9)
