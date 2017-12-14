@@ -132,21 +132,21 @@ _start:
 	blx __libc_init_array       @ Initialize ctors and dtors
 
 	@ Wakeup core 1.
-	ldr r0, =0x1FFFFFDC
-	ldr r1, =(MPCORE_PRIV_REG_BASE + 0x1F00)
+	mov r0, #0x20000000
+	ldr r1, =(MPCORE_PRIV_REG_BASE + 0x1F00) @ REG_GID_SW_INT
 	adr r2, _start
-	str r2, [r0]
-	mov r3, #1<<17
-	orr r3, r3, #1
-	str r3, [r1]
+	str r2, [r0, #-0x24]        @ 0x1FFFFFDC
+	mov r3, #0b10<<16           @ Target core 1
+	orr r3, r3, #1              @ ID 1
+	str r3, [r1]                @ Trigger software interrupt
 _start_skip_bss_init_array:
-	ldr r2, =0xFFFF70F
+	ldr r2, =0x706              @ Disable + reset all counters. Cycle counter divider 1. IRQs disabled.
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
 	blx setupMmu
 	bl setupVfp
 	cpsie a
-
 	blx systemInit
+
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main
