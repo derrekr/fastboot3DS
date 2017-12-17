@@ -164,6 +164,15 @@ bool sdmmc_sd_init(void)
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
 		IRQ_registerHandler(IRQ_SDIO_1, sdioHandler);
+
+		for(FsDrive i = FS_DRIVE_TWLN; i <= FS_DRIVE_NAND; i++)
+		{
+			if(fIsDriveMounted(i))
+			{
+				fUnmount(i);
+				fMount(i);
+			}
+		}
 	}
 
 	return true;
