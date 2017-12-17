@@ -56,7 +56,11 @@ typedef enum
 	IRQ_TOUCHSCREEN   = 99,  // Triggers on hitting the touchscreen.
 	IRQ_HEADPH_JACK   = 100, // Headphone jack. Triggers on both plugging in and out? GPIO reg 9, bit 8.
 	IRQ_MCU_HID       = 113, // HOME/POWER pressed/released, shell opened/closed and WiFi switch pressed. GPIO reg 19, bit 9.
-	IRQ_GAMECARD      = 117  // Gamecard inserted
+	IRQ_GAMECARD      = 117, // Gamecard inserted
+	IRQ_PERF_MONITOR0 = 120, // Core 0 performance monitor. Triggers on any counter overflow
+	IRQ_PERF_MONITOR1 = 121, // Core 1 performance monitor. Triggers on any counter overflow
+	IRQ_PERF_MONITOR2 = 122, // Unconfirmed. Core 2 performance monitor. Triggers on any counter overflow
+	IRQ_PERF_MONITOR3 = 123  // Unconfirmed. Core 3 performance monitor. Triggers on any counter overflow
 } Interrupt;
 
 
