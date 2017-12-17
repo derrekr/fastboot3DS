@@ -140,18 +140,17 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 	// Check version
 	const u32 vers = *(u32*)((void*)updateBuffer + 0x210);
 	if(version) *version = vers;
-	if(vers < ((u32)VERS_MAJOR<<16 | VERS_MINOR)) return UPDATE_ERR_DOWNGRADE;
 
 	size_t partInd, sector;
-	if(!partitionGetIndex("firm0", &partInd)) return -6;
-	if(!partitionGetSectorOffset(partInd, &sector)) return -7;
+	if(!partitionGetIndex("firm0", &partInd)) return -5;
+	if(!partitionGetSectorOffset(partInd, &sector)) return -6;
 
 	u8 *firm0Buf = (u8*)malloc(0x200);
-	if(!firm0Buf) return -8;
+	if(!firm0Buf) return -7;
 	if(!dev_decnand->read_sector(sector + 1, 1, firm0Buf))
 	{
 		free(firm0Buf);
-		return -9;
+		return -8;
 	}
 
 	// verify fastboot is installed to firm0:/
@@ -162,6 +161,8 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 	}
 
 	free(firm0Buf);
+
+	if(vers < ((u32)VERS_MAJOR<<16 | VERS_MINOR)) return UPDATE_ERR_DOWNGRADE;
 
 	return 0;
 }

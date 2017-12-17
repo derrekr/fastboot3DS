@@ -28,8 +28,8 @@ enum
 {
 	UPDATE_ERR_INVALID_FIRM  = -2, // Corrupted FIRM
 	UPDATE_ERR_INVALID_SIG   = -3, // Signature verification error
-	UPDATE_ERR_DOWNGRADE     = -5, // Update file is a lower version than installed
-	UPDATE_ERR_NOT_INSTALLED = -10 // fastboot3DS is not installed in firm0:/
+	UPDATE_ERR_NOT_INSTALLED = -9, // fastboot3DS is not installed in firm0:/
+	UPDATE_ERR_DOWNGRADE     = -10 // Update file is a lower version than installed
 };
 
 
