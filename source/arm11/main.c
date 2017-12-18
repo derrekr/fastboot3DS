@@ -263,7 +263,7 @@ int main(void)
 	
 	
 	// deinit GFX if it was initialized
-	if(gfx_initialized) GFX_deinit();
+	if(gfx_initialized) GFX_deinit(true);
 		
 	// deinit filesystem
 	fsUnmountAll();
@@ -292,7 +292,7 @@ int main(void)
 		if(!gfx_initialized && (firm_err == 1))
 		{
 			GFX_init();
-			GFX_deinit();
+			GFX_deinit(true);
 		}
 		
 		// launch firm

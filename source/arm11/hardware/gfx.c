@@ -250,16 +250,15 @@ void GFX_init(void)
 	if(REG_PDN_GPU_CNT != 0x1007F) // Check if screens are already initialized
 	{
 		REG_PDN_GPU_CNT = 0x1007F;
-		*((vu32*)0x10202014) = 0x00000001;
-		*((vu32*)0x1020200C) = 0;
-		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
-		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
-		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
-		*((vu32*)0x10202244) = 0x1023E;
-		*((vu32*)0x10202A44) = 0x1023E;
-
 		gfxSetupLcdTop();
 		gfxSetupLcdSub();
+		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
+		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
+		*((vu32*)0x10202014) = 0x00000001;
+		*((vu32*)0x1020200C) = 0;
+		*((vu32*)0x10202244) = 0x1023E;
+		*((vu32*)0x10202A44) = 0x1023E;
+		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
 
 		MCU_powerOnLCDs(); // Power on LCDs and backlight
 	}
@@ -284,42 +283,29 @@ void GFX_init(void)
 	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
 	GFX_waitForEvent(GFX_EVENT_PSC0, true);
 
-	REG_LCD_COLORFILL_MAIN = 0;
-	REG_LCD_COLORFILL_SUB = 0;
-
 	// On certain N3DS consoles the first framebuffer swap on cold boot
 	// can cause graphics corruption if we don't wait for the first VBlank.
 	// This also fixes the problem of the screens not turning on on N3DS.
 	GFX_waitForEvent(GFX_EVENT_PDC0, true);
+
+	REG_LCD_COLORFILL_MAIN = 0;
+	REG_LCD_COLORFILL_SUB = 0;
 }
 
 void GFX_enterLowPowerState(void)
 {
 	REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
 	REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
-	IRQ_disable(IRQ_PDC0);
-	MCU_powerOffLCDs();
-	*((vu32*)0x10202244) = 0;
-	*((vu32*)0x10202A44) = 0;
-	*((vu32*)0x1020200C) = 0x10001;
-	*((vu32*)0x10202014) = 0;
+	GFX_waitForEvent(GFX_EVENT_PDC0, true);
+	GFX_deinit(false);
 }
 
 void GFX_returnFromLowPowerState(void)
 {
-	*((vu32*)0x10202014) = 0x00000001;
-	*((vu32*)0x1020200C) = 0;
-	*((vu32*)0x10202244) = 0x1023E;
-	*((vu32*)0x10202A44) = 0x1023E;
-	MCU_powerOnLCDs();
-	IRQ_enable(IRQ_PDC0);
-	// The LCDs seem to need a bit of time to stabilize
-	for(u32 i = 30; i > 0; i--) GFX_waitForEvent(GFX_EVENT_PDC0, true);
-	REG_LCD_COLORFILL_MAIN = 0;
-	REG_LCD_COLORFILL_SUB = 0;
+	GFX_init();
 }
 
-void GFX_deinit(void)
+void GFX_deinit(bool keepLcdsOn)
 {
 	IRQ_unregisterHandler(IRQ_PSC0);
 	IRQ_unregisterHandler(IRQ_PSC1);
@@ -327,24 +313,29 @@ void GFX_deinit(void)
 	IRQ_unregisterHandler(IRQ_PPF);
 	//IRQ_unregisterHandler(IRQ_P3D);
 
-	// Temporary Luma workaround
-	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,
-	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0);
-	*((vu32*)(0x10400400+0x70)) = 0x00080341;                 // Format GL_RGB8_OES
-	*((vu32*)(0x10400400+0x78)) = 0;                          // Select first framebuffer
-	*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;      // Stride 0
-	*((vu32*)(0x10400500+0x68)) = FRAMEBUF_SUB_A_1 + 0x17700; // Sub framebuffer first address
-	*((vu32*)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2 + 0x17700; // Sub framebuffer second address
-	*((vu32*)(0x10400500+0x70)) = 0x00080301;                 // Format GL_RGB8_OES
-	*((vu32*)(0x10400500+0x78)) = 0;                          // Select first framebuffer
-	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3;      // Stride 0
-
-	// This deinits the GPU correctly but it is broken with Luma.
-	/*MCU_powerOffLCDs();
-	GFX_setBrightness(0, 0);
-	*((vu32*)0x10202244) = 0;
-	*((vu32*)0x10202A44) = 0;
-	*((vu32*)0x1020200C) = 0x10001;
-	*((vu32*)0x10202014) = 0;
-	REG_PDN_GPU_CNT = 0x10001;*/
+	if(keepLcdsOn)
+	{
+		// Temporary Luma workaround
+		GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,
+		              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0);
+		*((vu32*)(0x10400400+0x70)) = 0x00080341;                 // Format GL_RGB8_OES
+		*((vu32*)(0x10400400+0x78)) = 0;                          // Select first framebuffer
+		*((vu32*)(0x10400400+0x90)) = SCREEN_HEIGHT_TOP * 3;      // Stride 0
+		*((vu32*)(0x10400500+0x68)) = FRAMEBUF_SUB_A_1 + 0x17700; // Sub framebuffer first address
+		*((vu32*)(0x10400500+0x6C)) = FRAMEBUF_SUB_A_2 + 0x17700; // Sub framebuffer second address
+		*((vu32*)(0x10400500+0x70)) = 0x00080301;                 // Format GL_RGB8_OES
+		*((vu32*)(0x10400500+0x78)) = 0;                          // Select first framebuffer
+		*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3;      // Stride 0
+	}
+	else
+	{
+		// This deinits the GPU correctly but it is broken with Luma.
+		MCU_powerOffLCDs();
+		GFX_setBrightness(0, 0);
+		*((vu32*)0x10202244) = 0;
+		*((vu32*)0x10202A44) = 0;
+		*((vu32*)0x1020200C) = 0x10001;
+		*((vu32*)0x10202014) = 0;
+		REG_PDN_GPU_CNT = 0x10001;
+	}
 }

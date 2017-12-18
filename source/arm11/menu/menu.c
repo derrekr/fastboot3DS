@@ -331,6 +331,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		if (kDown & KEY_SHELL)
 		{
 			sleepmode();
+			n_vblanks = 249; // Force the menu to redraw after wakeup
 		}
 		else if ((kDown & KEY_A) && (curr_menu->entries[index].function == NULL))
 		{
