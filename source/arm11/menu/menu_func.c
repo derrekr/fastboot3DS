@@ -711,6 +711,10 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	char firm_path[FF_MAX_LFN + 1];
 	u32 result = 1;
+    
+	bool accept_downgrades = false;
+	if (configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
+		accept_downgrades = true;
 	
 	
 	// file browser dialogue
@@ -742,7 +746,13 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	u32 version = 0;
 	s32 res = loadVerifyUpdate(firm_path, &version);
-	if (res != 0)
+	if (!accept_downgrades && (res == UPDATE_ERR_DOWNGRADE))
+	{
+		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+		ee_printf("A newer version is already installed.\n");
+		goto fail;
+	}
+	else if (res != 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 		switch ( res )
@@ -753,10 +763,6 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 				
 			case UPDATE_ERR_INVALID_SIG:
 				ee_printf("Not a fastboot3DS update firmware.\n");
-				break;
-				
-			case UPDATE_ERR_DOWNGRADE:
-				ee_printf("A newer version is already installed.\n");
 				break;
 				
 			case UPDATE_ERR_NOT_INSTALLED:
