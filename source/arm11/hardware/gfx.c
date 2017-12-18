@@ -295,6 +295,8 @@ void GFX_init(void)
 
 void GFX_enterLowPowerState(void)
 {
+	REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
+	REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
 	IRQ_disable(IRQ_PDC0);
 	MCU_powerOffLCDs();
 	*((vu32*)0x10202244) = 0;
@@ -305,12 +307,16 @@ void GFX_enterLowPowerState(void)
 
 void GFX_returnFromLowPowerState(void)
 {
-	IRQ_enable(IRQ_PDC0);
 	*((vu32*)0x10202014) = 0x00000001;
 	*((vu32*)0x1020200C) = 0;
 	*((vu32*)0x10202244) = 0x1023E;
 	*((vu32*)0x10202A44) = 0x1023E;
 	MCU_powerOnLCDs();
+	IRQ_enable(IRQ_PDC0);
+	// The LCDs seem to need a bit of time to stabilize
+	for(u32 i = 30; i > 0; i--) GFX_waitForEvent(GFX_EVENT_PDC0, true);
+	REG_LCD_COLORFILL_MAIN = 0;
+	REG_LCD_COLORFILL_SUB = 0;
 }
 
 void GFX_deinit(void)
