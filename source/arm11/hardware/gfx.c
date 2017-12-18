@@ -307,11 +307,11 @@ void GFX_returnFromLowPowerState(void)
 
 void GFX_deinit(bool keepLcdsOn)
 {
-	IRQ_unregisterHandler(IRQ_PSC0);
-	IRQ_unregisterHandler(IRQ_PSC1);
-	IRQ_unregisterHandler(IRQ_PDC0);
-	IRQ_unregisterHandler(IRQ_PPF);
-	//IRQ_unregisterHandler(IRQ_P3D);
+	IRQ_disable(IRQ_PSC0);
+	IRQ_disable(IRQ_PSC1);
+	IRQ_disable(IRQ_PDC0);
+	IRQ_disable(IRQ_PPF);
+	//IRQ_disable(IRQ_P3D);
 
 	if(keepLcdsOn)
 	{
