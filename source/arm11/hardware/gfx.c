@@ -297,11 +297,17 @@ void GFX_enterLowPowerState(void)
 {
 	IRQ_disable(IRQ_PDC0);
 	MCU_powerOffLCDs();
+	*((vu32*)0x10202244) = 0;
+	*((vu32*)0x10202A44) = 0;
+	*((vu32*)0x10202014) = 0;
 }
 
 void GFX_returnFromLowPowerState(void)
 {
 	IRQ_enable(IRQ_PDC0);
+	*((vu32*)0x10202014) = 0x00000001;
+	*((vu32*)0x10202244) = 0x1023E;
+	*((vu32*)0x10202A44) = 0x1023E;
 	MCU_powerOnLCDs();
 }
 
