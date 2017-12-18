@@ -251,7 +251,7 @@ void GFX_init(void)
 	{
 		REG_PDN_GPU_CNT = 0x1007F;
 		*((vu32*)0x10202014) = 0x00000001;
-		*((vu32*)0x1020200C) &= 0xFFFEFFFE;
+		*((vu32*)0x1020200C) = 0;
 		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
 		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
 		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
@@ -299,6 +299,7 @@ void GFX_enterLowPowerState(void)
 	MCU_powerOffLCDs();
 	*((vu32*)0x10202244) = 0;
 	*((vu32*)0x10202A44) = 0;
+	*((vu32*)0x1020200C) = 0x10001;
 	*((vu32*)0x10202014) = 0;
 }
 
@@ -306,6 +307,7 @@ void GFX_returnFromLowPowerState(void)
 {
 	IRQ_enable(IRQ_PDC0);
 	*((vu32*)0x10202014) = 0x00000001;
+	*((vu32*)0x1020200C) = 0;
 	*((vu32*)0x10202244) = 0x1023E;
 	*((vu32*)0x10202A44) = 0x1023E;
 	MCU_powerOnLCDs();
@@ -330,4 +332,13 @@ void GFX_deinit(void)
 	*((vu32*)(0x10400500+0x70)) = 0x00080301;                 // Format GL_RGB8_OES
 	*((vu32*)(0x10400500+0x78)) = 0;                          // Select first framebuffer
 	*((vu32*)(0x10400500+0x90)) = SCREEN_HEIGHT_SUB * 3;      // Stride 0
+
+	// This deinits the GPU correctly but it is broken with Luma.
+	/*MCU_powerOffLCDs();
+	GFX_setBrightness(0, 0);
+	*((vu32*)0x10202244) = 0;
+	*((vu32*)0x10202A44) = 0;
+	*((vu32*)0x1020200C) = 0x10001;
+	*((vu32*)0x10202014) = 0;
+	REG_PDN_GPU_CNT = 0x10001;*/
 }
