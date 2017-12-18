@@ -190,10 +190,19 @@ int main(void)
 			
 			// check menu return value
 			if (menu_ret == MENU_RET_FIRMLOADED)
+			{
 				startFirmLaunch = true;
+				firm_err = 0;
+			}
+			else if (menu_ret == MENU_RET_FIRMLOADED_SI)
+			{
+				startFirmLaunch = true;
+				firm_err = 1;
+			}
 			else if ((menu_ret == MENU_RET_POWEROFF) || (menu_ret == MENU_RET_REBOOT))
+			{
 				break;
-			
+			}
 		}
 		
 		// search for a bootable firmware (all slots)

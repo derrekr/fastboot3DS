@@ -316,7 +316,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	u32 slot = (param < N_BOOTSLOTS) ? (param + 1) : 0;
 	storeBootslot(slot);
 	
-	return MENU_RET_FIRMLOADED;
+	return (res == 1) ? MENU_RET_FIRMLOADED_SI : MENU_RET_FIRMLOADED;
 	
 	fail:
 	
