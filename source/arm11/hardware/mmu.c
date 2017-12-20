@@ -108,13 +108,13 @@ static void mmuMapPages(u32 va, u32 pa, u32 num, u32 *l2Table, bool shared, u32 
 void setupMmu(void)
 {
 	// TTBR0 address shared page table walk and outer cachable write-through, no allocate on write
-	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 0" : : "r" (A11_MMU_TABLES_BASE | 0x12u));
+	__asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r" (A11_MMU_TABLES_BASE | 0x12u));
 	// Use the 16 KB L1 table only
-	__asm__ __volatile__("mcr p15, 0, %0, c2, c0, 2" : : "r" (0u));
+	__asm__ volatile("mcr p15, 0, %0, c2, c0, 2" : : "r" (0u));
 	// Domain 1 = client, remaining domains all = no access
-	__asm__ __volatile__("mcr p15, 0, %0, c3, c0, 0" : : "r" (4u));
+	__asm__ volatile("mcr p15, 0, %0, c3, c0, 0" : : "r" (4u));
 	// Context ID Register (ASID = 0, PROCID = 0)
-	__asm__ __volatile__("mcr p15, 0, %0, c13, c0, 1" : : "r" (0u));
+	__asm__ volatile("mcr p15, 0, %0, c13, c0, 1" : : "r" (0u));
 
 
 	static volatile bool syncFlag = false;
@@ -175,27 +175,27 @@ void setupMmu(void)
 
 
 	// Invalidate TLB (Unified TLB operation) + Data Synchronization Barrier
-	__asm__ __volatile__("mcr p15, 0, %0, c8, c7, 0\n"
-	                     "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
+	__asm__ volatile("mcr p15, 0, %0, c8, c7, 0\n"
+	                 "mcr p15, 0, %0, c7, c10, 4" : : "r" (0u));
 
 
 	u32 tmp;
 	// Modify Auxiliary Control Register
-	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 1" : "=r" (tmp) : );
+	__asm__ volatile("mrc p15, 0, %0, c1, c0, 1" : "=r" (tmp) : );
 	tmp |= 0x6Fu;     // Enable Return stack, Dynamic branch prediction, Static branch prediction,
 	                  // Instruction folding, SMP mode: the CPU is taking part in coherency
 	                  // and L1 parity checking
-	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 1" : : "r" (tmp));
+	__asm__ volatile("mcr p15, 0, %0, c1, c0, 1" : : "r" (tmp));
 
 	// Modify Control Register
-	__asm__ __volatile__("mrc p15, 0, %0, c1, c0, 0" : "=r" (tmp) : );
+	__asm__ volatile("mrc p15, 0, %0, c1, c0, 0" : "=r" (tmp) : );
 	tmp |= 0xC03805u; // Enable MMU, D-Cache, Program flow prediction,
 	                  // I-Cache, high exception vectors, Unaligned data access,
 	                  // subpage AP bits disabled
-	__asm__ __volatile__("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
+	__asm__ volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (tmp));
 
 	// Invalidate all caches + Data Synchronization Barrier
-	__asm__ __volatile__("mcr p15, 0, %0, c7, c7, 0\n"
-	                     "mcr p15, 0, %0, c7, c10, 4\n" // DSB
-	                     "mcr p15, 0, %0, c7, c5, 4" : : "r" (0u));
+	__asm__ volatile("mcr p15, 0, %0, c7, c7, 0\n"
+	                 "mcr p15, 0, %0, c7, c10, 4\n" // DSB
+	                 "mcr p15, 0, %0, c7, c5, 4" : : "r" (0u));
 }

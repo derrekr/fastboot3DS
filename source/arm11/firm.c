@@ -70,7 +70,7 @@ noreturn void firmLaunch(void)
 	deinitCpu();
 
 	// Change sp to a safe location
-	__asm__ __volatile__("mov sp, %0" : : "r" (A11_STUB_ENTRY) : "sp");
+	__asm__ volatile("mov sp, %0" : : "r" (A11_STUB_ENTRY) : "sp");
 	((void (*)(void))A11_STUB_ENTRY)();
 	while(1);
 }

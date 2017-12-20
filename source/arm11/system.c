@@ -52,5 +52,5 @@ void systemInit(void)
 		((void (*)(void))0x0001004C)();
 	}
 
-	__asm__ __volatile__("cpsie i" : : : "memory"); // Enables interrupts
+	__asm__ volatile("cpsie i" : : : "memory"); // Enables interrupts
 }

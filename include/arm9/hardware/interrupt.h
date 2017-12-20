@@ -85,20 +85,20 @@ void IRQ_unregisterHandler(Interrupt id);
 
 static inline void __wfi(void)
 {
-	__asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0) : "memory");
+	__asm__ volatile("mcr p15, 0, %0, c7, c0, 4" : : "r" (0) : "memory");
 }
 
 static inline u32 enterCriticalSection(void)
 {
 	u32 tmp;
-	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0" : : "r" (tmp | 0x80) : "memory");
+	__asm__ volatile("mrs %0, cpsr" : "=r" (tmp) : );
+	__asm__ volatile("msr cpsr_c, %0" : : "r" (tmp | 0x80) : "memory");
 	return tmp & 0x80;
 }
 
 static inline void leaveCriticalSection(u32 oldState)
 {
 	u32 tmp;
-	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0" : : "r" ((tmp & ~0x80u) | oldState) : "memory");
+	__asm__ volatile("mrs %0, cpsr" : "=r" (tmp) : );
+	__asm__ volatile("msr cpsr_c, %0" : : "r" ((tmp & ~0x80u) | oldState) : "memory");
 }

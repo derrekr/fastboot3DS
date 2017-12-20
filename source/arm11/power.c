@@ -37,7 +37,7 @@ static void power_safe_halt(void)
 	TIMER_sleepMs(400);
 
 	flushDCache();
-	__asm__ __volatile__("cpsid aif" : : : "memory");
+	__asm__ volatile("cpsid aif" : : : "memory");
 }
 
 noreturn void power_off(void)

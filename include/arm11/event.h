@@ -22,10 +22,10 @@
 
 static inline void __wfe(void)
 {
-	__asm__ __volatile__("wfe" : : : "memory");
+	__asm__ volatile("wfe" : : : "memory");
 }
 
 static inline void __sev(void)
 {
-	__asm__ __volatile__("sev" : : : "memory");
+	__asm__ volatile("sev" : : : "memory");
 }
