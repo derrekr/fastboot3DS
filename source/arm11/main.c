@@ -272,7 +272,8 @@ int main(void)
 	
 	
 	// deinit GFX if it was initialized
-	if(gfx_initialized) GFX_deinit(firm_err == 1);
+	// if(gfx_initialized) GFX_deinit(firm_err == 1);
+	if(gfx_initialized) GFX_deinit(true);
 		
 	// deinit filesystem
 	fsUnmountAll();
