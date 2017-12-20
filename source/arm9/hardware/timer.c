@@ -20,6 +20,7 @@
 #include "types.h"
 #include "arm9/hardware/timer.h"
 #include "arm9/hardware/interrupt.h"
+#include "arm.h"
 
 
 #define TIMER_REGS_BASE   (IO_MEM_ARM9_ONLY + 0x3000)

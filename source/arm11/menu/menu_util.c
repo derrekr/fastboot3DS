@@ -22,7 +22,7 @@
 #include "hardware/gfx.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/mcu.h"
-#include "arm11/hardware/interrupt.h"
+#include "arm.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/console.h"

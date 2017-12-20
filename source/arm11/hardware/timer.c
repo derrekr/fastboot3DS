@@ -21,7 +21,7 @@
 #include "arm11/hardware/timer.h"
 #include "arm11/hardware/interrupt.h"
 #include "fb_assert.h"
-#include "arm11/event.h"
+#include "arm.h"
 
 
 #define TIMER_REGS_BASE     (MPCORE_PRIV_REG_BASE + 0x600)

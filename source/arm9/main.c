@@ -19,7 +19,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm9/debug.h"
-#include "arm9/hardware/interrupt.h"
+#include "arm.h"
 #include "arm9/firm.h"
 
 

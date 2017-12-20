@@ -20,6 +20,7 @@
 #include "fb_assert.h"
 #include "arm9/hardware/ndma.h"
 #include "arm9/hardware/interrupt.h"
+#include "arm.h"
 
 
 

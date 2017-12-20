@@ -25,6 +25,7 @@
 #include "hardware/cache.h"
 #include "hardware/gfx.h"
 #include "hardware/pxi.h"
+#include "arm.h"
 
 
 
@@ -37,7 +38,7 @@ static void power_safe_halt(void)
 	TIMER_sleepMs(400);
 
 	flushDCache();
-	__asm__ volatile("cpsid aif" : : : "memory");
+	__cpsid(aif);
 }
 
 noreturn void power_off(void)

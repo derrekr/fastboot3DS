@@ -19,7 +19,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/start.h"
-#include "arm11/event.h"
+#include "arm.h"
 
 
 #define SCU_REGS_BASE      (MPCORE_PRIV_REG_BASE)
@@ -118,7 +118,7 @@ void setupMmu(void)
 
 
 	static volatile bool syncFlag = false;
-	if(!getCpuId())
+	if(!__getCpuId())
 	{
 		// Clear L1 and L2 tables
 		clearMem((u32*)A11_MMU_TABLES_BASE, 0x4C00u);

@@ -126,22 +126,14 @@ void IRQ_setPriority(Interrupt id, u8 prio);
 void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask);
 
 
-static inline void __wfi(void)
-{
-	__asm__ volatile("wfi" : : : "memory");
-}
-
 static inline u32 enterCriticalSection(void)
 {
-	u32 tmp;
-	__asm__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ volatile("cpsid i" : : : "memory");
+	const u32 tmp = __getCpsr();
+	__cpsid(i);
 	return tmp & PSR_I;
 }
 
 static inline void leaveCriticalSection(u32 oldState)
 {
-	u32 tmp;
-	__asm__ volatile("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ volatile("msr cpsr_c, %0" : : "r" ((tmp & ~PSR_I) | oldState) : "memory");
+	__setCpsr_c((__getCpsr() & ~PSR_I) | oldState);
 }
