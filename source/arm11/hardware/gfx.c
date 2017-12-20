@@ -28,7 +28,7 @@
 #include "hardware/gfx.h"
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/interrupt.h"
-#include "arm11/event.h"
+#include "arm.h"
 
 
 #define PDN_REGS_BASE           (IO_MEM_ARM9_ARM11 + 0x40000)

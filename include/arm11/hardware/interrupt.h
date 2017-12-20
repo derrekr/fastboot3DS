@@ -18,6 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm.h"
 #include "types.h"
 
 
@@ -125,22 +126,14 @@ void IRQ_setPriority(Interrupt id, u8 prio);
 void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask);
 
 
-static inline void __wfi(void)
-{
-	__asm__ __volatile__("wfi" : : : "memory");
-}
-
 static inline u32 enterCriticalSection(void)
 {
-	u32 tmp;
-	__asm__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ __volatile__("cpsid i" : : : "memory");
-	return tmp & 0x80;
+	const u32 tmp = __getCpsr();
+	__cpsid(i);
+	return tmp & PSR_I;
 }
 
 static inline void leaveCriticalSection(u32 oldState)
 {
-	u32 tmp;
-	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0" : : "r" ((tmp & ~0x80u) | oldState) : "memory");
+	__setCpsr_c((__getCpsr() & ~PSR_I) | oldState);
 }

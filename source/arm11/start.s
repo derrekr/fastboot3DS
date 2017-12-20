@@ -16,6 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm.h"
 #include "mem_map.h"
 
 .arm
@@ -74,7 +75,7 @@ vectors:
 
 
 _start:
-	cpsid aif, #19             @ Disable all interrupts, SVC mode
+	cpsid aif, #PSR_SVC_MODE
 
 	@ Control register:
 	@ [29] Force AP functionality             : disabled
@@ -105,15 +106,16 @@ _start:
 	bleq stubExceptionVectors   @ Stub the vectors in AXIWRAM bootrom vectors jump to
 
 	mov sp, #0                  @ unused SVC mode sp
-	cps #23                     @ Abort mode
-	ldr sp, =A11_EXC_STACK_END
-	cps #27                     @ Undefined mode
-	ldr sp, =A11_EXC_STACK_END
-	cps #17                     @ FIQ mode
+	cps #PSR_FIQ_MODE
 	mov sp, #0                  @ Unused
-	cps #18                     @ IRQ mode
+	cps #PSR_IRQ_MODE
 	mov sp, #0                  @ not needed
-	cps #31                     @ System mode
+	cps #PSR_ABORT_MODE
+	ldr r0, =A11_EXC_STACK_END
+	mov sp, r0
+	cps #PSR_UNDEF_MODE
+	mov sp, r0
+	cps #PSR_SYS_MODE
 	adr r2, _sysmode_stacks
 	ldr sp, [r2, r4, lsl #2]
 
@@ -216,7 +218,7 @@ _init:
 deinitCpu:
 	mov r3, lr
 
-	cpsid aif, #31              @ System mode
+	cpsid aif, #PSR_SYS_MODE
 	bl stubExceptionVectors
 	bl flushDCache
 	mov r2, #0

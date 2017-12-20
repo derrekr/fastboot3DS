@@ -27,6 +27,7 @@
 	#include "arm11/hardware/interrupt.h"
 #endif
 #include "hardware/gfx.h"
+#include "arm.h"
 
 
 

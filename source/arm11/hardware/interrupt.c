@@ -20,6 +20,7 @@
 #include "mem_map.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm11/start.h"
+#include "arm.h"
 
 
 #define REG_CFG11_FIQ_CNT    *((vu8* )(IO_MEM_ARM9_ARM11 + 0x40000 + 0x0104))
@@ -67,7 +68,7 @@ void IRQ_init(void)
 	REG_CPU_II_CNT = 0;
 
 
-	if(!getCpuId())
+	if(!__getCpuId())
 	{
 		// Disable FIQs
 		REG_CFG11_FIQ_CNT = 1;
@@ -130,7 +131,7 @@ void IRQ_init(void)
 
 void IRQ_registerHandler(Interrupt id, u8 prio, u8 cpuMask, bool edgeTriggered, IrqHandler handler)
 {
-	const u32 cpuId = getCpuId();
+	const u32 cpuId = __getCpuId();
 	if(!cpuMask) cpuMask = 1u<<cpuId;
 
 	const u32 oldState = enterCriticalSection();
@@ -160,7 +161,7 @@ void IRQ_unregisterHandler(Interrupt id)
 
 	REGs_GID_ENA_CLR[id>>5] = 1u<<(id % 32);
 
-	irqHandlerTable[(id < 32 ? 32 * getCpuId() + id : 96u + id)] = (IrqHandler)NULL;
+	irqHandlerTable[(id < 32 ? 32 * __getCpuId() + id : 96u + id)] = (IrqHandler)NULL;
 
 	leaveCriticalSection(oldState);
 }

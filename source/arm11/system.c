@@ -24,6 +24,7 @@
 #include "arm11/hardware/i2c.h"
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/hid.h"
+#include "arm.h"
 
 
 
@@ -37,7 +38,7 @@ void systemInit(void)
 	IRQ_init();
 	TIMER_init();
 
-	if(!getCpuId())
+	if(!__getCpuId())
 	{
 		I2C_init();
 		hidInit();
@@ -52,5 +53,5 @@ void systemInit(void)
 		((void (*)(void))0x0001004C)();
 	}
 
-	__asm__ __volatile__("cpsie i" : : : "memory"); // Enables interrupts
+	__cpsie(i); // Enables interrupts
 }

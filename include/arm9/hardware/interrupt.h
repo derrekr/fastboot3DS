@@ -18,6 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm.h"
 #include "types.h"
 
 
@@ -83,22 +84,14 @@ void IRQ_registerHandler(Interrupt id, IrqHandler handler);
 void IRQ_unregisterHandler(Interrupt id);
 
 
-static inline void __wfi(void)
-{
-	__asm__ __volatile__("mcr p15, 0, %0, c7, c0, 4" : : "r" (0) : "memory");
-}
-
 static inline u32 enterCriticalSection(void)
 {
 	u32 tmp;
-	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0" : : "r" (tmp | 0x80) : "memory");
-	return tmp & 0x80;
+	__setCpsr_c((tmp = __getCpsr()) | PSR_I);
+	return tmp & PSR_I;
 }
 
 static inline void leaveCriticalSection(u32 oldState)
 {
-	u32 tmp;
-	__asm__ __volatile__("mrs %0, cpsr" : "=r" (tmp) : );
-	__asm__ __volatile__("msr cpsr_c, %0" : : "r" ((tmp & ~0x80u) | oldState) : "memory");
+	__setCpsr_c((__getCpsr() & ~PSR_I) | oldState);
 }

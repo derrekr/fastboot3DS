@@ -23,6 +23,7 @@
 #include "arm9/hardware/crypto.h"
 #include "arm9/hardware/interrupt.h"
 #include "arm9/hardware/ndma.h"
+#include "arm.h"
 
 
 
