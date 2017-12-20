@@ -51,20 +51,15 @@
 #if !__ASSEMBLER__
 
 #ifdef ARM11
+
 #define __cpsid(flags) __asm__ volatile("cpsid " #flags : : : "memory");
 #define __cpsie(flags) __asm__ volatile("cpsie " #flags : : : "memory");
-#endif
 
 static inline void __wfi(void)
 {
-#ifdef ARM11
 	__asm__ volatile("wfi" : : : "memory");
-#elif ARM9
-	__asm__ volatile("mcr p15, 0, %0, c7, c0, 4" : : "r" (0) : "memory");
-#endif
 }
 
-#ifdef ARM11
 static inline void __wfe(void)
 {
 	__asm__ volatile("wfe" : : : "memory");
@@ -74,7 +69,129 @@ static inline void __sev(void)
 {
 	__asm__ volatile("sev" : : : "memory");
 }
-#endif
+
+static inline void __isb(void)
+{
+	// Flush Prefetch Buffer
+	__asm__ volatile("mcr p15, 0, %0, c7, c5, 4" : : "r" (0) : "memory");
+}
+
+static inline void __dsb(void)
+{
+	__asm__ volatile("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory");
+}
+
+static inline void __dmb(void)
+{
+	__asm__ volatile("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory");
+}
+
+static inline u32 __getCpuId(void)
+{
+	u32 cpuId;
+	__asm__("mrc p15, 0, %0, c0, c0, 5" : "=r" (cpuId) : );
+	return cpuId & 3;
+}
+
+// Control Register
+static inline u32 __getCr(void)
+{
+	u32 cr;
+	__asm__("mrc p15, 0, %0, c1, c0, 0" : "=r" (cr) : );
+	return cr;
+}
+
+static inline void __setCr(u32 cr)
+{
+	__asm__ volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (cr) : "memory");
+}
+
+// Auxiliary Control Register
+static inline u32 __getAcr(void)
+{
+	u32 acr;
+	__asm__("mrc p15, 0, %0, c1, c0, 1" : "=r" (acr) : );
+	return acr;
+}
+
+static inline void __setAcr(u32 acr)
+{
+	__asm__ volatile("mcr p15, 0, %0, c1, c0, 1" : : "r" (acr) : "memory");
+}
+
+// Translation Table Base Register 0
+static inline u32 __getTtbr0(void)
+{
+	u32 ttb0;
+	__asm__("mrc p15, 0, %0, c2, c0, 0" : "=r" (ttb0) : );
+	return ttb0;
+}
+
+static inline void __setTtbr0(u32 ttb0)
+{
+	__asm__ volatile("mcr p15, 0, %0, c2, c0, 0" : : "r" (ttb0) : "memory");
+}
+
+// Translation Table Base Register 1
+static inline u32 __getTtbr1(void)
+{
+	u32 ttb1;
+	__asm__("mrc p15, 0, %0, c2, c0, 1" : "=r" (ttb1) : );
+	return ttb1;
+}
+
+static inline void __setTtbr1(u32 ttb1)
+{
+	__asm__ volatile("mcr p15, 0, %0, c2, c0, 1" : : "r" (ttb1) : "memory");
+}
+
+// Translation Table Base Control Register
+static inline u32 __getTtbcr(void)
+{
+	u32 ttbcr;
+	__asm__("mrc p15, 0, %0, c2, c0, 2" : "=r" (ttbcr) : );
+	return ttbcr;
+}
+
+static inline void __setTtbcr(u32 ttbcr)
+{
+	__asm__ volatile("mcr p15, 0, %0, c2, c0, 2" : : "r" (ttbcr) : "memory");
+}
+
+// Domain Access Control Register
+static inline u32 __getDacr(void)
+{
+	u32 dacr;
+	__asm__("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr) : );
+	return dacr;
+}
+
+static inline void __setDacr(u32 dacr)
+{
+	__asm__ volatile("mcr p15, 0, %0, c3, c0, 0" : : "r" (dacr) : "memory");
+}
+
+// Context ID Register
+static inline u32 __getCidr(void)
+{
+	u32 cidr;
+	__asm__("mrc p15, 0, %0, c13, c0, 1" : "=r" (cidr) : );
+	return cidr;
+}
+
+static inline void __setCidr(u32 cidr)
+{
+	__asm__ volatile("mcr p15, 0, %0, c13, c0, 1" : : "r" (cidr) : "memory");
+}
+
+#elif ARM9
+
+static inline void __wfi(void)
+{
+	__asm__ volatile("mcr p15, 0, %0, c7, c0, 4" : : "r" (0) : "memory");
+}
+
+#endif // ifdef ARM11, elif ARM9
 
 static inline u32 __getCpsr(void)
 {
@@ -109,14 +226,5 @@ static inline void __setSpsr(u32 spsr)
 {
 	__asm__ volatile("msr spsr_cxsf, %0" : : "r" (spsr) : "memory");
 }
-
-#ifdef ARM11
-static inline u32 __getCpuId(void)
-{
-	u32 cpuId;
-	__asm__("mrc p15, 0, %0, c0, c0, 5" : "=r" (cpuId) : );
-	return cpuId & 3;
-}
-#endif
 
 #endif // if !__ASSEMBLER__
