@@ -16,6 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm.h"
 #include "asmfunc.h"
 #include "mem_map.h"
 
@@ -30,21 +31,21 @@
 
 
 ASM_FUNC undefInstrHandler
-	msr cpsr_f, #(0<<29)           @ Abuse conditional flags in cpsr for temporary exception type storage
+	msr cpsr_f, #0<<29             @ Abuse conditional flags in cpsr for temporary exception type storage
 	b exceptionHandler
 ASM_FUNC prefetchAbortHandler
-	msr cpsr_f, #(1<<29)
+	msr cpsr_f, #1<<29
 	b exceptionHandler
 ASM_FUNC dataAbortHandler
-	msr cpsr_f, #(2<<29)
+	msr cpsr_f, #2<<29
 ASM_FUNC exceptionHandler
 	sub sp, #68
 	stmia sp, {r0-r14}^            @ Save all user/system mode regs except pc
 	mrs r2, spsr                   @ Get saved cpsr
 	mrs r3, cpsr
 	lsr r0, r3, #29                @ Get back the exception type from cpsr
-	and r1, r2, #0x1F
-	cmp r1, #0x10                  @ User mode
+	and r1, r2, #PSR_MODE_MASK
+	cmp r1, #PSR_USER_MODE
 	beq exceptionHandler_skip_other_mode
 	add r4, sp, #32
 	msr cpsr_c, r2
@@ -65,7 +66,7 @@ exceptionHandler_skip_other_mode:
 ASM_FUNC irqHandler
 	sub lr, lr, #4
 	stmfd sp!, {r0-r3, r12, lr}
-	ldr r12, =0x10001000             @ REG_IRQ_IE
+	ldr r12, =IO_MEM_ARM9_ONLY + 0x1000 @ REG_IRQ_IE
 	ldrd r0, r1, [r12]
 	and r1, r0, r1
 	mov r3, #0x80000000
@@ -82,11 +83,11 @@ ASM_FUNC irqHandler
 	beq irqHandler_skip_processing
 	mrs r3, spsr
 	str r3, [sp, #-4]!
-	msr cpsr_c, #0x5F                @ System mode, IRQ enabled
+	msr cpsr_c, #PSR_F | PSR_SYS_MODE
 	str lr, [sp, #-4]!               @ A single ldr/str can't be interrupted
 	blx r2
 	ldr lr, [sp], #4
-	msr cpsr_c, #0xD2                @ IRQ mode, IRQ disabled
+	msr cpsr_c, #PSR_INT_OFF | PSR_IRQ_MODE
 	ldr r0, [sp], #4
 	msr spsr_cxsf, r0
 irqHandler_skip_processing:

@@ -16,6 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm.h"
 #include "mem_map.h"
 
 .arm
@@ -57,7 +58,7 @@ __start__:
 	.word   (VERS_MAJOR<<16 | VERS_MINOR)
 
 _start:
-	msr cpsr_cxsf, #0xD3         @ Disable all interrupts, SVC mode
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SVC_MODE
 
 	@ Control register:
 	@ [19] ITCM load mode         : disabled
@@ -82,13 +83,13 @@ _start:
 	bl setupTcms                @ Setup and enable DTCM and ITCM
 
 	mov sp, #0                  @ unused SVC mode sp
-	msr cpsr_cxsf, #0xD7        @ Abort mode
-	mov sp, #A9_EXC_STACK_END
-	msr cpsr_cxsf, #0xDB        @ Undefined mode
-	mov sp, #A9_EXC_STACK_END
-	msr cpsr_cxsf, #0xD2        @ IRQ mode
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_IRQ_MODE
 	ldr sp, =A9_IRQ_STACK_END
-	msr cpsr_cxsf, #0xDF        @ System mode
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_ABORT_MODE
+	mov sp, #A9_EXC_STACK_END
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_UNDEF_MODE
+	mov sp, #A9_EXC_STACK_END
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
 	ldr sp, =A9_STACK_END
 
 	bl setupMpu
@@ -283,7 +284,7 @@ _init:
 deinitCpu:
 	mov r3, lr
 
-	msr cpsr_cxsf, #0xDF        @ System mode
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
 	mov r1, #6
