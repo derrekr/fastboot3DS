@@ -16,6 +16,17 @@ These short instructions require you to have a way of booting [GodMode9](https:/
 
 You may also want to set up the other boot slots, and assign key combos to them. Keep in mind you need one autoboot slot (= a slot with a key combo assigned). If you want to access the fastboot3DS menu at a later point in time, hold the HOME button when powering on the console. From the fastboot3DS menu, you may continue the boot process via `Continue boot` or power off the console via the POWER button.
 
+## How to build
+To compile fastboot 3DS you need [devkitARM](https://sourceforge.net/projects/devkitpro/), [CTR firm builder](https://github.com/derrekr/ctr_firm_builder) and [splashtool](https://github.com/profi200/splashtool) installed in your system. Also make sure the CTR firm builder and splashtool binaries are in your $PATH environment variable and accessible to the Makefile. Build fastboot3DS as debug build via `make` or as release build via `make release`.
+
+## Known issues
+fastboot3DS is still in beta. While there shouldn't be any problems in typical use, these issues still remain:
+* Older releases of [GodMode9](https://github.com/d0k3/GodMode9) freeze when they are chainloaded via fastboot3DS. Use the [nightly](https://d0k3.secretalgorithm.com/) for now.
+* Chainloading certain payloads from the menu causes temporary artifacts to pop up on the screen.
+* Rebooting to TWL_FIRM / AGB_FIRM does not work in certain CFWs (among them [Rei-Six](https://github.com/CrimsonMaple/Rei-Six) and [Cakes FW](https://github.com/mid-kid/CakesForeveryWan)) causes a freeze.
+
+If you happen to stumble over another bug, please open an issue in the [official fastboot3DS repo on GitHub](https://github.com/derrek/fastboot3DS/issues) or contact us via other platforms.
+
 ## License
 You may use this under the terms of the GNU General Public License GPL v3 or under the terms of any later revisions of the GPL. Refer to the provided `LICENSE.txt` file for further information.
 
