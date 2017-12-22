@@ -250,15 +250,16 @@ void GFX_init(void)
 	if(REG_PDN_GPU_CNT != 0x1007F) // Check if screens are already initialized
 	{
 		REG_PDN_GPU_CNT = 0x1007F;
-		gfxSetupLcdTop();
-		gfxSetupLcdSub();
+		*((vu32*)0x10202014) = 0x00000001;
+		*((vu32*)0x1020200C) &= 0xFFFEFFFE;
 		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
 		REG_LCD_COLORFILL_SUB = 1u<<24;  // Force blackscreen
-		*((vu32*)0x10202014) = 0x00000001;
-		*((vu32*)0x1020200C) = 0;
+		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
 		*((vu32*)0x10202244) = 0x1023E;
 		*((vu32*)0x10202A44) = 0x1023E;
-		GFX_setBrightness(DEFAULT_BRIGHTNESS, DEFAULT_BRIGHTNESS);
+
+		gfxSetupLcdTop();
+		gfxSetupLcdSub();
 
 		MCU_powerOnLCDs(); // Power on LCDs and backlight
 	}
