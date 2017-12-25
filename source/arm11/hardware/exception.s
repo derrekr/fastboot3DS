@@ -69,10 +69,10 @@ ASM_FUNC irqHandler
 	cps #PSR_SYS_MODE
 	stmfd sp!, {r0-r3, r12, lr}
 	ldr r12, =MPCORE_PRIV_REG_BASE
+	ldr r2, =irqHandlerTable
 	ldr r0, [r12, #0x10C]        @ REG_CPU_II_AKN
 	and r1, r0, #0x7F
 	cmp r1, #32
-	ldr r2, =irqHandlerTable
 	mrclo p15, 0, r3, c0, c0, 5  @ Get CPU ID
 	andlo r3, r3, #3
 	addlo r1, r1, r3, lsl #5

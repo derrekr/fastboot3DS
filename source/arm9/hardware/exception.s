@@ -68,17 +68,17 @@ ASM_FUNC irqHandler
 	stmfd sp!, {r0-r3, r12, lr}
 	ldr r12, =IO_MEM_ARM9_ONLY + 0x1000 @ REG_IRQ_IE
 	ldrd r0, r1, [r12]
-	and r1, r0, r1
 	mov r3, #0x80000000
+	and r1, r0, r1
 	irqHandler_find_first_lp:
 		clz r2, r1
 		bics r1, r1, r3, lsr r2
 		bne irqHandler_find_first_lp
 	mov r1, r3, lsr r2
-	str r1, [r12, #4]                @ REG_IRQ_IF
+	ldr r3, =irqHandlerTable
 	rsb r0, r2, #31                  @ r0 = 31 - r2
-	ldr r1, =irqHandlerTable
-	ldr r2, [r1, r0, lsl #2]
+	str r1, [r12, #4]                @ REG_IRQ_IF
+	ldr r2, [r3, r0, lsl #2]
 	cmp r2, #0
 	beq irqHandler_skip_processing
 	mrs r3, spsr

@@ -103,8 +103,8 @@ _start:
 	mov r0, #IO_MEM_BASE        @ CFG9 regs
 	ldr r1, [r0, #0xFFC]        @ REG_CFG9_MPCORECFG
 	tst r1, #2                  @ Test for New 3DS bit
-	movne r1, #1
-	strne r1, [r0, #0x200]      @ REG_CFG9_EXTMENTCNT9
+	movne r2, #1
+	strne r2, [r0, #0x200]      @ REG_CFG9_EXTMENTCNT9
 	mov r0, #A9_HEAP_END
 	addne r0, #A9_RAM_N3DS_EXT_SIZE
 	ldr r1, =fake_heap_end
@@ -147,8 +147,8 @@ _vectorStubs:
 
 
 setupTcms:
-	ldr r0, =(DTCM_BASE | 0x0A) @ Base = 0xFFF00000, size = 16 KB
 	mov r1, #(ITCM_BASE | 0x24) @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
+	ldr r0, =(DTCM_BASE | 0x0A) @ Base = 0xFFF00000, size = 16 KB
 	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
 	mcr p15, 0, r1, c9, c1, 1   @ Write ITCM region reg
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
@@ -159,8 +159,8 @@ setupTcms:
 
 @ void clearMem(u32 *adr, u32 size)
 clearMem:
-	mov r2, #0
 	bics r12, r1, #31
+	mov r2, #0
 	sub r1, r1, r12
 	beq clearMem_check_zero
 	stmfd sp!, {r4-r9}
@@ -269,8 +269,8 @@ setupMpu:
 	@mov r2, #0b01011010        @ Same as data cachable bits
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
-	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
+	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	orr r0, r0, r1              @ Enable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	bx lr
@@ -287,8 +287,8 @@ deinitCpu:
 	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
 	@ Stub vectors to endless loops
 	mov r0, #A9_RAM_BASE
-	mov r1, #6
 	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
+	mov r1, #6
 	deinitCpu_lp:
 		str r2, [r0], #8
 		subs r1, r1, #1
@@ -296,8 +296,8 @@ deinitCpu:
 
 	bl flushDCache
 	mov r2, #0
-	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
+	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache

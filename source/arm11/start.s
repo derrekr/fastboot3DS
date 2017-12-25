@@ -161,8 +161,8 @@ _start_skip_bss_init_array:
 
 stubExceptionVectors:
 	ldr r0, =A11_VECTORS_START
-	mov r1, #6
 	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
+	mov r1, #6
 	stubExceptionVectors_lp:
 		str r2, [r0], #8
 		subs r1, r1, #1
@@ -172,8 +172,8 @@ stubExceptionVectors:
 
 @ void clearMem(u32 *adr, u32 size)
 clearMem:
-	mov r2, #0
 	bics r12, r1, #31
+	mov r2, #0
 	sub r1, r1, r12
 	beq clearMem_check_zero
 	stmfd sp!, {r4-r9}
@@ -202,10 +202,10 @@ clearMem_check_zero:
 setupVfp:
 	mov r0, #0
 	mov r1, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
-	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
-	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
 	mov r2, #0x40000000         @ Clear exception bits and enable VFP11
 	mov r3, #0x3C00000          @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
+	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
+	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
 	fmxr fpexc, r2              @ Write Floating-point exception register
 	fmxr fpscr, r3              @ Write Floating-Point Status and Control Register
 	bx lr
@@ -226,10 +226,10 @@ deinitCpu:
 	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
 	fmxr fpexc, r2              @ Write Floating-point exception register
 
-	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	ldr r1, =0xC03805           @ Disable MMU, D-Cache, Program flow prediction, I-Cache,
 	                            @ high exception vectors, Unaligned data access,
 	                            @ subpage AP bits disabled
+	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	bic r0, r0, r1
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	mrc p15, 0, r0, c1, c0, 1   @ Read Auxiliary Control Register
