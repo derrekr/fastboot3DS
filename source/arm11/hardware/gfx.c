@@ -28,6 +28,7 @@
 #include "hardware/gfx.h"
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/timer.h"
 #include "arm.h"
 
 
@@ -284,10 +285,13 @@ void GFX_init(void)
 	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
 	GFX_waitForEvent(GFX_EVENT_PSC0, true);
 
-	// On certain N3DS consoles the first framebuffer swap on cold boot
-	// can cause graphics corruption if we don't wait for the first VBlank.
-	// This also fixes the problem of the screens not turning on on N3DS.
-	GFX_waitForEvent(GFX_EVENT_PDC0, true);
+	// The transfer engine is borked on screen init on New 3DS.
+	// Doing a dummy texture copy fixes it.
+	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)RENDERBUF_SUB, 0, 16);
+
+	// We must make sure the I2C bus is not used until this finishes
+	// otherwise the screens may not turn on on New 3DS.
+	TIMER_sleepMs(3);
 
 	REG_LCD_COLORFILL_MAIN = 0;
 	REG_LCD_COLORFILL_SUB = 0;
