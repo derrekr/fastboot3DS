@@ -233,7 +233,6 @@ int main(void)
 					}
 					
 					err_ptr += ee_sprintf(err_ptr, "Load slot #%lu %s.\n", (i+1), startFirmLaunch ? "success" : "failed");
-					break;
 				}
 			}
 			// boot env handling (only on reboots) -> try previous slot
