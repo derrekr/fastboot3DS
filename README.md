@@ -18,7 +18,7 @@ These short instructions require you to have a way of booting [OpenFirmInstaller
 You may also want to set up the other boot slots and assign key combos to them. Keep in mind you need one autoboot slot (= a slot with no key combo assigned). If you want to access the fastboot3DS menu at a later point in time, hold the HOME button when powering on the console. From the fastboot3DS menu, you may continue the boot process via `Continue boot`, chainload a .firm file via `Boot from file...`, access the boot menu via `Boot menu...` or power off the console via the POWER button.
 
 ## How to build
-To compile fastboot3DS you need [devkitARM](https://sourceforge.net/projects/devkitpro/), [CTR firm builder](https://github.com/derrekr/ctr_firm_builder) and [splashtool](https://github.com/profi200/splashtool) installed in your system. Also make sure the CTR firm builder and splashtool binaries are in your $PATH environment variable and accessible to the Makefile. Build fastboot3DS as debug build via `make` or as release build via `make release`.
+To compile fastboot3DS you need [devkitARM](https://sourceforge.net/projects/devkitpro/), [CTR firm builder](https://github.com/derrekr/ctr_firm_builder) and [splashtool](https://github.com/profi200/splashtool) installed in your system. Additionally you need 7-Zip or on Linux p7z installed to make release builds. Also make sure the CTR firm builder and splashtool binaries are in your $PATH environment variable and accessible to the Makefile. Build fastboot3DS as debug build via `make` or as release build via `make release`.
 
 ## Known issues
 fastboot3DS is still in beta. While there shouldn't be any problems in typical use, these issues still remain:
