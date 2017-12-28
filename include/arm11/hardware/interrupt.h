@@ -18,8 +18,41 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "arm.h"
 #include "types.h"
+#include "mem_map.h"
+#include "arm.h"
+
+
+#define CPU_II_REGS_BASE     (MPCORE_PRIV_REG_BASE + 0x100)
+#define REG_CPU_II_CNT       *((vu32*)(CPU_II_REGS_BASE + 0x00))
+#define REG_CPU_II_MASK      *((vu32*)(CPU_II_REGS_BASE + 0x04))
+#define REG_CPU_II_BIN_POI   *((vu32*)(CPU_II_REGS_BASE + 0x08))
+#define REG_CPU_II_AKN       *((vu32*)(CPU_II_REGS_BASE + 0x0C))
+#define REG_CPU_II_EOI       *((vu32*)(CPU_II_REGS_BASE + 0x10))
+#define REG_CPU_II_RUN_PRIO  *((vu32*)(CPU_II_REGS_BASE + 0x14))
+#define REG_CPU_II_HIGH_PEN  *((vu32*)(CPU_II_REGS_BASE + 0x18))
+
+#define GID_REGS_BASE        (MPCORE_PRIV_REG_BASE + 0x1000)
+#define REG_GID_CNT          *((vu32*)(GID_REGS_BASE + 0x000))
+#define REG_GID_CONTR_TYPE   *((vu32*)(GID_REGS_BASE + 0x004))
+#define REGs_GID_ENA_SET      ((vu32*)(GID_REGS_BASE + 0x100))
+#define REGs_GID_ENA_CLR      ((vu32*)(GID_REGS_BASE + 0x180))
+#define REGs_GID_PEN_SET      ((vu32*)(GID_REGS_BASE + 0x200))
+#define REGs_GID_PEN_CLR      ((vu32*)(GID_REGS_BASE + 0x280))
+#define REGs_GID_ACTIVE_BIT   ((vu32*)(GID_REGS_BASE + 0x300))
+#define REGs_GID_IPRIO        ((vu32*)(GID_REGS_BASE + 0x400))
+#define REGs_GID_ITARG        ((vu32*)(GID_REGS_BASE + 0x800))
+#define REGs_GID_ICONF        ((vu32*)(GID_REGS_BASE + 0xC00))
+#define REGs_GID_LINE_LEV     ((vu32*)(GID_REGS_BASE + 0xD00))
+#define REG_GID_SW_INT       *((vu32*)(GID_REGS_BASE + 0xF00))
+#define REG_GID_PERI_INFO0   *((vu32*)(GID_REGS_BASE + 0xFE0))
+#define REG_GID_PERI_INFO1   *((vu32*)(GID_REGS_BASE + 0xFE4))
+#define REG_GID_PERI_INFO2   *((vu32*)(GID_REGS_BASE + 0xFE8))
+#define REG_GID_PERI_INFO3   *((vu32*)(GID_REGS_BASE + 0xFEC))
+#define REG_GID_PRIME_CELL0  *((vu32*)(GID_REGS_BASE + 0xFF0))
+#define REG_GID_PRIME_CELL1  *((vu32*)(GID_REGS_BASE + 0xFF4))
+#define REG_GID_PRIME_CELL2  *((vu32*)(GID_REGS_BASE + 0xFF8))
+#define REG_GID_PRIME_CELL3  *((vu32*)(GID_REGS_BASE + 0xFFC))
 
 
 typedef enum
@@ -52,6 +85,7 @@ typedef enum
 	IRQ_PXI_UNK       = 81,  // Unknown what this is for
 	IRQ_PXI_NOT_FULL  = 82,
 	IRQ_PXI_NOT_EMPTY = 83,
+	IRQ_PDN           = 88,
 	IRQ_SHELL_OPENED  = 96,
 	IRQ_SHELL_CLOSED  = 98,
 	IRQ_TOUCHSCREEN   = 99,  // Triggers on hitting the touchscreen.

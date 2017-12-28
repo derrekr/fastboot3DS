@@ -25,14 +25,12 @@
 
 
 
-void wait(u32 cycles)
+void NAKED wait(u32 cycles)
 {
-	cycles >>= 2;
-	while(cycles)
-	{
-		__asm("nop");
-		cycles--;
-	}
+	__asm__("subs %0, %0, #2\n"
+	        "nop\n"
+	        "bgt wait\n"
+	        "bx lr" : : "r" (cycles) : "cc", "memory");
 }
 
 __attribute__ ((format (scanf, 2, 3))) int fb_sscanf(const char *s, const char *fmt, ...)

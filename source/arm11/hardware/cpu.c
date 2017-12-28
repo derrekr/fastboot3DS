@@ -18,8 +18,9 @@
 
 #include "types.h"
 #include "arm.h"
-#include "arm11/start.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/start.h"
+#include "util.h"
 #include "arm11/hardware/scu.h"
 
 
@@ -37,7 +38,7 @@
 /*static void NAKED core23Entry(void)
 {
 	__cpsid(aif);
-	*((vu32*)0x17E00100) = 1; // REG_CPU_II_CNT
+	REG_CPU_II_CNT = 1;
 
 	const u32 cpuId = __getCpuId();
 	// Tell core 0 we are here
@@ -49,8 +50,8 @@
 	do
 	{
 		__wfi();
-		tmp = *((vu32*)0x17E0010C);
-		*((vu32*)0x17E00110) = tmp;
+		tmp = REG_CPU_II_AKN;
+		REG_CPU_II_EOI = tmp;
 	} while(tmp != cpuId);
 
 	// Jump to real entrypoint
@@ -61,11 +62,12 @@ void core123Init(void)
 {
 	/*if(REG_CFG11_SOCINFO & 2)
 	{
-		*((vu32*)0x17E00100) = 1;         // REG_CPU_II_CNT
-		*((vu32*)0x17E01288) = 0x1000000; // REGs_GID_PEN_CLR
-		*((vu8* )0x17E01458) = 0;         // REGs_GID_IPRIO
-		*((vu8* )0x17E01858) = 1;         // REGs_GID_ITARG
-		*((vu32*)0x17E01108) = 0x1000000; // REGs_GID_ENA_SET
+		REG_CPU_II_CNT = 1;
+		for(u32 i = 0; i < 4; i++) REGs_GID_ENA_CLR[i] = 0xFFFFFFFFu;
+		REGs_GID_PEN_CLR[2] = 0x1000000; // Interrupt ID 88
+		REGs_GID_IPRIO[22] = 0;
+		REGs_GID_ITARG[22] = 1;
+		REGs_GID_ENA_SET[2] = 0x1000000;
 
 		u16 clkCnt;
 		// If clock modifier is 3x use clock 3x. Also enables FCRAM extension?
@@ -78,16 +80,15 @@ void core123Init(void)
 			if(REG_CFG11_SOCINFO & 4) REG_CFG11_MPCORE_CNT = 0x101; // Poweron core 2 and 3
 			else                      REG_CFG11_MPCORE_CNT = 1;     // Poweron core 2
 
-			//waitCycles(403);
 			// Necessary delay
-			for(vu32 i = 403; i > 0; i--);
+			wait(403);
 
 			REG_CFG11_MPCORE_CLKCNT = (clkCnt & 7) | 0x8000;
 			do
 			{
 				__wfi();
 			} while(!(REG_CFG11_MPCORE_CLKCNT & 0x8000));
-			*((vu32*)0x17E01288) = 0x1000000; // REGs_GID_PEN_CLR
+			REGs_GID_PEN_CLR[2] = 0x1000000;
 			REG_UNK_10140400 = 3;   // Clock related?
 		}
 		REG_UNK_10140410 = 0x3FFFF; // Clock related?
@@ -109,7 +110,7 @@ void core123Init(void)
 				{
 					__wfi();
 				} while(!(REG_CFG11_MPCORE_CLKCNT & 0x8000));
-				*((vu32*)0x17E01288) = 0x1000000; // REGs_GID_PEN_CLR
+				REGs_GID_PEN_CLR[2] = 0x1000000;
 			}
 
 			REG_CFG11_BOOTROM_OVERLAY_CNT = 1;
@@ -133,16 +134,16 @@ void core123Init(void)
 			}
 		}
 
-		*((vu32*)0x17E01188) = 0x1000000; // REGs_GID_ENA_CLR
+		REGs_GID_ENA_CLR[2] = 0x1000000;
 
 		// Wakeup core 2/3 and let them jump to their entrypoint.
-		*((vu32*)0x17E01F00) = 0b0100<<16 | 2;
-		*((vu32*)0x17E01F00) = 0b1000<<16 | 3;
+		REG_GID_SW_INT = 0b0100<<16 | 2;
+		REG_GID_SW_INT = 0b1000<<16 | 3;
 	}*/
 
 	// Wakeup core 1
 	*((vu32*)0x1FFFFFDC) = (u32)_start;  // Core 1 entrypoint
-	*((vu32*)0x17E01F00) = 0b10<<16 | 1;
+	REG_GID_SW_INT = 0b10<<16 | 1;
 }
 
 void cpuSetClock(u16 clk)
