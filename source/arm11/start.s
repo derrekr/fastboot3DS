@@ -47,6 +47,7 @@
 .extern fake_heap_end
 .extern setupMmu
 .extern __libc_init_array
+.extern core123Init
 .extern systemInit
 .extern main
 
@@ -132,15 +133,7 @@ _start:
 	ldr r1, =fake_heap_end
 	str r0, [r1]
 	blx __libc_init_array       @ Initialize ctors and dtors
-
-	@ Wakeup core 1.
-	mov r0, #0x20000000
-	ldr r1, =(MPCORE_PRIV_REG_BASE + 0x1F00) @ REG_GID_SW_INT
-	adr r2, _start
-	str r2, [r0, #-0x24]        @ 0x1FFFFFDC
-	mov r3, #0b10<<16           @ Target core 1
-	orr r3, r3, #1              @ ID 1
-	str r3, [r1]                @ Trigger software interrupt
+	blx core123Init
 _start_skip_bss_init_array:
 	ldr r2, =0x706              @ Disable + reset all counters. Cycle counter divider 1. IRQs disabled.
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
@@ -246,4 +239,6 @@ deinitCpu:
 _sysmode_stacks:
 	.word A11_C0_STACK_END      @ Stack for core 0
 	.word A11_C1_STACK_END      @ Stack for core 1
+	.word A11_C2_STACK_END      @ Stack for core 2
+	.word A11_C3_STACK_END      @ Stack for core 3
 .pool

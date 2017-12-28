@@ -139,6 +139,11 @@
 #define A11_C0_STACK_END     (A11_C0_STACK_START + 0x2000)
 #define A11_C1_STACK_START   (A11_C0_STACK_END)            // Core 1 stack
 #define A11_C1_STACK_END     (A11_C1_STACK_START + 0x2000)
+// WARNING: The stacks for core 2/3 are temporary
+#define A11_C2_STACK_START   (FCRAM_BASE - 0x600)         // Core 2 stack
+#define A11_C2_STACK_END     (FCRAM_BASE - 0x400)
+#define A11_C3_STACK_START   (FCRAM_BASE - 0x400)         // Core 3 stack
+#define A11_C3_STACK_END     (FCRAM_BASE - 0x200)
 #define A11_EXC_STACK_START  (VRAM_BASE + VRAM_SIZE - 0x200000)
 #define A11_EXC_STACK_END    (VRAM_BASE + VRAM_SIZE - 0x100000)
 #define A11_MMU_TABLES_BASE  (A11_C1_STACK_END)

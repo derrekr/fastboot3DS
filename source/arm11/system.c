@@ -25,6 +25,7 @@
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/hid.h"
 #include "arm.h"
+#include "arm11/hardware/scu.h"
 
 
 
@@ -38,7 +39,8 @@ void systemInit(void)
 	IRQ_init();
 	TIMER_init();
 
-	if(!__getCpuId())
+	const u32 cpuId = __getCpuId();
+	if(!cpuId)
 	{
 		I2C_init();
 		hidInit();
@@ -46,11 +48,18 @@ void systemInit(void)
 		MCU_init();
 		systemRestoreHwState();
 	}
-	else
+	else if(cpuId == 1)
 	{
 		// We don't need core 1 yet so back it goes into boot11.
 		deinitCpu();
 		((void (*)(void))0x0001004C)();
+	}
+	else
+	{
+		// TODO: Implement proper poweroff.
+		deinitCpu();
+		REG_SCU_CPU_STAT |= 0b11<<cpuId * 2;
+		__wfi();
 	}
 
 	__cpsie(i); // Enables interrupts

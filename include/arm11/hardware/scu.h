@@ -19,9 +19,11 @@
  */
 
 #include "types.h"
+#include "mem_map.h"
 
 
-
-void _start(void);
-void clearMem(u32 *adr, u32 size);
-void deinitCpu(void);
+#define SCU_REGS_BASE      (MPCORE_PRIV_REG_BASE)
+#define REG_SCU_CNT        *((vu32*)(SCU_REGS_BASE + 0x00))
+#define REG_SCU_CONFIG     *((vu32*)(SCU_REGS_BASE + 0x04))
+#define REG_SCU_CPU_STAT   *((vu32*)(SCU_REGS_BASE + 0x08))
+#define REG_SCU_INVAL_TAG  *((vu32*)(SCU_REGS_BASE + 0x0C))
