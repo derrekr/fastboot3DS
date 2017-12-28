@@ -144,3 +144,12 @@ void core123Init(void)
 	*((vu32*)0x1FFFFFDC) = (u32)_start;  // Core 1 entrypoint
 	*((vu32*)0x17E01F00) = 0b10<<16 | 1;
 }
+
+void cpuSetClock(u16 clk)
+{
+	REG_CFG11_MPCORE_CLKCNT = (clk & 7) | 0x8000;
+	do
+	{
+		__wfi();
+	} while(!(REG_CFG11_MPCORE_CLKCNT & 0x8000));
+}

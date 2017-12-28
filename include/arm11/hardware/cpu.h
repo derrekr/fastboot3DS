@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200
@@ -17,46 +19,7 @@
  */
 
 #include "types.h"
-#include "hardware/pxi.h"
-#include "arm11/start.h"
-#include "arm11/hardware/interrupt.h"
-#include "arm11/hardware/timer.h"
-#include "arm11/hardware/i2c.h"
-#include "arm11/hardware/mcu.h"
-#include "arm11/hardware/hid.h"
-#include "arm.h"
-#include "arm11/hardware/scu.h"
 
 
 
-static void systemRestoreHwState(void)
-{
-	MCU_disableLEDs();
-}
-
-void systemInit(void)
-{
-	IRQ_init();
-	TIMER_init();
-
-	const u32 cpuId = __getCpuId();
-	if(!cpuId)
-	{
-		I2C_init();
-		hidInit();
-		PXI_init();
-		MCU_init();
-		systemRestoreHwState();
-	}
-	else
-	{
-		// TODO: Implement proper poweroff.
-		if(cpuId == 2) REG_SCU_CPU_STAT |= 0b1111<<4;
-
-		// We don't need core 1 yet so back it goes into boot11.
-		deinitCpu();
-		((void (*)(void))0x0001004C)();
-	}
-
-	__cpsie(i); // Enables interrupts
-}
+void cpuSetClock(u16 clk);
