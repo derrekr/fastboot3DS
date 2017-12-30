@@ -24,8 +24,8 @@
 #include "arm11/hardware/i2c.h"
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/hid.h"
+#include "arm11/hardware/cpu.h"
 #include "arm.h"
-#include "arm11/hardware/scu.h"
 
 
 
@@ -42,6 +42,7 @@ void systemInit(void)
 	const u32 cpuId = __getCpuId();
 	if(!cpuId)
 	{
+		IRQ_registerHandler(IRQ_PDN, 0, 0b1111, true, NULL);
 		I2C_init();
 		hidInit();
 		PXI_init();
@@ -50,13 +51,12 @@ void systemInit(void)
 	}
 	else
 	{
-		// TODO: Implement proper poweroff.
-		if(cpuId == 2) REG_SCU_CPU_STAT |= 0b1111<<4;
-
 		// We don't need core 1 yet so back it goes into boot11.
+		// Core 2 and 3 also go there waiting until poweroff.
 		deinitCpu();
 		((void (*)(void))0x0001004C)();
 	}
 
 	__cpsie(i); // Enables interrupts
+	CPU_poweroffCore23();
 }

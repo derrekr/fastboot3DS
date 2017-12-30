@@ -22,4 +22,5 @@
 
 
 
-void cpuSetClock(u16 clk);
+void CPU_setClock(u16 clk);
+void CPU_poweroffCore23(void);
