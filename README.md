@@ -22,7 +22,7 @@ To compile fastboot3DS you need [devkitARM](https://sourceforge.net/projects/dev
 
 ## Known issues
 fastboot3DS is still in beta. While there shouldn't be any problems in typical use, these issues still remain:
-* Older releases of [GodMode9](https://github.com/d0k3/GodMode9) freeze when they are chainloaded via fastboot3DS. Use the [nightly](https://d0k3.secretalgorithm.com/) for now.
+* Older releases of [GodMode9](https://github.com/d0k3/GodMode9) freeze when they are chainloaded via fastboot3DS. Use v1.5.0 or higher.
 * Chainloading certain payloads from the menu causes temporary artifacts to pop up on the screen. This is a purely cosmetic issue and won't affect fastboot3DS or the chainloaded payload in any way.
 * Rebooting to TWL_FIRM / AGB_FIRM does not work in certain CFWs (among them [Rei-Six](https://github.com/CrimsonMaple/Rei-Six) and [Cakes FW](https://github.com/mid-kid/CakesForeveryWan)). When attempted, the system will softlock and you'll need to hold the POWER button to exit.
 
