@@ -66,7 +66,7 @@ int main(void)
 	bool splash_wait = false;
 	if(show_menu || (bootmode != BootModeQuiet))
 	{
-		if (!gfx_initialized) GFX_init();
+		if (!gfx_initialized) GFX_init(true);
 		gfx_initialized = true;
 		splash_wait = drawSplashscreen(banner_spla, -1, -1);
 	}
@@ -141,7 +141,7 @@ int main(void)
 		// init screens / console (if we'll need them below)
 		if(show_menu || err_string)
 		{
-			if (!gfx_initialized) GFX_init();
+			if (!gfx_initialized) GFX_init(true);
 			gfx_initialized = true;
 			// init and select terminal console
 			consoleInit(SCREEN_TOP, &term_con, true);
@@ -300,7 +300,7 @@ int main(void)
 		// make sure GFX is in the right state
 		if(!gfx_initialized && (firm_err == 1))
 		{
-			GFX_init();
+			GFX_init(true);
 			GFX_deinit(true);
 		}
 		

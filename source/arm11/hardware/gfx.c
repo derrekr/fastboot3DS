@@ -246,7 +246,7 @@ void GFX_waitForEvent(GfxEvent event, bool discard)
 	eventTable[event] = false;
 }
 
-void GFX_init(void)
+void GFX_init(bool clearScreens)
 {
 	if(REG_PDN_GPU_CNT != 0x1007F) // Check if screens are already initialized
 	{
@@ -278,16 +278,19 @@ void GFX_init(void)
 	IRQ_registerHandler(IRQ_PPF, 14, 0, true, gfxIrqHandler);
 	//IRQ_registerHandler(IRQ_P3D, 14, 0, true, gfxIrqHandler);
 
-	// Warning. The GPU mem fill races against the console.
-	GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
-	              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
-	GFX_waitForEvent(GFX_EVENT_PSC1, true);
-	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
-	GFX_waitForEvent(GFX_EVENT_PSC0, true);
+	if(clearScreens)
+	{
+		// Warning. The GPU mem fill races against the console.
+		GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0,
+		              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB, 0);
+		GFX_waitForEvent(GFX_EVENT_PSC1, true);
+		GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
+		GFX_waitForEvent(GFX_EVENT_PSC0, true);
 
-	// The transfer engine is borked on screen init on New 3DS.
-	// Doing a dummy texture copy fixes it.
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)RENDERBUF_SUB, 0, 16);
+		// The transfer engine is borked on screen init on New 3DS.
+		// Doing a dummy texture copy fixes it.
+		GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)RENDERBUF_SUB, 0, 16);
+	}
 
 	// We must make sure the I2C bus is not used until this finishes
 	// otherwise the screens may not turn on on New 3DS.
@@ -307,7 +310,7 @@ void GFX_enterLowPowerState(void)
 
 void GFX_returnFromLowPowerState(void)
 {
-	GFX_init();
+	GFX_init(false);
 }
 
 void GFX_deinit(bool keepLcdsOn)
