@@ -58,5 +58,4 @@ void systemInit(void)
 	}
 
 	__cpsie(i); // Enables interrupts
-	CPU_poweroffCore23();
 }

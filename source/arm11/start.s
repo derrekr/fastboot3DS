@@ -133,7 +133,9 @@ _start:
 	ldr r1, =fake_heap_end
 	str r0, [r1]
 	blx __libc_init_array       @ Initialize ctors and dtors
+#ifdef CORE123_INIT
 	blx core123Init
+#endif
 _start_skip_bss_init_array:
 	ldr r2, =0x706              @ Disable + reset all counters. Cycle counter divider 1. IRQs disabled.
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register

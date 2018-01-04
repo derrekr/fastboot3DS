@@ -36,6 +36,7 @@
 
 
 
+#ifdef CORE123_INIT
 static void NAKED core23Entry(void)
 {
 	__cpsid(aif);
@@ -93,7 +94,7 @@ void core123Init(void)
 		if((REG_SCU_CONFIG & 3) == 3)
 		{
 			// Set core 2/3 to normal mode (running)
-			REG_SCU_CPU_STAT &= ~0xF0;
+			REG_SCU_CPU_STAT &= ~0b11110000;
 
 			const u16 clkCnt = REG_CFG11_MPCORE_CLKCNT & 7;
 			u16 tmpClkCnt;
@@ -123,14 +124,15 @@ void core123Init(void)
 		REGs_GID_ENA_CLR[2] = 0x1000000;
 
 		// Wakeup core 2/3 and let them jump to their entrypoint.
-		REG_GID_SW_INT = 0b0100<<16 | 2;
-		REG_GID_SW_INT = 0b1000<<16 | 3;
+		IRQ_softwareInterrupt(2, 0b0100);
+		IRQ_softwareInterrupt(3, 0b1000);
 	}
 
 	// Wakeup core 1
 	*((vu32*)0x1FFFFFDC) = (u32)_start;  // Core 1 entrypoint
-	REG_GID_SW_INT = 0b10<<16 | 1;
+	IRQ_softwareInterrupt(1, 0b0010);
 }
+#endif
 
 void CPU_setClock(u16 clk)
 {
