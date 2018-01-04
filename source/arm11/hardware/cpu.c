@@ -20,19 +20,10 @@
 #include "arm11/hardware/cpu.h"
 #include "arm.h"
 #include "arm11/hardware/interrupt.h"
+#include "arm11/hardware/cfg11.h"
 #include "arm11/start.h"
 #include "util.h"
 #include "arm11/hardware/scu.h"
-
-
-#define REG_CFG11_SOCINFO              *((vu16*)0x10140FFC)
-#define REG_CFG11_MPCORE_CLKCNT        *((vu16*)0x10141300)
-#define REG_CFG11_MPCORE_CNT           *((vu16*)0x10141304)
-#define REG_UNK_10140400               *((vu8* )0x10140400)
-#define REG_UNK_10140410               *((vu32*)0x10140410)
-#define REG_CFG11_BOOTROM_OVERLAY_CNT  *((vu8* )0x10140420)
-#define REG_CFG11_BOOTROM_OVERLAY_VAL  *((vu32*)0x10140424)
-#define REGs_CFG11_MPCORE_BOOTCNT       ((vu8* )0x10141310)
 
 
 

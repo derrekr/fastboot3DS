@@ -24,6 +24,7 @@
 #include "mem_map.h"
 #include "arm9/ncsd.h"
 #include "arm9/hardware/sdmmc.h"
+#include "arm9/hardware/cfg9.h"
 #include "arm9/hardware/spiflash.h"
 #include "arm9/hardware/interrupt.h"
 #include "fs.h"
@@ -323,7 +324,7 @@ bool sdmmc_dnand_init(void)
 					}
 					else if(i == 4)	// CTR NAND partition
 					{
-						if(REG_PDN_MPCORE_CFG & 2u) // New 3DS
+						if(REG_CFG9_SOCINFO & 2) // New 3DS
 							partitionSetKeyslot(index, 0x05);
 						else
 							partitionSetKeyslot(index, 0x04);

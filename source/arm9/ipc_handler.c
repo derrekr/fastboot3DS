@@ -18,13 +18,14 @@
 
 #include <stdlib.h>
 #include "types.h"
+#include "mem_map.h"
 #include "ipc_handler.h"
 #include "hardware/cache.h"
 #include "arm9/debug.h"
 #include "fs.h"
 #include "arm9/firm.h"
 #include "firmwriter.h"
-#include "mem_map.h"
+#include "arm9/hardware/cfg9.h"
 
 
 
@@ -145,7 +146,7 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf)
 			result = loadVerifyUpdate((const char *const)buf[0], (u32 *const)buf[2]);
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_GET_BOOT_ENV):
-			result = CFG_BOOTENV;
+			result = REG_CFG9_BOOTENV;
 			break;
 		case IPC_CMD_ID_MASK(IPC_CMD9_PREPARE_POWER):
 		case IPC_CMD_ID_MASK(IPC_CMD9_PANIC):

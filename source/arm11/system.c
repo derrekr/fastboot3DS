@@ -34,7 +34,7 @@ static void systemRestoreHwState(void)
 	MCU_disableLEDs();
 }
 
-void systemInit(void)
+void WEAK systemInit(void)
 {
 	IRQ_init();
 	TIMER_init();
@@ -58,4 +58,5 @@ void systemInit(void)
 	}
 
 	__cpsie(i); // Enables interrupts
+	CPU_poweroffCore23();
 }

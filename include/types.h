@@ -18,12 +18,13 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdbool.h>
+#include <inttypes.h>    // printf()/scanf() macros
 #include <stdalign.h>    // alignas(alignment_in_bytes)
+#include <stdbool.h>     // bool, true/false
+#include <stddef.h>      // size_t, NULL...
+#include <stdint.h>      // uint8_t, uint16_t...
 #include <stdnoreturn.h> // noreturn keyword
+#include <unistd.h>      // ssize_t
 
 
 
@@ -31,6 +32,7 @@
 #define USED     __attribute__((used))
 #define UNUSED   __attribute__((unused))
 #define NAKED    __attribute__((naked))
+#define WEAK     __attribute__((weak))
 
 
 typedef uint8_t  u8;

@@ -17,10 +17,11 @@
  */
 
 #include <string.h>
-#include "fb_assert.h"
 #include "mem_map.h"
+#include "fb_assert.h"
 #include "types.h"
 #include "arm9/hardware/crypto.h"
+#include "arm9/hardware/cfg9.h"
 #include "arm9/hardware/interrupt.h"
 #include "arm9/hardware/ndma.h"
 #include "arm.h"
@@ -66,10 +67,10 @@
 static void setupKeys(void)
 {
 	// Setup TWL unit info and console ID
-	const bool isDevUnit = CFG_UNITINFO != 0;
+	const bool isDevUnit = REG_CFG9_UNITINFO != 0;
 	const u64 twlConsoleId = (isDevUnit ? (*((vu64*)0x10012000)) :
 	                                      ((*((vu64*)0x01FFB808) ^ 0x8C267B7B358A6AFULL) | 0x80000000ULL));
-	*((vu8*)0x10010014) = CFG_UNITINFO;
+	*((vu8*)0x10010014) = REG_CFG9_UNITINFO;
 	*((vu64*)0x10012100) = twlConsoleId;
 
 
@@ -112,7 +113,7 @@ static void setupKeys(void)
 
 
 	// 3DS key init
-	if(REG_PDN_MPCORE_CFG & 2u) // New 3DS
+	if(REG_CFG9_SOCINFO & 2) // New 3DS
 	{
 		alignas(4) static const u8 keyY0x05[16] = {
 		0x4D, 0x80, 0x4F, 0x4E, 0x99, 0x90, 0x19, 0x46, 0x13, 0xA2, 0x04, 0xAC, 0x58, 0x44, 0x60, 0xBE};
