@@ -21,6 +21,7 @@
 #include "mem_map.h"
 #include "arm11/start.h"
 #include "hardware/pxi.h"
+#include "system.h"
 #include "ipc_handler.h"
 
 
@@ -67,6 +68,7 @@ noreturn void firmLaunch(void)
 	// Relocate ARM11 stub
 	memcpy((void*)A11_STUB_ENTRY, (const void*)firmLaunchStub, A11_STUB_SIZE);
 
+	__systemDeinit();
 	deinitCpu();
 
 	// Change sp to a safe location

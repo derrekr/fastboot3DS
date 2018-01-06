@@ -1,6 +1,6 @@
 /*
  *   This file is part of fastboot 3DS
- *   Copyright (C) 2017 derrek, profi200
+ *   Copyright (C) 2018 derrek, profi200
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ static void systemRestoreHwState(void)
 	MCU_disableLEDs();
 }
 
-void WEAK systemInit(void)
+void WEAK __systemInit(void)
 {
 	IRQ_init();
 	TIMER_init();
@@ -61,4 +61,9 @@ void WEAK systemInit(void)
 #ifdef CORE123_INIT
 	CPU_poweroffCore23();
 #endif
+}
+
+void WEAK __systemDeinit(void)
+{
+	IRQ_init();
 }

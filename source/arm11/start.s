@@ -48,8 +48,9 @@
 .extern setupMmu
 .extern __libc_init_array
 .extern core123Init
-.extern systemInit
+.extern __systemInit
 .extern main
+.extern power_off
 
 .section ".crt0", "ax"
 
@@ -142,14 +143,12 @@ _start_skip_bss_init_array:
 	blx setupMmu
 	bl setupVfp
 	cpsie a
-	blx systemInit
+	blx __systemInit
 
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main
-	_start_lp:
-		wfi
-		b _start_lp
+	b power_off
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))

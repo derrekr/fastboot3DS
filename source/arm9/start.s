@@ -42,8 +42,9 @@
 .extern fake_heap_start
 .extern fake_heap_end
 .extern __libc_init_array
-.extern systemInit
+.extern __systemInit
 .extern main
+.extern __systemDeinit
 .extern irqHandler
 .extern undefInstrHandler
 .extern prefetchAbortHandler
@@ -110,11 +111,12 @@ _start:
 	ldr r1, =fake_heap_end
 	str r0, [r1]
 	blx __libc_init_array       @ Initialize ctors and dtors
-	blx systemInit
+	blx __systemInit
 
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main
+	blx __systemDeinit
 	_start_lp:
 		mov r0, #0
 		mcr p15, 0, r0, c7, c0, 4 @ Wait for interrupt

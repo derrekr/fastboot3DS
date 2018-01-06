@@ -1,6 +1,8 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
- *   Copyright (C) 2017 derrek, profi200
+ *   Copyright (C) 2018 derrek, profi200
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,46 +19,8 @@
  */
 
 #include "types.h"
-#include "util.h"
-#include "ipc_handler.h"
-#include "arm11/hardware/mcu.h"
-#include "arm11/hardware/timer.h"
-#include "arm11/hardware/interrupt.h"
-#include "hardware/cache.h"
-#include "hardware/gfx.h"
-#include "hardware/pxi.h"
-#include "system.h"
-#include "arm.h"
 
 
 
-static void power_safe_halt(void)
-{
-	MCU_powerOffLCDs();
-	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
-
-	// give the screens a bit of time to turn off
-	TIMER_sleepMs(400);
-
-	__systemDeinit();
-	flushDCache();
-	__cpsid(aif);
-}
-
-noreturn void power_off(void)
-{
-	power_safe_halt();
-
-	MCU_triggerPowerOff();
-
-	while(1) __wfi();
-}
-
-noreturn void power_reboot(void)
-{
-	power_safe_halt();
-
-	MCU_triggerReboot();
-
-	while(1) __wfi();
-}
+//void WEAK __systemInit(void);
+void WEAK __systemDeinit(void);

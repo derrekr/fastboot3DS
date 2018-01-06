@@ -32,6 +32,7 @@
 #include "arm9/dev.h"
 #include "fs.h"
 #include "hardware/gfx.h"
+#include "system.h"
 
 
 typedef struct
@@ -329,6 +330,7 @@ noreturn void firmLaunch(void)
 {
 	memcpy((void*)A9_STUB_ENTRY, (const void*)firmLaunchStub, A9_STUB_SIZE);
 
+	__systemDeinit();
 	deinitCpu();
 
 	((void (*)(int, const char**))A9_STUB_ENTRY)(firmLaunchArgc, (const char**)(ITCM_KERNEL_MIRROR + 0x7470));

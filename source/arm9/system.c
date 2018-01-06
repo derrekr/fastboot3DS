@@ -25,7 +25,7 @@
 
 
 
-void systemInit(void)
+void WEAK __systemInit(void)
 {
 	IRQ_init();
 	NDMA_init();
@@ -35,4 +35,10 @@ void systemInit(void)
 	RSA_init();
 
 	leaveCriticalSection(0); // Enables interrupts
+}
+
+void WEAK __systemDeinit(void)
+{
+	NDMA_init();
+	IRQ_init();
 }
