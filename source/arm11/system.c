@@ -58,5 +58,7 @@ void WEAK systemInit(void)
 	}
 
 	__cpsie(i); // Enables interrupts
+#ifdef CORE123_INIT
 	CPU_poweroffCore23();
+#endif
 }
