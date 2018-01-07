@@ -93,19 +93,6 @@ static inline u32 __getCpuId(void)
 	return cpuId & 3;
 }
 
-// Control Register
-static inline u32 __getCr(void)
-{
-	u32 cr;
-	__asm__("mrc p15, 0, %0, c1, c0, 0" : "=r" (cr) : );
-	return cr;
-}
-
-static inline void __setCr(u32 cr)
-{
-	__asm__ volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (cr) : "memory");
-}
-
 // Auxiliary Control Register
 static inline u32 __getAcr(void)
 {
@@ -225,6 +212,19 @@ static inline void __setSpsr_c(u32 spsr)
 static inline void __setSpsr(u32 spsr)
 {
 	__asm__ volatile("msr spsr_cxsf, %0" : : "r" (spsr) : "memory");
+}
+
+// Control Register
+static inline u32 __getCr(void)
+{
+	u32 cr;
+	__asm__("mrc p15, 0, %0, c1, c0, 0" : "=r" (cr) : );
+	return cr;
+}
+
+static inline void __setCr(u32 cr)
+{
+	__asm__ volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (cr) : "memory");
 }
 
 #endif // if !__ASSEMBLER__

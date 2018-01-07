@@ -19,9 +19,7 @@
 #include "types.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm.h"
-
-
-#define REG_CFG11_FIQ_CNT    *((vu8* )(IO_MEM_ARM9_ARM11 + 0x40000 + 0x0104))
+#include "arm11/hardware/cfg11.h"
 
 
 IrqHandler irqHandlerTable[224] = {0}; // First 32 interrupts are private to each core (4 * 32).

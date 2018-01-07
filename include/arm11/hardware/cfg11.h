@@ -22,6 +22,7 @@
 
 
 #define CFG11_REGS_BASE                (IO_MEM_ARM9_ARM11 + 0x40000)
+#define REG_CFG11_FIQ_CNT              *((vu8* )(CFG11_REGS_BASE + 0x0104))
 #define REG_UNK_10140400               *((vu8* )(CFG11_REGS_BASE + 0x0400))
 #define REG_UNK_10140410               *((vu32*)(CFG11_REGS_BASE + 0x0410))
 #define REG_CFG11_BOOTROM_OVERLAY_CNT  *((vu8* )(CFG11_REGS_BASE + 0x0420))

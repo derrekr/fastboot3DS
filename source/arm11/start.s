@@ -50,7 +50,7 @@
 .extern core123Init
 .extern __systemInit
 .extern main
-.extern power_off
+.extern __systemDeinit
 
 .section ".crt0", "ax"
 
@@ -148,7 +148,10 @@ _start_skip_bss_init_array:
 	mov r0, #0                  @ argc
 	mov r1, #0                  @ argv
 	blx main
-	b power_off
+	blx __systemDeinit
+_start_lp:
+	wfi
+	b _start_lp
 
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))

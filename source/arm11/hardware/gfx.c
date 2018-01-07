@@ -323,7 +323,6 @@ void GFX_deinit(bool keepLcdsOn)
 
 	if(keepLcdsOn)
 	{
-		// Temporary Luma workaround
 		GX_memoryFill((u64*)FRAMEBUF_TOP_A_1, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0,
 		              (u64*)FRAMEBUF_TOP_A_2, 1u<<9, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB + 0x2A300, 0);
 		*((vu32*)(0x10400400+0x70)) = 0x00080341;                 // Format GL_RGB8_OES
@@ -337,7 +336,6 @@ void GFX_deinit(bool keepLcdsOn)
 	}
 	else
 	{
-		// This deinits the GPU correctly but it is broken with Luma.
 		MCU_powerOffLCDs();
 		GFX_setBrightness(0, 0);
 		*((vu32*)0x10202244) = 0;
