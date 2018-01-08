@@ -40,6 +40,7 @@ You may use this under the terms of the GNU General Public License GPL v3 or und
 * **Luma 3DS devs** (for fmt.c/gfx code)
 * **mtheall** (for LZ11 decompress code)
 * **devkitPro** (for the toolchain/makefiles)
+* **ChaN** (for the FATFS library)
 * **fincs**, **Al3x_10m**, **Wolfvak**, **Shadowhand**, **Lilith Valentine**, **Crimson**, **Ordim3n** (closed beta testing)
 * ...everyone who contributed to **3dbrew.org**
 

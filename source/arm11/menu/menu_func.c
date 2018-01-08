@@ -836,7 +836,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	ee_printf_line_center("Luma 3DS devs (for fmt.c/gfx code)");
 	ee_printf_line_center("mtheall (for LZ11 decompress code)");
 	ee_printf_line_center("devkitPro (for the toolchain/makefiles)");
-	ee_printf_line_center("");
+	ee_printf_line_center("ChaN (for the FATFS library)");
 	ee_printf_line_center("... everyone who contributed to 3dbrew.org");
 	updateScreens();
 
