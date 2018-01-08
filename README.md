@@ -21,10 +21,9 @@ You may also want to set up the other boot slots and assign key combos to them. 
 To compile fastboot3DS you need [devkitARM](https://sourceforge.net/projects/devkitpro/), [CTR firm builder](https://github.com/derrekr/ctr_firm_builder) and [splashtool](https://github.com/profi200/splashtool) installed in your system. Additionally you need 7-Zip or on Linux p7z installed to make release builds. Also make sure the CTR firm builder and splashtool binaries are in your $PATH environment variable and accessible to the Makefile. Build fastboot3DS as debug build via `make` or as release build via `make release`.
 
 ## Known issues
-fastboot3DS is still in beta. While there shouldn't be any problems in typical use, these issues still remain:
-* Older releases of [GodMode9](https://github.com/d0k3/GodMode9) freeze when they are chainloaded via fastboot3DS. Use v1.5.0 or higher.
-* Chainloading certain payloads from the menu causes temporary artifacts to pop up on the screen. This is a purely cosmetic issue and won't affect fastboot3DS or the chainloaded payload in any way.
-* Rebooting to TWL_FIRM / AGB_FIRM does not work in certain CFWs (among them [Rei-Six](https://github.com/CrimsonMaple/Rei-Six) and [Cakes FW](https://github.com/mid-kid/CakesForeveryWan)). When attempted, the system will softlock and you'll need to hold the POWER button to exit.
+This section is reserved for a listing of known issues. At present only this remains:
+* Older releases of [GodMode9](https://github.com/d0k3/GodMode9) freeze when they are chainloaded via fastboot3DS. Use v1.5.0 or higher. In general (that means not only for fastboot3ds) it is recommended to have all your software updated to the latest version.
+* OpenFirmInstaller only allows installing official (= signed) releases of fastboot3ds. Developers wanting to test their own builds can install fastboot3ds custom builds via GodMode9.
 
 If you happen to stumble over another bug, please open an issue in the [official fastboot3DS repo on GitHub](https://github.com/derrekr/fastboot3DS/issues) or contact us via other platforms.
 
