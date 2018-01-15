@@ -61,7 +61,7 @@ void getBootInfo(bootInfo* info)
 	if (int_model >= NUM_MODELS)
 		int_model = MCU_readSystemModel();
 	if (int_model < NUM_MODELS)
-		ee_snprintf(info->model, 24, "%s (%s)", s_modelNames[int_model].name, s_modelNames[int_model].product_code);
+		ee_snprintf(info->model, 24, "%s", s_modelNames[int_model].name);
 	
 	// Boot environment.
 	u32 bootEnv = getBootEnv();
