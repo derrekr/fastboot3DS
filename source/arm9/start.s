@@ -124,7 +124,6 @@ _start:
 		b _start_lp
 
 .pool
-.align 2
 _dummyArgv:
 	.word 0
 
@@ -142,7 +141,6 @@ setupExceptionVectors:
 	bx lr
 
 .pool
-.align 2
 _vectorStubs:
 	ldr pc, irqHandlerPtr
 	irqHandlerPtr:                  .word irqHandler

@@ -154,7 +154,6 @@ _start_lp:
 	b _start_lp
 
 .pool
-.align 2
 _sysmode_stacks:
 	.word A11_C0_STACK_END      @ Stack for core 0
 	.word A11_C1_STACK_END      @ Stack for core 1
