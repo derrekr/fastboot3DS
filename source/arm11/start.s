@@ -94,13 +94,13 @@ _start:
 	@ [2]  Level one data cache               : disabled
 	@ [1]  Strict data address alignment fault: disabled
 	@ [0]  MMU                                : disabled
-	ldr r0, =0x54078
-	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	mov r0, #0
-	mcr p15, 0, r0, c1, c0, 1   @ Write Auxiliary Control Register
-	mcr p15, 0, r0, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
-	mcr p15, 0, r0, c7, c10, 4  @ Data Synchronization Barrier
-	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
+	ldr r3, =0x54078
+	mov r4, #0
+	mcr p15, 0, r3, c1, c0, 0   @ Write control register
+	mcr p15, 0, r4, c1, c0, 1   @ Write Auxiliary Control Register
+	mcr p15, 0, r4, c7, c7, 0   @ Invalidate Both Caches. Also flushes the branch target cache
+	mcr p15, 0, r4, c7, c10, 4  @ Data Synchronization Barrier
+	mcr p15, 0, r4, c7, c5, 4   @ Flush Prefetch Buffer
 	clrex
 
 	mrc p15, 0, r4, c0, c0, 5   @ Get CPU ID
@@ -112,8 +112,8 @@ _start:
 	mov sp, #0                  @ Unused
 	cps #PSR_IRQ_MODE
 	mov sp, #0                  @ not needed
-	cps #PSR_ABORT_MODE
 	ldr r0, =A11_EXC_STACK_END
+	cps #PSR_ABORT_MODE
 	mov sp, r0
 	cps #PSR_UNDEF_MODE
 	mov sp, r0
@@ -138,7 +138,7 @@ _start:
 	blx core123Init
 #endif
 _start_skip_bss_init_array:
-	ldr r2, =0x706              @ Disable + reset all counters. Cycle counter divider 1. IRQs disabled.
+	ldrh r2, =0x706             @ Disable + reset all counters. Cycle counter divider 1. IRQs disabled.
 	mcr p15, 0, r2, c15, c12, 0 @ Write Performance Monitor Control Register
 	blx setupMmu
 	bl setupVfp
@@ -146,16 +146,27 @@ _start_skip_bss_init_array:
 	blx __systemInit
 
 	mov r0, #0                  @ argc
-	mov r1, #0                  @ argv
+	adr r1, _dummyArgv          @ argv
 	blx main
 	blx __systemDeinit
 _start_lp:
 	wfi
 	b _start_lp
 
+.pool
+.align 2
+_sysmode_stacks:
+	.word A11_C0_STACK_END      @ Stack for core 0
+	.word A11_C1_STACK_END      @ Stack for core 1
+	.word A11_C2_STACK_END      @ Stack for core 2
+	.word A11_C3_STACK_END      @ Stack for core 3
+_dummyArgv:
+	.word 0
+
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
+.align 2
 stubExceptionVectors:
 	ldr r0, =A11_VECTORS_START
 	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
@@ -166,8 +177,11 @@ stubExceptionVectors:
 		bne stubExceptionVectors_lp
 	bx lr
 
+.pool
+
 
 @ void clearMem(u32 *adr, u32 size)
+.align 2
 clearMem:
 	bics r12, r1, #31
 	mov r2, #0
@@ -195,7 +209,10 @@ clearMem_check_zero:
 		bne clearMem_remaining_lp
 	bx lr
 
+.pool
 
+
+.align 2
 setupVfp:
 	mov r0, #0
 	mov r1, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
@@ -207,11 +224,17 @@ setupVfp:
 	fmxr fpscr, r3              @ Write Floating-Point Status and Control Register
 	bx lr
 
+.pool
 
+
+.align 2
 _init:
 	bx lr
 
+.pool
 
+
+.align 2
 deinitCpu:
 	mov r3, lr
 
@@ -239,10 +262,4 @@ deinitCpu:
 	mcr p15, 0, r2, c7, c5, 4   @ Flush Prefetch Buffer
 	bx r3
 
-
-_sysmode_stacks:
-	.word A11_C0_STACK_END      @ Stack for core 0
-	.word A11_C1_STACK_END      @ Stack for core 1
-	.word A11_C2_STACK_END      @ Stack for core 2
-	.word A11_C3_STACK_END      @ Stack for core 3
 .pool

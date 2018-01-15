@@ -73,12 +73,12 @@ _start:
 	@ [7]  Endianess              : little
 	@ [2]  D-Cache                : disabled
 	@ [0]  MPU                    : disabled
-	ldr r0, =0x2078
-	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	mov r0, #0
-	mcr p15, 0, r0, c7, c5, 0   @ Invalidate I-Cache
-	mcr p15, 0, r0, c7, c6, 0   @ Invalidate D-Cache
-	mcr p15, 0, r0, c7, c10, 4  @ Drain write buffer
+	ldrh r3, =0x2078
+	mov r4, #0
+	mcr p15, 0, r3, c1, c0, 0   @ Write control register
+	mcr p15, 0, r4, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r4, c7, c6, 0   @ Invalidate D-Cache
+	mcr p15, 0, r4, c7, c10, 4  @ Drain write buffer
 
 	bl setupExceptionVectors    @ Setup the vectors in ARM9 mem bootrom vectors jump to
 	bl setupTcms                @ Setup and enable DTCM and ITCM
@@ -86,10 +86,11 @@ _start:
 	mov sp, #0                  @ unused SVC mode sp
 	msr cpsr_cxsf, #PSR_INT_OFF | PSR_IRQ_MODE
 	ldr sp, =A9_IRQ_STACK_END
+	ldr r0, =A9_EXC_STACK_END
 	msr cpsr_cxsf, #PSR_INT_OFF | PSR_ABORT_MODE
-	mov sp, #A9_EXC_STACK_END
+	mov sp, r0
 	msr cpsr_cxsf, #PSR_INT_OFF | PSR_UNDEF_MODE
-	mov sp, #A9_EXC_STACK_END
+	mov sp, r0
 	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
 	ldr sp, =A9_STACK_END
 
@@ -101,12 +102,12 @@ _start:
 	sub r1, r1, r0
 	bl clearMem
 	@ Setup newlib heap
-	mov r0, #IO_MEM_BASE        @ CFG9 regs
+	ldr r0, =IO_MEM_BASE        @ CFG9 regs
 	ldr r1, [r0, #0xFFC]        @ REG_CFG9_MPCORECFG
 	tst r1, #2                  @ Test for New 3DS bit
 	movne r2, #1
 	strne r2, [r0, #0x200]      @ REG_CFG9_EXTMENTCNT9
-	mov r0, #A9_HEAP_END
+	ldr r0, =A9_HEAP_END
 	addne r0, #A9_RAM_N3DS_EXT_SIZE
 	ldr r1, =fake_heap_end
 	str r0, [r1]
@@ -114,7 +115,7 @@ _start:
 	blx __systemInit
 
 	mov r0, #0                  @ argc
-	mov r1, #0                  @ argv
+	adr r1, _dummyArgv          @ argv
 	blx main
 	blx __systemDeinit
 	_start_lp:
@@ -122,17 +123,26 @@ _start:
 		mcr p15, 0, r0, c7, c0, 4 @ Wait for interrupt
 		b _start_lp
 
+.pool
+.align 2
+_dummyArgv:
+	.word 0
+
 
 #define MAKE_BRANCH(src, dst) (0xEA000000 | (((((dst) - (src)) >> 2) - 2) & 0xFFFFFF))
 
+.align 2
 setupExceptionVectors:
 	adr r0, _vectorStubs
-	mov r1, #A9_VECTORS_START
+	ldr r1, =A9_VECTORS_START
 	ldmia r0!, {r2-r9}
 	stmia r1!, {r2-r9}
 	ldm r0, {r2-r5}
 	stm r1, {r2-r5}
 	bx lr
+
+.pool
+.align 2
 _vectorStubs:
 	ldr pc, irqHandlerPtr
 	irqHandlerPtr:                  .word irqHandler
@@ -148,8 +158,9 @@ _vectorStubs:
 	dataAbortHandlerPtr:            .word dataAbortHandler
 
 
+.align 2
 setupTcms:
-	mov r1, #(ITCM_BASE | 0x24) @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
+	ldr r1, =(ITCM_BASE | 0x24) @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
 	ldr r0, =(DTCM_BASE | 0x0A) @ Base = 0xFFF00000, size = 16 KB
 	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
 	mcr p15, 0, r1, c9, c1, 1   @ Write ITCM region reg
@@ -158,8 +169,11 @@ setupTcms:
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	bx lr
 
+.pool
+
 
 @ void clearMem(u32 *adr, u32 size)
+.align 2
 clearMem:
 	bics r12, r1, #31
 	mov r2, #0
@@ -186,6 +200,8 @@ clearMem_check_zero:
 		subs r1, r1, #4
 		bne clearMem_remaining_lp
 	bx lr
+
+.pool
 
 
 #define REGION_4KB   (0b01011)
@@ -220,6 +236,7 @@ clearMem_check_zero:
 #define MAKE_PERMISSIONS(r0, r1, r2, r3, r4, r5, r6, r7) \
         ((r0) | (r1<<4) | (r2<<8) | (r3<<12) | (r4<<16) | (r5<<20) | (r6<<24) | (r7<<28))
 
+.align 2
 setupMpu:
 	adr r0, _mpu_regions        @ Table at end of file
 	ldm r0, {r1-r10}
@@ -271,42 +288,11 @@ setupMpu:
 	@mov r2, #0b01011010        @ Same as data cachable bits
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
-	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
+	ldrh r1, =0x1005            @ MPU, D-Cache and I-Cache bitmask
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
 	orr r0, r0, r1              @ Enable MPU, D-Cache and I-Cache
 	mcr p15, 0, r0, c1, c0, 0   @ Write control register
 	bx lr
-
-
-@ Needed by libc
-_init:
-	bx lr
-
-
-deinitCpu:
-	mov r3, lr
-
-	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
-	@ Stub vectors to endless loops
-	mov r0, #A9_RAM_BASE
-	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
-	mov r1, #6
-	deinitCpu_lp:
-		str r2, [r0], #8
-		subs r1, r1, #1
-		bne deinitCpu_lp
-
-	bl flushDCache
-	mov r2, #0
-	ldr r1, =0x1005             @ MPU, D-Cache and I-Cache bitmask
-	mrc p15, 0, r0, c1, c0, 0   @ Read control register
-	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
-	mcr p15, 0, r0, c1, c0, 0   @ Write control register
-	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
-	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
-	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
-	bx r3
-
 
 _mpu_regions:
 	@ Region 0: ITCM kernel mirror 32 KB
@@ -352,4 +338,40 @@ _mpu_permissions:
 	                       PER_NO_ACC,             PER_NO_ACC,
 	                       PER_NO_ACC,             PER_NO_ACC,
 	                       PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
+.pool
+
+
+@ Needed by libc
+.align 2
+_init:
+	bx lr
+
+.pool
+
+
+.align 2
+deinitCpu:
+	mov r3, lr
+
+	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
+	@ Stub vectors to endless loops
+	ldr r0, =A9_RAM_BASE
+	ldr r2, =MAKE_BRANCH(0, 0)  @ Endless loop
+	mov r1, #6
+	deinitCpu_lp:
+		str r2, [r0], #8
+		subs r1, r1, #1
+		bne deinitCpu_lp
+
+	bl flushDCache
+	mov r2, #0
+	ldrh r1, =0x1005            @ MPU, D-Cache and I-Cache bitmask
+	mrc p15, 0, r0, c1, c0, 0   @ Read control register
+	bic r0, r0, r1              @ Disable MPU, D-Cache and I-Cache
+	mcr p15, 0, r0, c1, c0, 0   @ Write control register
+	mcr p15, 0, r2, c7, c5, 0   @ Invalidate I-Cache
+	mcr p15, 0, r2, c7, c6, 0   @ Invalidate D-Cache
+	mcr p15, 0, r2, c7, c10, 4  @ Drain write buffer
+	bx r3
+
 .pool
