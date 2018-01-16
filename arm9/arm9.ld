@@ -13,8 +13,8 @@ SECTIONS
 {
 	/* =========== CODE section =========== */
 
-	. = 0x08000040;
-	__start__ = . ;
+	PROVIDE(__start__ = 0x08000040);
+	. = __start__;
 
 	.text ALIGN(4) :
 	{
@@ -36,11 +36,13 @@ SECTIONS
 		/* .fini */
 		KEEP( *(.fini) )
 		. = ALIGN(4);
-	} : code
+	} : code = 0xFF
 
 	/* =========== RODATA section =========== */
 
-	.rodata ALIGN(4) :
+	. = ALIGN(4);
+
+	.rodata :
 	{
 		*(.rodata)
 		*(.roda)
@@ -49,7 +51,7 @@ SECTIONS
 		*(.gnu.linkonce.r*)
 		SORT(CONSTRUCTORS)
 		. = ALIGN(4);
-	} : rodata
+	} : rodata = 0xFF
 
 	.ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } : rodata
 	__exidx_start = .;
@@ -58,14 +60,16 @@ SECTIONS
 
 	/* =========== DATA section =========== */
 
-	.data ALIGN(4) :
+	. = ALIGN(4);
+
+	.data :
 	{
 		*(.data)
 		*(.data.*)
 		*(.gnu.linkonce.d*)
 		CONSTRUCTORS
 		. = ALIGN(4);
-	} : data
+	} : data = 0xFF
 
 	.tdata ALIGN(4) :
 	{
@@ -75,7 +79,7 @@ SECTIONS
 		*(.gnu.linkonce.td.*)
 		. = ALIGN(4);
 		__tdata_lma_end = .;
-	} : data
+	} : data = 0xFF
 
 	.tbss ALIGN(4) :
 	{
@@ -84,14 +88,14 @@ SECTIONS
 		*(.gnu.linkonce.tb.*)
 		*(.tcommon)
 		. = ALIGN(4);
-	} : data
+	} : data = 0xFF
 
 	.preinit_array ALIGN(4) :
 	{
 		PROVIDE (__preinit_array_start = .);
 		KEEP (*(.preinit_array))
 		PROVIDE (__preinit_array_end = .);
-	} : data
+	} : data = 0xFF
 
 	.init_array ALIGN(4) :
 	{
@@ -99,7 +103,7 @@ SECTIONS
 		KEEP (*(SORT(.init_array.*)))
 		KEEP (*(.init_array))
 		PROVIDE (__init_array_end = .);
-	} : data
+	} : data = 0xFF
 
 	.fini_array ALIGN(4) :
 	{
@@ -107,7 +111,7 @@ SECTIONS
 		KEEP (*(.fini_array))
 		KEEP (*(SORT(.fini_array.*)))
 		PROVIDE (__fini_array_end = .);
-	} : data
+	} : data = 0xFF
 
 	.ctors ALIGN(4) :
 	{
@@ -115,7 +119,7 @@ SECTIONS
 		KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
 		KEEP (*(SORT(.ctors.*)))
 		KEEP (*(.ctors))
-	} : data
+	} : data = 0xFF
 
 	.dtors ALIGN(4) :
 	{
@@ -123,10 +127,10 @@ SECTIONS
 		KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
 		KEEP (*(SORT(.dtors.*)))
 		KEEP (*(.dtors))
-	} : data
+	} : data = 0xFF
 
 	__bss_start__ = .;
-	.bss ALIGN(4) :
+	.bss ALIGN(4) (NOLOAD):
 	{
 		*(.dynbss)
 		*(.bss)

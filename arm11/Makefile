@@ -130,7 +130,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 $(OUTPUT)11.bin	:	$(OUTPUT)11.elf
-	@$(OBJCOPY) --gap-fill 0xFF -O binary $< $@
+	@$(OBJCOPY) -O binary $< $@
 	@echo built ... $(notdir $@)
 
 $(OFILES_SOURCES) : $(HFILES)
