@@ -24,7 +24,7 @@
 
 
 // Mem permissions
-#define PERM_NO_ACC                          (0b000000u)
+#define PERM_NA                              (0b000000u)
 #define PERM_PRIV_RW_USR_NA                  (0b000001u)
 #define PERM_PRIV_RW_USR_RO                  (0b000010u)
 #define PERM_PRIV_RW_USR_RW                  (0b000011u)
