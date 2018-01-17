@@ -1,6 +1,6 @@
 /*
  *   This file is part of fastboot 3DS
- *   Copyright (C) 2017 derrek, profi200
+ *   Copyright (C) 2018 derrek, profi200
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,32 +24,32 @@
 
 
 // Mem permissions
-#define PERM_NO_ACC                            (0b000000u)
-#define PERM_PRIV_RW_USR_NO_ACC                (0b000001u)
-#define PERM_PRIV_RW_USR_RO                    (0b000010u)
-#define PERM_PRIV_RW_USR_RW                    (0b000011u)
-#define PERM_PRIV_RO_USR_NO_ACC                (0b100001u)
-#define PERM_PRIV_RO_USR_RO                    (0b100010u)
+#define PERM_NO_ACC                          (0b000000u)
+#define PERM_PRIV_RW_USR_NA                  (0b000001u)
+#define PERM_PRIV_RW_USR_RO                  (0b000010u)
+#define PERM_PRIV_RW_USR_RW                  (0b000011u)
+#define PERM_PRIV_RO_USR_NA                  (0b100001u)
+#define PERM_PRIV_RO_USR_RO                  (0b100010u)
 
 // Predefined mem attributes. Only bits 0, 1 and 10-12 matter
-#define ATTR_STRONGLY_ORDERED                  (0b0000000000000u) // Always shared
-#define ATTR_SHARED_DEVICE                     (0b0000000000001u) // Always shared
-#define ATTR_NORM_WRITE_TROUGH_NO_ALLOC        (0b0000000000010u)
-#define ATTR_NORM_WRITE_BACK_NO_ALLOC          (0b0000000000011u)
-#define ATTR_NORM_NONCACHABLE                  (0b0010000000000u)
-#define ATTR_NORM_WRITE_BACK_ALLOC             (0b0010000000011u)
-#define ATTR_NONSHARED_DEVICE                  (0b0100000000000u) // Always non-shared
+#define ATTR_STRONGLY_ORDERED                (0b0000000000000u) // Always shared
+#define ATTR_SHARED_DEVICE                   (0b0000000000001u) // Always shared
+#define ATTR_NORM_WRITE_TROUGH_NO_ALLOC      (0b0000000000010u)
+#define ATTR_NORM_WRITE_BACK_NO_ALLOC        (0b0000000000011u)
+#define ATTR_NORM_NONCACHABLE                (0b0010000000000u)
+#define ATTR_NORM_WRITE_BACK_ALLOC           (0b0010000000011u)
+#define ATTR_NONSHARED_DEVICE                (0b0100000000000u) // Always non-shared
 
 // Policies for custom normal mem attributes
-#define POLICY_NONCACHABLE_UNBUFFERED          (0b00u)
-#define POLICY_WRITE_BACK_ALLOC_BUFFERED       (0b01u)
-#define POLICY_WRITE_THROUGH_NO_ALLOC_BUFFERED (0b10u) // Behaves as noncacheable on ARM11 MPCore
-#define POLICY_WRITE_BACK_NO_ALLOC_BUFFERED    (0b11u)
+#define POLI_NONCACHABLE_UNBUFFERED          (0b00u)
+#define POLI_WRITE_BACK_ALLOC_BUFFERED       (0b01u)
+#define POLI_WRITE_THROUGH_NO_ALLOC_BUFFERED (0b10u) // Behaves as noncacheable on ARM11 MPCore
+#define POLI_WRITE_BACK_NO_ALLOC_BUFFERED    (0b11u)
 
-#define MAKE_CUSTOM_NORM_ATTR(outer, inner)    (1u<<12 | (outer)<<10 | (inner))
+#define CUSTOM_ATTR(outer, inner)            (1u<<12 | (outer)<<10 | (inner))
 
 // Converts the attribute bits from L1 format to L2 format
-#define L1_TO_L2(attr)                         (((attr)>>6 | (attr)) & 0x73)
+#define L1_TO_L2(attr)                       (((attr)>>6 | (attr)) & 0x73)
 
 
 
@@ -119,56 +119,49 @@ void setupMmu(void)
 
 		// IO mem mapping
 		mmuMapSections(IO_MEM_ARM9_ARM11, IO_MEM_ARM9_ARM11, 4, true,
-		               PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_SHARED_DEVICE);
+		               PERM_PRIV_RW_USR_NA, 1, true, ATTR_SHARED_DEVICE);
 
 		// MPCore private region mapping
 		mmuMapPages(MPCORE_PRIV_REG_BASE, MPCORE_PRIV_REG_BASE, 2,
-		            (u32*)(A11_MMU_TABLES_BASE + 0x4000u), false, PERM_PRIV_RW_USR_NO_ACC,
+		            (u32*)(A11_MMU_TABLES_BASE + 0x4000u), false, PERM_PRIV_RW_USR_NA,
 		            1, true, L1_TO_L2(ATTR_NONSHARED_DEVICE));
 
 		// VRAM mapping
-		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
-		//mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NO_ACC, 1, true,
-		//               MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_NO_ALLOC_BUFFERED, POLICY_WRITE_BACK_NO_ALLOC_BUFFERED));
-
-		// DSP mem mapping to extend AXIWRAM
-		//mmuMapPages(AXIWRAM_BASE + AXIWRAM_SIZE, DSP_MEM_BASE, 128, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
-		//            PERM_PRIV_RW_USR_NO_ACC, 1, true,
-		//            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NA, 1, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
 
 		// AXIWRAM core 0/1 stack mapping
 		mmuMapPages(A11_C0_STACK_START, A11_C0_STACK_START, 4, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
-		            true, PERM_PRIV_RW_USR_NO_ACC, 1, true,
-		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		            true, PERM_PRIV_RW_USR_NA, 1, true,
+		            L1_TO_L2(CUSTOM_ATTR(POLI_WRITE_BACK_ALLOC_BUFFERED, POLI_WRITE_BACK_ALLOC_BUFFERED)));
 
 		// AXIWRAM MMU table mapping
 		mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, (u32*)(A11_MMU_TABLES_BASE + 0x4400u), true,
-		            PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
+		            PERM_PRIV_RO_USR_NA, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
 
-		extern u32 __start__[];
-		extern u32 __text_pages__[];
-		extern u32 __rodata_start__[];
-		extern u32 __rodata_pages__[];
-		extern u32 __data_start__[];
+		extern const u32 __start__[];
+		extern const u32 __text_pages__[];
+		extern const u32 __rodata_start__[];
+		extern const u32 __rodata_pages__[];
+		extern const u32 __data_start__[];
 		const u32 dataPages = (FCRAM_BASE - (u32)__data_start__) / 0x1000;
 
 		// text
 		mmuMapPages((u32)__start__, (u32)__start__, (u32)__text_pages__, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
-		            true, PERM_PRIV_RO_USR_NO_ACC, 1, false,
-		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		            true, PERM_PRIV_RO_USR_NA, 1, false,
+		            L1_TO_L2(CUSTOM_ATTR(POLI_WRITE_BACK_ALLOC_BUFFERED, POLI_WRITE_BACK_ALLOC_BUFFERED)));
 		// rodata
 		mmuMapPages((u32)__rodata_start__, (u32)__rodata_start__, (u32)__rodata_pages__, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
-		            true, PERM_PRIV_RO_USR_NO_ACC, 1, true,
-		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		            true, PERM_PRIV_RO_USR_NA, 1, true,
+		            L1_TO_L2(CUSTOM_ATTR(POLI_WRITE_BACK_ALLOC_BUFFERED, POLI_WRITE_BACK_ALLOC_BUFFERED)));
 		// data, bss and heap
 		mmuMapPages((u32)__data_start__, (u32)__data_start__, dataPages, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
-		            true, PERM_PRIV_RW_USR_NO_ACC, 1, true,
-		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		            true, PERM_PRIV_RW_USR_NA, 1, true,
+		            L1_TO_L2(CUSTOM_ATTR(POLI_WRITE_BACK_ALLOC_BUFFERED, POLI_WRITE_BACK_ALLOC_BUFFERED)));
 
 		// Map fastboot executable start to boot11 mirror (exception vectors)
 		mmuMapPages(BOOT11_MIRROR2, (u32)__start__, 1, (u32*)(A11_MMU_TABLES_BASE + 0x4800u), true,
-		            PERM_PRIV_RO_USR_NO_ACC, 1, false,
-		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		            PERM_PRIV_RO_USR_NA, 1, false,
+		            L1_TO_L2(CUSTOM_ATTR(POLI_WRITE_BACK_ALLOC_BUFFERED, POLI_WRITE_BACK_ALLOC_BUFFERED)));
 
 		// Invalidate tag RAMs before enabling SMP as recommended by the MPCore doc.
 		REG_SCU_CNT = 0x1FFE;        // Disable SCU and parity checking. Access to all CPUs interfaces.
