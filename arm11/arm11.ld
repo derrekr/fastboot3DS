@@ -16,7 +16,7 @@ SECTIONS
 	PROVIDE(__start__ = 0x1FF89000);
 	. = __start__;
 
-	.text ALIGN(4) :
+	.text ALIGN(0x1000) :
 	{
 		/* .init */
 		KEEP( *(.crt0) )
@@ -40,8 +40,10 @@ SECTIONS
 
 	/* =========== RODATA section =========== */
 
-	. = ALIGN(4);
+	. = ALIGN(0x1000);
+	__text_pages__ = (. - __start__) / 0x1000;
 
+	__rodata_start__ = .;
 	.rodata :
 	{
 		*(.rodata)
@@ -60,8 +62,10 @@ SECTIONS
 
 	/* =========== DATA section =========== */
 
-	. = ALIGN(4);
+	. = ALIGN(0x1000);
+	__rodata_pages__ = (. - __rodata_start__) / 0x1000;
 
+	__data_start__ = .;
 	.data :
 	{
 		*(.data)

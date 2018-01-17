@@ -146,10 +146,23 @@ void setupMmu(void)
 		            PERM_PRIV_RO_USR_NO_ACC, 1, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
 
 		extern u32 __start__[];
+		extern u32 __text_pages__[];
+		extern u32 __rodata_start__[];
+		extern u32 __rodata_pages__[];
+		extern u32 __data_start__[];
+		const u32 dataPages = (FCRAM_BASE - (u32)__data_start__) / 0x1000;
 
-		// Remaining AXIWRAM pages
-		mmuMapPages((u32)__start__, (u32)__start__, 119, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
-		            true, PERM_PRIV_RW_USR_NO_ACC, 1, false,
+		// text
+		mmuMapPages((u32)__start__, (u32)__start__, (u32)__text_pages__, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
+		            true, PERM_PRIV_RO_USR_NO_ACC, 1, false,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		// rodata
+		mmuMapPages((u32)__rodata_start__, (u32)__rodata_start__, (u32)__rodata_pages__, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
+		            true, PERM_PRIV_RO_USR_NO_ACC, 1, true,
+		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
+		// data, bss and heap
+		mmuMapPages((u32)__data_start__, (u32)__data_start__, dataPages, (u32*)(A11_MMU_TABLES_BASE + 0x4400u),
+		            true, PERM_PRIV_RW_USR_NO_ACC, 1, true,
 		            L1_TO_L2(MAKE_CUSTOM_NORM_ATTR(POLICY_WRITE_BACK_ALLOC_BUFFERED, POLICY_WRITE_BACK_ALLOC_BUFFERED)));
 
 		// Map fastboot executable start to boot11 mirror (exception vectors)
