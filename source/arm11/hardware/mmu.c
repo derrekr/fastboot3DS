@@ -59,8 +59,8 @@
 /**
  * @brief      Maps up to 256 16 MiB sections of memory. Domain is always 0.
  *
- * @param[in]  va      The virtual address base. Must be aligned to 16 MB.
- * @param[in]  pa      The physical address base. Must be aligned to 16 MB.
+ * @param[in]  va      The virtual address base. Must be aligned to 16 MiB.
+ * @param[in]  pa      The physical address base. Must be aligned to 16 MiB.
  * @param[in]  num     The number of sections to map.
  * @param[in]  access  The access permission bits.
  * @param[in]  xn      If this memory should be marked as execute never.
@@ -86,8 +86,8 @@ static void mmuMapSupersections(u32 va, u32 pa, u32 num, u8 access, bool xn, u32
 /**
  * @brief      Maps up to 4096 1 MiB sections of memory.
  *
- * @param[in]  va      The virtual address base. Must be aligned to 1 MB.
- * @param[in]  pa      The physical address base. Must be aligned to 1 MB.
+ * @param[in]  va      The virtual address base. Must be aligned to 1 MiB.
+ * @param[in]  pa      The physical address base. Must be aligned to 1 MiB.
  * @param[in]  num     The number of sections to map.
  * @param[in]  shared  If the sections are shared memory.
  * @param[in]  access  The access permission bits.
@@ -112,8 +112,8 @@ static void mmuMapSections(u32 va, u32 pa, u32 num, bool shared, u8 access, u8 d
  * @brief      Maps up to 256 4 KiB pages of memory.
  * @brief      The mapped range must not cross the next section.
  *
- * @param[in]  va       The virtual address base. Must be aligned to 4 KB.
- * @param[in]  pa       The physical address base. Must be aligned to 4 KB.
+ * @param[in]  va       The virtual address base. Must be aligned to 4 KiB.
+ * @param[in]  pa       The physical address base. Must be aligned to 4 KiB.
  * @param[in]  num      The number of pages to map. Must be <= 128.
  * @param      l2Table  The L2 MMU table address base for this mapping.
  * @param[in]  shared   If the pages are shared memory.
