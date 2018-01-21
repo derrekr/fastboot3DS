@@ -30,6 +30,8 @@ enum Keys {
 	KBootOption7,
 	KBootOption8,
 	KBootOption9,
+
+	KSplashScreen,
 	
 	KBootOption1Buttons,
 	KBootOption2Buttons,

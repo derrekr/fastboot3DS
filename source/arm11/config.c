@@ -54,8 +54,8 @@ typedef struct {
 static void unloadConfigFile();
 static bool createConfigFile();
 static bool parseConfigFile();
-static bool parseBootOption(AttributeEntryType *attr);
-static bool writeBootOption(AttributeEntryType *attr, const void *newData, int key);
+static bool parsePath(AttributeEntryType *attr);
+static bool writePath(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool writeBootOptionPad(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootMode(AttributeEntryType *attr);
@@ -74,6 +74,8 @@ static const char *keyStrings[] = {
 	"BOOT_OPTION8",
 	"BOOT_OPTION9",
 	
+	"SPLASH_SCREEN",
+
 	"BOOT_OPTION1_BUTTONS",
 	"BOOT_OPTION2_BUTTONS",
 	"BOOT_OPTION3_BUTTONS",
@@ -104,13 +106,13 @@ static bool configDirty = false;
 static const FunctionsEntryType *getKeyFunction(int key)
 {
 	static const FunctionsEntryType keyFunctions[] = {
-		{ parseBootOption,		writeBootOption },
+		{ parsePath,			writePath },
 		{ parseBootOptionPad,	writeBootOptionPad },
 		{ parseBootMode,		writeBootMode },
 		{ parseDevMode,			writeDevMode }
 	};
 	
-	if(key <= KBootOption9 && key >= KBootOption1)
+	if(key <= KSplashScreen && key >= KBootOption1)
 		return &keyFunctions[0];
 	if(key <= KBootOption9Buttons && key >= KBootOption1Buttons)
 		return &keyFunctions[1];
@@ -658,7 +660,7 @@ static bool isValidPath(const char *path)
 	return true;
 }
 
-static bool parseBootOption(AttributeEntryType *attr)
+static bool parsePath(AttributeEntryType *attr)
 {
 	attr->data = NULL;
 	
@@ -679,7 +681,7 @@ static bool parseBootOption(AttributeEntryType *attr)
 	return true;
 }
 
-static bool writeBootOption(AttributeEntryType *attr, const void *newData, int key)
+static bool writePath(AttributeEntryType *attr, const void *newData, int key)
 {
 	u32 len;
 	char *buf;
