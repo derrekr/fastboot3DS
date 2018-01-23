@@ -68,7 +68,8 @@ int main(void)
 	{
 		if (!gfx_initialized) GFX_init(true);
 		gfx_initialized = true;
-		splash_wait = drawSplashscreen(banner_spla, -1, -1);
+		splash_wait = drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
+		updateScreens();
 	}
 	
 	

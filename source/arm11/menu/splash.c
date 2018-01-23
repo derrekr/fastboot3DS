@@ -23,7 +23,6 @@
 #include "arm11/menu/splash.h"
 #include "arm11/lz11.h"
 #include "hardware/gfx.h"
-#include "arm11/menu/menu_util.h"
 
 
 
@@ -35,12 +34,13 @@ void getSplashDimensions(const void *const data, u32 *const width, u32 *const he
 	if(height) *height = header->height;
 }
 
-static bool validateSplashHeader(const SplashHeader *const header)
+static bool validateSplashHeader(const SplashHeader *const header, u8 screen)
 {
 	if(memcmp(&header->magic, "SPLA", 4)) return false;
 
-	const u32 width = header->width, height = header->height;
-	if(width == 0 || width > SCREEN_WIDTH_TOP || height == 0 || height > SCREEN_HEIGHT_TOP)
+	const u16 width = header->width, height = header->height;
+	if(width == 0 || height == 0) return false;
+	if(width > (screen ? SCREEN_WIDTH_TOP : SCREEN_WIDTH_SUB) || height > SCREEN_HEIGHT_TOP)
 		return false;
 
 	const u32 flags = header->flags;
@@ -50,12 +50,12 @@ static bool validateSplashHeader(const SplashHeader *const header)
 	return true;
 }
 
-bool drawSplashscreen(const void *const data, s32 startX, s32 startY)
+bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen)
 {
 	const SplashHeader *const header = (const SplashHeader *const)data;
-	if(!validateSplashHeader(header)) return false;
+	if(!validateSplashHeader(header, screen)) return false;
 
-	const u32 width = header->width, height = header->height;
+	const u16 width = header->width, height = header->height;
 	const u32 flags = header->flags;
 	const bool isCompressed = flags & FLAG_COMPRESSED;
 
@@ -68,24 +68,32 @@ bool drawSplashscreen(const void *const data, s32 startX, s32 startY)
 	}
 	else imgData = (u16*)(data + sizeof(SplashHeader));
 
-	u32 xx, yy;
-	if(startX < 0 || (u32)startX > SCREEN_WIDTH_TOP - width) xx = (SCREEN_WIDTH_TOP - width) / 2;
+	u32 screenWidth, screenHeight, xx, yy;
+	if(screen)
+	{
+		screenWidth = SCREEN_WIDTH_TOP;
+		screenHeight = SCREEN_HEIGHT_TOP;
+	}
+	else
+	{
+		screenWidth = SCREEN_WIDTH_SUB;
+		screenHeight = SCREEN_HEIGHT_SUB;
+	}
+	if(startX < 0 || (u32)startX > screenWidth - width) xx = (screenWidth - width) / 2;
 	else xx = (u32)startX;
-	if(startY < 0 || (u32)startY > SCREEN_HEIGHT_TOP - height) yy = (SCREEN_HEIGHT_TOP - height) / 2;
+	if(startY < 0 || (u32)startY > screenHeight - height) yy = (screenHeight - height) / 2;
 	else yy = (u32)startY;
 
-	u16 *fb = (u16*)RENDERBUF_TOP;
+	u16 *fb = (screen ? (u16*)RENDERBUF_TOP : (u16*)RENDERBUF_SUB);
 	for(u32 x = 0; x < width; x++)
 	{
 		for(u32 y = 0; y < height; y++)
 		{
-			fb[(x + xx) * SCREEN_HEIGHT_TOP + y + yy] = imgData[x * height + y];
+			fb[(x + xx) * screenHeight + y + yy] = imgData[x * height + y];
 		}
 	}
 
 	if(isCompressed) free(imgData);
-
-	updateScreens();
 
 	return true;
 }
