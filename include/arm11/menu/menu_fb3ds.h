@@ -25,9 +25,10 @@
 
 #define SUBENTRY_SLOT_BOOT(x) \
 	{ "Boot [slot " #x "]",				DESC_BOOT_SLOT(x),			&menuLaunchFirm,		(x-1) }
-	
-#define SUBENTRY_SLOT_SETUP(x, m) \
-	{ "Setup [slot " #x "]...",			DESC_SLOT_SETUP(x),			NULL,					(x+m-1) }
+
+#define SUBMENU_SLOT_SETUP_M 7
+#define SUBENTRY_SLOT_SETUP(x) \
+	{ "Setup [slot " #x "]...",			DESC_SLOT_SETUP(x),			NULL,					(x+SUBMENU_SLOT_SETUP_M-1) }
 	
 #define SUBMENU_SLOT_SETUP(x) \
 { \
@@ -61,6 +62,10 @@
 #define DESC_BOOT_QUIET		"In quiet boot mode, splash is not displayed and the boot is continued via the first available autoboot slot.\n \n! To enter the menu, hold the HOME button at boot !"
 #define DESC_CHANGE_BOOT	"Change fastboot3ds boot mode. This allows you to set up how your console boots."
 
+#define DESC_SPLASH_CUSTOM	"Select a custom splash. This is compatible with Luma 3DS format splash screens."
+#define DESC_SPLASH_DEFAULT	"Use default fastboot3DS splash screen."
+#define DESC_CHANGE_SPLASH	"Change fastboot3ds splash screen. Will only be display in normal and quick boot modes."
+
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."
 #define DESC_NAND_RESTORE	"Restore current NAND from a file.\nThis option preserves your fastboot3ds installation."
 #define DESC_NAND_RESTORE_F	"Restore current NAND from a file.\nWARNING: This will overwrite all of your flash memory, also overwriting fastboot3ds."
@@ -88,9 +93,9 @@ MenuInfo menu_fb3ds[] =
 			{ "Boot menu...",				DESC_BOOT_MENU,				NULL,					1 },
 			{ "Boot setup...",				DESC_BOOT_SETUP,			NULL,					2 },
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
-			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					4 },
-			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					5 },
-			{ "Debug...",					LOREM,	    				NULL,					9 }
+			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					5 },
+			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					6 },
+			{ "Debug...",					LOREM,	    				NULL,					13 }
 		}
 	},
 	{ // 1
@@ -105,15 +110,16 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Setup", N_BOOTSLOTS + 1, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
+		"Boot Setup", N_BOOTSLOTS + 2, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
 		{
-			SUBENTRY_SLOT_SETUP(1,6),
-			SUBENTRY_SLOT_SETUP(2,6),
-			SUBENTRY_SLOT_SETUP(3,6),
-			SUBENTRY_SLOT_SETUP(4,6),
-			SUBENTRY_SLOT_SETUP(5,6),
-			SUBENTRY_SLOT_SETUP(6,6),
-			{ "Change boot mode...",		DESC_CHANGE_BOOT,			NULL,					3 }
+			SUBENTRY_SLOT_SETUP(1),
+			SUBENTRY_SLOT_SETUP(2),
+			SUBENTRY_SLOT_SETUP(3),
+			SUBENTRY_SLOT_SETUP(4),
+			SUBENTRY_SLOT_SETUP(5),
+			SUBENTRY_SLOT_SETUP(6),
+			{ "Change boot mode...",		DESC_CHANGE_BOOT,			NULL,					3 },
+			{ "Change splash...",			DESC_CHANGE_SPLASH,			NULL,					4 }
 		}
 	},
 	{ // 3
@@ -125,6 +131,13 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 4
+		"Splash Screen Setup", 2, &menuPresetSplashConfig, MENU_FLAG_CONFIG,
+		{
+			{ "Use custom splash...",		DESC_SPLASH_CUSTOM,			&menuSetSplash,		1 },
+			{ "Use default splash",			DESC_SPLASH_DEFAULT,		&menuSetSplash,		0 }
+		}
+	},
+	{ // 5
 		"NAND Tools", 4, &menuPresetNandTools, 0,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
@@ -133,20 +146,20 @@ MenuInfo menu_fb3ds[] =
 			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
 		}
 	},
-	{ // 5
+	{ // 6
 		"Miscellaneous", 2, NULL, 0,
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds,	0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
-	SUBMENU_SLOT_SETUP(1), // 6
-	SUBMENU_SLOT_SETUP(2), // 7
-	SUBMENU_SLOT_SETUP(3), // 8
-	SUBMENU_SLOT_SETUP(4), // 9
-	SUBMENU_SLOT_SETUP(5), // 10
-	SUBMENU_SLOT_SETUP(6), // 11
-	/*{ // 12
+	SUBMENU_SLOT_SETUP(1), // 7
+	SUBMENU_SLOT_SETUP(2), // 8
+	SUBMENU_SLOT_SETUP(3), // 9
+	SUBMENU_SLOT_SETUP(4), // 10
+	SUBMENU_SLOT_SETUP(5), // 11
+	SUBMENU_SLOT_SETUP(6), // 12
+	/*{ // 13
 		"Debug", 2, NULL, 0, // this will not show in the release version
 		{
 			{ "View current settings",		LOREM,						&debugSettingsView,		0 },

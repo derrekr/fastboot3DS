@@ -42,9 +42,11 @@ u32 menuPresetSlotConfig7(void);
 u32 menuPresetSlotConfig8(void);
 u32 menuPresetSlotConfig9(void);
 u32 menuPresetBootMode(void);
+u32 menuPresetSplashConfig(void);
 
 u32 menuReturn(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param);

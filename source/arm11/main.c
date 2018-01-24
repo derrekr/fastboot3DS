@@ -68,7 +68,21 @@ int main(void)
 	{
 		if (!gfx_initialized) GFX_init(true);
 		gfx_initialized = true;
-		splash_wait = drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
+		if(configDataExist(KSplashScreen))
+		{
+			char* folder = (char*) configGetData(KSplashScreen);
+			splash_wait = drawCustomSplash(folder); // || drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
+			if (!splash_wait)
+			{
+				err_string = (char*) malloc(512);
+				if(!err_string) panicMsg("Out of memory");
+				ee_sprintf(err_string, "Custom splash screen error:\n%s\n", folder);
+			}
+		}
+		else
+		{
+			splash_wait = drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
+		}
 		updateScreens();
 	}
 	
@@ -78,7 +92,7 @@ int main(void)
 	u32 kHeld = hidKeysHeld();
 	
 	// boot slot keycombo held?
-	if (kHeld & 0xfff)
+	if (!err_string && (kHeld & 0xfff))
 	{
 		err_string = (char*) malloc(512);
 		char* err_ptr = err_string;

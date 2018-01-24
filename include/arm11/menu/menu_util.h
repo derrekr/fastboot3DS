@@ -34,6 +34,7 @@ u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max);
 
 void clearTop(void);
 void drawTopBorder(void);
+bool drawCustomSplash(const char* folder);
 
 void updateScreens(void);
 bool askConfirmation(const char *const fmt, ...);

@@ -32,6 +32,7 @@
 #include "arm11/menu/menu_fsel.h"
 #include "arm11/menu/menu_func.h"
 #include "arm11/menu/menu_util.h"
+#include "arm11/menu/splash.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/mcu.h"
 #include "arm11/console.h"
@@ -88,7 +89,15 @@ u32 menuPresetBootConfig(void)
 	if (configDataExist(KBootMode))
 		res |= 1 << N_BOOTSLOTS;
 	
+	if (configDataExist(KSplashScreen))
+		res |= 1 << (N_BOOTSLOTS+1);
+	
 	return res;
+}
+
+u32 menuPresetSplashConfig(void)
+{
+	return configDataExist(KSplashScreen) ? (1 << 0) : (1 << 1);
 }
 
 u32 menuPresetSlotConfig(u32 slot)
@@ -144,10 +153,149 @@ u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	return res;
 }
 
+u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	char* res_path = NULL;
+	char* start = NULL;
+	
+	// if (param == 0) set default splash screen and return to menu
+	if (!param)
+	{
+		configDeleteKey(KSplashScreen);
+		return MENU_OK;
+	}
+	
+	if (configDataExist(KSplashScreen))
+		start = (char*) configGetData(KSplashScreen);
+	
+	res_path = (char*) malloc(FF_MAX_LFN + 1);
+	if (!res_path) panicMsg("Out of memory");
+	
+	consoleSelect(term_con);
+	consoleClear();
+	ee_printf_screen_center("Select a custom splash screen.\n[X] to select current folder.\nPress [HOME] to cancel.");
+	updateScreens();
+	
+	u32 res = MENU_OK;
+	*res_path = '\0';
+	if (menuFileSelector(res_path, menu_con, start, "splash*.*", true, true))
+	{
+		// back to terminal console
+		consoleSelect(term_con);
+		
+		// analyze user selection
+		FILINFO fileStat;
+		if (!(fileStat.fattrib & AM_DIR))
+		{
+			char* slash = strrchr(res_path, '/');
+			if (slash) *slash = '\0';
+		}
+		
+		// check if selection at least looks valid
+		const char* splash_name[] = { CSPLASH_NAME_TOP, CSPLASH_NAME_SUB };
+		const u32 splash_bin_width[] = { SCREEN_WIDTH_TOP, SCREEN_WIDTH_SUB };
+		const u32 splash_bin_height[] = { SCREEN_HEIGHT_TOP, SCREEN_HEIGHT_SUB };
+		char* splash_path =  (char*) malloc(FF_MAX_LFN + 1);
+		char* splash_bin_path =  (char*) malloc(FF_MAX_LFN + 1);
+		bool valid = false;
+		
+		if (!splash_path || !splash_bin_path)
+			panicMsg("Out of memory");
+		
+		for (u32 i = 0; i < 2; i++)
+		{
+			// check for splash in .spla format
+			ee_snprintf(splash_path, FF_MAX_LFN + 1, "%s/%s.spla", res_path, splash_name[i]);
+			if ((fStat(splash_path, &fileStat) == FR_OK) && (fileStat.fsize >= sizeof(SplashHeader)))
+			{
+				valid = true;
+				continue;
+			}
+			
+			// check splash in Luma 3DS .bin format
+			u32 splash_bin_size = splash_bin_width[i] * splash_bin_height[i] * 3;
+			ee_snprintf(splash_bin_path, FF_MAX_LFN + 1, "%s/%s.bin", res_path, splash_name[i]);
+			if ((fStat(splash_bin_path, &fileStat) != FR_OK) || (fileStat.fsize != splash_bin_size))
+				continue; // not found
+			
+			// notify user about the conversion
+			consoleClear();
+			ee_printf_screen_center("Converting splash files, please wait...");
+			updateScreens();
+			
+			// convert .bin splash to .spla format
+			s32 fHandle = fOpen(splash_bin_path, FS_OPEN_EXISTING | FS_OPEN_READ);
+			if (fHandle < 0) continue; // can not open
+			
+			u8* splash_buffer = (u8*) malloc(splash_bin_size);
+			if (!splash_buffer) panicMsg("Out of memory");
+			
+			fRead(fHandle, splash_buffer, splash_bin_size);
+			fClose(fHandle);
+			
+			// convert RGB888 -> RGB565
+			u8* ptr_out = splash_buffer;
+			for (u8* ptr_in = splash_buffer;
+				ptr_in - splash_buffer < (int) splash_bin_size;
+				ptr_in += 3, ptr_out += 2)
+			{
+				u16 rgb565 =
+					(ptr_in[2] >> 3) << (6 + 5) |
+					(ptr_in[1] >> 2) << 5 |
+					(ptr_in[0] >> 3);
+				
+				ptr_out[0] = rgb565 & 0xFF;
+				ptr_out[1] = rgb565 >> 8; 
+			}
+			
+			// build the .spla header
+			SplashHeader hdr;
+			memcpy(&(hdr.magic), "SPLA", 4);
+			hdr.width = splash_bin_width[i];
+			hdr.height = splash_bin_height[i];
+			hdr.flags = FLAG_ROTATED;
+			
+			// write .spla file
+			fHandle = fOpen(splash_path, FS_OPEN_ALWAYS | FS_OPEN_WRITE);
+			if (fHandle < 0) { // cannot open for writing
+				free(splash_buffer);
+				continue;
+			}
+			
+			valid = ((fWrite(fHandle, &hdr, sizeof(SplashHeader)) == FR_OK) &&
+				(fWrite(fHandle, splash_buffer, hdr.width * hdr.height * 2) == FR_OK));
+			fClose(fHandle);
+			free(splash_buffer);
+			
+			if (!valid) break;
+		}
+		
+		free(splash_path);
+		free(splash_bin_path);
+		
+		if (valid)
+		{
+			res = (configSetKeyData(KSplashScreen, res_path)) ? MENU_OK : MENU_FAIL;
+		}
+		else
+		{
+			res = MENU_FAIL;
+			
+			consoleSelect(term_con);
+			consoleClear();
+			ee_printf_screen_center("Not a valid splash folder.\nPress [B] or [HOME] to return.");
+			updateScreens();
+			
+			outputEndWait();
+		}
+	}
+	
+	free(res_path);
+	return res;
+}
+
 u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
-	(void) term_con;
-	
 	const u32 slot = param & 0xF;
 	char* res_path = NULL;
 	char* start = NULL;
@@ -166,11 +314,13 @@ u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	res_path = (char*) malloc(FF_MAX_LFN + 1);
 	if (!res_path) panicMsg("Out of memory");
 	
+	consoleSelect(term_con);
+	consoleClear();
 	ee_printf_screen_center("Select a firmware file for slot #%lu.\nPress [HOME] to cancel.", slot + 1);
 	updateScreens();
 	
 	u32 res = MENU_OK;
-	if (menuFileSelector(res_path, menu_con, start, "*firm*", true))
+	if (menuFileSelector(res_path, menu_con, start, "*firm*", true, false))
 		res = (configSetKeyData(KBootOption1 + slot, res_path)) ? MENU_OK : MENU_FAIL;
 	
 	free(res_path);
@@ -293,7 +443,7 @@ u32 menuLaunchFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		updateScreens();
 		
 		path = path_store;
-		if (!menuFileSelector(path, menu_con, NULL, "*firm*", true))
+		if (!menuFileSelector(path, menu_con, NULL, "*firm*", true, false))
 			return MENU_FAIL;
 		
 		// back to terminal console
@@ -507,7 +657,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	updateScreens();
 	
 	char fpath[FF_MAX_LFN + 1];
-	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*.bin", false))
+	if (!menuFileSelector(fpath, menu_con, NAND_BACKUP_PATH, "*.bin", false, false))
 		return MENU_FAIL; // canceled by user
 	
 	// select & clear console
@@ -656,7 +806,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// file selector
 	ee_printf_screen_center("Select a firmware file to install.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, NULL, "*firm*", true))
+	if (!menuFileSelector(firm_path, menu_con, NULL, "*firm*", true, false))
 		return MENU_FAIL; // cancel by user
 	
 	
@@ -723,7 +873,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	ee_printf_screen_center("Select fastboot3DS update file.\nPress [HOME] to cancel.");
 	updateScreens();
-	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*firm*", true))
+	if (!menuFileSelector(firm_path, menu_con, "sdmc:", "*firm*", true, false))
 		return MENU_FAIL; // cancel by user
 	
 	

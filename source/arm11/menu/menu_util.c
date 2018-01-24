@@ -19,12 +19,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
+#include "fs.h"
 #include "hardware/gfx.h"
 #include "arm11/hardware/hid.h"
 #include "arm11/hardware/mcu.h"
 #include "arm.h"
 #include "arm11/menu/menu_color.h"
 #include "arm11/menu/menu_util.h"
+#include "arm11/menu/splash.h"
 #include "arm11/console.h"
 #include "arm11/fmt.h"
 
@@ -236,6 +238,62 @@ void drawTopBorder(void)
 			fb++;
 		}
 	}
+}
+
+bool drawCustomSplash(const char* folder)
+{
+	// this assumes top and bottom screens cleared
+	const u32 splash_max_size = sizeof(SplashHeader) + (SCREEN_WIDTH_TOP * SCREEN_HEIGHT_TOP * 2);
+	char* splash_path =  (char*) malloc(FF_MAX_LFN + 1);
+	u8* splash_buffer = (u8*) malloc(splash_max_size);
+	bool res = false;
+	s32 fHandle;
+	
+	if (!splash_path || !splash_buffer) goto fail;
+	
+	// try top splash
+	ee_snprintf(splash_path, FF_MAX_LFN + 1, "%s/%s.spla", folder, CSPLASH_NAME_TOP);
+	fHandle = fOpen(splash_path, FS_OPEN_EXISTING | FS_OPEN_READ);
+	if (fHandle >= 0)
+	{
+		u32 splash_size = fSize(fHandle);
+		if ((splash_size < sizeof(SplashHeader)) || (splash_size > splash_max_size) ||
+			(fRead(fHandle, splash_buffer, splash_size) != FR_OK))
+		{
+			fClose(fHandle);
+			goto fail;
+		}
+		fClose(fHandle);
+		
+		if (drawSplashscreen(splash_buffer, -1, -1, SCREEN_TOP))
+			res = true;
+	}
+	
+	// try bottom splash
+	ee_snprintf(splash_path, FF_MAX_LFN + 1, "%s/%s.spla", folder, CSPLASH_NAME_SUB);
+	fHandle = fOpen(splash_path, FS_OPEN_EXISTING | FS_OPEN_READ);
+	if (fHandle >= 0)
+	{
+		u32 splash_size = fSize(fHandle);
+		if ((splash_size < sizeof(SplashHeader)) || (splash_size > splash_max_size) ||
+			(fRead(fHandle, splash_buffer, splash_size) != FR_OK))
+		{
+			fClose(fHandle);
+			goto fail;
+		}
+		fClose(fHandle);
+		
+		if (drawSplashscreen(splash_buffer, -1, -1, SCREEN_SUB))
+			res = true;
+	}
+	
+	
+	fail:
+	
+	if (splash_path) free(splash_path);
+	if (splash_buffer) free(splash_buffer);
+	
+	return res;
 }
 
 // only intended to be ran when the shell is closed

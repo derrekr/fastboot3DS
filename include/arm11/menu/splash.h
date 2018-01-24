@@ -21,6 +21,10 @@
 #include "types.h"
 
 
+#define CSPLASH_NAME_TOP "splash"
+#define CSPLASH_NAME_SUB "splashbottom"
+
+
 #define FLAG_ROTATED     (1u<<3)
 #define FLAG_COMPRESSED  (1u<<4)
 #define FLAG_SWAPPED     (1u<<5)
