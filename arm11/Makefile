@@ -44,6 +44,8 @@ CXXFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -fno-rtti -fno-exceptions -fstrict-ali
 				-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections -Wall -Wextra \
 				-Wno-unused-function
 
+CXXFLAGS	+=	$(INCLUDE) $(DEFINES)
+
 ASFLAGS	:=	$(ARCH) -g -flto $(INCLUDE) $(DEFINES)
 LDFLAGS	=	$(ARCH) -g -flto -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
 
