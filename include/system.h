@@ -22,5 +22,14 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 //void WEAK __systemInit(void);
 void WEAK __systemDeinit(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  *   This file is part of fastboot 3DS
  *   Copyright (C) 2017 derrek, profi200, d0k3
@@ -18,6 +20,12 @@
  
 #include "types.h"
 
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 char* mallocpyString(const char* str);
 void truncateString(char* dest, const char* orig, int nsize, int tpos);
@@ -41,3 +49,7 @@ bool askConfirmation(const char *const fmt, ...);
 void outputEndWait(void);
 bool userCancelHandler(bool cancelAllowed);
 void sleepmode(void);
+
+#ifdef __cplusplus
+}
+#endif

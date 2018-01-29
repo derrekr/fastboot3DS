@@ -21,9 +21,21 @@
 #include "types.h"
 #include "arm11/console.h"
 
+
 #define BRWS_MAX_ENTRIES	13
 #define BRWS_OFFSET_TITLE	 3
 #define BRWS_OFFSET_BUTTONS	19
 #define BRWS_WIDTH			40
 
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern, bool allow_root, bool select_dirs);
+
+#ifdef __cplusplus
+}
+#endif

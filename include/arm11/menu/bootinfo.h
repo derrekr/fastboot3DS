@@ -27,4 +27,15 @@ typedef struct {
 	u8 mountState;
 } bootInfo;
 
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void getBootInfo(bootInfo* info);
+
+#ifdef __cplusplus
+}
+#endif

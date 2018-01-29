@@ -25,8 +25,13 @@
 #define arrayEntries(array)	sizeof(array)/sizeof(*array)
 
 
-void wait(u32 cycles);
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+void wait(u32 cycles);
 
 __attribute__ ((format (scanf, 2, 3))) int fb_sscanf(const char *s, const char *fmt, ...);
 
@@ -37,8 +42,12 @@ int strnicmp(const char *str1, const char *str2, u32 len);
 void strncpy_s(char *dest, const char *src, u32 nchars, const u32 buflen);
 
 void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
-				void *srcBuf, size_t srcBufSize, size_t srcBufOffset, bool reverse);
+              void *srcBuf, size_t srcBufSize, size_t srcBufOffset, bool reverse);
 
 u32 getleu32(const void* ptr);
 
 u32 swap32(u32 val);
+
+#ifdef __cplusplus
+}
+#endif

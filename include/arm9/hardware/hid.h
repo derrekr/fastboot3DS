@@ -28,7 +28,16 @@ enum
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void hidScanInput(void);
 u32 hidKeysHeld(void);
 u32 hidKeysDown(void);
 u32 hidKeysUp(void);
+
+#ifdef __cplusplus
+}
+#endif

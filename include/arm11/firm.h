@@ -22,5 +22,14 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 s32 loadVerifyFirm(const char *const path, bool skipHashCheck);
 noreturn void firmLaunch(void);
+
+#ifdef __cplusplus
+}
+#endif

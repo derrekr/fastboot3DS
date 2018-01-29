@@ -22,5 +22,14 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void CPU_setClock(u16 clk);
 void CPU_poweroffCore23(void);
+
+#ifdef __cplusplus
+}
+#endif

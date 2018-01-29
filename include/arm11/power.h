@@ -20,5 +20,14 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 noreturn void power_off(void);
 noreturn void power_reboot(void);
+
+#ifdef __cplusplus
+}
+#endif

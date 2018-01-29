@@ -26,6 +26,15 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // true if spiflash is installed, false otherwise
 bool spiflash_get_status();
 void spiflash_read(u32 offset, u32 size, u8 *buf);
+
+#ifdef __cplusplus
+}
+#endif

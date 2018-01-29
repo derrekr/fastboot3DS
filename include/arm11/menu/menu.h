@@ -49,6 +49,7 @@ enum
 
 #define MENU_GET_FLAGSLOT(x,flags)	for (x = N_BOOTSLOTS; (x > 0) && !((flags >> x) & 0x1); x--)
 
+
 /**
  * @brief Menu entry description struct, used by MenuInfo.
  */
@@ -70,4 +71,15 @@ typedef struct {
     MenuEntry entries[MENU_MAX_ENTRIES];	///< An array of menu entries.
 } MenuInfo;
 
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info);
+
+#ifdef __cplusplus
+}
+#endif

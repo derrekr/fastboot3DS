@@ -59,6 +59,11 @@ typedef enum
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 buf1v, u32 buf1Sz, u32 val1);
 void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags);
 void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size);
@@ -70,4 +75,9 @@ void GFX_init(bool clearScreens);
 void GFX_enterLowPowerState(void);
 void GFX_returnFromLowPowerState(void);
 void GFX_deinit(bool keepLcdsOn);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

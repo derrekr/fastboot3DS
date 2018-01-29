@@ -20,6 +20,7 @@
 
 #include "fs.h"
 
+
 enum Keys {
 	KBootOption1 = 0,
 	KBootOption2,
@@ -61,8 +62,16 @@ enum BootModes {
 	BootModeQuiet
 };
 
+
 #define numKeys  KLast
 #define CONFIG_MAX_BOOTSLOTS	9
+
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 bool loadConfigFile();
 bool configIsLoaded();
@@ -77,3 +86,7 @@ bool configSetKeyData(int key, const void *data);
 void configRestoreDefaults();
 bool configDeleteKey(int key);
 bool configDevModeEnabled();
+
+#ifdef __cplusplus
+}
+#endif

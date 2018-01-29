@@ -33,6 +33,11 @@ typedef struct {
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 size_t partitionAdd(u32 sector, u32 count, u8 type);
 bool partitionSetName(size_t index, const char *name);
 bool partitionFind(u32 sector, u32 count, size_t *index);
@@ -42,3 +47,7 @@ bool partitionSetKeyslot(size_t index, u8 keyslot);
 bool partitionGetKeyslot(size_t index, u8 *keyslot);
 bool partitionGetInfo(size_t index, partitionStruct *info);
 void partitionsReset(void);
+
+#ifdef __cplusplus
+}
+#endif

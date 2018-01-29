@@ -106,6 +106,11 @@ typedef void (*IrqHandler)(u32 intSource);
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief      Initializes the generic interrupt controller.
  */
@@ -158,6 +163,10 @@ void IRQ_setPriority(Interrupt id, u8 prio);
  * @param[in]  cpuMask  The CPU mask. Each of the 4 bits stands for 1 core.
  */
 void IRQ_softwareInterrupt(Interrupt id, u8 cpuMask);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 static inline u32 enterCriticalSection(void)

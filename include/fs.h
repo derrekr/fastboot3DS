@@ -21,12 +21,11 @@
 #include "types.h"
 #include "fatfs/ff.h"
 
+
 #define FS_MAX_DEVICES  (2)
 #define FS_MAX_DRIVES   (FF_VOLUMES)
 #define FS_DRIVE_NAMES  "sdmc:/","twln:/","twlp:/","nand:/"
-
 #define FS_MAX_FILES    (3)
-
 #define FS_MAX_DIRS     (2)
 
 
@@ -56,10 +55,15 @@ typedef enum
 } FsOpenMode;
 
 typedef FILINFO FsFileInfo;
-
 typedef s32 DevHandle;
 typedef s32 DevBufHandle;
 
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 s32  fMount(FsDrive drive);
 s32  fUnmount(FsDrive drive);
@@ -94,4 +98,8 @@ s32  fSetNandProtection(bool protect);
 
 #ifdef ARM9
 void fsDeinit(void);
+#endif
+
+#ifdef __cplusplus
+}
 #endif

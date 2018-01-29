@@ -22,6 +22,11 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void MCU_init(void);
 void MCU_disableLEDs(void);
 void MCU_powerOnLCDs(void);
@@ -32,3 +37,7 @@ u8 MCU_readBatteryLevel(void);
 bool MCU_readBatteryChargeState(void);
 u8 MCU_readSystemModel(void);
 void MCU_readRTC(void *rtc);
+
+#ifdef __cplusplus
+}
+#endif

@@ -33,6 +33,11 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief      Resets/initializes the timer hardware. Should not be called manually.
  */
@@ -70,6 +75,11 @@ u32 TIMER_stop(void);
  * @param[in]  ticks  The number of ticks to sleep.
  */
 void TIMER_sleepTicks(u32 ticks);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 // Sleeps ms milliseconds. ms can be up to 32000.
 static inline void TIMER_sleepMs(u32 ms)

@@ -22,10 +22,19 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 noreturn void __fb_assert(const char *const str, u32 line);
 
 #ifdef NDEBUG
 #define fb_assert(c) ((void)0)
 #else
 #define fb_assert(c) ((c) ? ((void)0) : __fb_assert(#c ", " __FILE__, __LINE__))
+#endif
+
+#ifdef __cplusplus
+}
 #endif

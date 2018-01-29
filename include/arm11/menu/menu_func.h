@@ -29,6 +29,11 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 u32 menuPresetNandTools(void);
 u32 menuPresetBootMenu(void);
 u32 menuPresetBootConfig(void);
@@ -60,3 +65,7 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+
+#ifdef __cplusplus
+}
+#endif

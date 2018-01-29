@@ -22,4 +22,13 @@
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void lz11Decompress(const void *in, void *out, u32 size);
+
+#ifdef __cplusplus
+}
+#endif

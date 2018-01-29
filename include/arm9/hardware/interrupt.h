@@ -63,6 +63,11 @@ typedef void (*IrqHandler)(u32 id);
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief      Initializes interrupts.
  */
@@ -82,6 +87,10 @@ void IRQ_registerHandler(Interrupt id, IrqHandler handler);
  * @param[in]  id    The interrupt ID. Must be <32.
  */
 void IRQ_unregisterHandler(Interrupt id);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 static inline u32 enterCriticalSection(void)

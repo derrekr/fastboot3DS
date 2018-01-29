@@ -20,8 +20,19 @@
 
 #include "types.h"
 
+
 #define N_BOOTSLOTS			6
 #define INVALID_BOOT_SLOT	0xFF
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 u8 readStoredBootslot(void);
 bool storeBootslot(u8 slot);
+
+#ifdef __cplusplus
+}
+#endif

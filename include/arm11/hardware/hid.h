@@ -51,6 +51,11 @@ enum
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void hidInit(void);
 u32 hidGetPowerButton(bool resetState);
 u32 hidGetWifiButton(bool resetState);
@@ -59,3 +64,7 @@ void hidScanInput(void);
 u32 hidKeysHeld(void);
 u32 hidKeysDown(void);
 u32 hidKeysUp(void);
+
+#ifdef __cplusplus
+}
+#endif

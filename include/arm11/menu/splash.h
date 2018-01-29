@@ -24,7 +24,6 @@
 #define CSPLASH_NAME_TOP "splash"
 #define CSPLASH_NAME_SUB "splashbottom"
 
-
 #define FLAG_ROTATED     (1u<<3)
 #define FLAG_COMPRESSED  (1u<<4)
 #define FLAG_SWAPPED     (1u<<5)
@@ -48,5 +47,14 @@ typedef struct
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void getSplashDimensions(const void *const data, u32 *const width, u32 *const height);
 bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen);
+
+#ifdef __cplusplus
+}
+#endif

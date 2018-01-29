@@ -50,6 +50,11 @@ typedef enum
 
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * @brief      Initializes the I2C buses. Call this only once.
  */
@@ -99,6 +104,10 @@ u8 I2C_readReg(I2cDevice devId, u8 regAddr);
  * @return     Returns true on success and false on failure.
  */
 bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 static inline u8 i2cmcu_readreg_hid_irq(void)
