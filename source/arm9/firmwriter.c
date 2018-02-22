@@ -86,7 +86,7 @@ s32 writeFirmPartition(const char *const part, bool replaceSig)
 	if(!partitionGetSectorOffset(partInd, &sector)) return -4;
 
 	size_t firmSize;
-	if(!firm_size(&firmSize)) return -5;
+	if(!firm_size(&firmSize, (firm_header*)FIRM_LOAD_ADDR)) return -5;
 
 	u8 *firmBuf = (u8*)FIRM_LOAD_ADDR;
 	if(replaceSig)

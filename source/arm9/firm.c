@@ -85,9 +85,8 @@ static int firmLaunchArgc;
 
 
 /* Calculates the actual firm partition size by using its header */
-bool firm_size(size_t *size)
+bool firm_size(size_t *size, const firm_header *const hdr)
 {
-	firm_header *firm_hdr = (firm_header*)FIRM_LOAD_ADDR;
 	u32 curLen = sizeof(firm_header);
 	u32 curOffset = 0;
 	*size = 0;
@@ -95,7 +94,7 @@ bool firm_size(size_t *size)
 	/* scan sections in reverse order */
 	for(int i=3; i>=0; i--)
 	{
-		firm_sectionheader *section = &firm_hdr->section[i];
+		const firm_sectionheader *const section = &hdr->section[i];
 
 		if(section->size == 0)
 			continue;
@@ -201,7 +200,7 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 		if(!partitionGetSectorOffset(partInd, &sector)) return -3;
 
 		if(!dev_decnand->read_sector(sector, 1, (void*)FIRM_LOAD_ADDR)) return -4;
-		if(!firm_size((size_t*)&firmSize)) return -5;
+		if(!firm_size((size_t*)&firmSize, firmHdr)) return -5;
 		sector++;
 		if(!dev_decnand->read_sector(sector, (firmSize>>9) - 1, (void*)(FIRM_LOAD_ADDR + sizeof(firm_header))))
 			return -4;
@@ -211,7 +210,7 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 		firm_header *const ramBootHdr = (firm_header*)RAM_FIRM_BOOT_ADDR;
 		if(memcmp(&ramBootHdr->magic, "FIRM", 4) == 0)
 		{
-			if(!firm_size((size_t*)&firmSize)) return -5;
+			if(!firm_size((size_t*)&firmSize, ramBootHdr)) return -5;
 			NDMA_copy((u32*)FIRM_LOAD_ADDR, (u32*)RAM_FIRM_BOOT_ADDR, firmSize);
 			ramBootHdr->magic = 0;
 		}
