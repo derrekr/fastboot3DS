@@ -189,7 +189,7 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 {
 	u32 firmSize;
-	const firm_header *const firmHdr = (firm_header*)FIRM_LOAD_ADDR;
+	firm_header *const firmHdr = (firm_header*)FIRM_LOAD_ADDR;
 
 
 	if(memcmp(path, "firm", 4) == 0)
@@ -205,6 +205,17 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 		sector++;
 		if(!dev_decnand->read_sector(sector, (firmSize>>9) - 1, (void*)(FIRM_LOAD_ADDR + sizeof(firm_header))))
 			return -4;
+	}
+	else if(memcmp(path, "ram", 3) == 0)
+	{
+		firm_header *const ramBootHdr = (firm_header*)RAM_FIRM_BOOT_ADDR;
+		if(memcmp(&ramBootHdr->magic, "FIRM", 4) == 0)
+		{
+			if(!firm_size((size_t*)&firmSize)) return -5;
+			NDMA_copy((u32*)FIRM_LOAD_ADDR, (u32*)RAM_FIRM_BOOT_ADDR, firmSize);
+			ramBootHdr->magic = 0;
+		}
+		else return -6;
 	}
 	else
 	{

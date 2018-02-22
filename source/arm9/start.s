@@ -225,12 +225,12 @@ clearMem_check_zero:
 #define REGION_4GB   (0b11111)
 #define MAKE_REGION(adr, size) ((adr) | ((size)<<1) | 1)
 
-#define PER_NO_ACC             (0)
-#define PER_PRIV_RW_USR_NO_ACC (0b0001)
-#define PER_PRIV_RW_USR_RO     (0b0010)
-#define PER_PRIV_RW_USR_RW     (0b0011)
-#define PER_PRIV_RO_USR_NO_ACC (0b0101)
-#define PER_PRIV_RO_USR_RO     (0b0110)
+#define PER_NA             (0)
+#define PER_PRIV_RW_USR_NA (0b0001)
+#define PER_PRIV_RW_USR_RO (0b0010)
+#define PER_PRIV_RW_USR_RW (0b0011)
+#define PER_PRIV_RO_USR_NA (0b0101)
+#define PER_PRIV_RO_USR_RO (0b0110)
 #define MAKE_PERMISSIONS(r0, r1, r2, r3, r4, r5, r6, r7) \
         ((r0) | (r1<<4) | (r2<<8) | (r3<<12) | (r4<<16) | (r5<<20) | (r6<<24) | (r7<<28))
 
@@ -257,9 +257,9 @@ setupMpu:
 	@ Region 3 = yes
 	@ Region 4 = yes
 	@ Region 5 = no
-	@ Region 6 = yes
-	@ Region 7 = no
-	mov r0, #0b01011010
+	@ Region 6 = no
+	@ Region 7 = yes
+	mov r0, #0b10011010
 	mcr p15, 0, r0, c2, c0, 0   @ Data cachable bits
 
 	@ Instruction cachable bits:
@@ -269,9 +269,9 @@ setupMpu:
 	@ Region 3 = no
 	@ Region 4 = no
 	@ Region 5 = no
-	@ Region 6 = yes
-	@ Region 7 = no
-	mov r1, #0b01000010
+	@ Region 6 = no
+	@ Region 7 = yes
+	mov r1, #0b10000010
 	mcr p15, 0, r1, c2, c0, 1   @ Instruction cachable bits
 
 	@ Write bufferable bits:
@@ -281,9 +281,9 @@ setupMpu:
 	@ Region 3 = yes
 	@ Region 4 = yes
 	@ Region 5 = no
-	@ Region 6 = yes
-	@ Region 7 = no
-	@mov r2, #0b01011010        @ Same as data cachable bits
+	@ Region 6 = no
+	@ Region 7 = yes
+	@mov r2, #0b10011010        @ Same as data cachable bits
 	mcr p15, 0, r0, c3, c0, 0   @ Write bufferable bits
 
 	ldrh r1, =0x1005            @ MPU, D-Cache and I-Cache bitmask
@@ -298,17 +298,17 @@ _mpu_regions:
 	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
 	@ Region 3: VRAM 8 MB
 	@ Region 4: DSP mem and AXIWRAM 1 MB
-	@ Region 5: DTCM 16 KB
-	@ Region 6: Exception vectors + ARM9 bootrom 64 KB
-	@ Region 7: - (reserved)
+	@ Region 5: FCRAM + N3DS extension 256 MB
+	@ Region 6: DTCM 16 KB
+	@ Region 7: Exception vectors + ARM9 bootrom 64 KB
 	.word MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
 	.word MAKE_REGION(A9_RAM_BASE,        REGION_2MB)
 	.word MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
 	.word MAKE_REGION(VRAM_BASE,          REGION_8MB)
 	.word MAKE_REGION(DSP_MEM_BASE,       REGION_1MB)
+	.word MAKE_REGION(FCRAM_BASE,         REGION_256MB)
 	.word MAKE_REGION(DTCM_BASE,          REGION_16KB)
 	.word MAKE_REGION(BOOT9_BASE,         REGION_64KB)
-	.word 0
 _mpu_permissions:
 	@ Data access permissions:
 	@ Region 0: User = --, Privileged = RW
@@ -317,12 +317,12 @@ _mpu_permissions:
 	@ Region 3: User = --, Privileged = RW
 	@ Region 4: User = --, Privileged = RW
 	@ Region 5: User = --, Privileged = RW
-	@ Region 6: User = --, Privileged = RO
-	@ Region 7: User = --, Privileged = --
-	.word MAKE_PERMISSIONS(PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-	                       PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-	                       PER_PRIV_RW_USR_NO_ACC, PER_PRIV_RW_USR_NO_ACC,
-	                       PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
+	@ Region 6: User = --, Privileged = RW
+	@ Region 7: User = --, Privileged = RO
+	.word MAKE_PERMISSIONS(PER_PRIV_RW_USR_NA, PER_PRIV_RW_USR_NA,
+	                       PER_PRIV_RW_USR_NA, PER_PRIV_RW_USR_NA,
+	                       PER_PRIV_RW_USR_NA, PER_PRIV_RW_USR_NA,
+	                       PER_PRIV_RW_USR_NA, PER_PRIV_RO_USR_NA)
 	@ Instruction access permissions:
 	@ Region 0: User = --, Privileged = RO
 	@ Region 1: User = --, Privileged = RO
@@ -330,12 +330,12 @@ _mpu_permissions:
 	@ Region 3: User = --, Privileged = --
 	@ Region 4: User = --, Privileged = --
 	@ Region 5: User = --, Privileged = --
-	@ Region 6: User = --, Privileged = RO
-	@ Region 7: User = --, Privileged = --
-	.word MAKE_PERMISSIONS(PER_PRIV_RO_USR_NO_ACC, PER_PRIV_RO_USR_NO_ACC,
-	                       PER_NO_ACC,             PER_NO_ACC,
-	                       PER_NO_ACC,             PER_NO_ACC,
-	                       PER_PRIV_RO_USR_NO_ACC, PER_NO_ACC)
+	@ Region 6: User = --, Privileged = --
+	@ Region 7: User = --, Privileged = RO
+	.word MAKE_PERMISSIONS(PER_PRIV_RO_USR_NA, PER_PRIV_RO_USR_NA,
+	                       PER_NA,             PER_NA,
+	                       PER_NA,             PER_NA,
+	                       PER_NA, PER_PRIV_RO_USR_NA)
 .pool
 
 
