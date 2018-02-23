@@ -134,6 +134,15 @@ int main(void)
 	}
 	
 	
+	// firm from FCRAM handling
+	// even checking for this should be optional (!!!)
+	if (!startFirmLaunch)
+	{
+		if (loadVerifyFirm("ram", false) == 0)
+			startFirmLaunch = true;
+	}
+	
+	
 	if (splash_wait)
 	{
 		for (u32 i = 0; i < 64; i++) // VBlank * 64

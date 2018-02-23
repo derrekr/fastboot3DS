@@ -499,10 +499,10 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// get NAND size (return value in sectors)
 	const s64 nand_size = fGetDeviceSize(FS_DEVICE_NAND) * 0x200;
 	if (!nand_size)
-    {
-        ee_printf("Failed communicating with NAND!\n");
+	{
+		ee_printf("Failed communicating with NAND!\n");
 		goto fail;
-    }
+	}
 	
 	
 	// console serial number
@@ -655,10 +655,10 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// get NAND size (return value in sectors)
 	const s64 nand_size = fGetDeviceSize(FS_DEVICE_NAND) * 0x200;
 	if (!nand_size)
-    {
-        ee_printf("Failed communicating with NAND!\n");
+	{
+		ee_printf("Failed communicating with NAND!\n");
 		goto fail;
-    }
+	}
 	
 	
 	ee_printf_screen_center("Select a NAND backup for restore.\nPress [HOME] to cancel.");
@@ -869,7 +869,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	char firm_path[FF_MAX_LFN + 1];
 	u32 result = 1;
-    
+	
 	bool accept_downgrades = false;
 	if (configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
 		accept_downgrades = true;
