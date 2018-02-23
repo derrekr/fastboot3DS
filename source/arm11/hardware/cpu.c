@@ -53,7 +53,6 @@ static void NAKED core23Entry(void)
 
 void core123Init(void)
 {
-#ifdef CORE123_INIT
 	if(REG_CFG11_SOCINFO & 2)
 	{
 		REG_CPU_II_CNT = 1;
@@ -63,6 +62,7 @@ void core123Init(void)
 		REGs_GID_ITARG[22] = 1;
 		REGs_GID_ENA_SET[2] = 0x1000000;
 
+#ifdef CORE123_INIT
 		u16 clkCnt;
 		// If clock modifier is 3x use clock 3x. Also enables FCRAM extension?
 		if(REG_CFG11_SOCINFO & 4) clkCnt = 2<<1 | 1;
@@ -118,15 +118,17 @@ void core123Init(void)
 		// Wakeup core 2/3 and let them jump to their entrypoint.
 		IRQ_softwareInterrupt(2, 0b0100);
 		IRQ_softwareInterrupt(3, 0b1000);
+#else
+		// Just enables the New 3DS FCRAM extension
+		CPU_setClock(1);
+
+		REGs_GID_ENA_CLR[2] = 0x1000000;
+#endif
 	}
 
 	// Wakeup core 1
 	*((vu32*)0x1FFFFFDC) = (u32)_start;  // Core 1 entrypoint
 	IRQ_softwareInterrupt(1, 0b0010);
-#else
-	// Just enables the New 3DS FCRAM extension
-	if(REG_CFG11_SOCINFO & 2) CPU_setClock(1);
-#endif
 }
 
 void CPU_setClock(u16 clk)
