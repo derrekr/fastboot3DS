@@ -26,7 +26,6 @@
 #include "arm11/hardware/scu.h"
 
 
-
 #ifdef CORE123_INIT
 static void NAKED core23Entry(void)
 {
@@ -50,9 +49,11 @@ static void NAKED core23Entry(void)
 	// Jump to real entrypoint
 	_start();
 }
+#endif
 
 void core123Init(void)
 {
+#ifdef CORE123_INIT
 	if(REG_CFG11_SOCINFO & 2)
 	{
 		REG_CPU_II_CNT = 1;
@@ -122,8 +123,11 @@ void core123Init(void)
 	// Wakeup core 1
 	*((vu32*)0x1FFFFFDC) = (u32)_start;  // Core 1 entrypoint
 	IRQ_softwareInterrupt(1, 0b0010);
-}
+#else
+	// Just enables the New 3DS FCRAM extension
+	if(REG_CFG11_SOCINFO & 2) CPU_setClock(1);
 #endif
+}
 
 void CPU_setClock(u16 clk)
 {

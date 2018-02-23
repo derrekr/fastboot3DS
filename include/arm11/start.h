@@ -27,7 +27,7 @@ extern "C"
 {
 #endif
 
-void _start(void);
+noreturn void _start(void);
 void clearMem(u32 *adr, u32 size);
 void deinitCpu(void);
 
