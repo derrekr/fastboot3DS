@@ -209,9 +209,9 @@ u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max)
 	return res;
 }
 
-void clearTop(void)
+void clearScreens(void)
 {
-	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, NULL, 0, 0, 0);
+	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
 	GFX_waitForEvent(GFX_EVENT_PSC0, true);
 }
 

@@ -40,7 +40,7 @@ u32 ee_printf_line_center(const char *const fmt, ...);
 u32 ee_printf_screen_center(const char *const fmt, ...);
 u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max);
 
-void clearTop(void);
+void clearScreens(void);
 void drawTopBorder(void);
 bool drawCustomSplash(const char* folder);
 

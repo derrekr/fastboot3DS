@@ -171,6 +171,7 @@ int main(void)
 			consoleInit(SCREEN_TOP, &term_con, true);
 			consoleSetWindow(&term_con, 1, 1, 64, 22);
 			consoleSelect(&term_con);
+			clearScreens();
 			drawTopBorder();
 		}
 		
@@ -198,12 +199,8 @@ int main(void)
 			// run menu
 			menu_ret = menuProcess(&menu_con, &term_con, menu_fb3ds);
 			
-			// clear consoles and screen
-			consoleSelect(&menu_con);
-			consoleClear();
-			consoleSelect(&term_con);
-			consoleClear();
-			clearTop();
+			// clear screens
+			clearScreens();
 			updateScreens();
 			
 			// write config (if something changed)
