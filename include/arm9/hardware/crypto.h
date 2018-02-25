@@ -209,7 +209,7 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 //////////////////////////////////
 
 #define SHA_ENABLE         (1u) // Also used as busy flag
-#define SHA_PAD_INPUT      (1u<<1)
+#define SHA_FINAL_ROUND    (1u<<1)
 #define SHA_INPUT_BIG      (1u<<3)
 #define SHA_INPUT_LITTLE   (0u)
 #define SHA_OUTPUT_BIG     (SHA_INPUT_BIG)
@@ -217,6 +217,7 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 #define SHA_MODE_256       (0u)
 #define SHA_MODE_224       (1u<<4)
 #define SHA_MODE_1         (2u<<4)
+#define SHA_MODE_MASK      (SHA_MODE_1 | SHA_MODE_224 | SHA_MODE_256)
 
 
 /**
@@ -241,6 +242,13 @@ void SHA_update(const u32 *data, u32 size);
  * @param[in]  endianess  Endianess bitmask for the hash.
  */
 void SHA_finish(u32 *const hash, u8 endianess);
+
+/**
+ * @brief      Returns the current SHA engine state.
+ *
+ * @param      out   Pointer to memory to copy the state to.
+ */
+void SHA_getState(u32 *const out);
 
 /**
  * @brief      Hashes a single block of data and outputs the hash.

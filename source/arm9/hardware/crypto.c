@@ -580,26 +580,26 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 #define REG_SHA_HASH     ((u32* )(SHA_REGS_BASE + 0x40))
 #define REG_SHA_INFIFO   (       (SHA_REGS_BASE + 0x80))
 
+typedef struct
+{
+	u32 block[16];
+} ShaBlock;
+
 
 void SHA_start(u8 params)
 {
-	REG_SHA_CNT = (u32)params | SHA_ENABLE;
+	REG_SHA_CNT = params | SHA_ENABLE;
 }
 
 void SHA_update(const u32 *data, u32 size)
 {
-	while(size >= 0x40)
+	while(size >= sizeof(ShaBlock))
 	{
-		for(u32 i = 0; i < 4; i++)
-		{
-			((vu32*)REG_SHA_INFIFO)[0 + i] = *data++;
-			((vu32*)REG_SHA_INFIFO)[1 + i] = *data++;
-			((vu32*)REG_SHA_INFIFO)[2 + i] = *data++;
-			((vu32*)REG_SHA_INFIFO)[3 + i] = *data++;
-		}
+		*((ShaBlock*)REG_SHA_INFIFO) = *((const ShaBlock*)data);
+		data += 16;
 		while(REG_SHA_CNT & SHA_ENABLE);
 
-		size -= 0x40;
+		size -= sizeof(ShaBlock);
 	}
 
 	if(size) memcpy((void*)REG_SHA_INFIFO, data, size);
@@ -607,26 +607,31 @@ void SHA_update(const u32 *data, u32 size)
 
 void SHA_finish(u32 *const hash, u8 endianess)
 {
-	REG_SHA_CNT = (REG_SHA_CNT & (SHA_MODE_1 | SHA_MODE_224 | SHA_MODE_256)) | (u32)endianess | SHA_PAD_INPUT;
+	REG_SHA_CNT = (REG_SHA_CNT & SHA_MODE_MASK) | endianess | SHA_FINAL_ROUND;
 	while(REG_SHA_CNT & SHA_ENABLE);
 
-	u32 hashSize;
-	switch(REG_SHA_CNT & (SHA_MODE_1 | SHA_MODE_224 | SHA_MODE_256))
+	SHA_getState(hash);
+}
+
+void SHA_getState(u32 *const out)
+{
+	u32 stateSize;
+	switch(REG_SHA_CNT & SHA_MODE_MASK)
 	{
 		case SHA_MODE_256:
-			hashSize = 8; // 32;
+			stateSize = 32;
 			break;
 		case SHA_MODE_224:
-			hashSize = 7; // 28;
+			stateSize = 28;
 			break;
 		case SHA_MODE_1:
-			hashSize = 5; // 20;
+			stateSize = 20;
 			break;
 		default:
 			return;
 	}
 
-	for(u32 i = 0; i < hashSize; i++) hash[i] = REG_SHA_HASH[i];
+	memcpy(out, REG_SHA_HASH, stateSize);
 }
 
 void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess)
