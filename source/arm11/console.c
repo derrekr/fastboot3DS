@@ -191,11 +191,11 @@ ssize_t con_write(UNUSED struct _reent *r,UNUSED void *fd,const char *ptr, size_
 	int i, count = 0;
 	const char *tmp = ptr;
 
-	if(!tmp || len<=0) return -1;
+	if(!tmp || (int)len<=0) return -1;
 
 	i = 0;
 
-	while(i<len) {
+	while(i<(int)len) {
 
 		chr = *(tmp++);
 		i++; count++;
