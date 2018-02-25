@@ -22,19 +22,10 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 void debugHashCodeRoData();
 noreturn void panic();
 noreturn void panicMsg(const char *msg);
 void debugMemdump(const char *filepath, void *mem, size_t size);
-
-#ifdef __cplusplus
-}
-#endif
 
 // Exception tests
 /*static inline regTest(void)

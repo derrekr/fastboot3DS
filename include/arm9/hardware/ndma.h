@@ -147,11 +147,6 @@ enum
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /**
  * @brief      Initializes all NDMA channels.
  */
@@ -192,7 +187,3 @@ void NDMA_fillAsync(u32 *dest, u32 value, u32 size);
  * @param[in]  size   The size of the memory to fill. Must be multiple of 4.
  */
 void NDMA_fill(u32 *dest, u32 value, u32 size);
-
-#ifdef __cplusplus
-}
-#endif

@@ -73,13 +73,4 @@ typedef struct {
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info);
-
-#ifdef __cplusplus
-}
-#endif

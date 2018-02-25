@@ -22,15 +22,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 noreturn void _start(void);
 void clearMem(u32 *adr, u32 size);
 void deinitCpu(void);
-
-#ifdef __cplusplus
-}
-#endif

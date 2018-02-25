@@ -69,11 +69,6 @@ enum BootModes {
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 bool loadConfigFile();
 bool configIsLoaded();
 bool configHasChanged();
@@ -88,7 +83,3 @@ void configRestoreDefaults();
 bool configDeleteKey(int key);
 bool configDevModeEnabled();
 bool configRamFirmBootEnabled();
-
-#ifdef __cplusplus
-}
-#endif

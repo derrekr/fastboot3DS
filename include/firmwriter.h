@@ -34,14 +34,5 @@ enum
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 s32 writeFirmPartition(const char *const part, bool replaceSig);
 s32 loadVerifyUpdate(const char *const path, u32 *const version);
-
-#ifdef __cplusplus
-}
-#endif

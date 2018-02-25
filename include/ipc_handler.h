@@ -96,13 +96,4 @@ typedef struct
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, const u32 *const buf);
-
-#ifdef __cplusplus
-}
-#endif

@@ -22,11 +22,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /**
  * @brief      Sets a bit in the specified GPIO register.
  *
@@ -42,7 +37,3 @@ void GPIO_setBit(u16 reg, u8 bitNum);
  * @param[in]  bitNum  The bit number.
  */
 void GPIO_clearBit(u16 reg, u8 bitNum);
-
-#ifdef __cplusplus
-}
-#endif

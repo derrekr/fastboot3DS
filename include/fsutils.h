@@ -22,11 +22,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 bool fsEnsureMounted(const char *path);
 void fsUnmountAll();
 u32 fsMountNandFilesystems();
@@ -34,7 +29,3 @@ void fsUnmountNandFilesystems();
 bool fsMountSdmc();
 bool fsCreateFileWithPath(const char *filepath);
 bool fsQuickRead(const char* filepath, void* buff, u32 len, u32 off);
-
-#ifdef __cplusplus
-}
-#endif

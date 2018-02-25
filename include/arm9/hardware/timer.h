@@ -52,11 +52,6 @@ typedef enum
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /**
  * @brief      Resets/initializes the timer hardware. Should not be called manually.
  */
@@ -97,7 +92,3 @@ u16 TIMER_stop(Timer timer);
  * @param[in]  ms    The number of milliseconds to sleep.
  */
 void TIMER_sleep(u32 ms);
-
-#ifdef __cplusplus
-}
-#endif

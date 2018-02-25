@@ -29,13 +29,4 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start, const char* pattern, bool allow_root, bool select_dirs);
-
-#ifdef __cplusplus
-}
-#endif

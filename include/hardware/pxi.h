@@ -58,14 +58,5 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 void PXI_init(void);
 u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words);
-
-#ifdef __cplusplus
-}
-#endif

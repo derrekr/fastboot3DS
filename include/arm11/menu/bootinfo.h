@@ -29,13 +29,4 @@ typedef struct {
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 void getBootInfo(bootInfo* info);
-
-#ifdef __cplusplus
-}
-#endif

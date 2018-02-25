@@ -31,18 +31,9 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 u32 ee_vsnprintf(char *const buf, u32 size, const char *const fmt, va_list arg);
 u32 ee_vsprintf(char *const buf, const char *const fmt, va_list arg);
 __attribute__ ((format (printf, 2, 3))) u32 ee_sprintf(char *const buf, const char *const fmt, ...);
 __attribute__ ((format (printf, 3, 4))) u32 ee_snprintf(char *const buf, u32 size, const char *const fmt, ...);
 __attribute__ ((format (printf, 1, 2))) u32 ee_printf(const char *const fmt, ...);
 u32 ee_puts(const char *const str);
-
-#ifdef __cplusplus
-}
-#endif

@@ -47,15 +47,6 @@ typedef struct
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 bool firm_size(size_t *size, const firm_header *const hdr);
 s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode);
 noreturn void firmLaunch(void);
-
-#ifdef __cplusplus
-}
-#endif

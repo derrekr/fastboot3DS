@@ -60,11 +60,6 @@ typedef s32 DevBufHandle;
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 s32  fMount(FsDrive drive);
 s32  fUnmount(FsDrive drive);
 bool fIsDriveMounted(FsDrive drive);
@@ -98,8 +93,4 @@ s32  fSetNandProtection(bool protect);
 
 #ifdef ARM9
 void fsDeinit(void);
-#endif
-
-#ifdef __cplusplus
-}
 #endif

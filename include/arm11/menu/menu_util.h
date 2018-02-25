@@ -22,11 +22,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 char* mallocpyString(const char* str);
 void truncateString(char* dest, const char* orig, int nsize, int tpos);
 void formatBytes(char* str, u64 bytes);
@@ -49,7 +44,3 @@ bool askConfirmation(const char *const fmt, ...);
 void outputEndWait(void);
 bool userCancelHandler(bool cancelAllowed);
 void sleepmode(void);
-
-#ifdef __cplusplus
-}
-#endif

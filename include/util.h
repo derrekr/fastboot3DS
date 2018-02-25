@@ -26,11 +26,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 void wait(u32 cycles);
 
 __attribute__ ((format (scanf, 2, 3))) int fb_sscanf(const char *s, const char *fmt, ...);
@@ -47,7 +42,3 @@ void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
 u32 getleu32(const void* ptr);
 
 u32 swap32(u32 val);
-
-#ifdef __cplusplus
-}
-#endif

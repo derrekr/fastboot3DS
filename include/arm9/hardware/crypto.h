@@ -22,11 +22,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 //////////////////////////////////
 //             AES              //
 //////////////////////////////////
@@ -327,7 +322,3 @@ bool RSA_decrypt2048(void *const decSig, const void *const encSig);
  * @return     Returns true if the signature is valid, false otherwise.
  */
 bool RSA_verify2048(const u32 *const encSig, const u32 *const data, u32 size);
-
-#ifdef __cplusplus
-}
-#endif

@@ -31,13 +31,4 @@ typedef struct {
 
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 void getBatteryState(BatteryState *battery);
-
-#ifdef __cplusplus
-}
-#endif
