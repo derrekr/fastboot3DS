@@ -60,8 +60,8 @@ static bool parseBootOptionPad(AttributeEntryType *attr);
 static bool writeBootOptionPad(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBootMode(AttributeEntryType *attr);
 static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key);
-static bool parseDevMode(AttributeEntryType *attr);
-static bool writeDevMode(AttributeEntryType *attr, const void *newData, int key);
+static bool parseBool(AttributeEntryType *attr);
+static bool writeBool(AttributeEntryType *attr, const void *newData, int key);
 
 static const char *keyStrings[] = {
 	"BOOT_OPTION1",
@@ -87,7 +87,8 @@ static const char *keyStrings[] = {
 	"BOOT_OPTION9_BUTTONS",
 
 	"BOOT_MODE",
-	"DEV_MODE"
+	"DEV_MODE",
+	"RAM_FIRM_BOOT"
 	
 	/*
 	"BOOT_OPTION1_NAND_IMAGE",
@@ -109,7 +110,7 @@ static const FunctionsEntryType *getKeyFunction(int key)
 		{ parsePath,			writePath },
 		{ parseBootOptionPad,	writeBootOptionPad },
 		{ parseBootMode,		writeBootMode },
-		{ parseDevMode,			writeDevMode }
+		{ parseBool,			writeBool }
 	};
 	
 	if(key <= KSplashScreen && key >= KBootOption1)
@@ -118,7 +119,7 @@ static const FunctionsEntryType *getKeyFunction(int key)
 		return &keyFunctions[1];
 	if(key == KBootMode)
 		return &keyFunctions[2];
-	if(key == KDevMode)
+	if(key == KDevMode || key == KRamFirmBoot)
 		return &keyFunctions[3];
 
 	return NULL;
@@ -851,18 +852,18 @@ static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key
 	return true;
 }
 
-static const char * devModeStates[] = {
+static const char * boolStates[] = {
 	"Enabled", "Disabled"
 };
 
-static bool parseDevMode(AttributeEntryType *attr)
+static bool parseBool(AttributeEntryType *attr)
 {
 	char *textData = attr->textData;
 	bool enabled;
 
-	if(strnicmp(textData, devModeStates[0], strlen(devModeStates[0])) == 0)
+	if(strnicmp(textData, boolStates[0], strlen(boolStates[0])) == 0)
 		enabled = true;
-	else if(strnicmp(textData, devModeStates[1],  strlen(devModeStates[1])) == 0)
+	else if(strnicmp(textData, boolStates[1],  strlen(boolStates[1])) == 0)
 		enabled = false;
 	else
 	{
@@ -878,7 +879,7 @@ static bool parseDevMode(AttributeEntryType *attr)
 	return true;
 }
 
-static bool writeDevMode(AttributeEntryType *attr, const void *newData, int key)
+static bool writeBool(AttributeEntryType *attr, const void *newData, int key)
 {
 	bool enabled;
 	
@@ -896,7 +897,7 @@ static bool writeDevMode(AttributeEntryType *attr, const void *newData, int key)
 	
 	*(bool *)attr->data = enabled;
 	
-	const char *textData = devModeStates[enabled ? 0 : 1];
+	const char *textData = boolStates[enabled ? 0 : 1];
 	
 	writeAttributeText(attr, textData, key);
 	
@@ -1020,14 +1021,24 @@ bool configDeleteKey(int key)
 	return false;
 }
 
-bool configDevModeEnabled()
+static inline bool safeReadBoolKey(int key)
 {
 	const bool *enabled;
 	
-	enabled = configGetData(KDevMode);
+	enabled = configGetData(key);
 	
 	if(!enabled || *enabled == false)
 		return false;
 	
 	return true;
+}
+
+bool configDevModeEnabled()
+{
+	return safeReadBoolKey(KDevMode);
+}
+
+bool configRamFirmBootEnabled()
+{
+	return safeReadBoolKey(KRamFirmBoot);
 }

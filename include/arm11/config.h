@@ -46,6 +46,7 @@ enum Keys {
 	
 	KBootMode,
 	KDevMode,
+	KRamFirmBoot,
 
 	/*
 	KBootOption1NandImage,
@@ -86,6 +87,7 @@ bool configSetKeyData(int key, const void *data);
 void configRestoreDefaults();
 bool configDeleteKey(int key);
 bool configDevModeEnabled();
+bool configRamFirmBootEnabled();
 
 #ifdef __cplusplus
 }
