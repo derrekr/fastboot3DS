@@ -596,7 +596,7 @@ void SHA_update(const u32 *data, u32 size)
 	while(size >= sizeof(ShaBlock))
 	{
 		*((ShaBlock*)REG_SHA_INFIFO) = *((const ShaBlock*)data);
-		data += 16;
+		data += sizeof(ShaBlock) / 4;
 		while(REG_SHA_CNT & SHA_ENABLE);
 
 		size -= sizeof(ShaBlock);
