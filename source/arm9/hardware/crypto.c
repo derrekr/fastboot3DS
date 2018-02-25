@@ -580,11 +580,6 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 #define REG_SHA_HASH     ((u32* )(SHA_REGS_BASE + 0x40))
 #define REG_SHA_INFIFO   (       (SHA_REGS_BASE + 0x80))
 
-typedef struct
-{
-	u32 block[16];
-} ShaBlock;
-
 
 void SHA_start(u8 params)
 {
@@ -593,13 +588,13 @@ void SHA_start(u8 params)
 
 void SHA_update(const u32 *data, u32 size)
 {
-	while(size >= sizeof(ShaBlock))
+	while(size >= 64)
 	{
-		*((ShaBlock*)REG_SHA_INFIFO) = *((const ShaBlock*)data);
-		data += sizeof(ShaBlock) / 4;
+		*((_u512*)REG_SHA_INFIFO) = *((const _u512*)data);
+		data += 16;
 		while(REG_SHA_CNT & SHA_ENABLE);
 
-		size -= sizeof(ShaBlock);
+		size -= 64;
 	}
 
 	if(size) memcpy((void*)REG_SHA_INFIFO, data, size);
