@@ -53,7 +53,7 @@ u32 menuPresetNandTools(void)
 {
 	u32 res = 0xFF;
 	
-	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))
+	if (!configDevModeEnabled())
 		res &= ~((1 << 2) | (1 << 3)); // disable forced restore and firmware flash
 	
 	return res;
@@ -646,7 +646,7 @@ u32 menuRestoreNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleClear();
 	
 	// check dev mode
-	if (forced && (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode)))) {
+	if (forced && !configDevModeEnabled()) {
 		ee_printf("Forced restore is not available!\nEnable dev mode to get access.\n");
 		goto fail;
 	}
@@ -820,7 +820,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	consoleClear();
 	
 	// check dev mode
-	if (!configDataExist(KDevMode) || !(*(bool*) configGetData(KDevMode))) {
+	if (!configDevModeEnabled()) {
 		ee_printf("Install firmware is not available!\nEnable dev mode to get access.\n");
 		goto fail;
 	}
@@ -885,7 +885,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	u32 result = 1;
 	
 	bool accept_downgrades = false;
-	if (configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
+	if (configDevModeEnabled())
 		accept_downgrades = true;
 	
 	

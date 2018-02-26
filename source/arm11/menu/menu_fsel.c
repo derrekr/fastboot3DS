@@ -151,7 +151,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 		const char* root_paths[] = { "sdmc:", "twln:", "twlp:", "nand:" };
 		const char* firm_paths[] = { "firm1:" };
 		const u32 firm_size = 0x400000; // 4MB
-		bool devmode = configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode));
+		bool devmode = configDevModeEnabled();
 		
 		for(u32 i = 0; i < sizeof(root_paths) / sizeof(const char*); i++)
 		{

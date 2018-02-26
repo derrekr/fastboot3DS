@@ -188,7 +188,7 @@ void menuShowDesc(MenuInfo* curr_menu, PrintConsole* desc_con, u32 index)
 	
 	// print dev mode config
 	curY++;
-	if(configDataExist(KDevMode) && (*(bool*) configGetData(KDevMode)))
+	if(configDevModeEnabled())
 	{
 		consoleSetCursor(desc_con, conw - 14, curY);
 		ee_printf(ESC_SCHEME_BAD "devmode active" ESC_RESET);
