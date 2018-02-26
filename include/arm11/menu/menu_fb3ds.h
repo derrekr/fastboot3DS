@@ -61,6 +61,7 @@
 #define DESC_BOOT_QUICK		"In quick boot mode, splash is displayed and the boot is continued via the first available autoboot slot.\n \n! To enter the menu, hold the HOME button at boot !"
 #define DESC_BOOT_QUIET		"In quiet boot mode, splash is not displayed and the boot is continued via the first available autoboot slot.\n \n! To enter the menu, hold the HOME button at boot !"
 #define DESC_CHANGE_BOOT	"Change fastboot3ds boot mode. This allows you to set up how your console boots."
+#define DESC_FCRAM_BOOT		"Enable booting firm from FCRAM. This is required for proper A9NC and A9SP support, don't enable this if you use neither."
 
 #define DESC_SPLASH_CUSTOM	"Select a custom splash. This is compatible with Luma 3DS format splash screens."
 #define DESC_SPLASH_DEFAULT	"Use default fastboot3DS splash screen."
@@ -95,7 +96,7 @@ MenuInfo menu_fb3ds[] =
 			{ "Boot from file...",			DESC_BOOT_FILE,				&menuLaunchFirm,		0xFF },
 			{ "NAND tools...",				DESC_NAND_TOOLS,			NULL,					5 },
 			{ "Miscellaneous...",			DESC_MISC,	    			NULL,					6 },
-			{ "Debug...",					LOREM,	    				NULL,					13 }
+			// { "Debug...",					LOREM,	    				NULL,					13 }
 		}
 	},
 	{ // 1
@@ -110,7 +111,7 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 2
-		"Boot Setup", N_BOOTSLOTS + 2, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
+		"Boot Setup", N_BOOTSLOTS + 3, &menuPresetBootConfig, MENU_FLAG_SLOTS | MENU_FLAG_BOOTMODE | MENU_FLAG_CONFIG,
 		{
 			SUBENTRY_SLOT_SETUP(1),
 			SUBENTRY_SLOT_SETUP(2),
@@ -119,7 +120,8 @@ MenuInfo menu_fb3ds[] =
 			SUBENTRY_SLOT_SETUP(5),
 			SUBENTRY_SLOT_SETUP(6),
 			{ "Change boot mode...",		DESC_CHANGE_BOOT,			NULL,					3 },
-			{ "Change splash...",			DESC_CHANGE_SPLASH,			NULL,					4 }
+			{ "Change splash...",			DESC_CHANGE_SPLASH,			NULL,					4 },
+			{ "Enable FCRAM Boot",			DESC_FCRAM_BOOT,			&menuSwitchFcramBoot,	0 }
 		}
 	},
 	{ // 3

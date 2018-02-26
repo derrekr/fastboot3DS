@@ -24,6 +24,7 @@
 #include "arm11/menu/menu_fb3ds.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/splash.h"
+#include "arm11/bootenv.h"
 #include "arm11/console.h"
 #include "arm11/config.h"
 #include "arm11/debug.h"
@@ -135,8 +136,8 @@ int main(void)
 	
 	
 	// firm from FCRAM handling
-	// even checking for this should be optional (!!!)
-	if (!startFirmLaunch)
+	if (!startFirmLaunch && configRamFirmBootEnabled() &&
+		(getBootEnv() == BOOTENV_NATIVE_FIRM))
 	{
 		if (loadVerifyFirm("ram", false) == 0)
 			startFirmLaunch = true;

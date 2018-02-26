@@ -92,6 +92,9 @@ u32 menuPresetBootConfig(void)
 	if (configDataExist(KSplashScreen))
 		res |= 1 << (N_BOOTSLOTS+1);
 	
+	if (configRamFirmBootEnabled())
+		res |= 1 << (N_BOOTSLOTS+2);
+	
 	return res;
 }
 
@@ -149,6 +152,17 @@ u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	(void) term_con;
 	(void) menu_con;
 	u32 res = (configSetKeyData(KBootMode, &param)) ? MENU_OK : MENU_FAIL;
+	
+	return res;
+}
+
+u32 menuSwitchFcramBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) term_con;
+	(void) menu_con;
+	(void) param;
+	bool fcram_next = !configRamFirmBootEnabled(); 
+	u32 res = (configSetKeyData(KRamFirmBoot, &fcram_next)) ? MENU_OK : MENU_FAIL;
 	
 	return res;
 }
