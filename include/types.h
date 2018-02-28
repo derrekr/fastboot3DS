@@ -58,15 +58,15 @@ typedef volatile int64_t vs64;
 
 typedef struct
 {
-	u32 block[3];
+	u32 data[3];
 } _u96;
 
 typedef struct
 {
-	u32 block[4];
+	u32 data[4];
 } _u128;
 
 typedef struct
 {
-	u32 block[16];
+	u32 data[16];
 } _u512;

@@ -339,17 +339,17 @@ static void aesProcessBlocksCpu(const u32 *in, u32 *out, u32 blocks)
 	for(u32 i = 0; i < blocks * 4; i += 4)
 	{
 		_u128 tmp = *((const _u128*)&in[i]);
-		*((vu32*)REG_AESWRFIFO) = tmp.block[0];
-		*((vu32*)REG_AESWRFIFO) = tmp.block[1];
-		*((vu32*)REG_AESWRFIFO) = tmp.block[2];
-		*((vu32*)REG_AESWRFIFO) = tmp.block[3];
+		*((vu32*)REG_AESWRFIFO) = tmp.data[0];
+		*((vu32*)REG_AESWRFIFO) = tmp.data[1];
+		*((vu32*)REG_AESWRFIFO) = tmp.data[2];
+		*((vu32*)REG_AESWRFIFO) = tmp.data[3];
 
 		while(AES_READ_FIFO_COUNT == 0);
 
-		tmp.block[0] = *((vu32*)REG_AESRDFIFO);
-		tmp.block[1] = *((vu32*)REG_AESRDFIFO);
-		tmp.block[2] = *((vu32*)REG_AESRDFIFO);
-		tmp.block[3] = *((vu32*)REG_AESRDFIFO);
+		tmp.data[0] = *((vu32*)REG_AESRDFIFO);
+		tmp.data[1] = *((vu32*)REG_AESRDFIFO);
+		tmp.data[2] = *((vu32*)REG_AESRDFIFO);
+		tmp.data[3] = *((vu32*)REG_AESRDFIFO);
 		*((_u128*)&out[i]) = tmp;
 	}
 }
