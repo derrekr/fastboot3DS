@@ -26,7 +26,7 @@
 //             AES              //
 //////////////////////////////////
 
-#define AES_MAX_BLOCKS        (0xFFFF)
+#define AES_MAX_BLOCKS        (0xFFFE) // Aligned for 32 bytes transfers
 
 #define AES_WRITE_FIFO_COUNT  (REG_AESCNT & 0x1F)
 #define AES_READ_FIFO_COUNT   (REG_AESCNT & 0x3E0)

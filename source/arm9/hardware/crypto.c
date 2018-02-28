@@ -173,12 +173,12 @@ void AES_init(void)
 
 	REG_NDMA0_DST_ADDR = REG_AESWRFIFO;
 	REG_NDMA0_INT_CNT = NDMA_INT_SYS_FREQ;
-	REG_NDMA0_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_IN |
+	REG_NDMA0_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_IN | NDMA_BURST_SIZE(4) |
 	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
 
 	REG_NDMA1_SRC_ADDR = REG_AESRDFIFO;
 	REG_NDMA1_INT_CNT = NDMA_INT_SYS_FREQ;
-	REG_NDMA1_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_OUT |
+	REG_NDMA1_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_OUT | NDMA_BURST_SIZE(4) |
 	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 
 	IRQ_registerHandler(IRQ_AES, NULL);
@@ -338,17 +338,19 @@ static void aesProcessBlocksCpu(const u32 *in, u32 *out, u32 blocks)
 
 	for(u32 i = 0; i < blocks * 4; i += 4)
 	{
-		*((vu32*)REG_AESWRFIFO) = in[0 + i];
-		*((vu32*)REG_AESWRFIFO) = in[1 + i];
-		*((vu32*)REG_AESWRFIFO) = in[2 + i];
-		*((vu32*)REG_AESWRFIFO) = in[3 + i];
+		_u128 tmp = *((const _u128*)&in[i]);
+		*((vu32*)REG_AESWRFIFO) = tmp.block[0];
+		*((vu32*)REG_AESWRFIFO) = tmp.block[1];
+		*((vu32*)REG_AESWRFIFO) = tmp.block[2];
+		*((vu32*)REG_AESWRFIFO) = tmp.block[3];
 
 		while(AES_READ_FIFO_COUNT == 0);
 
-		out[0 + i] = *((vu32*)REG_AESRDFIFO);
-		out[1 + i] = *((vu32*)REG_AESRDFIFO);
-		out[2 + i] = *((vu32*)REG_AESRDFIFO);
-		out[3 + i] = *((vu32*)REG_AESRDFIFO);
+		tmp.block[0] = *((vu32*)REG_AESRDFIFO);
+		tmp.block[1] = *((vu32*)REG_AESRDFIFO);
+		tmp.block[2] = *((vu32*)REG_AESRDFIFO);
+		tmp.block[3] = *((vu32*)REG_AESRDFIFO);
+		*((_u128*)&out[i]) = tmp;
 	}
 }
 
@@ -361,32 +363,19 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 
 
 	// Check block alignment
-	u32 aesFifoSize, dmaBurstSize;
-	if(!(blocks & 3) || blocks == AES_MAX_BLOCKS)
-	{
-		aesFifoSize = 3;
-		dmaBurstSize = NDMA_BURST_SIZE(16);
-	}
-	else if(!(blocks & 1))
-	{
-		aesFifoSize = 1;
-		dmaBurstSize = NDMA_BURST_SIZE(8);
-	}
-	else
-	{
-		aesFifoSize = 0;
-		dmaBurstSize = NDMA_BURST_SIZE(4);
-	}
+	u32 aesFifoSize;
+	if(!(blocks & 1)) aesFifoSize = 1; // 32 bytes
+	else              aesFifoSize = 0; // 16 bytes
 
 	REG_NDMA0_SRC_ADDR = (u32)in;
 	REG_NDMA0_TOTAL_CNT = blocks<<2;
 	REG_NDMA0_LOG_BLK_CNT = aesFifoSize * 4 + 4;
-	REG_NDMA0_CNT = (REG_NDMA0_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
+	REG_NDMA0_CNT |= NDMA_ENABLE;
 
 	REG_NDMA1_DST_ADDR = (u32)out;
 	REG_NDMA1_TOTAL_CNT = blocks<<2;
 	REG_NDMA1_LOG_BLK_CNT = aesFifoSize * 4 + 4;
-	REG_NDMA1_CNT = (REG_NDMA1_CNT & 0xFFF0FFFFu) | NDMA_ENABLE | dmaBurstSize;
+	REG_NDMA1_CNT |= NDMA_ENABLE;
 
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | AES_IRQ_ENABLE | aesFifoSize<<14 | (3 - aesFifoSize)<<12 |
@@ -417,10 +406,6 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
 		if(dma) aesProcessBlocksDma(in, out, blockNum);
 		else aesProcessBlocksCpu(in, out, blockNum);
-
-		// AES will process 64 bytes for the last block of the
-		// block transfer even if only 48 are setup (0xFFFF vs. 0x10000 blocks).
-		if(dma && blockNum == AES_MAX_BLOCKS) blockNum++;
 
 		AES_addCounter(ctr, blockNum<<4);
 		in += blockNum<<2;
@@ -515,10 +500,6 @@ void AES_ecb(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool enc, 
 		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
 		if(dma) aesProcessBlocksDma(in, out, blockNum);
 		else aesProcessBlocksCpu(in, out, blockNum);
-
-		// AES will process 64 bytes for the last block of the
-		// block transfer even if only 48 are setup (0xFFFF vs. 0x10000 blocks).
-		if(dma && blockNum == AES_MAX_BLOCKS) blockNum++;
 
 		in += blockNum<<2;
 		out += blockNum<<2;
