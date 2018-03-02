@@ -53,13 +53,10 @@ void debugHashCodeRoData()
 
 noreturn void panic()
 {
-	//register u32 lr __asm__("lr");
-
 	enterCriticalSection();
-
 	fsDeinit();
-
 	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
+
 	while(1)
 	{
 		const u32 color = RGB8_to_565(0, 255, 0)<<16 | RGB8_to_565(0, 255, 0);
@@ -70,13 +67,10 @@ noreturn void panic()
 
 noreturn void panicMsg(UNUSED const char *msg)
 {
-	//register u32 lr __asm__("lr");
-
 	enterCriticalSection();
-
 	fsDeinit();
-
 	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
+
 	while(1)
 	{
 		const u32 color = RGB8_to_565(0, 255, 0)<<16 | RGB8_to_565(0, 255, 0);
@@ -91,8 +85,8 @@ noreturn void guruMeditation(UNUSED u8 type, UNUSED const u32 *excStack)
 {
 	// avoid fs corruptions
 	fsDeinit();
-
 	PXI_sendCmd(IPC_CMD11_EXCEPTION, NULL, 0);
+
 	while(1)
 	{
 		const u32 color = RGB8_to_565(255, 0, 0)<<16 | RGB8_to_565(255, 0, 0);

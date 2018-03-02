@@ -78,8 +78,8 @@ typedef enum
 typedef enum
 {
 	IPC_CMD11_PRINT_MSG        = CMD_ID(0)  | CMD_IN_BUFS(15) | CMD_OUT_BUFS(15) | CMD_PARAMS(15), // Invalid on purpose. Will be decided later.
-	IPC_CMD11_PANIC            = CMD_ID(1)  | CMD_IN_BUFS(15) | CMD_OUT_BUFS(15) | CMD_PARAMS(15),
-	IPC_CMD11_EXCEPTION        = CMD_ID(2)  | CMD_IN_BUFS(15) | CMD_OUT_BUFS(15) | CMD_PARAMS(15)
+	IPC_CMD11_PANIC            = CMD_ID(1)  | CMD_IN_BUFS(0)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(0),
+	IPC_CMD11_EXCEPTION        = CMD_ID(2)  | CMD_IN_BUFS(0)  | CMD_OUT_BUFS(0)  | CMD_PARAMS(0)
 } IpcCmd11;
 
 #undef CMD_ID
