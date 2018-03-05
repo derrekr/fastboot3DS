@@ -62,7 +62,7 @@ void HASH_update(const u32 *data, u32 size);
 void HASH_finish(u32 *const hash, u8 endianess);
 
 /**
- * @brief      Returns the current SHA engine state.
+ * @brief      Returns the current HASH engine state.
  *
  * @param      out   Pointer to memory to copy the state to.
  */
