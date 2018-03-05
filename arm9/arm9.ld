@@ -13,7 +13,7 @@ SECTIONS
 {
 	/* =========== CODE section =========== */
 
-	PROVIDE(__start__ = 0x08000040);
+	PROVIDE(__start__ = 0x080000C0);
 	. = __start__;
 
 	.text ALIGN(4) :

@@ -19,6 +19,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm9/debug.h"
+#include "arm9/hardware/cfg9.h"
 #include "arm.h"
 #include "arm9/firm.h"
 
@@ -30,6 +31,12 @@ volatile bool g_startFirmLaunch = false;
 int main(void)
 {
 	debugHashCodeRoData();
+
+	while(!(REG_CFG9_SYSPROT9 & 1) || !(REG_CFG9_SYSPROT11 & 1))
+	{
+		REG_CFG9_SYSPROT9 = 1;
+		REG_CFG9_SYSPROT11 = 1;
+	}
 
 	while(!g_startFirmLaunch) __wfi();
 
