@@ -21,7 +21,9 @@
 #include "mem_map.h"
 
 
-#define CFG9_REGS_BASE     (IO_MEM_ARM9_ONLY)
-#define REG_CFG9_SOCINFO   *((vu16*)(CFG9_REGS_BASE + 0x00FFC))
-#define REG_CFG9_BOOTENV   *((vu32*)(CFG9_REGS_BASE + 0x10000))
-#define REG_CFG9_UNITINFO  *((vu8* )(CFG9_REGS_BASE + 0x10010))
+#define CFG9_REGS_BASE      (IO_MEM_ARM9_ONLY)
+#define REG_CFG9_SYSPROT9   *((vu8* )(CFG9_REGS_BASE + 0x00000))
+#define REG_CFG9_SYSPROT11  *((vu8* )(CFG9_REGS_BASE + 0x00001))
+#define REG_CFG9_SOCINFO    *((vu16*)(CFG9_REGS_BASE + 0x00FFC))
+#define REG_CFG9_BOOTENV    *((vu32*)(CFG9_REGS_BASE + 0x10000))
+#define REG_CFG9_UNITINFO   *((vu8* )(CFG9_REGS_BASE + 0x10010))

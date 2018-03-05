@@ -1,8 +1,8 @@
 arm9/build/
 arm11/build/
 eclipse_project/
-fastboot3DS.sublime-project
-fastboot3DS.sublime-workspace
+*.sublime-project
+*.sublime-workspace
 arm9/fastboot3DS9.bin
 arm11/fastboot3DS11.bin
 arm9/fastboot3DS9.elf
