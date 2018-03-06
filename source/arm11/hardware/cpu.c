@@ -119,8 +119,8 @@ void core123Init(void)
 		IRQ_softwareInterrupt(2, 0b0100);
 		IRQ_softwareInterrupt(3, 0b1000);
 #else
-		// Just enables the New 3DS FCRAM extension
-		CPU_setClock(1);
+		// Just enables the New 3DS FCRAM extension (if not already done)
+		if((REG_CFG11_MPCORE_CLKCNT & 7) != 1) CPU_setClock(1);
 
 		REGs_GID_ENA_CLR[2] = 0x1000000;
 #endif
