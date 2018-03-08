@@ -117,7 +117,7 @@
 #define NDMA_SRC_UPDATE_FILL   (3u<<13)
 #define NDMA_SRC_ADDR_RELOAD   (1u<<15)
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
-#define NDMA_BURST_SIZE(n)     ((u32)log2(n)<<16)
+#define NDMA_BURST_WORDS(n)    ((u32)log2(n)<<16)
 #define NDMA_IMMEDIATE_MODE    (16u<<24)
 #define NDMA_TOTAL_CNT_MODE    (0u)
 #define NDMA_REPEATING_MODE    (1u<<29)
@@ -133,8 +133,8 @@ enum
 	NDMA_STARTUP_TIMER3    = 3<<24,
 	NDMA_STARTUP_CTRCARD0  = 4<<24,
 	NDMA_STARTUP_CTRCARD1  = 5<<24,
-	NDMA_STARTUP_UNK_6     = 6<<24,
-	NDMA_STARTUP_EMMC      = 7<<24,
+	NDMA_STARTUP_MMC1      = 6<<24,
+	NDMA_STARTUP_MMC2      = 7<<24, // Guess based on DSi documentation
 	NDMA_STARTUP_AES_IN    = 8<<24,  // AES write fifo
 	NDMA_STARTUP_AES_OUT   = 9<<24,  // AES read fifo
 	NDMA_STARTUP_SHA       = 10<<24,
