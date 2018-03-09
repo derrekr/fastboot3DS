@@ -81,6 +81,8 @@ ASM_FUNC flushInvalidateDCache
 
 
 ASM_FUNC flushDCacheRange
+	cmp r1, #DCACHE_SIZE
+	bhi flushDCache
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	flushDCacheRange_lp:
@@ -94,6 +96,8 @@ ASM_FUNC flushDCacheRange
 
 
 ASM_FUNC flushInvalidateDCacheRange
+	cmp r1, #DCACHE_SIZE
+	bhi flushInvalidateDCache
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	flushInvalidateDCacheRange_lp:
@@ -113,6 +117,8 @@ ASM_FUNC invalidateDCache
 
 
 ASM_FUNC invalidateDCacheRange
+	cmp r1, #DCACHE_SIZE
+	bhi flushInvalidateDCache
 	add r1, r1, r0
 	tst r0, #(CACHE_LINE_SIZE - 1)
 	mcrne p15, 0, r0, c7, c10, 1    @ "Clean data cache entry Address"
