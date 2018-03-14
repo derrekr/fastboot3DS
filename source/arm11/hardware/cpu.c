@@ -101,7 +101,7 @@ void core123Init(void)
 
 			REG_CFG11_BOOTROM_OVERLAY_CNT = 1;
 			REG_CFG11_BOOTROM_OVERLAY_VAL = (u32)core23Entry;
-			// If not already done eable instruction and data overlays
+			// If not already done enable instruction and data overlays
 			if(!(REGs_CFG11_MPCORE_BOOTCNT[2] & 0x10)) REGs_CFG11_MPCORE_BOOTCNT[2] = 3;
 			if(!(REGs_CFG11_MPCORE_BOOTCNT[3] & 0x10)) REGs_CFG11_MPCORE_BOOTCNT[3] = 3;
 			// Wait for core 2/3 to jump out of boot11

@@ -158,8 +158,8 @@ _vectorStubs:
 
 .align 2
 setupTcms:
-	ldr r1, =(ITCM_BASE | 0x24) @ Base = 0x00000000, size = 512 KB (32 KB mirrored)
-	ldr r0, =(DTCM_BASE | 0x0A) @ Base = 0xFFF00000, size = 16 KB
+	ldr r1, =(ITCM_BASE | 0x24) @ Base = 0x00000000, size = 128 MiB (32 KiB mirrored)
+	ldr r0, =(DTCM_BASE | 0x0A) @ Base = 0xFFF00000, size = 16 KiB
 	mcr p15, 0, r0, c9, c1, 0   @ Write DTCM region reg
 	mcr p15, 0, r1, c9, c1, 1   @ Write ITCM region reg
 	mrc p15, 0, r0, c1, c0, 0   @ Read control register
@@ -202,27 +202,27 @@ clearMem_check_zero:
 .pool
 
 
-#define REGION_4KB   (0b01011)
-#define REGION_8KB   (0b01100)
-#define REGION_16KB  (0b01101)
-#define REGION_32KB  (0b01110)
-#define REGION_64KB  (0b01111)
-#define REGION_128KB (0b10000)
-#define REGION_256KB (0b10001)
-#define REGION_512KB (0b10010)
-#define REGION_1MB   (0b10011)
-#define REGION_2MB   (0b10100)
-#define REGION_4MB   (0b10101)
-#define REGION_8MB   (0b10110)
-#define REGION_16MB  (0b10111)
-#define REGION_32MB  (0b11000)
-#define REGION_64MB  (0b11001)
-#define REGION_128MB (0b11010)
-#define REGION_256MB (0b11011)
-#define REGION_512MB (0b11100)
-#define REGION_1GB   (0b11101)
-#define REGION_2GB   (0b11110)
-#define REGION_4GB   (0b11111)
+#define REGION_4KiB   (0b01011)
+#define REGION_8KiB   (0b01100)
+#define REGION_16KiB  (0b01101)
+#define REGION_32KiB  (0b01110)
+#define REGION_64KiB  (0b01111)
+#define REGION_128KiB (0b10000)
+#define REGION_256KiB (0b10001)
+#define REGION_512KiB (0b10010)
+#define REGION_1MiB   (0b10011)
+#define REGION_2MiB   (0b10100)
+#define REGION_4MiB   (0b10101)
+#define REGION_8MiB   (0b10110)
+#define REGION_16MiB  (0b10111)
+#define REGION_32MiB  (0b11000)
+#define REGION_64MiB  (0b11001)
+#define REGION_128MiB (0b11010)
+#define REGION_256MiB (0b11011)
+#define REGION_512MiB (0b11100)
+#define REGION_1GiB   (0b11101)
+#define REGION_2GiB   (0b11110)
+#define REGION_4GiB   (0b11111)
 #define MAKE_REGION(adr, size) ((adr) | ((size)<<1) | 1)
 
 #define PER_NA             (0)
@@ -293,22 +293,22 @@ setupMpu:
 	bx lr
 
 _mpu_regions:
-	@ Region 0: ITCM kernel mirror 32 KB
-	@ Region 1: ARM9 internal mem + N3DS extension 2 MB
-	@ Region 2: IO region 2 MB covers only ARM9 accessible regs
-	@ Region 3: VRAM 8 MB
-	@ Region 4: DSP mem and AXIWRAM 1 MB
-	@ Region 5: FCRAM + N3DS extension 256 MB
-	@ Region 6: DTCM 16 KB
-	@ Region 7: Exception vectors + ARM9 bootrom 64 KB
-	.word MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KB)
-	.word MAKE_REGION(A9_RAM_BASE,        REGION_2MB)
-	.word MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MB)
-	.word MAKE_REGION(VRAM_BASE,          REGION_8MB)
-	.word MAKE_REGION(DSP_MEM_BASE,       REGION_1MB)
-	.word MAKE_REGION(FCRAM_BASE,         REGION_256MB)
-	.word MAKE_REGION(DTCM_BASE,          REGION_16KB)
-	.word MAKE_REGION(BOOT9_BASE,         REGION_64KB)
+	@ Region 0: ITCM kernel mirror 32 KiB
+	@ Region 1: ARM9 internal mem + N3DS extension 2 MiB
+	@ Region 2: IO region 2 MiB covers only ARM9 accessible regs
+	@ Region 3: VRAM 8 MiB
+	@ Region 4: DSP mem and AXIWRAM 1 MiB
+	@ Region 5: FCRAM + N3DS extension 256 MiB
+	@ Region 6: DTCM 16 KiB
+	@ Region 7: Exception vectors + ARM9 bootrom 64 KiB
+	.word MAKE_REGION(ITCM_KERNEL_MIRROR, REGION_32KiB)
+	.word MAKE_REGION(A9_RAM_BASE,        REGION_2MiB)
+	.word MAKE_REGION(IO_MEM_ARM9_ONLY,   REGION_2MiB)
+	.word MAKE_REGION(VRAM_BASE,          REGION_8MiB)
+	.word MAKE_REGION(DSP_MEM_BASE,       REGION_1MiB)
+	.word MAKE_REGION(FCRAM_BASE,         REGION_256MiB)
+	.word MAKE_REGION(DTCM_BASE,          REGION_16KiB)
+	.word MAKE_REGION(BOOT9_BASE,         REGION_64KiB)
 _mpu_permissions:
 	@ Data access permissions:
 	@ Region 0: User = --, Privileged = RW
