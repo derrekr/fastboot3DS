@@ -1,6 +1,6 @@
 /*
  *   This file is part of fastboot 3DS
- *   Copyright (C) 2017 derrek, profi200
+ *   Copyright (C) 2018 derrek, profi200
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 .fpu vfpv2
 
 
+#define ICACHE_SIZE     (0x4000)
+#define DCACHE_SIZE     (0x4000)
 #define CACHE_LINE_SIZE	(32)
 
 
@@ -66,6 +68,8 @@ ASM_FUNC flushInvalidateDCache
 
 
 ASM_FUNC flushDCacheRange
+	cmp r1, #DCACHE_SIZE
+	bhi flushDCache
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	mov r2, #0
@@ -79,6 +83,8 @@ ASM_FUNC flushDCacheRange
 
 
 ASM_FUNC flushInvalidateDCacheRange
+	cmp r1, #DCACHE_SIZE
+	bhi flushInvalidateDCache
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
 	mov r2, #0
@@ -99,6 +105,8 @@ ASM_FUNC invalidateDCache
 
 
 ASM_FUNC invalidateDCacheRange
+	cmp r1, #DCACHE_SIZE
+	bhi flushInvalidateDCache
 	add r1, r1, r0
 	tst r0, #(CACHE_LINE_SIZE - 1)
 	mcrne p15, 0, r0, c7, c10, 1    @ "Clean Data Cache Line (using MVA)"

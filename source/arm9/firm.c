@@ -148,7 +148,7 @@ void NAKED firmLaunchStub(int argc, const char **argv)
 			REG_NDMA_DST_ADDR(i) = section->address;
 			REG_NDMA_LOG_BLK_CNT(i) = section->size / 4;
 			REG_NDMA_INT_CNT(i) = NDMA_INT_SYS_FREQ;
-			REG_NDMA_CNT(i) = NDMA_ENABLE | NDMA_BURST_SIZE(128) | NDMA_IMMEDIATE_MODE |
+			REG_NDMA_CNT(i) = NDMA_ENABLE | NDMA_BURST_WORDS(128) | NDMA_IMMEDIATE_MODE |
 			                  NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_INC;
 		}
 		else

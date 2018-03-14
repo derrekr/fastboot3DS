@@ -101,7 +101,7 @@ void core123Init(void)
 
 			REG_CFG11_BOOTROM_OVERLAY_CNT = 1;
 			REG_CFG11_BOOTROM_OVERLAY_VAL = (u32)core23Entry;
-			// If not already done eable instruction and data overlays
+			// If not already done enable instruction and data overlays
 			if(!(REGs_CFG11_MPCORE_BOOTCNT[2] & 0x10)) REGs_CFG11_MPCORE_BOOTCNT[2] = 3;
 			if(!(REGs_CFG11_MPCORE_BOOTCNT[3] & 0x10)) REGs_CFG11_MPCORE_BOOTCNT[3] = 3;
 			// Wait for core 2/3 to jump out of boot11
@@ -119,8 +119,8 @@ void core123Init(void)
 		IRQ_softwareInterrupt(2, 0b0100);
 		IRQ_softwareInterrupt(3, 0b1000);
 #else
-		// Just enables the New 3DS FCRAM extension
-		CPU_setClock(1);
+		// Just enables the New 3DS FCRAM extension (if not already done)
+		if((REG_CFG11_MPCORE_CLKCNT & 7) != 1) CPU_setClock(1);
 
 		REGs_GID_ENA_CLR[2] = 0x1000000;
 #endif
