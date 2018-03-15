@@ -32,6 +32,7 @@
 .type _start %function
 .type stubExceptionVectors %function
 .type clearMem %function
+.type copyBoot11 %function
 .type setupVfp %function
 .type _init %function
 .type deinitCpu %function
@@ -124,6 +125,10 @@ _start:
 	cmp r4, #0
 	bne _start_skip_bss_init_array
 
+	ldr r0, =BOOT11_BASE + 0x8000
+	ldr r1, [r0]
+	cmp r1, #0
+	blne copyBoot11
 	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
@@ -204,6 +209,20 @@ clearMem_check_zero:
 		str r2, [r0], #4
 		subs r1, r1, #4
 		bne clearMem_remaining_lp
+	bx lr
+
+.pool
+
+
+copyBoot11:
+	ldr r0, =BOOT11_BASE
+	ldr r1, =VRAM_BASE + VRAM_SIZE - 0x10000
+	mov r2, #0x10000
+	copyBoot11_lp:
+		ldmia r0!, {r3-r6}
+		stmia r1!, {r3-r6}
+		subs r2, r2, #16
+		bne copyBoot11_lp
 	bx lr
 
 .pool
