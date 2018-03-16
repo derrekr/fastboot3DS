@@ -39,16 +39,16 @@ _vectors:
 	@ our hook function instead of the regular IRQ handler.
 	ldr pc, irqFuncPtr
 	irqFuncPtr:         .word irqHandlerHook
-	b .
-	.word 0
-	b .
-	.word 0
-	b .
-	.word 0
-	b .
-	.word 0
-	b .
-	.word 0
+	ldr pc, [pc, #-4]
+	.word 0xFFFF0078  @ Endless loop in boot9
+	ldr pc, [pc, #-4]
+	.word 0xFFFF00DC  @ SVC handler but never used
+	ldr pc, [pc, #-4]
+	.word 0xFFFF0078
+	ldr pc, [pc, #-4]
+	.word 0xFFFF0080  @ Another endless loop butwhy.gif
+	ldr pc, [pc, #-4]
+	.word 0xFFFF0078
 
 
 irqHandlerHook:
@@ -72,16 +72,16 @@ hook1:
 	@ condition because boot1 will overwrite it itself while we are
 	@ messing with it. This also copies a tiny function to AXIWRAM start.
 	@ This function skips the bootrom lock wait code.
-	ldr r0, =0x1FFE802C  @ boot11 function pointer
+	ldr r0, hook2
 	ldr r1, =0x1FF80000
-	ldr r2, hook2
-	str r2, [r1]         @ Copy hook2 to AXIWRAM start
-	str r1, [r0]         @ Overwrite pointer
+	ldr r2, =0x1FFE802C  @ boot11 function pointer
+	str r0, [r1]         @ Copy hook2 to AXIWRAM start
+	str r1, [r2]         @ Overwrite pointer
 	hook1_lp:            @ Loop until pointer changes (race)
-		ldr r2, [r0]
-		cmp r2, r1
+		ldr r0, [r2]
+		cmp r0, r1
 		beq hook1_lp
-	str r1, [r0]         @ Overwrite pointer again
+	str r1, [r2]         @ Overwrite pointer again
 	bx lr
 
 
