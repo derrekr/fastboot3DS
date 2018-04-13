@@ -199,7 +199,7 @@ u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		
 		// analyze user selection
 		FILINFO fileStat;
-		if (!(fileStat.fattrib & AM_DIR))
+		if ((fStat(res_path, &fileStat) == FR_OK) && !(fileStat.fattrib & AM_DIR))
 		{
 			char* slash = strrchr(res_path, '/');
 			if (slash) *slash = '\0';
