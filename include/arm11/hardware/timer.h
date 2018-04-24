@@ -21,7 +21,7 @@
 #include "types.h"
 
 
-#define TIMER_BASE_FREQ    (268111856.0)
+#define TIMER_BASE_FREQ    (268111856.f)
 
 #define TIMER_ENABLE       (1u)
 #define TIMER_SINGLE_SHOT  (0u)
@@ -75,5 +75,5 @@ void TIMER_sleepTicks(u32 ticks);
 // Sleeps ms milliseconds. ms can be up to 32000.
 static inline void TIMER_sleepMs(u32 ms)
 {
-	TIMER_sleepTicks(TIMER_FREQ(1, 1000.0) * ms);
+	TIMER_sleepTicks(TIMER_FREQ(1, 1000) * ms);
 }
