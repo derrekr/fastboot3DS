@@ -30,8 +30,6 @@
 #define I2C_IRQ_ENABLE    (1u<<6)
 #define I2C_ENABLE        (1u<<7)
 
-#define I2C_GET_ACK(reg)  ((bool)((reg)>>4 & 1u))
-
 
 typedef enum
 {

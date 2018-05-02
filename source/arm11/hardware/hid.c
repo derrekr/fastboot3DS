@@ -29,7 +29,8 @@
 
 
 static u32 kHeld = 0, kDown = 0, kUp = 0;
-static vu32 homeShellState = 0, powerWifiState = 0;
+static u32 homeShellState = 0, powerWifiState = 0;
+static volatile bool mcuIrq = false;
 
 
 
@@ -44,11 +45,19 @@ void hidInit(void)
 	//I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mcuInterruptMask, 4);
 
 	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
-	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
+	GPIO_setBit(19, 9); // This enables the MCU IRQ.
 }
 
 static void hidIrqHandler(UNUSED u32 intSource)
 {
+	mcuIrq = true;
+}
+
+static void updateMcuIrqState(void)
+{
+	if(!mcuIrq) return;
+	mcuIrq = false;
+
 	const u32 state = (u32)i2cmcu_readreg_hid_irq();
 
 	u32 tmp = powerWifiState;
@@ -90,6 +99,8 @@ bool hidIsHomeButtonHeldRaw(void)
 
 void hidScanInput(void)
 {
+	updateMcuIrqState();
+
 	u32 kOld = kHeld;
 	kHeld = homeShellState | REG_HID_PAD;;
 	kDown = (~kOld) & kHeld;

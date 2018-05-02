@@ -85,7 +85,10 @@ typedef enum
 	IRQ_PXI_UNK       = 81,  // Unknown what this is for
 	IRQ_PXI_NOT_FULL  = 82,
 	IRQ_PXI_NOT_EMPTY = 83,
+	IRQ_I2C1          = 84,
+	IRQ_I2C2          = 85,
 	IRQ_PDN           = 88,
+	IRQ_I2C3          = 92,
 	IRQ_SHELL_OPENED  = 96,
 	IRQ_SHELL_CLOSED  = 98,
 	IRQ_TOUCHSCREEN   = 99,  // Triggers on hitting the touchscreen.

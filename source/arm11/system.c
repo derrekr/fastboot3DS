@@ -65,5 +65,6 @@ void WEAK __systemInit(void)
 
 void WEAK __systemDeinit(void)
 {
+	__cpsid(aif);
 	IRQ_init();
 }
