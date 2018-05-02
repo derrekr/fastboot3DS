@@ -23,7 +23,7 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm11/hardware/gpio.h"
 
@@ -55,10 +55,11 @@ static void hidIrqHandler(UNUSED u32 intSource)
 
 static void updateMcuIrqState(void)
 {
+	// TODO: We should probably disable IRQs temporarily here.
 	if(!mcuIrq) return;
 	mcuIrq = false;
 
-	const u32 state = (u32)i2cmcu_readreg_hid_irq();
+	const u32 state = (u32)MCU_readReceivedIrqs();
 
 	u32 tmp = powerWifiState;
 	tmp |= state & 3;
@@ -92,9 +93,7 @@ u32 hidGetWifiButton(bool resetState)
 
 bool hidIsHomeButtonHeldRaw(void)
 {
-	u8 buf[19];
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, buf, 19)) return false;
-	return !(buf[18] & 1u<<1);
+	return !(MCU_readHidHeld() & 1u<<1);
 }
 
 void hidScanInput(void)
