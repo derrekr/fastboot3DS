@@ -35,30 +35,37 @@ typedef struct
 	vu16 I2C_SCL;
 } I2cRegs;
 
+enum
+{
+	I2C_BUS1 = 0,
+	I2C_BUS2 = 1,
+	I2C_BUS3 = 2
+};
+
 static const struct
 {
 	u8 busId;
 	u8 devAddr;
 } i2cDevTable[] =
 {
-	{0, 0x4A},
-	{0, 0x7A},
-	{0, 0x78},
-	{1, 0x4A},
-	{1, 0x78},
-	{1, 0x2C},
-	{1, 0x2E},
-	{1, 0x40},
-	{1, 0x44},
-	{2, 0xA6}, // TODO: Find out if 0xA6 or 0xD6 is correct
-	{2, 0xD0},
-	{2, 0xD2},
-	{2, 0xA4},
-	{2, 0x9A},
-	{2, 0xA0},
-	{1, 0xEE},
-	{0, 0x40},
-	{2, 0x54}
+	{I2C_BUS1, 0x4A},
+	{I2C_BUS1, 0x7A},
+	{I2C_BUS1, 0x78},
+	{I2C_BUS2, 0x4A},
+	{I2C_BUS2, 0x78},
+	{I2C_BUS2, 0x2C},
+	{I2C_BUS2, 0x2E},
+	{I2C_BUS2, 0x40},
+	{I2C_BUS2, 0x44},
+	{I2C_BUS3, 0xA6}, // TODO: Find out if 0xA6 or 0xD6 is correct
+	{I2C_BUS3, 0xD0},
+	{I2C_BUS3, 0xD2},
+	{I2C_BUS3, 0xA4},
+	{I2C_BUS3, 0x9A},
+	{I2C_BUS3, 0xA0},
+	{I2C_BUS2, 0xEE},
+	{I2C_BUS1, 0x40},
+	{I2C_BUS3, 0x54}
 };
 
 
@@ -68,13 +75,13 @@ static I2cRegs* i2cGetBusRegsBase(u8 busId)
 	I2cRegs *base;
 	switch(busId)
 	{
-		case 0:
+		case I2C_BUS1:
 			base = (I2cRegs*)I2C1_REGS_BASE;
 			break;
-		case 1:
+		case I2C_BUS2:
 			base = (I2cRegs*)I2C2_REGS_BASE;
 			break;
-		case 2:
+		case I2C_BUS3:
 			base = (I2cRegs*)I2C3_REGS_BASE;
 			break;
 		default:
@@ -84,12 +91,7 @@ static I2cRegs* i2cGetBusRegsBase(u8 busId)
 	return base;
 }
 
-static void i2cWaitBusy(I2cRegs *const regs)
-{
-	while(regs->I2C_CNT & I2C_ENABLE);
-}
-
-static void i2cWaitBusyIrq(I2cRegs *const regs)
+static void i2cWaitBusyIrq(const I2cRegs *const regs)
 {
 	while(regs->I2C_CNT & I2C_ENABLE) __wfi();
 }
@@ -106,18 +108,18 @@ void I2C_init(void)
 	IRQ_registerHandler(IRQ_I2C2, 14, 0, true, NULL);
 	IRQ_registerHandler(IRQ_I2C3, 14, 0, true, NULL);
 
-	I2cRegs *regs = i2cGetBusRegsBase(0); // Bus 1
-	i2cWaitBusy(regs);
+	I2cRegs *regs = i2cGetBusRegsBase(I2C_BUS1);
+	while(regs->I2C_CNT & I2C_ENABLE);
 	regs->I2C_CNTEX = 2;  // TODO: Find out what this does. If bit 1 is not set I2C hangs.
 	regs->I2C_SCL = 1280; // TODO: How to calculate the frequency.
 
-	regs = i2cGetBusRegsBase(1); // Bus 2
-	i2cWaitBusy(regs);
+	regs = i2cGetBusRegsBase(I2C_BUS2);
+	while(regs->I2C_CNT & I2C_ENABLE);
 	regs->I2C_CNTEX = 2;
 	regs->I2C_SCL = 1280;
 
-	regs = i2cGetBusRegsBase(2); // Bus 3
-	i2cWaitBusy(regs);
+	regs = i2cGetBusRegsBase(I2C_BUS3);
+	while(regs->I2C_CNT & I2C_ENABLE);
 	regs->I2C_CNTEX = 2;
 	regs->I2C_SCL = 1280;
 }
@@ -127,7 +129,10 @@ static bool i2cStartTransfer(u8 devAddr, u8 regAddr, bool read, I2cRegs *const r
 	u32 tries = 8;
 	do
 	{
-		i2cWaitBusyIrq(regs);
+		// This is a special case where we can't predict when or if
+		// the IRQ has already fired. If it fires after checking but
+		// before a wfi this would hang.
+		while(regs->I2C_CNT & I2C_ENABLE) __wfe();
 
 		// Select device and start.
 		regs->I2C_DATA = devAddr;
