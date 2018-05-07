@@ -48,6 +48,7 @@ $(TARGET).firm: arm9/$(TARGET)9.bin superhax/superhax.bin arm11/$(TARGET)11.bin
 	firm_builder $(TARGET).firm $(ENTRY9) $(ENTRY11) $(SECTION0_ADR) $(SECTION0_TYPE) \
 		$(SECTION0_FILE) $(SECTION1_ADR) $(SECTION1_TYPE) $(SECTION1_FILE) $(SECTION2_ADR) \
 		$(SECTION2_TYPE) $(SECTION2_FILE)
+	@bash patchSuperhaxSection.sh
 
 #---------------------------------------------------------------------------------
 arm9/$(TARGET)9.bin:
@@ -75,6 +76,7 @@ release: clean
 	firm_builder $(TARGET).firm $(ENTRY9) $(ENTRY11) $(SECTION0_ADR) $(SECTION0_TYPE) \
 		$(SECTION0_FILE) $(SECTION1_ADR) $(SECTION1_TYPE) $(SECTION1_FILE) $(SECTION2_ADR) \
 		$(SECTION2_TYPE) $(SECTION2_FILE)
+	@bash patchSuperhaxSection.sh
 	@bash signFirm.sh
 	@7z a -mx -m0=ARM -m1=LZMA $(TARGET)$(VERS_STRING).7z $(TARGET).firm
 	@7z u -mx -m0=PPMD $(TARGET)$(VERS_STRING).7z LICENSE.txt README.md
