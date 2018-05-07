@@ -43,3 +43,10 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 
 	return PXI_sendCmd(IPC_CMD9_LOAD_VERIFY_UPDATE, cmdBuf, 4);
 }
+
+s32 toggleSuperhax(bool enable)
+{
+	const u32 cmdBuf = enable;
+
+	return PXI_sendCmd(IPC_CMD9_TOGGLE_SUPERHAX, &cmdBuf, 1);
+}

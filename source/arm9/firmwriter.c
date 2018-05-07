@@ -167,3 +167,39 @@ s32 loadVerifyUpdate(const char *const path, u32 *const version)
 
 	return 0;
 }
+
+s32 toggleSuperhax(bool enable)
+{
+	if(!dev_decnand->is_active()) return -1;
+
+	size_t partInd, sector;
+	if(!partitionGetIndex("firm0", &partInd)) return -2;
+	if(!partitionGetSectorOffset(partInd, &sector)) return -3;
+
+	u8 *firm0Buf = (u8*)malloc(0x400);
+	if(!firm0Buf) return -4;
+	if(!dev_decnand->read_sector(sector, 2, firm0Buf))
+	{
+		free(firm0Buf);
+		return -5;
+	}
+
+	// verify fastboot is installed to firm0:/
+	if(memcmp(firm0Buf + 0x200, "fastboot3DS    ", 16) != 0)
+	{
+		free(firm0Buf);
+		return -6;
+	}
+
+	if(enable) ((firm_header*)firm0Buf)->section[1].size = 0x200;
+	else       ((firm_header*)firm0Buf)->section[1].size = 0;
+
+	if(!dev_decnand->write_sector(sector, 1, firm0Buf))
+	{
+		free(firm0Buf);
+		return -5;
+	}
+
+	free(firm0Buf);
+	return 0;
+}

@@ -36,3 +36,4 @@ enum
 
 s32 writeFirmPartition(const char *const part, bool replaceSig);
 s32 loadVerifyUpdate(const char *const path, u32 *const version);
+s32 toggleSuperhax(bool enable);
