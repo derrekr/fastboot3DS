@@ -32,12 +32,6 @@ int main(void)
 {
 	debugHashCodeRoData();
 
-	while(!(REG_CFG9_SYSPROT9 & 1) || !(REG_CFG9_SYSPROT11 & 1))
-	{
-		REG_CFG9_SYSPROT9 = 1;
-		REG_CFG9_SYSPROT11 = 1;
-	}
-
 	while(!g_startFirmLaunch) __wfi();
 
 	// TODO: Proper argc/v passing needs to be implemented.
