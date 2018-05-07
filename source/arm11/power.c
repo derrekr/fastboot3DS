@@ -21,11 +21,8 @@
 #include "ipc_handler.h"
 #include "arm11/hardware/mcu.h"
 #include "arm11/hardware/timer.h"
-#include "arm11/hardware/interrupt.h"
 #include "hardware/cache.h"
-#include "hardware/gfx.h"
 #include "hardware/pxi.h"
-#include "system.h"
 #include "arm.h"
 
 
@@ -38,9 +35,7 @@ static void power_safe_halt(void)
 	// give the screens a bit of time to turn off
 	TIMER_sleepMs(400);
 
-	__systemDeinit();
 	flushDCache();
-	__cpsid(aif);
 }
 
 noreturn void power_off(void)
@@ -49,6 +44,7 @@ noreturn void power_off(void)
 
 	MCU_triggerPowerOff();
 
+	__cpsid(aif);
 	while(1) __wfi();
 }
 
@@ -58,5 +54,6 @@ noreturn void power_reboot(void)
 
 	MCU_triggerReboot();
 
+	__cpsid(aif);
 	while(1) __wfi();
 }

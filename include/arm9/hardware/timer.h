@@ -21,17 +21,17 @@
 #include "types.h"
 
 
-#define TIMER_BASE_FREQ     (67027963.95)
+#define TIMER_BASE_FREQ     (67027964)
 
 #define TIMER_COUNT_UP      (1u<<2) // For cascading at least 2 timers
 #define TIMER_IRQ_ENABLE    (1u<<6)
 #define TIMER_ENABLE        (1u<<7)
 
 // Convenience macros for calculating the ticks. Based on libnds
-#define TIMER_FREQ(n)       (0x10000u - (u16)(TIMER_BASE_FREQ / (n)))
-#define TIMER_FREQ_64(n)    (0x10000u - (u16)(TIMER_BASE_FREQ / 64.0 / (n)))
-#define TIMER_FREQ_256(n)   (0x10000u - (u16)(TIMER_BASE_FREQ / 256.0 / (n)))
-#define TIMER_FREQ_1024(n)  (0x10000u - (u16)(TIMER_BASE_FREQ / 1024.0 / (n)))
+#define TIMER_FREQ(n)       (-TIMER_BASE_FREQ / (n))
+#define TIMER_FREQ_64(n)    (-(TIMER_BASE_FREQ / 64) / (n))
+#define TIMER_FREQ_256(n)   (-(TIMER_BASE_FREQ / 256) / (n))
+#define TIMER_FREQ_1024(n)  (-(TIMER_BASE_FREQ / 1024) / (n))
 
 
 typedef enum

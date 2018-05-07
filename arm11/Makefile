@@ -35,13 +35,13 @@ endif
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -marm -mthumb-interwork
 
-CFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -fstrict-aliasing -mword-relocations -fomit-frame-pointer \
-			-ffast-math -ffunction-sections -Wall -Wextra -Wno-unused-function
+CFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -mword-relocations -ffunction-sections \
+			-Wall -Wextra -Wno-unused-function
 
 CFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-CXXFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -fno-rtti -fno-exceptions -fstrict-aliasing \
-				-mword-relocations -fomit-frame-pointer -ffast-math -ffunction-sections -Wall -Wextra \
+CXXFLAGS	:=	$(ARCH) -std=c++14 -O2 -g -flto -fno-rtti -fno-exceptions \
+				-mword-relocations -ffunction-sections -Wall -Wextra \
 				-Wno-unused-function
 
 CXXFLAGS	+=	$(INCLUDE) $(DEFINES)

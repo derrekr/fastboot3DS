@@ -114,4 +114,22 @@ void MCU_readRTC(void *rtc)
 	I2C_readRegBuf(I2C_DEV_MCU, RegRTC, rtc, 8);
 }
 
+u8 MCU_readReceivedIrqs(void)
+{
+	u8 data;
+	// This reg is actually 4 bytes big but we don't use all of it for now.
+	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, &data, 1)) return 0;
+	return data;
+}
 
+u8 MCU_readHidHeld(void)
+{
+	u8 data[19];
+	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, data, sizeof(data))) return 0xFF;
+	return data[18];
+}
+
+bool MCU_powerOnLcdBacklights(void)
+{
+	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3); // bit3 = lower screen, bit5 = upper
+}

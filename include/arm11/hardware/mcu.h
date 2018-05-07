@@ -21,6 +21,15 @@
 #include "types.h"
 
 
+#define MCU_HID_POWER_BUTTON_PRESSED       (1u)
+#define MCU_HID_POWER_BUTTON_LONG_PRESSED  (1u<<1)
+#define MCU_HID_HOME_BUTTON_PRESSED        (1u<<2)
+#define MCU_HID_HOME_BUTTON_RELEASED       (1u<<3)
+#define MCU_HID_HOME_BUTTON_NOT_HELD       (1u<<1)
+#define MCU_HID_SHELL_GOT_CLOSED           (1u<<5)
+#define MCU_HID_SHELL_GOT_OPENED           (1u<<6)
+
+
 
 void MCU_init(void);
 void MCU_disableLEDs(void);
@@ -32,3 +41,6 @@ u8 MCU_readBatteryLevel(void);
 bool MCU_readBatteryChargeState(void);
 u8 MCU_readSystemModel(void);
 void MCU_readRTC(void *rtc);
+u8 MCU_readReceivedIrqs(void);
+u8 MCU_readHidHeld(void);
+bool MCU_powerOnLcdBacklights(void);

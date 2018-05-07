@@ -29,25 +29,17 @@
 
 
 
-static void systemRestoreHwState(void)
-{
-	MCU_disableLEDs();
-}
-
 void WEAK __systemInit(void)
 {
 	IRQ_init();
 	TIMER_init();
 
-	const u32 cpuId = __getCpuId();
-	if(!cpuId)
+	if(!__getCpuId())
 	{
-		IRQ_registerHandler(IRQ_PDN, 0, 0b1111, true, NULL);
 		I2C_init();
 		hidInit();
 		PXI_init();
 		MCU_init();
-		systemRestoreHwState();
 	}
 	else
 	{
@@ -58,12 +50,10 @@ void WEAK __systemInit(void)
 	}
 
 	__cpsie(i); // Enables interrupts
-#ifdef CORE123_INIT
-	CPU_poweroffCore23();
-#endif
 }
 
 void WEAK __systemDeinit(void)
 {
+	__cpsid(aif);
 	IRQ_init();
 }

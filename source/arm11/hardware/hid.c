@@ -23,13 +23,14 @@
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/hardware/hid.h"
-#include "arm11/hardware/i2c.h"
+#include "arm11/hardware/mcu.h"
 #include "arm11/hardware/interrupt.h"
 #include "arm11/hardware/gpio.h"
 
 
 static u32 kHeld = 0, kDown = 0, kUp = 0;
-static vu32 homeShellState = 0, powerWifiState = 0;
+static u32 homeShellState = 0, powerWifiState = 0;
+static volatile bool mcuIrq = false;
 
 
 
@@ -44,12 +45,21 @@ void hidInit(void)
 	//I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mcuInterruptMask, 4);
 
 	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
-	GPIO_setBit(19, 9); // This enables the MCU HID IRQ
+	GPIO_setBit(19, 9); // This enables the MCU IRQ.
 }
 
 static void hidIrqHandler(UNUSED u32 intSource)
 {
-	const u32 state = (u32)i2cmcu_readreg_hid_irq();
+	mcuIrq = true;
+}
+
+static void updateMcuIrqState(void)
+{
+	// TODO: We should probably disable IRQs temporarily here.
+	if(!mcuIrq) return;
+	mcuIrq = false;
+
+	const u32 state = (u32)MCU_readReceivedIrqs();
 
 	u32 tmp = powerWifiState;
 	tmp |= state & 3;
@@ -83,13 +93,13 @@ u32 hidGetWifiButton(bool resetState)
 
 bool hidIsHomeButtonHeldRaw(void)
 {
-	u8 buf[19];
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, buf, 19)) return false;
-	return !(buf[18] & 1u<<1);
+	return !(MCU_readHidHeld() & 1u<<1);
 }
 
 void hidScanInput(void)
 {
+	updateMcuIrqState();
+
 	u32 kOld = kHeld;
 	kHeld = homeShellState | REG_HID_PAD;;
 	kDown = (~kOld) & kHeld;

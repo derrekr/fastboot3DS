@@ -30,8 +30,6 @@
 #define I2C_IRQ_ENABLE    (1u<<6)
 #define I2C_ENABLE        (1u<<7)
 
-#define I2C_GET_ACK(reg)  ((bool)((reg)>>4 & 1u))
-
 
 typedef enum
 {
@@ -99,32 +97,3 @@ u8 I2C_readReg(I2cDevice devId, u8 regAddr);
  * @return     Returns true on success and false on failure.
  */
 bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data);
-
-
-static inline u8 i2cmcu_readreg_hid_irq(void)
-{
-	u8 data;
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, &data, 1)) return 0;
-	return data;
-}
-
-static inline u8 i2cmcu_readreg_hid_held(void)
-{
-	u8 data[19];
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, data, sizeof(data))) return 0;
-	return data[18];
-}
-
-static inline bool i2cmcu_lcd_backlight_poweron(void)
-{
-	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3); // bit3 = lower screen, bit5 = upper
-}
-
-
-#define MCU_HID_POWER_BUTTON_PRESSED       (1u)
-#define MCU_HID_POWER_BUTTON_LONG_PRESSED  (1u<<1)
-#define MCU_HID_HOME_BUTTON_PRESSED        (1u<<2)
-#define MCU_HID_HOME_BUTTON_RELEASED       (1u<<3)
-#define MCU_HID_HOME_BUTTON_NOT_HELD       (1u<<1)
-#define MCU_HID_SHELL_GOT_CLOSED           (1u<<5)
-#define MCU_HID_SHELL_GOT_OPENED           (1u<<6)
