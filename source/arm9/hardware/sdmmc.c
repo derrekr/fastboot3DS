@@ -397,10 +397,10 @@ void sdmmc_init()
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; //SDPORTSEL
 #ifdef DATA32_SUPPORT
 	*(volatile uint16_t*)0x10006024 = 0x20;
-	*(volatile uint16_t*)0x10006028 = 0x40EE;
+	*(volatile uint16_t*)0x10006028 = 0x40E0;
 #else
 	*(volatile uint16_t*)0x10006024 = 0x40; //Nintendo sets this to 0x20
-	*(volatile uint16_t*)0x10006028 = 0x40EB; //Nintendo sets this to 0x40EE
+	*(volatile uint16_t*)0x10006028 = 0x40E0; //Nintendo sets this to 0x40EE
 #endif
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; ////SDPORTSEL
 	*(volatile uint16_t*)0x10006026 = 512; //SDBLKLEN
