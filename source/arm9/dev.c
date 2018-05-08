@@ -146,9 +146,10 @@ bool sdmmc_sd_init(void)
 		sdmmc_init();
 
 		// thanks yellows8
+		sdmmc_write16(REG_SDOPT, 0x4000); // Speedup card detect a bit and set timeout to 0.
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
-		u32 timeout = 260; // In ms. 256 works. 260 for safety.
+		u32 timeout = 4; // In ms. 2 works. 4 for safety.
 
 		do {
 			// if sd card is ready, stop polling
@@ -162,6 +163,7 @@ bool sdmmc_sd_init(void)
 		if(!timeout)	// we timed out
 			return false;
 
+		sdmmc_write16(REG_SDOPT, 0x40EE); // Set timeout back to what it was.
 		if(SD_Init()) return false;
 		dev_sd.initialized = true;
 		IRQ_registerHandler(IRQ_SDIO_1, sdioHandler);
