@@ -148,7 +148,7 @@ bool sdmmc_sd_init(void)
 		// thanks yellows8
 		*((vu16*)0x10000020) = (*((vu16*)0x10000020) & ~0x1u) | 0x200u;
 
-		u32 timeout = 4; // In ms. 2 works. 4 for safety.
+		u32 timeout = 34; // In ms. 33 works. 34 for safety.
 
 		do {
 			// if sd card is ready, stop polling

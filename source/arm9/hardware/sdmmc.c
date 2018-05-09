@@ -23,18 +23,10 @@
  */
 
 #include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <inttypes.h>
-#include <malloc.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <errno.h>
-
 #include "types.h"
 #include "util.h"
 #include "arm9/dev.h"
+#include "arm9/hardware/timer.h"
 #include "arm9/hardware/sdmmc.h"
 
 #define DATA32_SUPPORT
@@ -359,7 +351,7 @@ void sdmmc_init()
 	handleNAND.SDOPT = 0;
 	handleNAND.res = 0;
 	handleNAND.initarg = 1;
-	handleNAND.clk = 0x10; // ~523 KHz
+	handleNAND.clk = 0x20; // ~261 KHz
 	handleNAND.devicenumber = 1;
 
 	//SD
@@ -397,10 +389,10 @@ void sdmmc_init()
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; //SDPORTSEL
 #ifdef DATA32_SUPPORT
 	*(volatile uint16_t*)0x10006024 = 0x20;
-	*(volatile uint16_t*)0x10006028 = 0x40E0;
+	*(volatile uint16_t*)0x10006028 = 0x40EB;
 #else
 	*(volatile uint16_t*)0x10006024 = 0x40; //Nintendo sets this to 0x20
-	*(volatile uint16_t*)0x10006028 = 0x40E0; //Nintendo sets this to 0x40EE
+	*(volatile uint16_t*)0x10006028 = 0x40EB; //Nintendo sets this to 0x40EE
 #endif
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; ////SDPORTSEL
 	*(volatile uint16_t*)0x10006026 = 512; //SDBLKLEN
@@ -409,8 +401,8 @@ void sdmmc_init()
 
 int Nand_Init()
 {
+	// The eMMC is always on. Nothing special to do.
 	set_target(&handleNAND);
-	wait(0xF000);
 
 	sdmmc_send_command(&handleNAND,0,0);
 
@@ -460,9 +452,10 @@ int Nand_Init()
 
 int SD_Init()
 {
+	// We need to send at least 74 clock pulses.
+	// This is roughly 261 pulses at 261 KHz.
 	set_target(&handleSD);
-
-	wait(0xF000);
+	TIMER_sleep(1);
 
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);
