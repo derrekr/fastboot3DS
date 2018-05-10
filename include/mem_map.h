@@ -25,7 +25,7 @@
 #define ITCM_BASE            (0x00000000)
 #define ITCM_KERNEL_MIRROR   (0x01FF8000)
 #define ITCM_BOOT9_MIRROR    (0x07FF8000)
-#define ITCM_SIZE            (0x00008000) // 32 KB
+#define ITCM_SIZE            (0x00008000) // 32 KiB
 #endif
 
 
@@ -33,7 +33,7 @@
 /* ARM11 bootrom */
 #define BOOT11_BASE          (0x00000000)
 #define BOOT11_MIRROR1       (0x00010000)
-#define BOOT11_SIZE          (0x00010000) // 64 KB
+#define BOOT11_SIZE          (0x00010000) // 64 KiB
 #endif
 
 
@@ -41,8 +41,8 @@
 /* ARM9 RAM */
 #define A9_RAM_BASE          (0x08000000)
 #define A9_RAM_N3DS_EXT_BASE (A9_RAM_BASE + 0x100000)
-#define A9_RAM_SIZE          (0x00100000) // 1 MB
-#define A9_RAM_N3DS_EXT_SIZE (0x00080000) // 512 KB
+#define A9_RAM_SIZE          (0x00100000) // 1 MiB
+#define A9_RAM_N3DS_EXT_SIZE (0x00080000) // 512 KiB
 #endif
 
 
@@ -56,12 +56,12 @@
 #ifdef ARM11
 /* ARM11 MPCore private region */
 #define MPCORE_PRIV_REG_BASE (0x17E00000)
-#define MPCORE_PRIV_REG_SIZE (0x00002000) // 8 KB
+#define MPCORE_PRIV_REG_SIZE (0x00002000) // 8 KiB
 
 
 /* L2C-310 Level 2 Cache Controller */
 #define L2_CACHE_CONTR_BASE  (0x17E10000)
-#define L2_CACHE_CONTR_SIZE  (0x00001000) // 4 KB
+#define L2_CACHE_CONTR_SIZE  (0x00001000) // 4 KiB
 #endif
 
 
@@ -74,35 +74,35 @@
 
 /* DSP mem */
 #define DSP_MEM_BASE         (0x1FF00000)
-#define DSP_MEM_SIZE         (0x00080000) // 512 KB
+#define DSP_MEM_SIZE         (0x00080000) // 512 KiB
 
 
 /* AXIWRAM */
 #define AXIWRAM_BASE         (0x1FF80000)
-#define AXIWRAM_SIZE         (0x00080000) // 512 KB
+#define AXIWRAM_SIZE         (0x00080000) // 512 KiB
 
 
 /* FCRAM */
 #define FCRAM_BASE           (0x20000000)
 #define FCRAM_N3DS_EXT_BASE  (FCRAM_BASE + 0x8000000)
-#define FCRAM_SIZE           (0x08000000) // 128 MB
+#define FCRAM_SIZE           (0x08000000) // 128 MiB
 #define FCRAM_N3DS_EXT_SIZE  (FCRAM_SIZE)
 
 
+#ifdef ARM9
 /* OTP */
 #define OTP_BASE         	 (0x10012000)
-#define OTP_SIZE         	 (0x00000100) // 256 byte
+#define OTP_SIZE         	 (0x00000100) // 256 bytes
 
 
-#ifdef ARM9
 /* DTCM */
 #define DTCM_BASE            (0xFFF00000)
-#define DTCM_SIZE            (0x00004000) // 16 KB
+#define DTCM_SIZE            (0x00004000) // 16 KiB
 
 
 /* ARM9 bootrom */
 #define BOOT9_BASE           (0xFFFF0000)
-#define BOOT9_SIZE           (0x00010000) // 64 KB
+#define BOOT9_SIZE           (0x00010000) // 64 KiB
 #endif
 
 

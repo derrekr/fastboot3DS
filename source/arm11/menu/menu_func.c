@@ -924,19 +924,22 @@ u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 	// dump boot9.bin
 	ee_printf("Dumping ARM9 bootrom... ");
-	valid = fsQuickCreate("sdmc:/3DS/boot9.bin", (void*) BOOT9_BASE, BOOT9_SIZE);
+	u8 *dumpPtr = (u8*)VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE;
+	valid = fsQuickCreate("sdmc:/3DS/boot9.bin", dumpPtr, BOOT9_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();
 
 	// dump boot11.bin
 	ee_printf("Dumping ARM11 bootrom... ");
-	valid = fsQuickCreate("sdmc:/3DS/boot11.bin", (void*) (VRAM_BASE + VRAM_SIZE - BOOT11_SIZE), BOOT11_SIZE);
+	dumpPtr += BOOT9_SIZE;
+	valid = fsQuickCreate("sdmc:/3DS/boot11.bin", dumpPtr, BOOT11_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();
 
 	// dump otp.bin
 	ee_printf("Dumping OTP... ");
-	valid = fsQuickCreate("sdmc:/3DS/otp.bin", (void*) OTP_BASE, OTP_SIZE);
+	dumpPtr += BOOT11_SIZE;
+	valid = fsQuickCreate("sdmc:/3DS/otp.bin", dumpPtr, OTP_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();
 

@@ -221,8 +221,8 @@ checkSuperhax:
 	mov r2, #1
 	ldr r0, =BOOT11_BASE
 	strb r2, [r1]
-	ldr r1, =VRAM_BASE + VRAM_SIZE - 0x10000
-	mov r2, #0x10000
+	ldr r1, =VRAM_BASE + VRAM_SIZE - 0x100 - BOOT11_SIZE
+	mov r2, #BOOT11_SIZE
 	checkSuperhax_lp:
 		ldmia r0!, {r3-r6}
 		stmia r1!, {r3-r6}

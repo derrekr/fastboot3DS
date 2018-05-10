@@ -17,7 +17,9 @@
  */
 
 #include "arm.h"
+#define ARM11
 #include "mem_map.h"
+#undef ARM11
 
 .arm
 .cpu arm946e-s
@@ -32,6 +34,7 @@
 .type setupExceptionVectors %function
 .type setupTcms %function
 .type clearMem %function
+.type checkSuperhax %function
 .type setupMpu %function
 .type _init %function
 .type deinitCpu %function
@@ -96,13 +99,14 @@ _start:
 
 	bl setupMpu
 
+	bl checkSuperhax
 	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
 	sub r1, r1, r0
 	bl clearMem
 	@ Setup newlib heap
-	ldr r0, =IO_MEM_BASE        @ CFG9 regs
+	ldr r0, =IO_MEM_ARM9_ONLY   @ CFG9 regs
 	ldr r1, [r0, #0xFFC]        @ REG_CFG9_MPCORECFG
 	tst r1, #2                  @ Test for New 3DS bit
 	movne r2, #1
@@ -198,6 +202,31 @@ clearMem_check_zero:
 		subs r1, r1, #4
 		bne clearMem_remaining_lp
 	bx lr
+
+.pool
+
+
+checkSuperhax:
+	ldr r0, =IO_MEM_ARM9_ONLY @ CFG9 regs
+	ldrb r1, [r0]
+	cmp r1, #0
+	bxne lr
+	ldr r0, =BOOT9_BASE
+	ldr r1, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE
+	ldr r2, =BOOT9_SIZE
+	add r12, r1, #BOOT11_SIZE + BOOT9_SIZE
+	checkSuperhax_lp:
+		ldmia r0!, {r3-r6}
+		stmia r1!, {r3-r6}
+		subs r2, r2, #16
+		bne checkSuperhax_lp
+	cmp r12, #0
+	bxeq lr
+	ldr r0, =OTP_BASE
+	mov r1, r12
+	mov r12, #0
+	ldr r2, =OTP_SIZE
+	b checkSuperhax_lp
 
 .pool
 
