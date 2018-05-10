@@ -89,6 +89,11 @@
 #define FCRAM_N3DS_EXT_SIZE  (FCRAM_SIZE)
 
 
+/* OTP */
+#define OTP_BASE         	 (0x10012000)
+#define OTP_SIZE         	 (0x00000100) // 256 byte
+
+
 #ifdef ARM9
 /* DTCM */
 #define DTCM_BASE            (0xFFF00000)

@@ -21,6 +21,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// we need the ARM9 info from mem_map.h
+#define ARM9
+#include "mem_map.h"
+#undef ARM9
 #include "types.h"
 #include "firmwriter.h"
 #include "fs.h"
@@ -877,12 +881,94 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	return result;
 }
 
+u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	extern const bool __superhaxEnabled;
+
+	(void) menu_con;
+	(void) param;
+
+	u32 result = MENU_FAIL;
+
+	// bootrom dumper output
+	consoleSelect(term_con);
+	consoleClear();
+	ee_printf(ESC_SCHEME_ACCENT1 "Dumping Bootroms and OTP...\n\n" ESC_RESET);
+
+	// if superhax is not enabled: enable it and reboot
+	// (carefull not to introduce a potential bootloop here!)
+	if (!__superhaxEnabled)
+	{
+		ee_printf("Enabling SuperHax... ");
+		s32 ret = toggleSuperhax(true);
+		if (ret != 0)
+		{
+			ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+			if (ret == -6)
+				ee_printf("Fastboot3DS not installed in FIRM0.\n");
+			else
+				ee_printf("Unknown error.\n");
+			goto fail;
+		}
+		else
+		{
+			ee_printf(ESC_SCHEME_GOOD "success\n" ESC_RESET);
+			ee_printf("Now rebooting...");
+			return MENU_RET_REBOOT;
+		}
+	}
+
+	// if we arrive here: superhax enabled, ready to dump
+	bool valid;
+	s32 kDown;
+
+	// dump boot9.bin
+	ee_printf("Dumping ARM9 bootrom... ");
+	valid = fsQuickCreate("sdmc:/3DS/boot9.bin", (void*) BOOT9_BASE, BOOT9_SIZE);
+	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+	updateScreens();
+
+	// dump boot11.bin
+	ee_printf("Dumping ARM11 bootrom... ");
+	valid = fsQuickCreate("sdmc:/3DS/boot11.bin", (void*) (VRAM_BASE + VRAM_SIZE - BOOT11_SIZE), BOOT11_SIZE);
+	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+	updateScreens();
+
+	// dump otp.bin
+	ee_printf("Dumping OTP... ");
+	valid = fsQuickCreate("sdmc:/3DS/otp.bin", (void*) OTP_BASE, OTP_SIZE);
+	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+	updateScreens();
+
+	// disable superhax
+	ee_printf("Disabling SuperHax... ");
+	if (toggleSuperhax(false) != 0)
+	{
+		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
+	}
+	else
+	{
+		ee_printf(ESC_SCHEME_GOOD "success\n" ESC_RESET);
+		result = MENU_RET_POWEROFF;
+	}
+
+
+	fail:
+	
+	ee_printf("\nPress B or HOME to %s.", (result == MENU_RET_POWEROFF) ? "power off" : "return");
+	updateScreens();
+	outputEndWait();
+
+	
+	return result;
+}
+
 u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) param;
 	
 	char firm_path[FF_MAX_LFN + 1];
-	u32 result = 1;
+	u32 result = MENU_FAIL;
 	
 	bool accept_downgrades = false;
 	if (configDevModeEnabled())

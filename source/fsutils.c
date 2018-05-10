@@ -151,3 +151,16 @@ bool fsQuickRead(const char* filepath, void* buff, u32 len, u32 off)
 	fClose(fHandle);
 	return res;
 }
+
+bool fsQuickCreate(const char* filepath, const void *const buff, u32 len)
+{
+	s32 fHandle = fOpen(filepath, FS_CREATE_ALWAYS | FS_OPEN_WRITE);
+	if (fHandle < 0) return false;
+	
+	bool res = true;
+	if (len && buff && fWrite(fHandle, buff, len) != 0)
+		res = false;
+		
+	fClose(fHandle);
+	return res;
+}

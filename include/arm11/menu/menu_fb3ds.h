@@ -71,6 +71,7 @@
 #define DESC_NAND_RESTORE	"Restore current NAND from a file.\nThis option preserves your fastboot3ds installation."
 #define DESC_NAND_RESTORE_F	"Restore current NAND from a file.\nWARNING: This will overwrite all of your flash memory, also overwriting fastboot3ds."
 #define DESC_FIRM_FLASH		"Flash firmware from file to firm1:.\nWARNING: This will allow you to flash unsigned firmware, overwriting anything previously installed in firm1:."
+#define DESC_DUMP_BOOTROM	"Dump boot9.bin, boot11.bin & otp.bin.\nFiles are written to sdmc:/3DS. Your console will power off when finished."
 
 #define DESC_UPDATE			"Update fastboot3ds. Only signed updates are allowed."
 #define DESC_CREDITS    	"Show fastboot3ds credits."
@@ -140,12 +141,13 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 5
-		"NAND Tools", 4, &menuPresetNandTools, 0,
+		"NAND Tools", 5, &menuPresetNandTools, 0,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuRestoreNand,		0 },
 			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuRestoreNand,		1 },
-			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
+			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 },
+			{ "Dump bootroms & OTP",		DESC_DUMP_BOOTROM,			&menuDumpBootrom,		0 }
 		}
 	},
 	{ // 6

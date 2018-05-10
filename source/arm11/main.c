@@ -21,6 +21,7 @@
 #include "arm11/hardware/hid.h"
 #include "arm11/menu/bootslot.h"
 #include "arm11/menu/menu.h"
+#include "arm11/menu/menu_func.h" // the bootrom dumper is in there
 #include "arm11/menu/menu_fb3ds.h"
 #include "arm11/menu/menu_util.h"
 #include "arm11/menu/splash.h"
@@ -35,12 +36,15 @@
 #include "banner_spla.h"
 #include "fsutils.h"
 
+extern const bool __superhaxEnabled;
+
 
 
 int main(void)
 {
 	bool startFirmLaunch = false;
 	bool show_menu = false;
+	bool dump_bootroms = __superhaxEnabled;
 	bool gfx_initialized = false;
 	u32 menu_ret = MENU_OK;
 	
@@ -52,6 +56,21 @@ int main(void)
 	fsMountSdmc();
 	fsMountNandFilesystems();
 	loadConfigFile();
+
+
+	// bootrom dumper?
+	// skip bootslot / FCRAM / reboot handling in that case
+	if(dump_bootroms)
+	{
+		// workaround when HOME button is held
+		if (hidIsHomeButtonHeldRaw())
+		{
+			menu_ret = MENU_RET_REBOOT;
+			toggleSuperhax(false);
+			goto menu_end;
+		}
+		goto menu_start;
+	}
 	
 	
 	// get bootmode from config, previous bootslot from I2C
@@ -159,12 +178,14 @@ int main(void)
 	}
 
 	
+	menu_start: ;
+
 	// main loop
 	PrintConsole term_con;
 	while(!startFirmLaunch)
 	{
 		// init screens / console (if we'll need them below)
-		if(show_menu || err_string)
+		if(show_menu || err_string || dump_bootroms)
 		{
 			if (!gfx_initialized) GFX_init(true);
 			gfx_initialized = true;
@@ -188,6 +209,16 @@ int main(void)
 			err_string = NULL;
 			
 			if(hidGetPowerButton(false)) break;
+		}
+
+		// bootrom dumper handling
+		if(dump_bootroms)
+		{
+			menu_ret = menuDumpBootrom(&term_con, NULL, 0);
+			if ((menu_ret == MENU_RET_POWEROFF) || (menu_ret == MENU_RET_REBOOT))
+				break; // success
+			else
+				show_menu = true; // backup solution
 		}
 			
 		// menu specific code
@@ -291,6 +322,8 @@ int main(void)
 		}
 	}
 	
+
+	menu_end:
 	
 	// deinit GFX if it was initialized
 	if(gfx_initialized) GFX_deinit(firm_err == 1);
