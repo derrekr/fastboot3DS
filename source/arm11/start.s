@@ -17,7 +17,9 @@
  */
 
 #include "arm.h"
+#define ARM9
 #include "mem_map.h"
+#undef ARM9
 
 .arm
 .cpu mpcore
@@ -221,7 +223,7 @@ checkSuperhax:
 	mov r2, #1
 	ldr r0, =BOOT11_BASE
 	strb r2, [r1]
-	ldr r1, =VRAM_BASE + VRAM_SIZE - 0x100 - BOOT11_SIZE
+	ldr r1, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE
 	mov r2, #BOOT11_SIZE
 	checkSuperhax_lp:
 		ldmia r0!, {r3-r6}
