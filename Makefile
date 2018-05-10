@@ -5,7 +5,7 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-export TARGET := $(notdir $(CURDIR))
+export TARGET := fastboot3DS
 ENTRY9        := 0x080000D4
 ENTRY11       := 0x1FF89040
 SECTION0_ADR  := 0x080000C0
