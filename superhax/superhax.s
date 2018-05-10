@@ -69,7 +69,7 @@ irqHandlerHook:
 hook1:
 	@ Overwrites a debug function pointer from boot11 called just
 	@ before the final jump to the entrypoint. This is a race
-	@ condition because boot1 will overwrite it itself while we are
+	@ condition because boot11 will overwrite it itself while we are
 	@ messing with it. This also copies a tiny function to AXIWRAM start.
 	@ This function skips the bootrom lock wait code.
 	ldr r0, hook2
