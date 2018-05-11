@@ -32,6 +32,7 @@
 #include "arm11/firm.h"
 #include "arm11/fmt.h"
 #include "arm11/power.h"
+#include "firmwriter.h"
 #include "hardware/gfx.h"
 #include "banner_spla.h"
 #include "fsutils.h"
@@ -66,8 +67,15 @@ int main(void)
 		if (hidIsHomeButtonHeldRaw())
 		{
 			menu_ret = MENU_RET_REBOOT;
-			toggleSuperhax(false);
-			goto menu_end;
+			if (toggleSuperhax(false) == 0)
+			{
+				goto menu_end;
+			}
+			else // this really should never happen
+			{
+				dump_bootroms = false;
+				show_menu = true;
+			}
 		}
 		goto menu_start;
 	}
