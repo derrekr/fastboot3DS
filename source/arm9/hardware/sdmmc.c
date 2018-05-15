@@ -351,7 +351,7 @@ void sdmmc_init()
 	handleNAND.SDOPT = 0;
 	handleNAND.res = 0;
 	handleNAND.initarg = 1;
-	handleNAND.clk = 0x20; // ~261 KHz
+	handleNAND.clk = 0x20; // ~523 KHz
 	handleNAND.devicenumber = 1;
 
 	//SD
@@ -359,7 +359,7 @@ void sdmmc_init()
 	handleSD.SDOPT = 0;
 	handleSD.res = 0;
 	handleSD.initarg = 0;
-	handleSD.clk = 0x20; // ~261 KHz
+	handleSD.clk = 0x20; // ~523 KHz
 	handleSD.devicenumber = 0;
 
 	*(volatile uint16_t*)0x10006100 &= 0xF7FFu; //SDDATACTL32
