@@ -899,7 +899,7 @@ u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	// (carefull not to introduce a potential bootloop here!)
 	if (!__superhaxEnabled)
 	{
-		ee_printf("Enabling SuperHax... ");
+		ee_printf("Enable SuperHax... ");
 		s32 ret = toggleSuperhax(true);
 		if (ret != 0)
 		{
@@ -919,32 +919,31 @@ u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	}
 
 	// if we arrive here: superhax enabled, ready to dump
-	bool valid;
-	s32 kDown;
-
+	ee_printf("%-20.20s" ESC_SCHEME_GOOD "success\n" ESC_RESET, "Boot to SuperHax");
+	
 	// dump boot9.bin
-	ee_printf("Dumping ARM9 bootrom... ");
+	ee_printf("%-20.20s", "Dump ARM9 bootrom");
 	u8 *dumpPtr = (u8*)VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE;
-	valid = fsQuickCreate("sdmc:/3DS/boot9.bin", dumpPtr, BOOT9_SIZE);
+	bool valid = fsQuickCreate("sdmc:/3ds/boot9.bin", dumpPtr, BOOT9_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();
 
 	// dump boot11.bin
-	ee_printf("Dumping ARM11 bootrom... ");
+	ee_printf("%-20.20s", "Dump ARM11 bootrom");
 	dumpPtr += BOOT9_SIZE;
-	valid = fsQuickCreate("sdmc:/3DS/boot11.bin", dumpPtr, BOOT11_SIZE);
+	valid = fsQuickCreate("sdmc:/3ds/boot11.bin", dumpPtr, BOOT11_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();
 
 	// dump otp.bin
-	ee_printf("Dumping OTP... ");
+	ee_printf("%-20.20s", "Dump OTP");
 	dumpPtr += BOOT11_SIZE;
-	valid = fsQuickCreate("sdmc:/3DS/otp.bin", dumpPtr, OTP_SIZE);
+	valid = fsQuickCreate("sdmc:/3ds/otp.bin", dumpPtr, OTP_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();
 
 	// disable superhax
-	ee_printf("Disabling SuperHax... ");
+	ee_printf("%-20.20s", "Disable SuperHax");
 	if (toggleSuperhax(false) != 0)
 	{
 		ee_printf(ESC_SCHEME_BAD "failed!\n" ESC_RESET);
@@ -958,7 +957,7 @@ u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 
 	fail:
 	
-	ee_printf("\nPress B or HOME to %s.", (result == MENU_RET_POWEROFF) ? "power off" : "return");
+	ee_printf("\nPress B to %s.", (result == MENU_RET_POWEROFF) ? "power off" : "return");
 	updateScreens();
 	outputEndWait();
 

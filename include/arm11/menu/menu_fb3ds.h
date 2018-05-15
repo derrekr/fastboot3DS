@@ -65,7 +65,7 @@
 
 #define DESC_SPLASH_CUSTOM	"Select a custom splash. This is compatible with Luma 3DS format splash screens."
 #define DESC_SPLASH_DEFAULT	"Use default fastboot3DS splash screen."
-#define DESC_CHANGE_SPLASH	"Change fastboot3ds splash screen. Will only be display in normal and quick boot modes."
+#define DESC_CHANGE_SPLASH	"Change fastboot3ds splash screen. Will only be displayed in normal and quick boot modes."
 
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."
 #define DESC_NAND_RESTORE	"Restore current NAND from a file.\nThis option preserves your fastboot3ds installation."
