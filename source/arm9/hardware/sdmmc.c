@@ -351,7 +351,7 @@ void sdmmc_init()
 	handleNAND.SDOPT = 0;
 	handleNAND.res = 0;
 	handleNAND.initarg = 1;
-	handleNAND.clk = 0x20; // ~523 KHz
+	handleNAND.clk = 0x20; // 523.655968 KHz
 	handleNAND.devicenumber = 1;
 
 	//SD
@@ -359,7 +359,7 @@ void sdmmc_init()
 	handleSD.SDOPT = 0;
 	handleSD.res = 0;
 	handleSD.initarg = 0;
-	handleSD.clk = 0x20; // ~523 KHz
+	handleSD.clk = 0x20; // 523.655968 KHz
 	handleSD.devicenumber = 0;
 
 	*(volatile uint16_t*)0x10006100 &= 0xF7FFu; //SDDATACTL32
@@ -425,7 +425,7 @@ int Nand_Init()
 	if((handleNAND.error & 0x4))return -1;
 
 	handleNAND.total_size = sdmmc_calc_size((uint8_t*)&handleNAND.ret[0],0);
-	handleNAND.clk = 0; // 16.757 MHz
+	handleNAND.clk = 0; // 33.513982 MHz
 	setckl(0);
 
 	sdmmc_send_command(&handleNAND,0x10407,handleNAND.initarg << 0x10);
@@ -490,7 +490,7 @@ int SD_Init()
 	if((handleSD.error & 0x4)) return -3;
 
 	handleSD.total_size = sdmmc_calc_size((uint8_t*)&handleSD.ret[0],-1);
-	handleSD.clk = 0; // 16.757 MHz
+	handleSD.clk = 0; // 33.513982 MHz
 	setckl(0);
 
 	sdmmc_send_command(&handleSD,0x10507,handleSD.initarg << 0x10);
