@@ -28,8 +28,6 @@
 
 void wait(u32 cycles);
 
-__attribute__ ((format (scanf, 2, 3))) int fb_sscanf(const char *s, const char *fmt, ...);
-
 // case insensitive string compare function
 int strnicmp(const char *str1, const char *str2, u32 len);
 

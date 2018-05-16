@@ -3,7 +3,9 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include "types.h"
 #include "arm11/fmt.h"
 #include "hardware/gfx.h"
@@ -180,6 +182,52 @@ static void consoleClearLine(char mode) {
 		}
 	default: ;
 	}
+}
+
+__attribute__ ((format (scanf, 2, 3))) int fb_sscanf(const char *s, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+
+	int ret = 0;
+	const char *const oldS = s;
+	while(*fmt)
+	{
+		if(*fmt == '%')
+		{
+			bool number = false;
+
+			switch(*++fmt)
+			{
+				case 'd':
+					*va_arg(args, int*) = atoi(s);
+					number = true;
+					ret++;
+					break;
+				case 'c':
+					*va_arg(args, char*) = *s++;
+					ret++;
+					break;
+				case 'n':
+					*va_arg(args, int*) = (int)(s - oldS);
+					break;
+				default: ;
+			}
+			if(number) while(*s >= '0' && *s <= '9') s++;
+			fmt++;
+		}
+		else
+		{
+			if(*fmt != *s) break;
+			fmt++;
+			s++;
+		}
+	}
+
+	va_end(args);
+
+	return ret;
 }
 
 //---------------------------------------------------------------------------------
