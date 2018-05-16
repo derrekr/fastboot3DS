@@ -141,19 +141,19 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 5
-		"NAND Tools", 5, &menuPresetNandTools, 0,
+		"NAND Tools", 4, &menuPresetNandTools, 0,
 		{
 			{ "Backup NAND",				DESC_NAND_BACKUP,			&menuBackupNand,		0 },
 			{ "Restore NAND",				DESC_NAND_RESTORE,			&menuRestoreNand,		0 },
 			{ "Restore NAND (forced)",		DESC_NAND_RESTORE_F,		&menuRestoreNand,		1 },
-			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 },
-			{ "Dump bootroms & OTP",		DESC_DUMP_BOOTROM,			&menuDumpBootrom,		0 }
+			{ "Flash firmware to FIRM1",	DESC_FIRM_FLASH,			&menuInstallFirm,		1 }
 		}
 	},
 	{ // 6
-		"Miscellaneous", 2, NULL, 0,
+		"Miscellaneous", 3, NULL, 0,
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds,	0 },
+			{ "Dump bootroms & OTP",		DESC_DUMP_BOOTROM,			&menuDumpBootrom,		0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},
