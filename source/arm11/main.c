@@ -35,6 +35,7 @@
 #include "firmwriter.h"
 #include "hardware/gfx.h"
 #include "banner_spla.h"
+#include "menu_spla.h"
 #include "fsutils.h"
 
 extern const bool __superhaxEnabled;
@@ -110,6 +111,8 @@ int main(void)
 		else
 		{
 			splash_wait = drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
+			if (bootmode == BootModeQuick)
+				drawSplashscreen(menu_spla, -1, 8, SCREEN_TOP);
 		}
 		updateScreens();
 	}
