@@ -112,7 +112,7 @@ int main(void)
 		{
 			splash_wait = drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
 			if (bootmode == BootModeQuick)
-				drawSplashscreen(menu_spla, -1, 8, SCREEN_TOP);
+				drawSplashscreen(menu_spla, -1, 16, SCREEN_SUB);
 		}
 		updateScreens();
 	}
@@ -189,7 +189,7 @@ int main(void)
 	}
 
 	
-	menu_start: ;
+menu_start: ;
 
 	// main loop
 	PrintConsole term_con;
@@ -198,8 +198,11 @@ int main(void)
 		// init screens / console (if we'll need them below)
 		if(show_menu || err_string || dump_bootroms)
 		{
-			if (!gfx_initialized) GFX_init(true);
-			gfx_initialized = true;
+			if(!gfx_initialized)
+			{
+				GFX_init(true);
+				gfx_initialized = true;
+			}
 			// init and select terminal console
 			consoleInit(SCREEN_TOP, &term_con, true);
 			consoleSetWindow(&term_con, 1, 1, 64, 22);
@@ -231,7 +234,7 @@ int main(void)
 			else
 				show_menu = true; // backup solution
 		}
-			
+
 		// menu specific code
 		if(show_menu)
 		{
@@ -332,9 +335,22 @@ int main(void)
 			}
 		}
 	}
-	
 
-	menu_end:
+	/* Last chance to enter boot menu */
+	hidScanInput();
+	if (hidKeysDown() & KEY_HOME)
+	{
+		show_menu = true;
+		startFirmLaunch = false;
+		goto menu_start;
+	}
+
+
+menu_end:
+
+	/* When we reached this code, there's way back. */
+	/* We are going to turn off our console or boot */
+	/* into a new firmware.							*/
 	
 	// deinit GFX if it was initialized
 	if(gfx_initialized) GFX_deinit(firm_err == 1);

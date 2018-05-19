@@ -69,12 +69,12 @@ bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen)
 	else imgData = (u16*)(data + sizeof(SplashHeader));
 
 	u32 screenWidth, screenHeight, xx, yy;
-	if(screen)
+	if(screen)	/* SCREEN_TOP */
 	{
 		screenWidth = SCREEN_WIDTH_TOP;
 		screenHeight = SCREEN_HEIGHT_TOP;
 	}
-	else
+	else	/* SCREEN_SUB */
 	{
 		screenWidth = SCREEN_WIDTH_SUB;
 		screenHeight = SCREEN_HEIGHT_SUB;
