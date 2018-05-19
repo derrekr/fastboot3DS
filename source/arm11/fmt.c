@@ -75,15 +75,6 @@ This code is based on a file that contains the following:
 
 #define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
 
-u32 strnlen(const char *string, u32 maxlen)
-{
-	u32 size;
-
-	for(size = 0; size < maxlen && *string; string++, size++);
-
-	return size;
-}
-
 static s32 skipAtoi(const char **s)
 {
 	s32 i = 0;

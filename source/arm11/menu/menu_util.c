@@ -33,15 +33,6 @@
 #define BORDER_WIDTH	2 // in pixel
 
 
-char* mallocpyString(const char* str)
-{
-	u32 strsize = strlen(str) + 1;
-	char* astr = (char*) malloc(strsize);
-	
-	if (astr) strncpy(astr, str, strsize);
-	return astr;
-}
-
 void truncateString(char* dest, const char* orig, int nsize, int tpos)
 {
 	int osize = strlen(orig);

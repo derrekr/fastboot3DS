@@ -160,7 +160,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 			
 			dir_buffer[n_entries].fsize = 0;
 			dir_buffer[n_entries].is_dir = 1;
-			dir_buffer[n_entries].fname = mallocpyString(root_paths[i]);
+			dir_buffer[n_entries].fname = strdup(root_paths[i]);
 			n_entries++;
 		}
 		
@@ -173,7 +173,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 				
 				dir_buffer[n_entries].fsize = firm_size;
 				dir_buffer[n_entries].is_dir = 0;
-				dir_buffer[n_entries].fname = mallocpyString(firm_paths[i]);
+				dir_buffer[n_entries].fname = strdup(firm_paths[i]);
 				n_entries++;
 			}
 		}
@@ -206,7 +206,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 			// take over data
 			dir_buffer[n_entries].fsize = finfo[i].fsize;
 			dir_buffer[n_entries].is_dir = finfo[i].fattrib & AM_DIR;
-			dir_buffer[n_entries].fname = mallocpyString(finfo[i].fname);
+			dir_buffer[n_entries].fname = strdup(finfo[i].fname);
 			
 			// check for out of memory
 			if (!dir_buffer[n_entries].fname)

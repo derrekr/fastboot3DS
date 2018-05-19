@@ -22,7 +22,6 @@
 
 
 
-char* mallocpyString(const char* str);
 void truncateString(char* dest, const char* orig, int nsize, int tpos);
 void formatBytes(char* str, u64 bytes);
 void keysToString(u32 keys, char* string);
