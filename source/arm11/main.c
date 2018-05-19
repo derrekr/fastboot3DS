@@ -332,25 +332,24 @@ menu_start: ;
 			{
 				free(err_string);
 				err_string = NULL;
+
+				// Last chance to abort and enter boot menu
+				hidScanInput();
+				if (hidKeysDown() & KEY_HOME)
+				{
+					show_menu = true;
+					startFirmLaunch = false;
+				}
 			}
 		}
-	}
-
-	/* Last chance to enter boot menu */
-	hidScanInput();
-	if (hidKeysDown() & KEY_HOME)
-	{
-		show_menu = true;
-		startFirmLaunch = false;
-		goto menu_start;
 	}
 
 
 menu_end:
 
-	/* When we reached this code, there's way back. */
-	/* We are going to turn off our console or boot */
-	/* into a new firmware.							*/
+	/* When we reached this code, there's no way back. */
+	/* We are going to turn off our console or boot    */
+	/* into a new firmware.							   */
 	
 	// deinit GFX if it was initialized
 	if(gfx_initialized) GFX_deinit(firm_err == 1);
