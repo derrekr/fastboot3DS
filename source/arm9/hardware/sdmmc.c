@@ -490,24 +490,32 @@ int SD_Init()
 	if((handleSD.error & 0x4)) return -3;
 
 	handleSD.total_size = sdmmc_calc_size((uint8_t*)&handleSD.ret[0],-1);
-	handleSD.clk = 0; // 33.513982 MHz
-	setckl(0);
+	handleSD.clk = 1; // 16.756991 MHz
+	setckl(1);
 
 	sdmmc_send_command(&handleSD,0x10507,handleSD.initarg << 0x10);
 	if((handleSD.error & 0x4)) return -4;
 
+	// CMD55
 	sdmmc_send_command(&handleSD,0x10437,handleSD.initarg << 0x10);
-	if((handleSD.error & 0x4)) return -5;
+	if(handleSD.error & 0x4) return -5;
+
+	// ACMD42 SET_CLR_CARD_DETECT
+	sdmmc_send_command(&handleSD,0x1076A,0x0);
+	if(handleSD.error & 0x4) return -6;
+
+	sdmmc_send_command(&handleSD,0x10437,handleSD.initarg << 0x10);
+	if((handleSD.error & 0x4)) return -7;
 
 	handleSD.SDOPT = 1;
 	sdmmc_send_command(&handleSD,0x10446,0x2);
-	if((handleSD.error & 0x4)) return -6;
+	if((handleSD.error & 0x4)) return -8;
 
 	sdmmc_send_command(&handleSD,0x1040D,handleSD.initarg << 0x10);
-	if((handleSD.error & 0x4)) return -7;
+	if((handleSD.error & 0x4)) return -9;
 
 	sdmmc_send_command(&handleSD,0x10410,0x200);
-	if((handleSD.error & 0x4)) return -8;
+	if((handleSD.error & 0x4)) return -10;
 	handleSD.clk |= 0x200;
 
 	return 0;

@@ -177,7 +177,7 @@ static inline void sdmmc_mask16(uint16_t reg, const uint16_t clear, const uint16
 
 static inline void setckl(uint32_t data)
 {
-	sdmmc_write16(REG_SDCLKCTL, 0);
+	sdmmc_write16(REG_SDCLKCTL, data & 0xFF);
 	sdmmc_write16(REG_SDCLKCTL, 1u<<8 | (data & 0x2FF));
 }
 
