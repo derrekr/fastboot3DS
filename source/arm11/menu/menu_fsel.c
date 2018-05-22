@@ -168,7 +168,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 		{
 			for(u32 i = 0; i < sizeof(firm_paths) / sizeof(const char*); i++)
 			{
-				if (!matchName(firm_paths[i], pattern))
+				if (!pattern || !matchName(firm_paths[i], pattern))
 					continue;
 				
 				dir_buffer[n_entries].fsize = firm_size;
@@ -200,7 +200,7 @@ static s32 readDirToBuffer(DirBufferEntry* dir_buffer, const char* path, const c
 		
 		for(s32 i = 0; i < n_read; i++)
 		{
-			if(!(finfo[i].fattrib & AM_DIR) && pattern && !matchName(finfo[i].fname, pattern))
+			if(!(finfo[i].fattrib & AM_DIR) && (!pattern || !matchName(finfo[i].fname, pattern)))
 				continue; // not a match with the provided pattern and not a dir
 			
 			// take over data
@@ -440,6 +440,13 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 				// is this a dir? (override when X is detected)
 				is_dir = !(select_dirs && (kDown & KEY_X)) && dir_buffer[index].is_dir;
 				
+				lastname = NULL;
+				break;
+			}
+			else if ((kDown & KEY_X) && !n_entries && select_dirs)
+			{
+				// override when inside a empty DIR in dirselect mode
+				is_dir = false;
 				lastname = NULL;
 				break;
 			}

@@ -191,12 +191,12 @@ u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	consoleSelect(term_con);
 	consoleClear();
-	ee_printf_screen_center("Select a custom splash screen.\n[X] to select current folder.\nPress [HOME] to cancel.");
+	ee_printf_screen_center("Select a custom splash folder.\n[X] to select current folder.\nPress [HOME] to cancel.");
 	updateScreens();
 	
 	u32 res = MENU_OK;
 	*res_path = '\0';
-	if (menuFileSelector(res_path, menu_con, start, "splash*.*", true, true))
+	if (menuFileSelector(res_path, menu_con, start, NULL, true, true))
 	{
 		// back to terminal console
 		consoleSelect(term_con);
