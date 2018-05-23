@@ -176,9 +176,15 @@ int main(void)
 	
 	if (splash_wait)
 	{
-		for (u32 i = 0; i < 64; i++) // VBlank * 64
+		for (u32 i = 0; i < 64 + 16; i++) // VBlank * (64 + 16)
 		{
-			GFX_waitForEvent(GFX_EVENT_PDC0, true); 
+			GFX_waitForEvent(GFX_EVENT_PDC0, true);
+			// clear screen after 64 VBlanks
+			if (i == 64)
+			{
+				clearScreens();
+				updateScreens();
+			} 
 			hidScanInput();
 			if (hidKeysDown() & KEY_HOME)
 			{
