@@ -85,6 +85,7 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 	sdmmc_write16(REG_SDCMD,cmd &0xFFFF);
 
 	uint32_t size = ctx->size;
+	const uint16_t blkSize = sdmmc_read16(REG_SDBLKLEN32);
 	u32 *rDataPtr32 = (u32*)ctx->rData;
 	u8  *rDataPtr8  = ctx->rData;
 	const u32 *tDataPtr32 = (u32*)ctx->tData;
@@ -109,19 +110,19 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 				if(rUseBuf)
 				{
 					sdmmc_mask16(REG_SDSTATUS1, TMIO_STAT1_RXRDY, 0);
-					if(size > 0x1FF)
+					if(size >= blkSize)
 					{
 						#ifdef DATA32_SUPPORT
 						if(!((u32)rDataPtr32 & 3))
 						{
-							for(int i = 0; i<0x200; i+=4)
+							for(uint32_t i = 0; i < blkSize; i += 4)
 							{
 								*rDataPtr32++ = sdmmc_read32(REG_SDFIFO32);
 							}
 						}
 						else
 						{
-							for(int i = 0; i<0x200; i+=4)
+							for(uint32_t i = 0; i < blkSize; i += 4)
 							{
 								u32 data = sdmmc_read32(REG_SDFIFO32);
 								*rDataPtr8++ = data;
@@ -133,14 +134,14 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 						#else
 						if(!((u32)rDataPtr16 & 1))
 						{
-							for(int i = 0; i<0x200; i+=4)
+							for(uint32_t i = 0; i < blkSize; i += 4)
 							{
 								*rDataPtr16++ = sdmmc_read16(REG_SDFIFO);
 							}
 						}
 						else
 						{
-							for(int i = 0; i<0x200; i+=4)
+							for(uint32_t i = 0; i < blkSize; i += 4)
 							{
 								u16 data = sdmmc_read16(REG_SDFIFO);
 								*rDataPtr8++ = data;
@@ -148,7 +149,7 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 							}
 						}
 						#endif
-						size -= 0x200;
+						size -= blkSize;
 					}
 				}
 
@@ -166,19 +167,19 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 				if(tUseBuf)
 				{
 					sdmmc_mask16(REG_SDSTATUS1, TMIO_STAT1_TXRQ, 0);
-					if(size > 0x1FF)
+					if(size >= blkSize)
 					{
 						#ifdef DATA32_SUPPORT
 						if(!((u32)tDataPtr32 & 3))
 						{
-							for(int i = 0; i<0x200; i+=4)
+							for(uint32_t i = 0; i < blkSize; i += 4)
 							{
 								sdmmc_write32(REG_SDFIFO32, *tDataPtr32++);
 							}
 						}
 						else
 						{
-							for(int i = 0; i<0x200; i+=4)
+							for(uint32_t i = 0; i < blkSize; i += 4)
 							{
 								uint32_t data = *tDataPtr8++;
 								data |= (uint32_t)*tDataPtr8++ << 8;
@@ -190,14 +191,14 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 						#else
 						if(!((u32)tDataPtr16 & 1))
 						{
-							for(int i = 0; i<0x200; i+=2)
+							for(uint32_t i = 0; i < blkSize; i += 2)
 							{
 								sdmmc_write16(REG_SDFIFO, *tDataPtr16++);
 							}
 						}
 						else
 						{
-							for(int i = 0; i<0x200; i+=2)
+							for(uint32_t i = 0; i < blkSize; i += 2)
 							{
 								uint16_t data = *tDataPtr8++;
 								data |= (uint16_t)(*tDataPtr8++ << 8);
@@ -205,7 +206,7 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 							}
 						}
 						#endif
-						size -= 0x200;
+						size -= blkSize;
 					}
 				}
 
@@ -489,8 +490,9 @@ int SD_Init()
 	sdmmc_send_command(&handleSD,0x10609,handleSD.initarg << 0x10);
 	if((handleSD.error & 0x4)) return -3;
 
+	// Command Class 10 support
+	const bool cmd6Supported = ((u8*)handleSD.ret)[10] & 0x40;
 	handleSD.total_size = sdmmc_calc_size((uint8_t*)&handleSD.ret[0],-1);
-	handleSD.clk = 1; // 16.756991 MHz
 	setckl(1);
 
 	sdmmc_send_command(&handleSD,0x10507,handleSD.initarg << 0x10);
@@ -513,25 +515,27 @@ int SD_Init()
 	sdmmc_mask16(REG_SDOPT, 0x8000, 0); // Switch to 4 bit mode.
 
 	// TODO: CMD6 to switch to high speed mode.
-	// For some reason this gives an error and makes following
-	// commands hang.
-	/*sdmmc_write16(REG_SDSTOP,0);
-	sdmmc_write16(REG_SDBLKCOUNT32,1);
-	sdmmc_write16(REG_SDBLKLEN32,0x200);
-	sdmmc_write16(REG_SDBLKCOUNT,1);
-	u8 tmpBuf[512 / 4];
-	handleSD.rData = tmpBuf;
-	handleSD.size = 1<<9;
-	sdmmc_send_command(&handleSD,0x31C06,0x80FFFFF1);
-	if(handleSD.error & 0x4) return -9;
-	setckl(0);*/
+	if(cmd6Supported)
+	{
+		sdmmc_write16(REG_SDSTOP,0);
+		sdmmc_write16(REG_SDBLKLEN32,64);
+		sdmmc_write16(REG_SDBLKLEN,64);
+		handleSD.rData = NULL;
+		handleSD.size = 64;
+		sdmmc_send_command(&handleSD,0x31C06,0x80FFFFF1);
+		sdmmc_write16(REG_SDBLKLEN,512);
+		if(handleSD.error & 0x4) return -9;
+
+		handleSD.clk = 0x200; // 33.513982 MHz
+		setckl(0);
+	}
+	else handleSD.clk = 0x201; // 16.756991 MHz
 
 	sdmmc_send_command(&handleSD,0x1040D,handleSD.initarg << 0x10);
 	if((handleSD.error & 0x4)) return -9;
 
 	sdmmc_send_command(&handleSD,0x10410,0x200);
 	if((handleSD.error & 0x4)) return -10;
-	handleSD.clk |= 0x200;
 
 	return 0;
 }
