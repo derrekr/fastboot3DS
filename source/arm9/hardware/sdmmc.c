@@ -79,7 +79,7 @@ static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t arg
 	sdmmc_write16(REG_SDIRMASK1,0);
 	sdmmc_write16(REG_SDSTATUS0,0);
 	sdmmc_write16(REG_SDSTATUS1,0);
-	sdmmc_mask16(REG_DATACTL32,0x1800,0);
+	sdmmc_mask16(REG_DATACTL32,0x1800,0x400); // Disable TX32RQ and RX32RDY IRQ. Clear fifo.
 	sdmmc_write16(REG_SDCMDARG0,args &0xFFFF);
 	sdmmc_write16(REG_SDCMDARG1,args >> 16);
 	sdmmc_write16(REG_SDCMD,cmd &0xFFFF);
@@ -510,6 +510,21 @@ int SD_Init()
 	handleSD.SDOPT = 1;
 	sdmmc_send_command(&handleSD,0x10446,0x2);
 	if((handleSD.error & 0x4)) return -8;
+	sdmmc_mask16(REG_SDOPT, 0x8000, 0); // Switch to 4 bit mode.
+
+	// TODO: CMD6 to switch to high speed mode.
+	// For some reason this gives an error and makes following
+	// commands hang.
+	/*sdmmc_write16(REG_SDSTOP,0);
+	sdmmc_write16(REG_SDBLKCOUNT32,1);
+	sdmmc_write16(REG_SDBLKLEN32,0x200);
+	sdmmc_write16(REG_SDBLKCOUNT,1);
+	u8 tmpBuf[512 / 4];
+	handleSD.rData = tmpBuf;
+	handleSD.size = 1<<9;
+	sdmmc_send_command(&handleSD,0x31C06,0x80FFFFF1);
+	if(handleSD.error & 0x4) return -9;
+	setckl(0);*/
 
 	sdmmc_send_command(&handleSD,0x1040D,handleSD.initarg << 0x10);
 	if((handleSD.error & 0x4)) return -9;
