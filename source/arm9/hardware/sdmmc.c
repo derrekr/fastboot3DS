@@ -26,7 +26,6 @@
 #include "types.h"
 #include "util.h"
 #include "arm9/dev.h"
-#include "arm9/hardware/timer.h"
 #include "arm9/hardware/sdmmc.h"
 
 #define DATA32_SUPPORT
@@ -390,10 +389,10 @@ void sdmmc_init()
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; //SDPORTSEL
 #ifdef DATA32_SUPPORT
 	*(volatile uint16_t*)0x10006024 = 0x20;
-	*(volatile uint16_t*)0x10006028 = 0x40EB;
+	*(volatile uint16_t*)0x10006028 = 0x40E9;
 #else
 	*(volatile uint16_t*)0x10006024 = 0x40; //Nintendo sets this to 0x20
-	*(volatile uint16_t*)0x10006028 = 0x40EB; //Nintendo sets this to 0x40EE
+	*(volatile uint16_t*)0x10006028 = 0x40E9; //Nintendo sets this to 0x40EE
 #endif
 	*(volatile uint16_t*)0x10006002 &= 0xFFFCu; ////SDPORTSEL
 	*(volatile uint16_t*)0x10006026 = 512; //SDBLKLEN
@@ -454,9 +453,8 @@ int Nand_Init()
 int SD_Init()
 {
 	// We need to send at least 74 clock pulses.
-	// This is roughly 261 pulses at 261 KHz.
 	set_target(&handleSD);
-	TIMER_sleep(1);
+	wait(0x1980); // ~75-76 clocks
 
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);
