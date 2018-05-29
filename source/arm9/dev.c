@@ -146,7 +146,7 @@ bool sdmmc_sd_init(void)
 		sdmmc_init();
 
 		// thanks yellows8
-		*((vu16*)0x10000020) = 0x200u;
+		*((vu16*)0x10000020) = 0x340u;
 
 		u32 timeout = 10; // In ms.
 
