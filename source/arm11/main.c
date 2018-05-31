@@ -176,21 +176,24 @@ int main(void)
 	
 	if (splash_wait)
 	{
-		for (u32 i = 0; i < 64 + 16; i++) // VBlank * (64 + 16)
+		for (u32 i = 0; i < 64; i++) // VBlank * 64
 		{
 			GFX_waitForEvent(GFX_EVENT_PDC0, true);
-			// clear screen after 64 VBlanks
-			if (i == 64)
-			{
-				clearScreens();
-				updateScreens();
-			} 
 			hidScanInput();
 			if (hidKeysDown() & KEY_HOME)
 			{
 				show_menu = true;
 				startFirmLaunch = false;
 			}
+		}
+
+		// delay before showing menu
+		if (show_menu)
+		{
+			clearScreens();
+			updateScreens();
+			for (u32 i = 0; i < 16; i++)
+				GFX_waitForEvent(GFX_EVENT_PDC0, true);
 		}
 	}
 
