@@ -425,27 +425,26 @@ int Nand_Init()
 	if((handleNAND.error & 0x4))return -1;
 
 	handleNAND.total_size = sdmmc_calc_size((uint8_t*)&handleNAND.ret[0],0);
-	handleNAND.clk = 0; // 33.513982 MHz
-	setckl(0);
+	setckl(0x201); // 16.756991 MHz
 
 	sdmmc_send_command(&handleNAND,0x10407,handleNAND.initarg << 0x10);
 	if((handleNAND.error & 0x4))return -1;
 
 	handleNAND.SDOPT = 1;
-
-	sdmmc_send_command(&handleNAND,0x10506,0x3B70100);
+	sdmmc_send_command(&handleNAND,0x10506,0x3B70100); // Set 4 bit bus width.
 	if((handleNAND.error & 0x4))return -1;
+	sdmmc_mask16(REG_SDOPT, 0x8000, 0); // Switch to 4 bit mode.
 
-	sdmmc_send_command(&handleNAND,0x10506,0x3B90100);
+	sdmmc_send_command(&handleNAND,0x10506,0x3B90100); // Switch to high speed timing.
 	if((handleNAND.error & 0x4))return -1;
+	handleNAND.clk = 0x200; // 33.513982 MHz
+	setckl(0x200);
 
 	sdmmc_send_command(&handleNAND,0x1040D,handleNAND.initarg << 0x10);
 	if((handleNAND.error & 0x4))return -1;
 
 	sdmmc_send_command(&handleNAND,0x10410,0x200);
 	if((handleNAND.error & 0x4))return -1;
-
-	handleNAND.clk |= 0x200;
 
 	return 0;
 }
@@ -491,7 +490,7 @@ int SD_Init()
 	// Command Class 10 support
 	const bool cmd6Supported = ((u8*)handleSD.ret)[10] & 0x40;
 	handleSD.total_size = sdmmc_calc_size((uint8_t*)&handleSD.ret[0],-1);
-	setckl(1);
+	setckl(0x201); // 16.756991 MHz
 
 	sdmmc_send_command(&handleSD,0x10507,handleSD.initarg << 0x10);
 	if((handleSD.error & 0x4)) return -4;
@@ -525,7 +524,7 @@ int SD_Init()
 		if(handleSD.error & 0x4) return -9;
 
 		handleSD.clk = 0x200; // 33.513982 MHz
-		setckl(0);
+		setckl(0x200);
 	}
 	else handleSD.clk = 0x201; // 16.756991 MHz
 
