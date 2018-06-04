@@ -192,7 +192,7 @@ int main(void)
 		{
 			clearScreens();
 			updateScreens();
-			for (u32 i = 0; i < 16; i++)
+			for (u32 i = 0; i < 8; i++)
 				GFX_waitForEvent(GFX_EVENT_PDC0, true);
 		}
 	}
