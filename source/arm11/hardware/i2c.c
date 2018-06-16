@@ -242,3 +242,52 @@ bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data)
 {
 	return I2C_writeRegBuf(devId, regAddr, &data, 1);
 }
+
+bool I2C_writeRegIntSafe(I2cDevice devId, u8 regAddr, u8 data)
+{
+	const u8 busId = i2cDevTable[devId].busId;
+	const u8 devAddr = i2cDevTable[devId].devAddr;
+	I2cRegs *const regs = i2cGetBusRegsBase(busId);
+
+
+	u32 tries = 8;
+	do
+	{
+		while(regs->I2C_CNT & I2C_ENABLE);
+
+		// Select device and start.
+		regs->I2C_DATA = devAddr;
+		regs->I2C_CNT = I2C_ENABLE | I2C_DIRE_WRITE | I2C_START;
+		while(regs->I2C_CNT & I2C_ENABLE);
+		if(!(regs->I2C_CNT & I2C_ACK)) // If ack flag is 0 it failed.
+		{
+			regs->I2C_CNT = I2C_ENABLE | I2C_ERROR | I2C_STOP;
+			continue;
+		}
+
+		// Select register.
+		regs->I2C_DATA = regAddr;
+		regs->I2C_CNT = I2C_ENABLE | I2C_DIRE_WRITE;
+		while(regs->I2C_CNT & I2C_ENABLE);
+		if(!(regs->I2C_CNT & I2C_ACK))
+		{
+			regs->I2C_CNT = I2C_ENABLE | I2C_ERROR | I2C_STOP;
+			continue;
+		}
+
+		break;
+	} while(--tries > 0);
+
+	if(tries == 0) return false;
+
+	regs->I2C_DATA = data;
+	regs->I2C_CNT = I2C_ENABLE | I2C_DIRE_WRITE | I2C_STOP;
+	while(regs->I2C_CNT & I2C_ENABLE);
+	if(!(regs->I2C_CNT & I2C_ACK))
+	{
+		regs->I2C_CNT = I2C_ENABLE | I2C_ERROR | I2C_STOP;
+		return false;
+	}
+
+	return true;
+}
