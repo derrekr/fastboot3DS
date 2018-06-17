@@ -258,9 +258,6 @@ menu_start: ;
 			clearScreens();
 			updateScreens();
 			
-			// write config (if something changed)
-			if (configHasChanged()) writeConfigFile();
-			
 			// check POWER button
 			if(hidGetPowerButton(false)) break;
 			
@@ -360,9 +357,12 @@ menu_end:
 	/* We are going to turn off our console or boot    */
 	/* into a new firmware.							   */
 	
+	// write config (if something changed)
+	if (configHasChanged()) writeConfigFile();
+	
 	// deinit GFX if it was initialized
 	if(gfx_initialized) GFX_deinit(firm_err == 1);
-		
+	
 	// deinit filesystem
 	fsUnmountAll();
 	
