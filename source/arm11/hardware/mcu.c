@@ -70,12 +70,12 @@ void MCU_powerOffLCDs(void)
 
 void MCU_triggerPowerOff(void)
 {
-	I2C_writeReg(I2C_DEV_MCU, RegPower, 1);
+	I2C_writeRegIntSafe(I2C_DEV_MCU, RegPower, 1);
 }
 
 void MCU_triggerReboot(void)
 {
-	I2C_writeReg(I2C_DEV_MCU, RegPower, 1u << 2);
+	I2C_writeRegIntSafe(I2C_DEV_MCU, RegPower, 1u << 2);
 }
 
 u8 MCU_readBatteryLevel(void)
