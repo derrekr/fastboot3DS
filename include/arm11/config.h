@@ -48,6 +48,8 @@ enum Keys {
 	KDevMode,
 	KRamFirmBoot,
 
+	KSplashDuration,
+
 	/*
 	KBootOption1NandImage,
 	KBootOption2NandImage,

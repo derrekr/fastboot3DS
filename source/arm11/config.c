@@ -62,6 +62,8 @@ static bool parseBootMode(AttributeEntryType *attr);
 static bool writeBootMode(AttributeEntryType *attr, const void *newData, int key);
 static bool parseBool(AttributeEntryType *attr);
 static bool writeBool(AttributeEntryType *attr, const void *newData, int key);
+static bool parseInt(AttributeEntryType *attr);
+static bool writeInt(AttributeEntryType *attr, const void *newData, int key);
 
 static const char *keyStrings[] = {
 	"BOOT_OPTION1",
@@ -88,7 +90,9 @@ static const char *keyStrings[] = {
 
 	"BOOT_MODE",
 	"DEV_MODE",
-	"RAM_FIRM_BOOT"
+	"RAM_FIRM_BOOT",
+
+	"SPLASH_DURATION"
 	
 	/*
 	"BOOT_OPTION1_NAND_IMAGE",
@@ -104,13 +108,14 @@ static char *filebuf = NULL;
 static bool configLoaded = false;
 static bool configDirty = false;
 
-static const FunctionsEntryType *getKeyFunction(int key)
+static const FunctionsEntryType *getKeyFunctions(int key)
 {
 	static const FunctionsEntryType keyFunctions[] = {
 		{ parsePath,			writePath },
 		{ parseBootOptionPad,	writeBootOptionPad },
 		{ parseBootMode,		writeBootMode },
-		{ parseBool,			writeBool }
+		{ parseBool,			writeBool },
+		{ parseInt,				writeInt }
 	};
 	
 	if(key <= KSplashScreen && key >= KBootOption1)
@@ -121,6 +126,8 @@ static const FunctionsEntryType *getKeyFunction(int key)
 		return &keyFunctions[2];
 	if(key == KDevMode || key == KRamFirmBoot)
 		return &keyFunctions[3];
+	if(key == KSplashDuration)
+		return &keyFunctions[4];
 
 	return NULL;
 }
@@ -453,7 +460,7 @@ static bool parseConfigFile()
 		}
 		else
 		{
-			keyFunc = getKeyFunction(i);
+			keyFunc = getKeyFunctions(i);
 			if(keyFunc && keyFunc->parse)
 				keyFunc->parse(curAttr);
 			else curAttr->data = NULL;
@@ -705,11 +712,10 @@ static bool writePath(AttributeEntryType *attr, const void *newData, int key)
 	}
 	else if(len != attr->textLength)
 	{
-		free(attr->data);
-		buf = (char *) malloc(len + 1);
+		attr->data = realloc(attr->data, len + 1);
+		buf = (char *)attr->data;
 		if(!buf)
 			return false;
-		attr->data = buf;
 	}
 	else buf = attr->data;
 	
@@ -904,6 +910,61 @@ static bool writeBool(AttributeEntryType *attr, const void *newData, int key)
 	return true;
 }
 
+static bool parseInt(AttributeEntryType *attr)
+{
+	char *textData = attr->textData;
+	int value;
+
+	/*
+	if(sscanf(textData, "%i", &value) <= 0)
+	{
+		attr->data = NULL;
+		return false;
+	}
+	*/
+
+	value = atoi(textData);
+
+	attr->data = (int *) malloc(sizeof(int));
+	if(!attr->data)
+		return false;
+
+	*(int *)attr->data = value;
+	return true;
+}
+
+static bool writeInt(AttributeEntryType *attr, const void *newData, int key)
+{
+	const size_t maxIntStringLen = 16;
+	char str[maxIntStringLen];
+	int value;
+	
+	if(!newData)
+		return false;
+	
+	value = *(const int *)newData;
+	
+	if(!attr->data)
+	{
+		attr->data = (int *) malloc(sizeof(int));
+		if(!attr->data)
+			return false;
+	}
+	
+	*(int *)attr->data = value;
+	
+	/*
+	if(snprintf(str, maxIntStringLen, "%i", value) <= 0)
+		return false;
+	*/
+
+	itoa(value, str, 10);
+	
+	writeAttributeText(attr, str, key);
+	
+	return true;
+}
+
 void *configCopyText(int key)
 {
 	if(!configLoaded)
@@ -965,7 +1026,7 @@ bool configSetKeyData(int key, const void *data)
 	
 	attr = &attributes[key];
 	
-	keyFunc = getKeyFunction(key);
+	keyFunc = getKeyFunctions(key);
 	
 	if(!keyFunc || !keyFunc->write)
 		panicMsg("Unimplemented key function!");
