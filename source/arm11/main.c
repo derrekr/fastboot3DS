@@ -177,7 +177,17 @@ int main(void)
 	
 	if (splash_wait)
 	{
-		for (u32 i = 0; i < 64; i++) // VBlank * 64
+		u32 dmsec = SPLASH_DEFAULT_MSEC;
+		if (configDataExist(KSplashDuration))
+		{
+			// prevent bad splash delays
+			s32 dkey = *(s32*) configGetData(KSplashDuration);
+			dmsec = (dkey < 500) ? 500 : (dkey) > 10000 ? 10000 : (u32) dkey;
+		}
+
+		// convert msecs to vblanks and wait for the specified amount
+		u32 dvblank = (dmsec + (VBLANK_APPROX_MSEC-1)) / VBLANK_APPROX_MSEC;
+		for (u32 i = 0; i < dvblank; i++)
 		{
 			GFX_waitForEvent(GFX_EVENT_PDC0, true);
 			hidScanInput();

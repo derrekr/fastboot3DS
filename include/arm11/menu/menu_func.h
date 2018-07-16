@@ -27,6 +27,8 @@
 #define NAND_BACKUP_PATH	"sdmc:/3DS" // NAND backups standard path
 #define DEVICE_BUFSIZE		(((REG_CFG11_SOCINFO & 2) ? 1024 : 512) * 1024) // 1024 / 512 KiB
 #define PROGRESS_WIDTH		20
+#define SPLASH_DEFAULT_MSEC	1000
+#define VBLANK_APPROX_MSEC	16
 
 
 
@@ -48,6 +50,7 @@ u32 menuPresetSplashConfig(void);
 u32 menuReturn(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetBootMode(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuSetSplashDuration(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSwitchFcramBoot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param);

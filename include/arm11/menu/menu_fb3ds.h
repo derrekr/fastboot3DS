@@ -65,6 +65,7 @@
 
 #define DESC_SPLASH_CUSTOM	"Select a custom splash. This is compatible with Luma 3DS format splash screens."
 #define DESC_SPLASH_DEFAULT	"Use default fastboot3DS splash screen."
+#define DESC_SPLASH_DELAY	"Change splash display duration."
 #define DESC_CHANGE_SPLASH	"Change fastboot3ds splash screen. Will only be displayed in normal and quick boot modes."
 
 #define DESC_NAND_BACKUP	"Backup current NAND to a file."
@@ -134,10 +135,11 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 4
-		"Splash Screen Setup", 2, &menuPresetSplashConfig, MENU_FLAG_CONFIG,
+		"Splash Screen Setup", 3, &menuPresetSplashConfig, MENU_FLAG_CONFIG,
 		{
-			{ "Use custom splash...",		DESC_SPLASH_CUSTOM,			&menuSetSplash,		1 },
-			{ "Use default splash",			DESC_SPLASH_DEFAULT,		&menuSetSplash,		0 }
+			{ "Use custom splash...",		DESC_SPLASH_CUSTOM,			&menuSetSplash,			1 },
+			{ "Use default splash",			DESC_SPLASH_DEFAULT,		&menuSetSplash,			0 },
+			{ "Set splash duration...",		DESC_SPLASH_DELAY,			&menuSetSplashDuration,	0 }
 		}
 	},
 	{ // 5

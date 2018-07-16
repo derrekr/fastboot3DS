@@ -104,7 +104,9 @@ u32 menuPresetBootConfig(void)
 
 u32 menuPresetSplashConfig(void)
 {
-	return configDataExist(KSplashScreen) ? (1 << 0) : (1 << 1);
+	u32 res = configDataExist(KSplashScreen) ? (1 << 0) : (1 << 1);
+	if (configDataExist(KSplashDuration)) res |= (1 << 2);
+	return res;
 }
 
 u32 menuPresetSlotConfig(u32 slot)
@@ -310,6 +312,77 @@ u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	free(res_path);
 	return res;
+}
+
+u32 menuSetSplashDuration(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) menu_con;
+	(void) param;
+	s32 duration = SPLASH_DEFAULT_MSEC;
+	u32 dbutton_cooldown = 0;
+
+	if (configDataExist(KSplashDuration))
+	{
+		duration = *(s32*) configGetData(KSplashDuration);
+		duration -= (duration % 250); // so that duration is a multiple of 250
+	}
+
+	consoleSelect(term_con);
+	consoleClear();
+
+	while (true)
+	{
+		u32 kDown = 0;
+		u32 kHeld = 0;
+
+		// make sure duration stays within boundaries
+		if (duration < 500) duration = 500;
+		else if (duration > 10000) duration = 10000;
+
+		// update screen
+		ee_printf_screen_center("Change splash duration via arrow keys.\nPress [A] to confirm, [B] or HOME] to cancel.\n \nSplash duration: %li msec", duration);
+		updateScreens();
+
+		// directional button cooldown
+		for (u32 i = dbutton_cooldown; i > 0; i--)
+		{
+			hidScanInput();
+			GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank
+			if (!(hidKeysHeld() & (KEY_DDOWN|KEY_DUP|KEY_DLEFT|KEY_DRIGHT)))
+				break;
+		}
+		dbutton_cooldown = 0;
+
+		do
+		{
+			GFX_waitForEvent(GFX_EVENT_PDC0, true);
+			
+			if(hidGetPowerButton(false)) // handle power button
+				return MENU_FAIL;
+			
+			hidScanInput();
+			kDown = hidKeysDown();
+			kHeld = hidKeysHeld();
+			if (kDown & (KEY_SHELL)) sleepmode();
+			else if (kDown & (KEY_B|KEY_HOME)) return MENU_OK;
+			else if (kDown & KEY_A) break;
+		}
+		while (!(kHeld & (KEY_DRIGHT|KEY_DLEFT|KEY_DUP|KEY_DDOWN)));
+
+		// steps: left/right 250ms, up/down 1000ms
+		// done if [A] button is detected
+		if (kDown & KEY_A) break;
+		else if (kHeld & KEY_DRIGHT) duration += 250;
+		else if (kHeld & KEY_DLEFT) duration -= 250;
+		else if (kHeld & KEY_DUP) duration += 1000;
+		else if (kHeld & KEY_DDOWN) duration -= 1000;
+
+		// set dbutton cooldown
+		dbutton_cooldown = 10;
+	}
+
+	// set config key, return
+	return(configSetKeyData(KSplashDuration, &duration)) ? MENU_OK : MENU_FAIL;
 }
 
 u32 menuSetupBootSlot(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
