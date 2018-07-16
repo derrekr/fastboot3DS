@@ -48,6 +48,7 @@ int main(void)
 	bool show_menu = false;
 	bool dump_bootroms = __superhaxEnabled;
 	bool gfx_initialized = false;
+	u32 nextBootSlot = 0;
 	u32 menu_ret = MENU_OK;
 	
 	s32 firm_err = 0; // local result of loadVerifyFirm()
@@ -83,10 +84,10 @@ int main(void)
 	
 	
 	// get bootmode from config, previous bootslot from I2C
-	u32 nextBootSlot = readStoredBootslot();
 	u32 bootmode = BootModeNormal;
 	if(configDataExist(KBootMode))
 		bootmode = *(u32*) configGetData(KBootMode);
+	nextBootSlot = readStoredBootslot();
 	
 	// show menu if bootmode is normal or HOME button is pressed
 	show_menu = (!nextBootSlot && (bootmode == BootModeNormal)) || hidIsHomeButtonHeldRaw();
