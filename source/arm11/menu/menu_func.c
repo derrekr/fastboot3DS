@@ -336,8 +336,8 @@ u32 menuSetSplashDuration(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 		u32 kHeld = 0;
 
 		// make sure duration stays within boundaries
-		if (duration < 500) duration = 500;
-		else if (duration > 10000) duration = 10000;
+		if (duration < SPLASH_MIN_MSEC) duration = SPLASH_MIN_MSEC;
+		else if (duration > SPLASH_MAX_MSEC) duration = SPLASH_MAX_MSEC;
 
 		// update screen
 		ee_printf_screen_center("Change splash duration via arrow keys.\nPress [A] to confirm, [B] or HOME] to cancel.\n \nSplash duration: %li msec", duration);

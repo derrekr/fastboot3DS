@@ -182,7 +182,7 @@ int main(void)
 		{
 			// prevent bad splash delays
 			s32 dkey = *(s32*) configGetData(KSplashDuration);
-			dmsec = (dkey < 500) ? 500 : (dkey) > 10000 ? 10000 : (u32) dkey;
+			dmsec = (dkey < SPLASH_MIN_MSEC) ? SPLASH_MIN_MSEC : (dkey) > SPLASH_MAX_MSEC ? SPLASH_MAX_MSEC : (u32) dkey;
 		}
 
 		// convert msecs to vblanks and wait for the specified amount
