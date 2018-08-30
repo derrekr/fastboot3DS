@@ -340,7 +340,7 @@ u32 menuSetSplashDuration(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 		else if (duration > SPLASH_MAX_MSEC) duration = SPLASH_MAX_MSEC;
 
 		// update screen
-		ee_printf_screen_center("Change splash duration via arrow keys.\nPress [A] to confirm, [B] or HOME] to cancel.\n \nSplash duration: %li msec", duration);
+		ee_printf_screen_center("Change splash duration via arrow keys.\nPress [A] to confirm, [B] or [HOME] to cancel.\n \nSplash duration: %li msec", duration);
 		updateScreens();
 
 		// directional button cooldown
