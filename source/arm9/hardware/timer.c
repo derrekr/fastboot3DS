@@ -16,6 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdatomic.h>
 #include "mem_map.h"
 #include "types.h"
 #include "arm9/hardware/timer.h"
@@ -41,7 +42,7 @@
 
 
 // For TIMER_sleep()
-static vu32 overflows;
+static u32 overflows;
 
 
 
@@ -79,6 +80,7 @@ void TIMER_sleep(u32 ms)
 {
 	REG_TIMER3_VAL = TIMER_FREQ_64(1000);
 	overflows = ms;
+	atomic_signal_fence(memory_order_release); // Don't move the write to overflows.
 
 	REG_TIMER3_CNT = TIMER_ENABLE | TIMER_IRQ_ENABLE | TIMER_PRESCALER_64;
 
