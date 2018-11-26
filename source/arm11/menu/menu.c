@@ -73,14 +73,14 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 	else if (slot < N_BOOTSLOTS)
 	{
 		// get strings for path and keycombo
-		char slot_path_store[24+1];
+		char slot_path_store[40+1];
 		char* slot_path = NULL;
 		char* keycombo = NULL;
 		
 		if(configDataExist(KBootOption1 + slot))
 		{
 			slot_path = slot_path_store;
-			truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 24, 8);
+			truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 40, 8);
 		}
 		
 		if(configDataExist(KBootOption1Buttons + slot))
