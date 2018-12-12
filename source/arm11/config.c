@@ -175,7 +175,7 @@ bool loadConfigFile()
 		
 		if(fStat(filepath, &fileStat) != FR_OK)
 		{
-			adpotChanges = true;
+			filepath = NandFilepath;
 		}
 	}
 	
