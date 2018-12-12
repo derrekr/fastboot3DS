@@ -35,19 +35,19 @@ endif
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -marm -mthumb-interwork
 
-CFLAGS	:=	$(ARCH) -std=gnu11 -O2 -g -flto -mword-relocations -ffunction-sections \
+CFLAGS	:=	$(ARCH) -std=gnu11 -O2 -g -mword-relocations -ffunction-sections \
 			-Wall -Wextra -Wno-unused-function
 
 CFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-CXXFLAGS	:=	$(ARCH) -std=c++14 -O2 -g -flto -fno-rtti -fno-exceptions \
+CXXFLAGS	:=	$(ARCH) -std=c++14 -O2 -g -fno-rtti -fno-exceptions \
 				-mword-relocations -ffunction-sections -Wall -Wextra \
 				-Wno-unused-function
 
 CXXFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-ASFLAGS	:=	$(ARCH) -g -flto $(INCLUDE) $(DEFINES)
-LDFLAGS	=	$(ARCH) -g -flto -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
+ASFLAGS	:=	$(ARCH) -g $(INCLUDE) $(DEFINES)
+LDFLAGS	=	$(ARCH) -g -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
 
 LIBS	:=
 
