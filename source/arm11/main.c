@@ -92,9 +92,9 @@ int main(void)
 	// show menu if bootmode is normal or HOME button is pressed
 	show_menu = (!nextBootSlot && (bootmode == BootModeNormal)) || hidIsHomeButtonHeldRaw();
 	
-	// show splash if (bootmode != BootModeQuiet)
+	// show splash if cold boot and (bootmode != BootModeQuiet)
 	bool splash_wait = false;
-	if(show_menu || (bootmode != BootModeQuiet))
+	if(show_menu || (!nextBootSlot && (bootmode != BootModeQuiet)))
 	{
 		if (!gfx_initialized) GFX_init(true);
 		gfx_initialized = true;
