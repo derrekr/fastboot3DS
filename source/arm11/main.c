@@ -111,9 +111,20 @@ int main(void)
 		}
 		else
 		{
-			splash_wait = drawSplashscreen(banner_spla, -1, -1, SCREEN_TOP);
-			if (bootmode == BootModeQuick)
-				drawSplashscreen(menu_spla, -1, 16, SCREEN_SUB);
+			u16 *const tmpBuf = malloc(SCREEN_WIDTH_TOP * SCREEN_HEIGHT_TOP * 2);
+			if(tmpBuf)
+			{
+				splash_wait = drawSplashscreen(banner_spla, tmpBuf, -1, -1, SCREEN_TOP);
+				if (bootmode == BootModeQuick)
+					drawSplashscreen(menu_spla, tmpBuf, -1, 16, SCREEN_SUB);
+				free(tmpBuf);
+			}
+			else
+			{
+				err_string = (char*) malloc(512);
+				if(!err_string) panicMsg("Out of memory");
+				ee_sprintf(err_string, "Internal splash screen error\n");
+			}
 		}
 		updateScreens();
 	}

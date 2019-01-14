@@ -48,4 +48,4 @@ typedef struct
 
 
 void getSplashDimensions(const void *const data, u32 *const width, u32 *const height);
-bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen);
+bool drawSplashscreen(const void *const data, u16 *const tmpBuf, s32 startX, s32 startY, u8 screen);

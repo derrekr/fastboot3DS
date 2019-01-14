@@ -236,7 +236,7 @@ bool drawCustomSplash(const char* folder)
 	// this assumes top and bottom screens cleared
 	const u32 splash_max_size = sizeof(SplashHeader) + (SCREEN_WIDTH_TOP * SCREEN_HEIGHT_TOP * 2);
 	char* splash_path =  (char*) malloc(FF_MAX_LFN + 1);
-	u8* splash_buffer = (u8*) malloc(splash_max_size);
+	u8* splash_buffer = (u8*) malloc(splash_max_size + (30 * 1024));
 	bool res = false;
 	s32 fHandle;
 	
@@ -248,15 +248,16 @@ bool drawCustomSplash(const char* folder)
 	if (fHandle >= 0)
 	{
 		u32 splash_size = fSize(fHandle);
+		u16 *const splash_data = (u16*)(splash_buffer + splash_max_size + (30 * 1024) - splash_size);
 		if ((splash_size < sizeof(SplashHeader)) || (splash_size > splash_max_size) ||
-			(fRead(fHandle, splash_buffer, splash_size) != FR_OK))
+			(fRead(fHandle, splash_data, splash_size) != FR_OK))
 		{
 			fClose(fHandle);
 			goto fail;
 		}
 		fClose(fHandle);
 		
-		if (drawSplashscreen(splash_buffer, -1, -1, SCREEN_TOP))
+		if (drawSplashscreen(splash_data, (u16*)splash_buffer, -1, -1, SCREEN_TOP))
 			res = true;
 	}
 	
@@ -266,15 +267,16 @@ bool drawCustomSplash(const char* folder)
 	if (fHandle >= 0)
 	{
 		u32 splash_size = fSize(fHandle);
+		u16 *const splash_data = (u16*)(splash_buffer + splash_max_size + (30 * 1024) - splash_size);
 		if ((splash_size < sizeof(SplashHeader)) || (splash_size > splash_max_size) ||
-			(fRead(fHandle, splash_buffer, splash_size) != FR_OK))
+			(fRead(fHandle, splash_data, splash_size) != FR_OK))
 		{
 			fClose(fHandle);
 			goto fail;
 		}
 		fClose(fHandle);
 		
-		if (drawSplashscreen(splash_buffer, -1, -1, SCREEN_SUB))
+		if (drawSplashscreen(splash_data, (u16*)splash_buffer, -1, -1, SCREEN_SUB))
 			res = true;
 	}
 	

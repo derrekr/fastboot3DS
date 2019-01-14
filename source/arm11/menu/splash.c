@@ -50,8 +50,10 @@ static bool validateSplashHeader(const SplashHeader *const header, u8 screen)
 	return true;
 }
 
-bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen)
+bool drawSplashscreen(const void *const data, u16 *const tmpBuf, s32 startX, s32 startY, u8 screen)
 {
+	if(!data || !tmpBuf) return false;
+
 	const SplashHeader *const header = (const SplashHeader *const)data;
 	if(!validateSplashHeader(header, screen)) return false;
 
@@ -62,8 +64,7 @@ bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen)
 	u16 *imgData;
 	if(isCompressed)
 	{
-		imgData = (u16*)malloc(width * height * 2);
-		if(!imgData) return false;
+		imgData = tmpBuf;
 		lz11Decompress(data + sizeof(SplashHeader), imgData, width * height * 2);
 	}
 	else imgData = (u16*)(data + sizeof(SplashHeader));
@@ -92,8 +93,6 @@ bool drawSplashscreen(const void *const data, s32 startX, s32 startY, u8 screen)
 			fb[(x + xx) * screenHeight + y + yy] = imgData[x * height + y];
 		}
 	}
-
-	if(isCompressed) free(imgData);
 
 	return true;
 }
