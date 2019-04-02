@@ -181,7 +181,7 @@ int main(void)
 	if (!startFirmLaunch && configRamFirmBootEnabled() &&
 		(getBootEnv() == BOOTENV_NATIVE_FIRM))
 	{
-		if (loadVerifyFirm("ram", false) == 0)
+		if (loadVerifyFirm("ram", false) >= 0)
 			startFirmLaunch = true;
 	}
 	
