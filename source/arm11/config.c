@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* This is a parser/writer for the fastbootcfg.txt file. It's not vulnerable, I swear. */ 
+/* This is a parser/writer for the fastbootcfg.txt file. */ 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -367,34 +367,6 @@ static bool createConfigFile()
 	return ret;
 }
 
-/* returns the start of an attribute's data. */
-static char *findDefinition(const char *attrName)
-{
-	char *start;
-	char c;
-	
-	start = strstr(filebuf, attrName);
-	
-	if(start)
-	{
-		/* verify definition char */
-		start = start + strlen(attrName);
-		
-		while(*start == ' ') start++;
-		
-		c = *start;
-		if(c != '=')
-			start = NULL;
-		else
-		{
-			start ++;
-			while(*start == ' ') start++;
-		}
-	}
-	
-	return start;
-}
-
 static inline bool isEOL(const char c)
 {
 	const char LF = 0x0A, CR = 0x0D, NEL = 0x15;
@@ -403,6 +375,81 @@ static inline bool isEOL(const char c)
 		return true;
 	
 	return false;
+}
+
+/* returns the start of an attribute's data */
+/* or NULL when no next definition was found. */
+static char *findNextDefinition(char **curp, int *key)
+{
+	int keyIdx;
+	char *cur;
+	bool keyFound;
+	size_t keyLen;
+	char *start = NULL;
+
+	for(cur = *curp; *cur != '\0'; )
+	{
+		// match key
+		keyFound = false;
+		keyLen = 0;
+		for(int i=0; i<numKeys; i++)
+		{
+			size_t curLen = strlen(keyStrings[i]);
+
+			if(strncmp(cur, keyStrings[i], curLen) == 0)
+			{
+				// find the longest matching sequence
+				if(curLen > keyLen)
+				{
+					keyIdx = i;
+					keyLen = curLen;
+				}
+				keyFound = true;
+			}
+		}
+
+		if(keyFound)
+		{
+			cur += keyLen;
+
+			/* verify definition */
+
+			while(*cur == ' ') cur++;
+			
+			if(*cur != '=')
+				start = NULL;
+			else
+			{
+				cur++;
+				while(*cur == ' ') cur++;
+				start = cur;
+			}
+		}
+
+		// advance the current pointer to a new line
+		while(*cur != '\0')
+		{
+			if(isEOL(*cur))
+			{
+				cur++;
+				break;
+			}
+			cur++;
+		}
+
+		// update cur ptr
+		*curp = cur;
+
+		// found a definition? Return it.
+		if(start)
+		{
+			*key = keyIdx;
+			return start;
+		}
+	}
+
+	// no more definitions found
+	return NULL;
 }
 
 /* returns the length of an attribute's data. */
@@ -432,13 +479,20 @@ static bool parseConfigFile()
 	AttributeEntryType *curAttr;
 	const FunctionsEntryType *keyFunc;
 	u32 len;
+	char *curp;
 	char *text;
+	int i = 0;
 	
+	// pass #0: pre-initialize attributes
+	memset(attributes, 0, sizeof attributes);
+
 	// pass #1: look for definitions and populate our lookup table.
-	for(u32 i=0; i<numKeys; i++)
+	curp = filebuf;
+	while((text = findNextDefinition(&curp, &i)) != NULL)
 	{
 		curAttr = &attributes[i];
-		text = findDefinition(keyStrings[i]);
+		if(curAttr->textData)
+			continue;	// key was already parsed
 		curAttr->textData = text;
 		if(!text)
 		{
@@ -450,7 +504,7 @@ static bool parseConfigFile()
 	}
 	
 	// pass #2: parse text-data and convert it into a native form
-	for(u32 i=0; i<numKeys; i++)
+	for(i=0; i<numKeys; i++)
 	{
 		curAttr = &attributes[i];
 		if(!curAttr->textData)
