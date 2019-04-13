@@ -130,14 +130,6 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4]);
 void AES_addCounter(u32 ctr[4], u32 val);
 
 /**
- * @brief      Decrements the internal counter with the given value (CTR mode).
- *
- * @param      ctr   Pointer to the counter data.
- * @param[in]  val   Value to decrement the counter with.
- */
-void AES_subCounter(u32 ctr[4], u32 val);
-
-/**
  * @brief      Sets params in the AES context for all following crypto operations.
  *
  * @param      ctx                Pointer to AES_ctx (AES context).

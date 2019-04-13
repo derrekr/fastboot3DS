@@ -282,46 +282,20 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 }
 
 // TODO: Handle endianess!
-void AES_addCounter(u32 ctr[4], u32 val)
+NAKED void AES_addCounter(u32 ctr[4], u32 val)
 {
-	fb_assert(ctr != NULL);
-
-	u32 carry, i = 1;
-	u64 sum;
-
-	sum = ctr[0];
-	sum += (val >> 4);
-	carry = sum >> 32;
-	ctr[0] = sum & 0xFFFFFFFFu;
-
-	while(carry)
-	{
-		sum = ctr[i];
-		sum += carry;
-		carry = sum >> 32;
-		ctr[i] = sum & 0xFFFFFFFFu;
-		i++;
-	}
-}
-
-void AES_subCounter(u32 ctr[4], u32 val)
-{
-	fb_assert(ctr != NULL);
-
-	u32 carry, i = 1;
-	u32 sum;
-
-	sum = ctr[0] - (val >> 4);
-	carry = (sum > ctr[0]);
-	ctr[0] = sum;
-
-	while(carry && i < 4)
-	{
-		sum = ctr[i] - carry;
-		carry = (sum > ctr[i]);
-		ctr[i] = sum;
-		i++;
-	}
+	__asm__
+	(
+		"stmfd sp!, {r4, lr}\n\t"
+		"ldm r0, {r2-r4, lr}\n\t"
+		"adds r2, r1, lsr #4\n\t"
+		"addcss r3, r3, #1\n\t"
+		"addcss r4, r4, #1\n\t"
+		"addcs lr, lr, #1\n\t"
+		"stm r0, {r2-r4, lr}\n\t"
+		"ldmfd sp!, {r4, pc}\n\t"
+		: : "r" (ctr), "r" (val) :
+	);
 }
 
 void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianessOrder)
