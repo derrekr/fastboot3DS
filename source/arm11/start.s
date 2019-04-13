@@ -46,6 +46,7 @@
 .extern __bss_end__
 .extern __end__
 .extern iomemset
+.extern iomemcpy
 .extern fake_heap_start
 .extern fake_heap_end
 .extern setupMmu
@@ -190,16 +191,11 @@ checkSuperhax:
 	bxeq lr
 	ldr r1, =__superhaxEnabled
 	mov r2, #1
-	ldr r0, =BOOT11_BASE
+	ldr r0, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE
 	strb r2, [r1]
-	ldr r1, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE
-	mov r2, #BOOT11_SIZE
-	checkSuperhax_lp:
-		ldmia r0!, {r3-r6}
-		stmia r1!, {r3-r6}
-		subs r2, r2, #16
-		bne checkSuperhax_lp
-	bx lr
+	ldr r1, =BOOT11_BASE
+	ldr r2, =BOOT11_SIZE
+	b iomemcpy
 
 .pool
 

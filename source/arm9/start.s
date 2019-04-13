@@ -41,6 +41,7 @@
 .extern __bss_end__
 .extern __end__
 .extern iomemset
+.extern iomemcpy
 .extern fake_heap_start
 .extern fake_heap_end
 .extern __libc_init_array
@@ -180,22 +181,17 @@ checkSuperhax:
 	ldrb r1, [r0]
 	cmp r1, #0
 	bxne lr
-	ldr r0, =BOOT9_BASE
-	ldr r1, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE
+	ldr r0, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE
+	ldr r1, =BOOT9_BASE
 	ldr r2, =BOOT9_SIZE
-	add r12, r1, #BOOT11_SIZE + BOOT9_SIZE
-	checkSuperhax_lp:
-		ldmia r0!, {r3-r6}
-		stmia r1!, {r3-r6}
-		subs r2, r2, #16
-		bne checkSuperhax_lp
-	cmp r12, #0
-	bxeq lr
-	ldr r0, =OTP_BASE
-	mov r1, r12
-	mov r12, #0
+	str lr, [sp, #-4]!
+	mov r4, r0
+	bl iomemcpy
+	ldr lr, [sp], #4
+	add r0, r4, #BOOT11_SIZE + BOOT9_SIZE
+	ldr r1, =OTP_BASE
 	ldr r2, =OTP_SIZE
-	b checkSuperhax_lp
+	b iomemcpy
 
 .pool
 
