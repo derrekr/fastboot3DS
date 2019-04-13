@@ -20,7 +20,7 @@
 #include "mem_map.h"
 #include "fb_assert.h"
 #include "arm11/hardware/scu.h"
-#include "arm11/start.h"
+#include "mmio.h"
 #include "arm.h"
 
 
@@ -153,7 +153,7 @@ void setupMmu(void)
 	if(!__getCpuId())
 	{
 		// Clear L1 and L2 tables
-		clearMem((u32*)A11_MMU_TABLES_BASE, 0x4C00);
+		iomemset((u32*)A11_MMU_TABLES_BASE, 0, 0x4C00);
 
 		// IO mem mapping
 		mmuMapSections(IO_MEM_ARM9_ARM11, IO_MEM_ARM9_ARM11, 4, true,

@@ -16,10 +16,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
 #include "types.h"
 #include "mem_map.h"
 #include "arm11/hardware/hash.h"
+#include "mmio.h"
 
 
 
@@ -27,11 +27,11 @@
 //             HASH             //
 //////////////////////////////////
 
-#define HASH_REGS_BASE   (IO_MEM_ARM9_ARM11 + 0x1000)
-#define REG_HASH_CNT     *((vu32*)(HASH_REGS_BASE + 0x00))
-#define REG_HASH_BLKCNT  *((vu32*)(HASH_REGS_BASE + 0x04))
-#define REG_HASH_HASH     ((u32* )(HASH_REGS_BASE + 0x40))
-#define REG_HASH_INFIFO   (       (IO_MEM_ARM11_ONLY + 0x101000)) // INFIFO is in the DMA region
+#define HASH_REGS_BASE    (IO_MEM_ARM9_ARM11 + 0x1000)
+#define REG_HASH_CNT      *((vu32*)(HASH_REGS_BASE + 0x00))
+#define REG_HASH_BLKCNT   *((vu32*)(HASH_REGS_BASE + 0x04))
+#define REGs_HASH_HASH     ((vu32*)(HASH_REGS_BASE + 0x40))
+#define REGs_HASH_INFIFO   ((vu32*)(IO_MEM_ARM11_ONLY + 0x101000)) // INFIFO is in the DMA region
 
 
 void HASH_start(u8 params)
@@ -43,14 +43,13 @@ void HASH_update(const u32 *data, u32 size)
 {
 	while(size >= 64)
 	{
-		*((_u512*)REG_HASH_INFIFO) = *((const _u512*)data);
-		data += 16;
-		while(REG_HASH_CNT & HASH_ENABLE);
-
+		*((volatile _u512*)REGs_HASH_INFIFO) = *((const _u512*)data);
+		data += 64 / 4;
 		size -= 64;
+		while(REG_HASH_CNT & HASH_ENABLE);
 	}
 
-	if(size) memcpy((void*)REG_HASH_INFIFO, data, size);
+	if(size) iomemcpy(REGs_HASH_INFIFO, data, size);
 }
 
 void HASH_finish(u32 *const hash, u8 endianess)
@@ -63,23 +62,21 @@ void HASH_finish(u32 *const hash, u8 endianess)
 
 void HASH_getState(u32 *const out)
 {
-	u32 stateSize;
+	u32 size;
 	switch(REG_HASH_CNT & HASH_MODE_MASK)
 	{
 		case HASH_MODE_256:
-			stateSize = 32;
+			size = 32;
 			break;
 		case HASH_MODE_224:
-			stateSize = 28;
+			size = 28;
 			break;
 		case HASH_MODE_1:
-			stateSize = 20;
-			break;
-		default:
-			return;
+		default:           // 2 and 3 are both SHA1
+			size = 20;
 	}
 
-	memcpy(out, REG_HASH_HASH, stateSize);
+	iomemcpy(out, REGs_HASH_HASH, size);
 }
 
 void hash(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess)

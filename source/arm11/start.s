@@ -26,7 +26,6 @@
 .fpu vfpv2
 
 .global _start
-.global clearMem
 .global _init
 .global deinitCpu
 .global __superhaxEnabled
@@ -34,7 +33,6 @@
 .type vectors %function
 .type _start %function
 .type stubExceptionVectors %function
-.type clearMem %function
 .type checkSuperhax %function
 .type setupVfp %function
 .type _init %function
@@ -47,6 +45,7 @@
 .extern __bss_start__
 .extern __bss_end__
 .extern __end__
+.extern iomemset
 .extern fake_heap_start
 .extern fake_heap_end
 .extern setupMmu
@@ -132,8 +131,9 @@ _start:
 	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
-	sub r1, r1, r0
-	bl clearMem
+	sub r2, r1, r0
+	mov r1, #0
+	bl iomemset
 	@ Setup newlib heap
 	ldr r0, =A11_HEAP_END
 	ldr r1, =fake_heap_end
@@ -182,38 +182,7 @@ stubExceptionVectors:
 .pool
 
 
-@ void clearMem(u32 *adr, u32 size)
 .align 2
-clearMem:
-	bics r12, r1, #31
-	mov r2, #0
-	sub r1, r1, r12
-	beq clearMem_check_zero
-	stmfd sp!, {r4-r9}
-	mov r3, #0
-	mov r4, #0
-	mov r5, #0
-	mov r6, #0
-	mov r7, #0
-	mov r8, #0
-	mov r9, #0
-	clearMem_block_lp:
-		stmia r0!, {r2-r9}
-		subs r12, r12, #32
-		bne clearMem_block_lp
-	ldmfd sp!, {r4-r9}
-clearMem_check_zero:
-	cmp r1, #0
-	bxeq lr
-	clearMem_remaining_lp:
-		str r2, [r0], #4
-		subs r1, r1, #4
-		bne clearMem_remaining_lp
-	bx lr
-
-.pool
-
-
 checkSuperhax:
 	ldr r0, =BOOT11_BASE + 0x8000
 	ldr r1, [r0]
