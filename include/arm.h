@@ -158,6 +158,19 @@ static inline void __setDacr(u32 dacr)
 	__asm__ volatile("mcr p15, 0, %0, c3, c0, 0" : : "r" (dacr) : "memory");
 }
 
+// FCSE PID Register
+static inline u32 __getFcsepidr(void)
+{
+	u32 fcsePid;
+	__asm__("mrc p15, 0, %0, c13, c0, 0" : "=r" (fcsePid) : );
+	return fcsePid;
+}
+
+static inline void __setFcsepidr(u32 fcsePid)
+{
+	__asm__ volatile("mcr p15, 0, %0, c13, c0, 0" : : "r" (fcsePid) : "memory");
+}
+
 // Context ID Register
 static inline u32 __getCidr(void)
 {

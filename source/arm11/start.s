@@ -91,13 +91,13 @@ _start:
 	@ [22] Unaligned data access              : disabled
 	@ [15] Disable loading TBIT               : disabled
 	@ [13] Vector select                      : 0x00000000
-	@ [12] Level one instruction cache        : disabled
+	@ [12] Level one instruction cache        : enabled
 	@ [11] Program flow prediction            : disabled
 	@ [7]  Endianess                          : little
 	@ [2]  Level one data cache               : disabled
 	@ [1]  Strict data address alignment fault: disabled
 	@ [0]  MMU                                : disabled
-	ldr r3, =0x54078
+	ldr r3, =0x55078
 	mov r4, #0
 	mcr p15, 0, r3, c1, c0, 0   @ Write control register
 	mcr p15, 0, r4, c1, c0, 1   @ Write Auxiliary Control Register
