@@ -16,7 +16,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include <string.h>
 #include "mem_map.h"
 #include "fb_assert.h"
 #include "types.h"
@@ -565,7 +564,7 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 
 void SHA_start(u8 params)
 {
-	REG_SHA_CNT = params | SHA_ENABLE;
+	REG_SHA_CNT = params | SHA_IN_DMA_ENABLE | SHA_ENABLE;
 }
 
 void SHA_update(const u32 *data, u32 size)
@@ -614,6 +613,22 @@ void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess
 	SHA_update(data, size);
 	SHA_finish(hash, hashEndianess);
 }
+
+/*void sha_dma(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess)
+{
+	REG_NDMA2_SRC_ADDR = (u32)data;
+	REG_NDMA2_DST_ADDR = REG_SHA_INFIFO;
+	REG_NDMA2_TOTAL_CNT = size / 4;
+	REG_NDMA2_LOG_BLK_CNT = 64 / 4;
+	REG_NDMA2_INT_CNT = NDMA_INT_SYS_FREQ;
+	REG_NDMA2_CNT = NDMA_DST_UPDATE_INC | NDMA_DST_ADDR_RELOAD | NDMA_SRC_UPDATE_INC |
+	                NDMA_BURST_WORDS(64 / 4) | NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_SHA | NDMA_ENABLE;
+
+	SHA_start(params);
+	while(REG_NDMA2_CNT & NDMA_ENABLE);
+	while(REG_SHA_CNT & SHA_ENABLE);
+	SHA_finish(hash, hashEndianess);
+}*/
 
 
 

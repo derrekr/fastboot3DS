@@ -36,7 +36,7 @@
 
 void HASH_start(u8 params)
 {
-	REG_HASH_CNT = params | HASH_ENABLE;
+	REG_HASH_CNT = params | HASH_IN_DMA_ENABLE | HASH_ENABLE;
 }
 
 void HASH_update(const u32 *data, u32 size)

@@ -210,6 +210,7 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 
 #define SHA_ENABLE         (1u) // Also used as busy flag
 #define SHA_FINAL_ROUND    (1u<<1)
+#define SHA_IN_DMA_ENABLE  (1u<<2) // Without this NDMA startup is never fires
 #define SHA_INPUT_BIG      (1u<<3)
 #define SHA_INPUT_LITTLE   (0u)
 #define SHA_OUTPUT_BIG     (SHA_INPUT_BIG)
@@ -260,6 +261,18 @@ void SHA_getState(u32 *const out);
  * @param[in]  hashEndianess  Endianess bitmask for the hash.
  */
 void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess);
+
+/**
+ * @brief      Hashes a single block of data with DMA and outputs the hash.
+ * @brief      Note: Not recommended. It's way slower than CPU based SHA.
+ *
+ * @param[in]  data           Pointer to data to hash.
+ * @param[in]  size           Size of the data to hash. Must be 64 bytes aligned.
+ * @param      hash           Pointer to memory to copy the hash to.
+ * @param[in]  params         Mode and input endianess bitmask.
+ * @param[in]  hashEndianess  Endianess bitmask for the hash.
+ */
+//void sha_dma(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess);
 
 
 

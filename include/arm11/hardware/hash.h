@@ -28,6 +28,7 @@
 
 #define HASH_ENABLE         (1u) // Also used as busy flag
 #define HASH_FINAL_ROUND    (1u<<1)
+#define HASH_IN_DMA_ENABLE  (1u<<2) // Without this NDMA startup is never fires
 #define HASH_INPUT_BIG      (1u<<3)
 #define HASH_INPUT_LITTLE   (0u)
 #define HASH_OUTPUT_BIG     (HASH_INPUT_BIG)

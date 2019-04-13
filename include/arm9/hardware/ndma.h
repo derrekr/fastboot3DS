@@ -110,7 +110,7 @@
 #define NDMA_DST_UPDATE_INC    (0u)
 #define NDMA_DST_UPDATE_DEC    (1u<<10)
 #define NDMA_DST_UPDATE_FIXED  (2u<<10)
-#define NDMA_DST_ADDR_RELOAD   (1u<<12)
+#define NDMA_DST_ADDR_RELOAD   (1u<<12) // Reloads on logical block end
 #define NDMA_SRC_UPDATE_INC    (0u)
 #define NDMA_SRC_UPDATE_DEC    (1u<<13)
 #define NDMA_SRC_UPDATE_FIXED  (2u<<13)
