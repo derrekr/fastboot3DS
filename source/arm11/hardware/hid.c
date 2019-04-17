@@ -41,8 +41,8 @@ void hidInit(void)
 	// When set after a reboot from TWL_FIRM while holding the HOME button this will
 	// cause the MCU to spam IRQs infinitely after releasing the HOME button.
 	// mcuBugs++
-	//const u32 mcuInterruptMask = 0xFFFF1800u; // Standard bitmask at cold boot
-	//I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mcuInterruptMask, 4);
+	// Update: For some reason this is not reproduceable anymore.
+	MCU_setIrqBitmask(0xFFFF1800u); // Standard bitmask at cold boot
 
 	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
 	GPIO_setBit(19, 9); // This enables the MCU IRQ.
@@ -59,7 +59,7 @@ static void updateMcuIrqState(void)
 	if(!mcuIrq) return;
 	mcuIrq = false;
 
-	const u32 state = (u32)MCU_readReceivedIrqs();
+	const u32 state = MCU_readReceivedIrqs();
 
 	u32 tmp = powerWifiState;
 	tmp |= state & 3;

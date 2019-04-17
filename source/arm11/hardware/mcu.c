@@ -114,12 +114,16 @@ void MCU_readRTC(void *rtc)
 	I2C_readRegBuf(I2C_DEV_MCU, RegRTC, rtc, 8);
 }
 
-u8 MCU_readReceivedIrqs(void)
+u32 MCU_readReceivedIrqs(void)
 {
-	u8 data;
-	// This reg is actually 4 bytes big but we don't use all of it for now.
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, &data, 1)) return 0;
+	u32 data;
+	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, (u8*)&data, 4)) return 0;
 	return data;
+}
+
+bool MCU_setIrqBitmask(u32 mask)
+{
+	return I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mask, 4);
 }
 
 u8 MCU_readHidHeld(void)
