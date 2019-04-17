@@ -33,8 +33,8 @@ ASM_FUNC iomemcpy
 	stmfd   sp!, {r4-r10}
 	iomemcpy_blocks_lp:
 		ldmia  r1!, {r3-r10}
-		stmia  r0!, {r3-r10}
 		subs   r12, #32
+		stmia  r0!, {r3-r10}
 		bne    iomemcpy_blocks_lp
 	ldmfd   sp!, {r4-r10}
 iomemcpy_test_words:
@@ -42,8 +42,8 @@ iomemcpy_test_words:
 	beq     iomemcpy_halfword_byte
 	iomemcpy_words_lp:
 		ldr    r3, [r1], #4
-		str    r3, [r0], #4
 		subs   r12, #4
+		str    r3, [r0], #4
 		bne    iomemcpy_words_lp
 iomemcpy_halfword_byte:
 	tst     r2, #2
