@@ -32,28 +32,27 @@
 void WEAK __systemInit(void)
 {
 	IRQ_init();
+	__cpsie(i); // Enables interrupts
 	TIMER_init();
 
-	if(!__getCpuId())
+	if(!__getCpuId()) // Core 0
 	{
 		I2C_init();
 		hidInit();
-		PXI_init();
 		MCU_init();
+		PXI_init();
 	}
-	else
+	else // Any other core
 	{
 		// We don't need core 1 yet so back it goes into boot11.
 		// Core 2 and 3 also go there waiting until poweroff.
 		deinitCpu();
 		((void (*)(void))0x0001004C)();
 	}
-
-	__cpsie(i); // Enables interrupts
 }
 
 void WEAK __systemDeinit(void)
 {
-	__cpsid(aif);
+	__cpsid(if);
 	IRQ_init();
 }

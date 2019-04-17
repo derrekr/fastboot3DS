@@ -28,13 +28,12 @@
 void WEAK __systemInit(void)
 {
 	IRQ_init();
-	NDMA_init();
+	leaveCriticalSection(0); // Enables interrupts
 	TIMER_init();
-	PXI_init();
+	NDMA_init();
 	AES_init();
 	RSA_init();
-
-	leaveCriticalSection(0); // Enables interrupts
+	PXI_init();
 }
 
 void WEAK __systemDeinit(void)
