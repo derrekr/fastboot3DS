@@ -137,3 +137,8 @@ bool MCU_powerOnLcdBacklights(void)
 {
 	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3); // bit3 = lower screen, bit5 = upper
 }
+
+bool MCU_setPowerLedState(PwLedState state)
+{
+	return I2C_writeReg(I2C_DEV_MCU, 0x29, state);
+}

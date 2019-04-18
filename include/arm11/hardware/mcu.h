@@ -29,6 +29,16 @@
 #define MCU_HID_SHELL_GOT_CLOSED           (1u<<5)
 #define MCU_HID_SHELL_GOT_OPENED           (1u<<6)
 
+typedef enum
+{
+	PWLED_NORMAL    = 0,
+	PWLED_SLEEP     = 2,
+	PWLED_OFF       = 3,
+	PWLED_RED       = 4,
+	PWLED_BLUE      = 5,
+	PWLED_BLINK_RED = 6
+} PwLedState;
+
 
 
 void MCU_init(void);
@@ -45,3 +55,4 @@ u32 MCU_readReceivedIrqs(void);
 bool MCU_setIrqBitmask(u32 mask);
 u8 MCU_readHidHeld(void);
 bool MCU_powerOnLcdBacklights(void);
+bool MCU_setPowerLedState(PwLedState state);

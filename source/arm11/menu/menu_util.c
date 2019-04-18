@@ -293,11 +293,13 @@ bool drawCustomSplash(const char* folder)
 void sleepmode(void)
 {
 	GFX_enterLowPowerState();
+	MCU_setPowerLedState(PWLED_SLEEP);
 	do
 	{
 		__wfi();
 		hidScanInput();
 	} while(!(hidKeysUp() & KEY_SHELL));
+	MCU_setPowerLedState(PWLED_NORMAL);
 	GFX_returnFromLowPowerState();
 }
 
