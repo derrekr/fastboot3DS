@@ -34,7 +34,7 @@ void IRQ_init(void)
 
 	if(!__getCpuId()) // Core 0
 	{
-		REG_CFG11_FIQ_CNT = 1; // Disable FIQs.
+		REG_CFG11_FIQ_CNT = 2; // Disable FIQs.
 
 		REG_GID_CNT = 0; // Disable the global interrupt distributor.
 
