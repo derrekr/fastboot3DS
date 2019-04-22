@@ -35,10 +35,11 @@ typedef enum
 {
 	SPI_DEV_UNK1   = 0,
 	SPI_DEV_NVRAM  = 1,
-	SPI_DEV_UNK2   = 2,
+	SPI_DEV_UNK3   = 2,
 	SPI_DEV_CODEC  = 3,
-	SPI_DEV_UNK3   = 0,
-	SPI_DEV_UNK4   = 0,
+	SPI_DEV_UNK5   = 4,
+	SPI_DEV_UNK6   = 5,
+	SPI_DEV_UNK7   = 6,
 } SpiDevice;
 
 

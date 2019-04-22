@@ -2,7 +2,7 @@
 
 /*
  *   This file is part of fastboot 3DS
- *   Copyright (C) 2017 derrek, profi200
+ *   Copyright (C) 2019 derrek, profi200
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,19 +21,11 @@
 #include "types.h"
 
 
+#define SPIFLASH_CMD_RDSR  (0x05)
+#define SPIFLASH_CMD_READ  (0x03)
 
-typedef struct
-{
-	const char *name;
-	bool initialized;
-	bool (*init)();
-	bool (*read_sector)(u32 sector, u32 count, void *buf);
-	bool (*write_sector)(u32 sector, u32 count, const void *buf);
-	bool (*close)();
-	bool (*is_active)();
-	u32  (*get_sector_count)();
-} dev_struct;
 
-extern const dev_struct *dev_sdcard;
-extern const dev_struct *dev_rawnand;
-extern const dev_struct *dev_decnand;
+
+// true if spiflash is installed, false otherwise
+bool spiflash_get_status(void);
+void spiflash_read(u32 offset, u32 size, u32 *buf);

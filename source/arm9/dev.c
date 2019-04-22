@@ -25,7 +25,6 @@
 #include "arm9/ncsd.h"
 #include "arm9/hardware/sdmmc.h"
 #include "arm9/hardware/cfg9.h"
-#include "arm9/hardware/spiflash.h"
 #include "arm9/hardware/interrupt.h"
 #include "fs.h"
 #include "arm9/hardware/crypto.h"
@@ -112,26 +111,6 @@ static dev_dnand_struct dev_dnand = {
 	{0}
 };
 const dev_struct *dev_decnand = &dev_dnand.dev;
-
-
-// wifi flash device
-bool wififlash_init(void);
-bool wififlash_read_sector(u32 sector, u32 count, void *buf);
-bool wififlash_close(void);
-bool wififlash_is_active(void);
-u32  wififlash_get_sector_count(void);
-
-dev_struct dev_wififlash = {
-	"nvram",
-	false,
-	wififlash_init,
-	wififlash_read_sector,
-	NULL,
-	wififlash_close,
-	wififlash_is_active,
-	wififlash_get_sector_count
-};
-const dev_struct *dev_flash = &dev_wififlash;
 
 
 static void sdioHandler(UNUSED u32 id);
@@ -475,39 +454,4 @@ bool sdmmc_dnand_close(void)
 bool sdmmc_dnand_is_active(void)
 {
 	return sdmmc_rnand_is_active() && dev_dnand.dev.initialized;
-}
-
-
-// ------------------------------ wifi flash glue functions ------------------------------
-
-bool wififlash_init(void)
-{
-	if(dev_wififlash.initialized) return true;
-	if(!spiflash_get_status()) return false;
-	dev_wififlash.initialized = true;
-	return true;
-}
-
-bool wififlash_read_sector(u32 sector, u32 count, void *buf)
-{
-	if(!dev_wififlash.initialized) return false;
-	spiflash_read(sector<<9, count<<9, buf);
-	return true;
-}
-
-bool wififlash_close(void)
-{
-	dev_wififlash.initialized = false;
-	return true;
-}
-
-bool wififlash_is_active(void)
-{
-	return dev_wififlash.initialized;
-}
-
-u32 wififlash_get_sector_count(void)
-{
-	if(!dev_wififlash.initialized) return 0;
-	return 0x20000>>9;
 }

@@ -1,8 +1,6 @@
-#pragma once
-
 /*
  *   This file is part of fastboot 3DS
- *   Copyright (C) 2017 derrek, profi200
+ *   Copyright (C) 2019 derrek, profi200
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,13 +17,30 @@
  */
 
 #include "types.h"
-
-
-#define SPIFLASH_CMD_RDSR  (0x05)
-#define SPIFLASH_CMD_READ  (0x03)
+#include "arm11/hardware/spiflash.h"
+#include "arm11/hardware/spi.h"
 
 
 
-// true if spiflash is installed, false otherwise
-bool spiflash_get_status();
-void spiflash_read(u32 offset, u32 size, u8 *buf);
+bool spiflash_get_status(void)
+{
+	alignas(4) u8 cmdBuf[4];
+
+	cmdBuf[0] = SPIFLASH_CMD_RDSR;
+	SPI_writeRead(SPI_DEV_NVRAM, (u32*)cmdBuf, (u32*)cmdBuf, 1, 1, true);
+
+	if(cmdBuf[0] & 1) return false;
+	return true;
+}
+
+void spiflash_read(u32 offset, u32 size, u32 *buf)
+{
+	alignas(4) u8 cmdBuf[4];
+
+	cmdBuf[0] = SPIFLASH_CMD_READ;
+	cmdBuf[1] = (offset>>16) & 0xFFu;
+	cmdBuf[2] = (offset>>8) & 0xFFu;
+	cmdBuf[3] = offset & 0xFFu;
+	SPI_writeRead(SPI_DEV_NVRAM, (u32*)cmdBuf, NULL, 4, 0, false);
+	SPI_writeRead(SPI_DEV_NVRAM, NULL, buf, 0, size, true);
+}

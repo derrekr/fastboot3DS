@@ -61,12 +61,13 @@ static const struct
 	u8 csBaud;
 } spiDevTable[] =
 {
-	{SPI_BUS1, 0u<<6 | SPI_BAUD_512KHz},
-	{SPI_BUS3, 1u<<6 | 0}, // TODO: Bus, baudrate
-	{SPI_BUS1, 2u<<6 | 0}, // TODO: Bus, baudrate
+	{SPI_BUS3, 0u<<6 | SPI_BAUD_512KHz},
+	{SPI_BUS3, 1u<<6 | 0}, // TODO: Baudrate
+	{SPI_BUS3, 2u<<6 | 0}, // TODO: Baudrate
 	{SPI_BUS1, 0u<<6 | SPI_BAUD_4MHz},
-	{SPI_BUS1, 1u<<6 | 0}, // TODO: Bus, baudrate
-	{SPI_BUS1, 2u<<6 | 0}  // TODO: Bus, baudrate
+	{SPI_BUS1, 1u<<6 | 0}, // TODO: Baudrate
+	{SPI_BUS1, 2u<<6 | 0}, // TODO: Baudrate
+	{SPI_BUS2, 0u<<6 | 0}  // TODO: Baudrate
 };
 
 
