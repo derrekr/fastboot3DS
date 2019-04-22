@@ -24,23 +24,16 @@
 
 bool spiflash_get_status(void)
 {
-	alignas(4) u8 cmdBuf[4];
+	u32 cmd = SPIFLASH_CMD_RDSR;
+	SPI_writeRead(SPI_DEV_NVRAM, &cmd, &cmd, 1, 1, true);
 
-	cmdBuf[0] = SPIFLASH_CMD_RDSR;
-	SPI_writeRead(SPI_DEV_NVRAM, (u32*)cmdBuf, (u32*)cmdBuf, 1, 1, true);
-
-	if(cmdBuf[0] & 1) return false;
+	if(cmd & 1) return false;
 	return true;
 }
 
 void spiflash_read(u32 offset, u32 size, u32 *buf)
 {
-	alignas(4) u8 cmdBuf[4];
+	offset = __builtin_bswap32(offset & 0x00FFFFFFu) | SPIFLASH_CMD_READ;
 
-	cmdBuf[0] = SPIFLASH_CMD_READ;
-	cmdBuf[1] = (offset>>16) & 0xFFu;
-	cmdBuf[2] = (offset>>8) & 0xFFu;
-	cmdBuf[3] = offset & 0xFFu;
-	SPI_writeRead(SPI_DEV_NVRAM, (u32*)cmdBuf, NULL, 4, 0, false);
-	SPI_writeRead(SPI_DEV_NVRAM, NULL, buf, 0, size, true);
+	SPI_writeRead(SPI_DEV_NVRAM, &offset, buf, 4, size, true);
 }
