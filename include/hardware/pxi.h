@@ -18,45 +18,54 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mem_map.h"
 #include "types.h"
+#include "mem_map.h"
 
 
 #ifdef ARM9
-#define PXI_REGS_BASE                (IO_MEM_ARM9_ONLY + 0x8000)
+#define PXI_REGS_BASE                       (IO_MEM_ARM9_ONLY + 0x8000)
 #elif ARM11
-#define PXI_REGS_BASE                (IO_MEM_ARM9_ARM11 + 0x63000)
+#define PXI_REGS_BASE                       (IO_MEM_ARM9_ARM11 + 0x63000)
 #endif
-#define REG_PXI_DATA_RECEIVED        *((vu8 *)(PXI_REGS_BASE + 0x00))
-#define REG_PXI_DATA_SENT            *((vu8 *)(PXI_REGS_BASE + 0x01))
-#define REG_PXI_SYNC                 *((vu32*)(PXI_REGS_BASE + 0x00))
-#define REG_PXI_CNT                  *((vu16*)(PXI_REGS_BASE + 0x04))
-#define REG_PXI_SEND                 *((vu32*)(PXI_REGS_BASE + 0x08))
-#define REG_PXI_RECV                 *((vu32*)(PXI_REGS_BASE + 0x0C))
+#define REG_PXI_SYNC_RECVD                  *((const vu8*)(PXI_REGS_BASE + 0x00))
+#define REG_PXI_SYNC_SENT                   *((vu8 *)(PXI_REGS_BASE + 0x01))
+#define REG_PXI_SYNC_IRQ                    *((vu8 *)(PXI_REGS_BASE + 0x03))
+#define REG_PXI_SYNC                        *((vu32*)(PXI_REGS_BASE + 0x00))
+#define REG_PXI_CNT                         *((vu16*)(PXI_REGS_BASE + 0x04))
+#define REG_PXI_SFIFO                       *((vu32*)(PXI_REGS_BASE + 0x08))
+#define REG_PXI_RFIFO                       *((const vu32*)(PXI_REGS_BASE + 0x0C))
 
 
-// Defines for PX_SYNC regs
-#define PXI_DATA_RECEIVED            (REG_PXI_SYNC & 0xFFu)
-#define PXI_DATA_SENT(sent)          ((REG_PXI_SYNC & ~(0xFFu<<8)) | (sent)<<8)
+// REG_PXI_SYNC
+#define PXI_SYNC_RECVD                      (REG_PXI_SYNC & 0xFFu)
+#define PXI_SYNC_SENT(sent)                 ((REG_PXI_SYNC & ~(0xFFu<<8)) | (sent)<<8)
 #ifdef ARM9
-#define PXI_TRIGGER_SYNC_IRQ         (1u<<29)
+#define PXI_SYNC_IRQ                        (1u<<29)
 #elif ARM11
-#define PXI_TRIGGER_SYNC_IRQ         (1u<<30)
+#define PXI_SYNC_IRQ                        (1u<<30)
 #endif
-#define PXI_IRQ_ENABLE               (1u<<31)
+#define PXI_SYNC_IRQ_ENABLE                 (1u<<31)
 
-// Defines for PXI_CNT regs
-#define PXI_SEND_FIFO_EMPTY          (1u<<0)
-#define PXI_SEND_FIFO_FULL           (1u<<1)
-#define PXI_SEND_FIFO_EMPTY_IRQ      (1u<<2)
-#define PXI_FLUSH_SEND_FIFO          (1u<<3)
-#define PXI_RECV_FIFO_EMPTY          (1u<<8)
-#define PXI_RECV_FIFO_FULL           (1u<<9)
-#define PXI_RECV_FIFO_NOT_EMPTY_IRQ  (1u<<10)
-#define PXI_EMPTY_FULL_ERROR         (1u<<14)
-#define PXI_ENABLE_SEND_RECV_FIFO    (1u<<15)
+// REG_PXI_SYNC_IRQ
+#ifdef ARM9
+#define PXI_SYNC_IRQ_IRQ                    (1u<<5)
+#elif ARM11
+#define PXI_SYNC_IRQ_IRQ                    (1u<<6)
+#endif
+#define PXI_SYNC_IRQ_IRQ_ENABLE             (1u<<7)
+
+// REG_PXI_CNT
+#define PXI_CNT_SFIFO_EMPTY                 (1u<<0)
+#define PXI_CNT_SFIFO_FULL                  (1u<<1)
+#define PXI_CNT_SFIFO_EMPTY_IRQ_ENABLE      (1u<<2)
+#define PXI_CNT_FLUSH_SFIFO                 (1u<<3)
+#define PXI_CNT_RFIFO_EMPTY                 (1u<<8)
+#define PXI_CNT_RFIFO_FULL                  (1u<<9)
+#define PXI_CNT_RFIFO_NOT_EMPTY_IRQ_ENABLE  (1u<<10)
+#define PXI_CNT_FIFO_ERROR                  (1u<<14) // Also used for aknowledge
+#define PXI_CNT_ENABLE_SRFIFO               (1u<<15)
 
 
 
 void PXI_init(void);
-u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words);
+u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words);

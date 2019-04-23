@@ -30,23 +30,17 @@ void NAKED firmLaunchStub(void)
 {
 	*((vu32*)A11_FALLBACK_ENTRY) = 0;
 
-	REG_PXI_SYNC = 0; // Disable all IRQs
 	// Tell ARM9 we are ready
-	REG_PXI_SEND = 0xA8E4u;
+	REG_PXI_SFIFO = 0xA8E4u;
 
 	// Wait for entry address
-	while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
-	u32 entry = REG_PXI_RECV;
+	while(REG_PXI_CNT & PXI_CNT_RFIFO_EMPTY);
+	u32 entry = REG_PXI_RFIFO;
 
 	// Tell ARM9 we got the entry
-	REG_PXI_SEND = 0x94C6u;
-	REG_PXI_CNT = 0; // Disable PXI
+	REG_PXI_SFIFO = 0x94C6u;
 
-	if(!entry)
-	{
-		while(!*((vu32*)A11_FALLBACK_ENTRY));
-		entry = *((vu32*)A11_FALLBACK_ENTRY);
-	}
+	if(!entry) while(!(entry = *((vu32*)A11_FALLBACK_ENTRY)));
 
 	((void (*)(void))entry)();
 }

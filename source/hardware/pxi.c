@@ -33,19 +33,41 @@
 
 static void pxiIrqHandler(UNUSED u32 id);
 
+static inline void pxiSendWord(u32 word)
+{
+	while(REG_PXI_CNT & PXI_CNT_SFIFO_FULL);
+	REG_PXI_SFIFO = word;
+}
+
+static inline u32 pxiRecvWord(void)
+{
+	while(REG_PXI_CNT & PXI_CNT_RFIFO_EMPTY);
+	return REG_PXI_RFIFO;
+}
+
+static inline bool pxiFifoError(void)
+{
+	return (REG_PXI_CNT & PXI_CNT_FIFO_ERROR) != 0;
+}
+
+static inline void pxiSyncRequest(void)
+{
+	REG_PXI_SYNC_IRQ |= PXI_SYNC_IRQ_IRQ;
+}
+
 void PXI_init(void)
 {
-	REG_PXI_SYNC = PXI_IRQ_ENABLE;
-	REG_PXI_CNT = PXI_ENABLE_SEND_RECV_FIFO | PXI_EMPTY_FULL_ERROR | PXI_FLUSH_SEND_FIFO;
+	REG_PXI_SYNC = PXI_SYNC_IRQ_ENABLE;
+	REG_PXI_CNT = PXI_CNT_ENABLE_SRFIFO | PXI_CNT_FIFO_ERROR | PXI_CNT_FLUSH_SFIFO;
 
 #ifdef ARM9
-	REG_PXI_DATA_SENT = 9;
-	while(REG_PXI_DATA_RECEIVED != 11);
+	REG_PXI_SYNC_SENT = 9;
+	while(REG_PXI_SYNC_RECVD != 11);
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, pxiIrqHandler);
 #elif ARM11
-	while(REG_PXI_DATA_RECEIVED != 9);
-	REG_PXI_DATA_SENT = 11;
+	while(REG_PXI_SYNC_RECVD != 9);
+	REG_PXI_SYNC_SENT = 11;
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, 13, 0, true, pxiIrqHandler);
 #endif
@@ -53,24 +75,21 @@ void PXI_init(void)
 
 static void pxiIrqHandler(UNUSED u32 id)
 {
-	const u32 cmdCode = REG_PXI_RECV;
+	const u32 cmdCode = pxiRecvWord();
 	const u32 inBufs = IPC_CMD_IN_BUFS_MASK(cmdCode);
 	const u32 outBufs = IPC_CMD_OUT_BUFS_MASK(cmdCode);
 	const u32 params = IPC_CMD_PARAMS_MASK(cmdCode);
-	const u32 cmdBufSize = (inBufs * 2) + (outBufs * 2) + params;
-	if(cmdBufSize > IPC_MAX_PARAMS || cmdBufSize != REG_PXI_DATA_RECEIVED)
-	{
-		panic();
-	}
+	const u32 words = (inBufs * 2) + (outBufs * 2) + params;
+	if(words > IPC_MAX_PARAMS) panic();
 
 	u32 buf[IPC_MAX_PARAMS];
-	for(u32 i = 0; i < cmdBufSize; i++) buf[i] = REG_PXI_RECV;
-	if(REG_PXI_CNT & PXI_EMPTY_FULL_ERROR) panic();
+	for(u32 i = 0; i < words; i++) buf[i] = pxiRecvWord();
+	if(pxiFifoError()) panic();
 
-	REG_PXI_SEND = IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf);
+	pxiSendWord(IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf));
 }
 
-u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
+u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words)
 {
 	fb_assert(words <= IPC_MAX_PARAMS);
 
@@ -88,15 +107,13 @@ u32 PXI_sendCmd(u32 cmd, const u32 *const buf, u32 words)
 		if(outBuf->ptr && outBuf->size) invalidateDCacheRange(outBuf->ptr, outBuf->size);
 	}
 
-	while(REG_PXI_CNT & PXI_SEND_FIFO_FULL);
-	REG_PXI_SEND = cmd;
-	for(u32 i = 0; i < words; i++) REG_PXI_SEND = buf[i];
-	if(REG_PXI_CNT & PXI_EMPTY_FULL_ERROR) panic();
+	pxiSendWord(cmd);
+	pxiSyncRequest();
 
-	REG_PXI_SYNC = PXI_DATA_SENT(words) | PXI_TRIGGER_SYNC_IRQ;
+	while(words--) pxiSendWord(*buf++);
+	if(pxiFifoError()) panic();
 
-	while(REG_PXI_CNT & PXI_RECV_FIFO_EMPTY);
-	const u32 res = REG_PXI_RECV;
+	const u32 res = pxiRecvWord();
 
 #ifdef ARM11
 	// The CPU may do speculative prefetches of data after the first invalidation
