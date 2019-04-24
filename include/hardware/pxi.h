@@ -69,3 +69,4 @@
 
 void PXI_init(void);
 u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words);
+void PXI_sendPanicCmd(u32 cmd); // Not intended for normal use!

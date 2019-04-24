@@ -32,41 +32,18 @@
 #include "arm11/hardware/hid.h"
 
 
-#ifndef NDEBUG
-static u32 debugHash = 0;
-#endif
-
-
-
-void debugHashCodeRoData()
-{
-#ifndef NDEBUG
-	extern u32 __start__[];
-	extern u32 __exidx_start[];
-
-	u32 *start = __start__;
-	u32 *end = __exidx_start;
-
-	debugHash = 0;
-
-	for(u32 *ptr = start; ptr < end; ptr++)
-		debugHash += *ptr;
-#endif
-}
 
 noreturn void panic()
 {
-	register u32 lr __asm__("lr");
-
 	enterCriticalSection();
 
 	consoleInit(SCREEN_SUB, NULL, false);
-	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
+	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n");
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
 	               0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
-	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
+	PXI_sendPanicCmd(IPC_CMD9_PANIC);
 
 	// Wait for any button.
 	do
@@ -74,25 +51,22 @@ noreturn void panic()
 		hidScanInput();
 	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
 
-	MCU_powerOffLCDs();
 	MCU_triggerPowerOff();
 	while(1) __wfi();
 }
 
 noreturn void panicMsg(const char *msg)
 {
-	register u32 lr __asm__("lr");
-
 	enterCriticalSection();
 
 	consoleInit(SCREEN_SUB, NULL, false);
-	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n\nlr = 0x%08" PRIX32 "\n", lr);
+	ee_printf("\x1b[41m\x1b[0J\x1b[15C****PANIC!!!****\n\n");
 	ee_printf("\nERROR MESSAGE:\n%s\n", msg);
 	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
 				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
-	PXI_sendCmd(IPC_CMD9_PANIC, NULL, 0);
+	PXI_sendPanicCmd(IPC_CMD9_PANIC);
 
 	// Wait for any button.
 	do
@@ -100,7 +74,6 @@ noreturn void panicMsg(const char *msg)
 		hidScanInput();
 	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
 
-	MCU_powerOffLCDs();
 	MCU_triggerPowerOff();
 	while(1) __wfi();
 }
@@ -162,7 +135,7 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
 	GFX_swapFramebufs();
 
-	PXI_sendCmd(IPC_CMD9_EXCEPTION, NULL, 0);
+	PXI_sendPanicCmd(IPC_CMD9_EXCEPTION);
 
 	// Wait for any button.
 	do
@@ -170,7 +143,6 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 		hidScanInput();
 	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
 
-	MCU_powerOffLCDs();
 	MCU_triggerPowerOff();
 	while(1) __wfi();
 }

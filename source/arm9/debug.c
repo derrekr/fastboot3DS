@@ -55,7 +55,7 @@ noreturn void panic()
 {
 	enterCriticalSection();
 	fsDeinit();
-	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
+	PXI_sendPanicCmd(IPC_CMD11_PANIC);
 
 	while(1)
 	{
@@ -69,7 +69,7 @@ noreturn void panicMsg(UNUSED const char *msg)
 {
 	enterCriticalSection();
 	fsDeinit();
-	PXI_sendCmd(IPC_CMD11_PANIC, NULL, 0);
+	PXI_sendPanicCmd(IPC_CMD11_PANIC);
 
 	while(1)
 	{
@@ -85,7 +85,7 @@ noreturn void guruMeditation(UNUSED u8 type, UNUSED const u32 *excStack)
 {
 	// avoid fs corruptions
 	fsDeinit();
-	PXI_sendCmd(IPC_CMD11_EXCEPTION, NULL, 0);
+	PXI_sendPanicCmd(IPC_CMD11_EXCEPTION);
 
 	while(1)
 	{

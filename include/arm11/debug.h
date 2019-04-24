@@ -22,7 +22,6 @@
 
 
 
-void debugHashCodeRoData();
 noreturn void panic();
 noreturn void panicMsg(const char *msg);
 void debugMemdump(const char *filepath, void *mem, size_t size);

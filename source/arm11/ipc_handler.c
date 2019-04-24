@@ -36,9 +36,7 @@ u32 IPC_handleCmd(u8 cmdId, u32 inBufs, u32 outBufs, UNUSED const u32 *const buf
 	switch(cmdId)
 	{
 		case IPC_CMD_ID_MASK(IPC_CMD11_PRINT_MSG):
-			break;
 		case IPC_CMD_ID_MASK(IPC_CMD11_PANIC):
-			break;
 		case IPC_CMD_ID_MASK(IPC_CMD11_EXCEPTION):
 			break;
 		default:

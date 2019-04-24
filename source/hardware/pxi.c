@@ -30,6 +30,9 @@
 #include "hardware/cache.h"
 
 
+static vu32 g_lastResp[2] = {0};
+
+
 
 static void pxiIrqHandler(UNUSED u32 id);
 
@@ -76,6 +79,13 @@ void PXI_init(void)
 static void pxiIrqHandler(UNUSED u32 id)
 {
 	const u32 cmdCode = pxiRecvWord();
+	if(cmdCode & IPC_CMD_RESP_FLAG)
+	{
+		g_lastResp[0] = cmdCode;
+		g_lastResp[1] = pxiRecvWord();
+		return;
+	}
+
 	const u32 inBufs = IPC_CMD_IN_BUFS_MASK(cmdCode);
 	const u32 outBufs = IPC_CMD_OUT_BUFS_MASK(cmdCode);
 	const u32 params = IPC_CMD_PARAMS_MASK(cmdCode);
@@ -86,7 +96,9 @@ static void pxiIrqHandler(UNUSED u32 id)
 	for(u32 i = 0; i < words; i++) buf[i] = pxiRecvWord();
 	if(pxiFifoError()) panic();
 
+	pxiSendWord(IPC_CMD_RESP_FLAG | cmdCode);
 	pxiSendWord(IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf));
+	pxiSyncRequest();
 }
 
 u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words)
@@ -113,7 +125,9 @@ u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words)
 	while(words--) pxiSendWord(*buf++);
 	if(pxiFifoError()) panic();
 
-	const u32 res = pxiRecvWord();
+	while(g_lastResp[0] != (IPC_CMD_RESP_FLAG | cmd)) __wfi();
+	g_lastResp[0] = 0;
+	const u32 res = g_lastResp[1];
 
 #ifdef ARM11
 	// The CPU may do speculative prefetches of data after the first invalidation
@@ -126,4 +140,12 @@ u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words)
 #endif
 
 	return res;
+}
+
+void PXI_sendPanicCmd(u32 cmd)
+{
+	pxiSendWord(cmd);
+	pxiSyncRequest();
+	while(pxiRecvWord() != (IPC_CMD_RESP_FLAG | cmd));
+	// We don't care about the result
 }
