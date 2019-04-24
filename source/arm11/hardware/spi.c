@@ -105,6 +105,10 @@ static void spiWaitFifoBusy(const SpiRegs *const regs)
 
 void SPI_init(void)
 {
+	static bool inited = false;
+	if(inited) return;
+	inited = true;
+
 	// Switch all 3 buses to the new interface
 	REG_CFG11_SPI_CNT = 1u<<2 | 1u<<1 | 1u;
 }

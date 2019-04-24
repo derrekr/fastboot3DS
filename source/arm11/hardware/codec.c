@@ -23,96 +23,82 @@
 
 
 
-static void codecSelectReg(u8 reg)
+static void codecReadRegBuf(u8 reg, u32 *buf, u32 size)
 {
-	alignas(4) u8 buf[4];
+	alignas(4) u8 inBuf[4];
 
-	buf[0] = 0;
-	buf[1] = reg;
-
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)buf, NULL, 2, 0, true);
+	inBuf[0] = reg<<1 | 1u;
+	SPI_writeRead(SPI_DEV_CODEC, (u32*)inBuf, buf, 1, size, true);
 }
 
-static u8 codecReadReg(u8 offset)
+static u8 codecReadReg(u8 reg)
 {
-	alignas(4) u8 buf[4];
+	alignas(4) u8 outBuf[4];
 
-	buf[0] = offset<<1 | 1u;
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)buf, (u32*)buf, 1, 1, true);
+	codecReadRegBuf(reg, (u32*)outBuf, 1);
 
-	return buf[0];
+	return outBuf[0];
 }
 
 static void codecWriteReg(u8 reg, u8 val)
 {
-	alignas(4) u8 buf[4];
+	alignas(4) u8 inBuf[4];
 
-	buf[0] = reg<<1; // Write
-	buf[1] = val;
+	inBuf[0] = reg<<1; // Write
+	inBuf[1] = val;
 
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)buf, NULL, 2, 0, true);
+	SPI_writeRead(SPI_DEV_CODEC, (u32*)inBuf, NULL, 2, 0, true);
 }
 
-static void codecReadRegBuf(u8 offset, u32 *buffer, u32 size)
+static void codecMaskReg(u8 reg, u8 mask, u8 val)
 {
-	alignas(4) u8 buf[4];
-
-	buf[0] = offset<<1 | 1u;
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)buf, buffer, 1, size, true);
+	u8 data = codecReadReg(reg);
+	data = (data & ~mask) | (val & mask);
+	codecWriteReg(reg, data);
 }
 
-static void codecMaskReg(u8 offset, u8 mask0, u8 mask1)
+static void codecSwitchBank(u8 bank)
 {
-	alignas(4) u8 buf[4];
-
-	buf[0] = offset<<1 | 1u;
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)buf, (u32*)buf, 1, 1, true);
-
-	buf[1] = (buf[0] & ~mask1) | (mask0 & mask1);
-	buf[0] = offset<<1;
-
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)buf, NULL, 2, 0, true);
+	static u8 curBank = 0;
+	if(bank != curBank)
+	{
+		codecWriteReg(0, bank);
+		curBank = bank;
+	}
 }
 
 void CODEC_init(void)
 {
-	codecSelectReg(0x67);
+	static bool inited = false;
+	if(inited) return;
+	inited = true;
+
+	SPI_init();
+
+	codecSwitchBank(0x67);
 	codecWriteReg(0x24, 0x98);
-	codecSelectReg(0x67);
 	codecWriteReg(0x26, 0x00);
-	codecSelectReg(0x67);
 	codecWriteReg(0x25, 0x43);
-	codecSelectReg(0x67);
 	codecWriteReg(0x24, 0x18);
-	codecSelectReg(0x67);
 	codecWriteReg(0x17, 0x43);
-	codecSelectReg(0x67);
 	codecWriteReg(0x19, 0x69);
-	codecSelectReg(0x67);
 	codecWriteReg(0x1B, 0x80);
-	codecSelectReg(0x67);
 	codecWriteReg(0x27, 0x11);
-	codecSelectReg(0x67);
 	codecWriteReg(0x26, 0xEC);
-	codecSelectReg(0x67);
 	codecWriteReg(0x24, 0x18);
-	codecSelectReg(0x67);
 	codecWriteReg(0x25, 0x53);
 
-	codecSelectReg(0x67);
 	codecMaskReg(0x26, 0x80, 0x80);
-	codecSelectReg(0x67);
-	codecMaskReg(0x24, 0x00, 0x80);
-	codecSelectReg(0x67);
-	codecMaskReg(0x25, 0x10, 0x3C);
+	codecMaskReg(0x24, 0x80, 0x00);
+	codecMaskReg(0x25, 0x3C, 0x10);
 }
 
 void CODEC_getRawData(u32 buf[13])
 {
-	//codecSelectReg(0x67);
+	//codecSwitchBank(0x67);
 	// This reg read seems useless and doesn't affect funtionality.
 	//codecReadReg(0x26);
 
-	codecSelectReg(0xFB);
+	codecSwitchBank(0xFB);
 	codecReadRegBuf(1, buf, 52);
 }

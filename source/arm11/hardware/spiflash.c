@@ -24,10 +24,12 @@
 
 bool spiflash_get_status(void)
 {
-	u32 cmd = SPIFLASH_CMD_RDSR;
-	SPI_writeRead(SPI_DEV_NVRAM, &cmd, &cmd, 1, 1, true);
+	alignas(4) u8 cmd[4];
 
-	if(cmd & 1) return false;
+	cmd[0] = SPIFLASH_CMD_RDSR;
+	SPI_writeRead(SPI_DEV_NVRAM, (u32*)cmd, (u32*)cmd, 1, 1, true);
+
+	if(cmd[0] & 1) return false;
 	return true;
 }
 
