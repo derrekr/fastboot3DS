@@ -45,11 +45,11 @@ noreturn void panic()
 
 	PXI_sendPanicCmd(IPC_CMD9_PANIC);
 
-	// Wait for any button.
+	// Wait for A/B/X or Y
 	do
 	{
 		hidScanInput();
-	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
+	} while(!(hidKeysDown() & (KEY_A | KEY_B | KEY_X | KEY_Y)));
 
 	MCU_triggerPowerOff();
 	while(1) __wfi();
@@ -68,11 +68,11 @@ noreturn void panicMsg(const char *msg)
 
 	PXI_sendPanicCmd(IPC_CMD9_PANIC);
 
-	// Wait for any button.
+	// Wait for A/B/X or Y
 	do
 	{
 		hidScanInput();
-	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
+	} while(!(hidKeysDown() & (KEY_A | KEY_B | KEY_X | KEY_Y)));
 
 	MCU_triggerPowerOff();
 	while(1) __wfi();
@@ -137,11 +137,11 @@ noreturn void guruMeditation(u8 type, const u32 *excStack)
 
 	PXI_sendPanicCmd(IPC_CMD9_EXCEPTION);
 
-	// Wait for any button.
+	// Wait for A/B/X or Y
 	do
 	{
 		hidScanInput();
-	} while(!(hidKeysDown() & HID_KEY_MASK_ALL));
+	} while(!(hidKeysDown() & (KEY_A | KEY_B | KEY_X | KEY_Y)));
 
 	MCU_triggerPowerOff();
 	while(1) __wfi();

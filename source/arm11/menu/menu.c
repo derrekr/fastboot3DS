@@ -308,7 +308,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 	while (menu_ret < MENU_RET_CONTINUE)
 	{
 		// handle power button
-		if(hidGetPowerButton(false))
+		if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD))
 			break; // deinits & poweroff outside of this function
 		
 		// handle battery state
@@ -326,9 +326,10 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 		
 		hidScanInput();
 		const u32 kDown = hidKeysDown();
+		const u32 extraKeys = hidGetExtraKeys(0);
 		// const u32 kHeld = hidKeysHeld();
 		
-		if (kDown & KEY_SHELL)
+		if (extraKeys & KEY_SHELL)
 		{
 			sleepmode();
 		}
@@ -362,7 +363,7 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			curr_menu = prev_menu[menu_lvl];
 			index = prev_index[menu_lvl];
 		}
-		else if ((kDown & KEY_HOME) && (menu_lvl > 0))
+		else if ((extraKeys & KEY_HOME) && (menu_lvl > 0))
 		{
 			// return to HOME menu
 			menu_lvl = 0;

@@ -415,18 +415,19 @@ bool menuFileSelector(char* res_path, PrintConsole* menu_con, const char* start,
 			dbutton_cooldown = 0;
 			
 			// handle power button
-			if(hidGetPowerButton(false))
+			if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD))
 				result = false;
 			
 			hidScanInput();
 			const u32 kDown = hidKeysDown();
 			const u32 kHeld = hidKeysHeld();
+			const u32 extraKeys = hidGetExtraKeys(0);
 			
-			if (kDown & KEY_SHELL)
+			if (extraKeys & KEY_SHELL)
 			{
 				sleepmode();
 			}
-			else if (kDown & KEY_HOME)
+			else if (extraKeys & KEY_HOME)
 			{
 				result = false;
 			}

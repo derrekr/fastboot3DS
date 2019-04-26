@@ -298,7 +298,7 @@ void sleepmode(void)
 	{
 		__wfi();
 		hidScanInput();
-	} while(!(hidKeysUp() & KEY_SHELL));
+	} while(hidGetExtraKeys(0) & KEY_SHELL);
 	MCU_setPowerLedState(PWLED_NORMAL);
 	GFX_returnFromLowPowerState();
 }
@@ -315,7 +315,7 @@ bool askConfirmation(const char *const fmt, ...)
 {
 	char buf[512];
 	char* instr = buf;
-	u32 kDown = 0, kHeld = 0;
+	u32 kHeld = 0, kDown = 0, extraKeys = 0;
 	
 	va_list args;
 	va_start(args, fmt);
@@ -330,17 +330,18 @@ bool askConfirmation(const char *const fmt, ...)
 	{
 		GFX_waitForEvent(GFX_EVENT_PDC0, true);
 		
-		if(hidGetPowerButton(false)) // handle power button
+		if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) // handle power button
 			break;
 		
 		hidScanInput();
-		kDown = hidKeysDown();
 		kHeld = hidKeysHeld();
+		kDown = hidKeysDown();
+		extraKeys = hidGetExtraKeys(0);
 		
 		if ((kHeld & KEY_A) && (kHeld & KEY_DLEFT)) return true;
-		if (kDown & (KEY_SHELL)) sleepmode();
+		if (extraKeys & KEY_SHELL) sleepmode();
 	}
-	while (!(kDown & (KEY_B|KEY_HOME)));
+	while (!(kDown & KEY_B || extraKeys & KEY_HOME));
 	
 	return false;
 }
@@ -348,36 +349,38 @@ bool askConfirmation(const char *const fmt, ...)
 void outputEndWait(void)
 {
 	u32 kDown = 0;
+	u32 extraKeys = 0;
 	
 	do
 	{
 		GFX_waitForEvent(GFX_EVENT_PDC0, true);
 		
-		if(hidGetPowerButton(false)) // handle power button
+		if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) // handle power button
 			break;
 		
 		hidScanInput();
 		kDown = hidKeysDown();
-		if (kDown & (KEY_SHELL)) sleepmode();
+		extraKeys = hidGetExtraKeys(0);
+		if (extraKeys & KEY_SHELL) sleepmode();
 	}
-	while (!(kDown & (KEY_B|KEY_HOME)));
+	while (!(kDown & KEY_B || extraKeys & KEY_HOME));
 }
 
 bool userCancelHandler(bool cancelAllowed)
 {
 	hidScanInput();
 	u32 kDown = hidKeysDown();
-	u32 powerHeld = hidGetPowerButton(false);
+	u32 extraKeys = hidGetExtraKeys(0);
 	
 	// detect force poweroff
-	if (powerHeld & (1<<1))
+	if (extraKeys & KEY_POWER_HELD)
 		return true;
 	
-	if (kDown & KEY_SHELL)
+	if (extraKeys & KEY_SHELL)
 	{
 		sleepmode();
 	}
-	else if (kDown & (KEY_HOME|KEY_B) || powerHeld)
+	else if (kDown & KEY_B || extraKeys & (KEY_HOME | KEY_POWER_HELD | KEY_POWER))
 	{
 		if (cancelAllowed)
 		{
@@ -390,11 +393,11 @@ bool userCancelHandler(bool cancelAllowed)
 			
 				hidScanInput();
 				kDown = hidKeysDown();
-				powerHeld = hidGetPowerButton(false);
+				extraKeys = hidGetExtraKeys(0);
 				
-				if (kDown & KEY_SHELL) sleepmode();
+				if (extraKeys & KEY_SHELL) sleepmode();
 				if (kDown & KEY_A) return true;
-				if (powerHeld & (1<<1)) return true;
+				if (extraKeys & KEY_POWER_HELD) return true;
 			}
 			while (!(kDown & KEY_B));
 		}
@@ -404,7 +407,7 @@ bool userCancelHandler(bool cancelAllowed)
 			ee_printf("Cancel is not allowed here.\n\n");
 		}
 		
-		hidGetPowerButton(true); // poweroff stopped
+		hidGetExtraKeys(KEY_POWER); // poweroff stopped
 	}
 	
 	return false;

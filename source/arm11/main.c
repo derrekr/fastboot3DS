@@ -203,7 +203,7 @@ int main(void)
 		{
 			GFX_waitForEvent(GFX_EVENT_PDC0, true);
 			hidScanInput();
-			if (hidKeysDown() & KEY_HOME)
+			if (hidGetExtraKeys(0) & KEY_HOME)
 			{
 				show_menu = true;
 				startFirmLaunch = false;
@@ -254,7 +254,7 @@ menu_start: ;
 			free(err_string);
 			err_string = NULL;
 			
-			if(hidGetPowerButton(false)) break;
+			if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) break;
 		}
 
 		// bootrom dumper handling
@@ -282,7 +282,7 @@ menu_start: ;
 			updateScreens();
 			
 			// check POWER button
-			if(hidGetPowerButton(false)) break;
+			if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) break;
 			
 			// check menu return value
 			if (menu_ret == MENU_RET_FIRMLOADED)
@@ -364,7 +364,7 @@ menu_start: ;
 
 				// Last chance to abort and enter boot menu
 				hidScanInput();
-				if (hidKeysDown() & KEY_HOME)
+				if (hidGetExtraKeys(0) & KEY_HOME)
 				{
 					show_menu = true;
 					startFirmLaunch = false;
@@ -393,7 +393,7 @@ menu_end:
 	if(err_string) free(err_string);
 	
 	// power off
-	if(hidGetPowerButton(true) || (menu_ret == MENU_RET_POWEROFF))
+	if((hidGetExtraKeys(KEY_POWER) & (KEY_POWER | KEY_POWER_HELD)) || (menu_ret == MENU_RET_POWEROFF))
 	{
 		storeBootslot(0);
 		power_off();

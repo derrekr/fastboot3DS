@@ -334,6 +334,7 @@ u32 menuSetSplashDuration(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	{
 		u32 kDown = 0;
 		u32 kHeld = 0;
+		u32 extraKeys = 0;
 
 		// make sure duration stays within boundaries
 		if (duration < SPLASH_MIN_MSEC) duration = SPLASH_MIN_MSEC;
@@ -357,14 +358,15 @@ u32 menuSetSplashDuration(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 		{
 			GFX_waitForEvent(GFX_EVENT_PDC0, true);
 			
-			if(hidGetPowerButton(false)) // handle power button
+			if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) // handle power button
 				return MENU_FAIL;
 			
 			hidScanInput();
 			kDown = hidKeysDown();
 			kHeld = hidKeysHeld();
-			if (kDown & (KEY_SHELL)) sleepmode();
-			else if (kDown & (KEY_B|KEY_HOME)) return MENU_OK;
+			extraKeys = hidGetExtraKeys(0);
+			if (extraKeys & KEY_SHELL) sleepmode();
+			else if (kDown & KEY_B || extraKeys & KEY_HOME) return MENU_OK;
 			else if (kDown & KEY_A) break;
 		}
 		while (!(kHeld & (KEY_DRIGHT|KEY_DLEFT|KEY_DUP|KEY_DDOWN)));
@@ -485,16 +487,16 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			do
 			{
 				GFX_waitForEvent(GFX_EVENT_PDC0, true);
-				if(hidGetPowerButton(false)) return MENU_FAIL;
+				if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) return MENU_FAIL;
 				
 				hidScanInput();
 				kHeldNew = hidKeysHeld();
-				if(hidKeysDown() & KEY_SHELL) sleepmode();
+				if(hidGetExtraKeys(0) & KEY_SHELL) sleepmode();
 			}
 			while ((kHeld == kHeldNew) && (++vBlanks < 100));
 			
 			// check HOME key
-			if (kHeldNew & KEY_HOME) return MENU_FAIL;
+			if (hidGetExtraKeys(0) & KEY_HOME) return MENU_FAIL;
 		}
 		while (!((kHeld|kHeldNew) & 0xfff));
 		// repeat checks until actual buttons are held
@@ -1182,21 +1184,23 @@ u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// handle user input
 	u32 kDown = 0;
+	u32 extraKeys = 0;
 	do
 	{
 		GFX_waitForEvent(GFX_EVENT_PDC0, true);
 		
-		if(hidGetPowerButton(false)) // handle power button
+		if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) // handle power button
 			break;
 		
 		hidScanInput();
 		kDown = hidKeysDown();
+		extraKeys = hidGetExtraKeys(0);
 		
 		if (kDown) k = (kDown & konami_code[k]) ? k + 1 : 0;
 		if (!k && (kDown & KEY_B)) break;
-		if (kDown & KEY_SHELL) sleepmode();
+		if (extraKeys & KEY_SHELL) sleepmode();
 	}
-	while (!(kDown & KEY_HOME) && (k < konami));
+	while (!(extraKeys & KEY_HOME) && (k < konami));
 	
 	
 	// Konami code entered?
@@ -1275,7 +1279,7 @@ u32 debugSettingsView(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		
 		hidScanInput();
 	}
-	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
+	while (!(hidKeysDown() & KEY_B || hidGetExtraKeys(0) & KEY_HOME));
 	
 	return 0;
 }
@@ -1316,7 +1320,7 @@ u32 debugEscapeTest(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		
 		hidScanInput();
 	}
-	while (!(hidKeysDown() & (KEY_B|KEY_HOME)));
+	while (!(hidKeysDown() & KEY_B || hidGetExtraKeys(0) & KEY_HOME));
 	
 	return 0;
 }
