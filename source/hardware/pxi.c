@@ -96,8 +96,9 @@ static void pxiIrqHandler(UNUSED u32 id)
 	for(u32 i = 0; i < words; i++) buf[i] = pxiRecvWord();
 	if(pxiFifoError()) panic();
 
+	const u32 res = IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf);
 	pxiSendWord(IPC_CMD_RESP_FLAG | cmdCode);
-	pxiSendWord(IPC_handleCmd(IPC_CMD_ID_MASK(cmdCode), inBufs, outBufs, buf));
+	pxiSendWord(res);
 	pxiSyncRequest();
 }
 
@@ -122,7 +123,7 @@ u32 PXI_sendCmd(u32 cmd, const u32 *buf, u32 words)
 	pxiSendWord(cmd);
 	pxiSyncRequest();
 
-	while(words--) pxiSendWord(*buf++);
+	for(u32 i = 0; i < words; i++) pxiSendWord(buf[i]);
 	if(pxiFifoError()) panic();
 
 	while(g_lastResp[0] != (IPC_CMD_RESP_FLAG | cmd)) __wfi();
