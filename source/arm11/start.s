@@ -205,7 +205,7 @@ setupVfp:
 	mov r0, #0
 	mov r1, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
 	mov r2, #0x40000000         @ Clear exception bits and enable VFP11
-	mov r3, #0x3C00000          @ Round towards zero (RZ) mode, flush-to-zero mode, default NaN mode
+	mov r3, #0x3000000          @ Round to nearest (RN) mode, flush-to-zero mode, default NaN mode
 	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
 	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
 	fmxr fpexc, r2              @ Write Floating-point exception register

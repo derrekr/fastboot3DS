@@ -66,13 +66,13 @@ enum
 // Extra keys use with hidGetExtraKeys()
 enum
 {
-	KEY_POWER      = (1u<<0),
-	KEY_POWER_HELD = (1u<<1),
-	KEY_HOME       = (1u<<2), // Auto clear on release
-	KEY_WIFI       = (1u<<3),
-	KEY_SHELL      = (1u<<4), // Auto clear on open
-	KEY_CHARGER    = (1u<<5), // Auto clears on unplugging
-	KEY_VOL_SLIDER = (1u<<6)
+	KEY_POWER        = (1u<<0),
+	KEY_POWER_HELD   = (1u<<1),
+	KEY_HOME         = (1u<<2), // Auto clears on release
+	KEY_WIFI         = (1u<<3),
+	KEY_SHELL        = (1u<<4), // Auto clears on open
+	KEY_BAT_CHARGING = (1u<<5), // Auto clears when charging stops
+	KEY_VOL_SLIDER   = (1u<<6)
 };
 
 typedef struct
@@ -90,7 +90,6 @@ typedef struct
 
 
 void hidInit(void);
-bool hidIsHomeButtonHeldRaw(void);
 void hidScanInput(void);
 u32 hidKeysHeld(void);
 u32 hidKeysDown(void);

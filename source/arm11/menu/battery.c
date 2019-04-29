@@ -16,12 +16,14 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-
-#include "arm11/hardware/mcu.h"
 #include "arm11/menu/battery.h"
+#include "arm11/hardware/mcu.h"
+#include "arm11/hardware/hid.h"
  
+
+
 void getBatteryState(BatteryState *battery)
 {
 	battery->percent = MCU_readBatteryLevel();
-	battery->charging = MCU_readBatteryChargeState();
+	battery->charging = hidGetExtraKeys(0) & KEY_BAT_CHARGING;
 }

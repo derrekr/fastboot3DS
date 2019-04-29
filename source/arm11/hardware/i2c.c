@@ -57,7 +57,7 @@ static const struct
 	{I2C_BUS2, 0x2E},
 	{I2C_BUS2, 0x40},
 	{I2C_BUS2, 0x44},
-	{I2C_BUS3, 0xA6}, // TODO: Find out if 0xA6 or 0xD6 is correct
+	{I2C_BUS3, 0xD6},
 	{I2C_BUS3, 0xD0},
 	{I2C_BUS3, 0xD2},
 	{I2C_BUS3, 0xA4},
@@ -98,11 +98,9 @@ static void i2cWaitBusyIrq(const I2cRegs *const regs)
 
 void I2C_init(void)
 {
-	static bool initialized = false;
-	
-	/* run-once */
-	if(initialized) return;
-	initialized = true;
+	static bool inited = false;
+	if(inited) return;
+	inited = true;
 
 	IRQ_registerHandler(IRQ_I2C1, 14, 0, true, NULL);
 	IRQ_registerHandler(IRQ_I2C2, 14, 0, true, NULL);
@@ -175,9 +173,8 @@ static bool i2cStartTransfer(u8 devAddr, u8 regAddr, bool read, I2cRegs *const r
 
 bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 {
-	const u8 busId = i2cDevTable[devId].busId;
 	const u8 devAddr = i2cDevTable[devId].devAddr;
-	I2cRegs *const regs = i2cGetBusRegsBase(busId);
+	I2cRegs *const regs = i2cGetBusRegsBase(i2cDevTable[devId].busId);
 
 
 	if(!i2cStartTransfer(devAddr, regAddr, true, regs)) return false;
@@ -199,9 +196,8 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 
 bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 {
-	const u8 busId = i2cDevTable[devId].busId;
 	const u8 devAddr = i2cDevTable[devId].devAddr;
-	I2cRegs *const regs = i2cGetBusRegsBase(busId);
+	I2cRegs *const regs = i2cGetBusRegsBase(i2cDevTable[devId].busId);
 
 
 	if(!i2cStartTransfer(devAddr, regAddr, false, regs)) return false;
@@ -245,9 +241,8 @@ bool I2C_writeReg(I2cDevice devId, u8 regAddr, u8 data)
 
 bool I2C_writeRegIntSafe(I2cDevice devId, u8 regAddr, u8 data)
 {
-	const u8 busId = i2cDevTable[devId].busId;
 	const u8 devAddr = i2cDevTable[devId].devAddr;
-	I2cRegs *const regs = i2cGetBusRegsBase(busId);
+	I2cRegs *const regs = i2cGetBusRegsBase(i2cDevTable[devId].busId);
 
 
 	u32 tries = 8;

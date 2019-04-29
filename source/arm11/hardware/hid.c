@@ -36,7 +36,7 @@ static u32 kHeld, kDown, kUp;
 static u32 extraKeys;
 //TouchPos tPos;
 //CpadPos cPos;
-static volatile bool mcuIrq = true;
+static volatile bool mcuIrq;
 
 
 
@@ -44,14 +44,19 @@ static void hidIrqHandler(UNUSED u32 intSource);
 
 void hidInit(void)
 {
-	extraKeys = kUp = kDown = kHeld = 0;
+	kUp = kDown = kHeld = 0;
+	mcuIrq = false;
 
-	// When set after a reboot from TWL_FIRM while holding the HOME button this will
-	// cause the MCU to spam IRQs infinitely after releasing the HOME button.
-	// mcuBugs++
-	// Update: For some reason this is not reproduceable anymore.
-	MCU_setIrqBitmask(0xFFBFFC80u);
+	(void)MCU_readReceivedIrqs();
+	u8 state = MCU_readExternalHwState();
+	u32 tmp = ~state<<3 & KEY_SHELL;      // Current shell state. Bit is inverted.
+	tmp |= state<<1 & KEY_BAT_CHARGING;   // Current battery charging state
+	state = MCU_readHidHeld();
+	tmp |= ~state<<1 & KEY_HOME;          // Current HOME button state
+	extraKeys = tmp;
+
 	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
+	MCU_setIrqBitmask(0xFFBF3F80u);
 	GPIO_setBit(19, 9); // This enables the MCU IRQ.
 
 	//CODEC_init();
@@ -64,7 +69,6 @@ static void hidIrqHandler(UNUSED u32 intSource)
 
 static void updateMcuIrqState(void)
 {
-	// TODO: We should probably disable IRQs temporarily here.
 	if(!mcuIrq) return;
 	mcuIrq = false;
 
@@ -75,8 +79,8 @@ static void updateMcuIrqState(void)
 	if(state & 1u<<3) tmp &= ~KEY_HOME;                     // HOME released
 	tmp |= state>>1 & (KEY_WIFI | KEY_SHELL);               // WiFi switch, shell closed
 	if(state & 1u<<6) tmp &= ~KEY_SHELL;                    // Shell opened
-	tmp |= state>>4 & KEY_CHARGER;                          // Charger plugged in
-	if(state & 1u<<8) tmp &= ~KEY_CHARGER;                  // Charger removed
+	tmp |= state>>10 & KEY_BAT_CHARGING;                    // Battery started charging
+	if(state & 1u<<14) tmp &= ~KEY_BAT_CHARGING;            // Battery stopped charging
 	tmp |= state>>16 & KEY_VOL_SLIDER;                      // Volume slider update
 	extraKeys = tmp;
 }
@@ -96,12 +100,12 @@ static void updateMcuIrqState(void)
 	cPos.x = -(((buf[36]<<8 | buf[37]) & 0xFFFu) - 2048u); // X axis is inverted
 	cPos.y = ((buf[20]<<8 | buf[21]) & 0xFFFu) - 2048u;
 
-	if((cPos.x > 0 ? cPos.x : -cPos.x) > CPAD_THRESHOLD)
+	if((cPos.x >= 0 ? cPos.x : -cPos.x) > CPAD_THRESHOLD)
 	{
 		if(cPos.x >= 0) emuButtons |= KEY_CPAD_RIGHT;
 		else            emuButtons |= KEY_CPAD_LEFT;
 	}
-	if((cPos.y > 0 ? cPos.y : -cPos.y) > CPAD_THRESHOLD)
+	if((cPos.y >= 0 ? cPos.y : -cPos.y) > CPAD_THRESHOLD)
 	{
 		if(cPos.y >= 0) emuButtons |= KEY_CPAD_UP;
 		else            emuButtons |= KEY_CPAD_DOWN;
@@ -110,16 +114,11 @@ static void updateMcuIrqState(void)
 	return emuButtons;
 }*/
 
-bool hidIsHomeButtonHeldRaw(void)
-{
-	return !(MCU_readHidHeld() & 1u<<1);
-}
-
 void hidScanInput(void)
 {
 	updateMcuIrqState();
 
-	u32 kOld = kHeld;
+	const u32 kOld = kHeld;
 	kHeld = /*rawCodec2Hid() |*/ REG_HID_PAD;
 	kDown = (~kOld) & kHeld;
 	kUp = kOld & (~kHeld);
@@ -152,7 +151,7 @@ const CpadPos* hidGetCpadPosPtr(void)
 
 u32 hidGetExtraKeys(u32 clearMask)
 {
-	u32 tmp = extraKeys;
+	const u32 tmp = extraKeys;
 	extraKeys &= ~clearMask;
 
 	return tmp;

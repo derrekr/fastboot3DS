@@ -61,12 +61,12 @@ int main(void)
 	loadConfigFile();
 
 
+	hidScanInput();
 	// bootrom dumper?
 	// skip bootslot / FCRAM / reboot handling in that case
 	if(dump_bootroms)
 	{
-		// workaround when HOME button is held
-		if (hidIsHomeButtonHeldRaw())
+		if (hidGetExtraKeys(0) & KEY_HOME)
 		{
 			menu_ret = MENU_RET_REBOOT;
 			if (toggleSuperhax(false) == 0)
@@ -90,7 +90,7 @@ int main(void)
 	nextBootSlot = readStoredBootslot();
 	
 	// show menu if bootmode is normal or HOME button is pressed
-	show_menu = (!nextBootSlot && (bootmode == BootModeNormal)) || hidIsHomeButtonHeldRaw();
+	show_menu = (!nextBootSlot && (bootmode == BootModeNormal)) || hidGetExtraKeys(0) & KEY_HOME;
 	
 	// show splash if cold boot and (bootmode != BootModeQuiet)
 	bool splash_wait = false;
@@ -131,7 +131,6 @@ int main(void)
 	
 	
 	// check keys held at boot
-	hidScanInput();
 	u32 kHeld = hidKeysHeld();
 	
 	// boot slot keycombo held?

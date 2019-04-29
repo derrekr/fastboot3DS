@@ -88,13 +88,9 @@ u8 MCU_readBatteryLevel(void)
 	return state;
 }
 
-bool MCU_readBatteryChargeState(void)
+u8 MCU_readExternalHwState(void)
 {
-	u8 state;
-	
-	state = I2C_readReg(I2C_DEV_MCU, RegExHW);
-	
-	return (state & (1u << 4)) != 0;
+	return I2C_readReg(I2C_DEV_MCU, RegExHW);
 }
 
 u8 MCU_readSystemModel(void)
