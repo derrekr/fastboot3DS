@@ -131,10 +131,10 @@ enum
 	NDMA_STARTUP_TIMER1    = 1<<24,
 	NDMA_STARTUP_TIMER2    = 2<<24,
 	NDMA_STARTUP_TIMER3    = 3<<24,
-	NDMA_STARTUP_CTRCARD0  = 4<<24,
-	NDMA_STARTUP_CTRCARD1  = 5<<24,
+	NDMA_STARTUP_CTRCARD0  = 4<<24,  // Fires with SPICARD aswell but seems to be broken.
+	NDMA_STARTUP_CTRCARD1  = 5<<24,  // Fires with SPICARD aswell but seems to be broken.
 	NDMA_STARTUP_MMC1      = 6<<24,
-	NDMA_STARTUP_MMC2      = 7<<24, // Guess based on DSi documentation
+	NDMA_STARTUP_MMC2      = 7<<24,  // Guess based on DSi documentation
 	NDMA_STARTUP_AES_IN    = 8<<24,  // AES write fifo
 	NDMA_STARTUP_AES_OUT   = 9<<24,  // AES read fifo
 	NDMA_STARTUP_SHA       = 10<<24,

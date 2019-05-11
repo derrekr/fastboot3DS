@@ -29,7 +29,7 @@
 #define NSPI_CNT_ENABLE      (1u<<15)
 
 // REG_NSPI_DONE
-#define NSPI_DONE_DONE       (0u)
+#define NSPI_DONE            (0u)
 
 // REG_NSPI_STATUS
 #define NSPI_STATUS_BUSY     (1u)
@@ -44,40 +44,26 @@
 #define NSPI_INT_AP_TIMEOUT  (1u<<2) // Auto poll
 
 
-// TODO: Confirm these clocks
-enum
-{
-	NSPI_CLK_128KHz = 0,
-	NSPI_CLK_256KHz = 1,
-	NSPI_CLK_512KHz = 2,
-	NSPI_CLK_1MHz   = 3,
-	NSPI_CLK_2MHz   = 4,
-	NSPI_CLK_4MHz   = 5,
-};
-
-// TODO: Proper device table
 typedef enum
 {
-	SPI_DEV_UNK1   = 0,
-	SPI_DEV_NVRAM  = 1,
-	SPI_DEV_UNK3   = 2,
-	SPI_DEV_CODEC  = 3,
-	SPI_DEV_UNK5   = 4,
-	SPI_DEV_UNK6   = 5,
-	SPI_DEV_UNK7   = 6  // Don't use autopoll on this.
-} SpiDevice;
+	NSPI_CLK_512KHz = 0,
+	NSPI_CLK_1MHz   = 1,
+	NSPI_CLK_2MHz   = 2,
+	NSPI_CLK_4MHz   = 3,
+	NSPI_CLK_8MHz   = 4,
+	NSPI_CLK_16MHz  = 5
+} NspiClk;
 
 
 
 /**
  * @brief      Initializes the SPI buses. Call this only once.
  */
-void NSPI_init(void);
+void SPICARD_init(void);
 
 /**
  * @brief      Automatically polls a bit of the command response.
  *
- * @param[in]  dev      The device ID. See table above.
  * @param[in]  cmd      The command.
  * @param[in]  timeout  The timeout. Must be 0-15. Tries = 31<<NspiClk + timeout.
  * @param[in]  off      The bit offset. Must be 0-7.
@@ -85,16 +71,16 @@ void NSPI_init(void);
  *
  * @return     Returns false on failure/timeout and true on success.
  */
-bool NSPI_autoPollBit(SpiDevice dev, u8 cmd, u8 timeout, u8 off, bool bitSet);
+bool SPICARD_autoPollBit(u8 cmd, u8 timeout, u8 off, bool bitSet);
 
 /**
  * @brief      Writes and/or reads data to/from a SPI device.
  *
- * @param[in]  dev      The device ID. See table above.
+ * @param[in]  clk      The clock frequency to use.
  * @param[in]  in       Input data pointer for write.
  * @param      out      Output data pointer for read.
  * @param[in]  inSize   Input size. Must be <= 0x1FFFFF.
  * @param[in]  outSize  Output size. Must be <= 0x1FFFFF.
  * @param[in]  done     Set to true if this is the last transfer (chip select).
  */
-void NSPI_writeRead(SpiDevice dev, const u32 *in, u32 *out, u32 inSize, u32 outSize, bool done);
+void SPICARD_writeRead(NspiClk clk, const u32 *in, u32 *out, u32 inSize, u32 outSize, bool done);

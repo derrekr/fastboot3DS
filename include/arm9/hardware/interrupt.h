@@ -47,7 +47,7 @@ typedef enum
 	IRQ_DEBUG_RECV    = 20,
 	IRQ_DEBUG_SEND    = 21,
 	IRQ_RSA           = 22,
-	IRQ_CTR_CARD_1    = 23,
+	IRQ_CTR_CARD_1    = 23, // SPICARD and CTRCARD too?
 	IRQ_CTR_CARD_2    = 24,
 	IRQ_CGC           = 25,
 	IRQ_CGC_DET       = 26,

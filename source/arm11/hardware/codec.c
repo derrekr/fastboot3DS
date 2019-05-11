@@ -28,7 +28,7 @@ static void codecReadRegBuf(u8 reg, u32 *buf, u32 size)
 	alignas(4) u8 inBuf[4];
 
 	inBuf[0] = reg<<1 | 1u;
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)inBuf, buf, 1, size, true);
+	NSPI_writeRead(SPI_DEV_CODEC, (u32*)inBuf, buf, 1, size, true);
 }
 
 static u8 codecReadReg(u8 reg)
@@ -47,7 +47,7 @@ static void codecWriteReg(u8 reg, u8 val)
 	inBuf[0] = reg<<1; // Write
 	inBuf[1] = val;
 
-	SPI_writeRead(SPI_DEV_CODEC, (u32*)inBuf, NULL, 2, 0, true);
+	NSPI_writeRead(SPI_DEV_CODEC, (u32*)inBuf, NULL, 2, 0, true);
 }
 
 static void codecMaskReg(u8 reg, u8 mask, u8 val)
@@ -73,7 +73,7 @@ void CODEC_init(void)
 	if(inited) return;
 	inited = true;
 
-	SPI_init();
+	NSPI_init();
 
 	codecSwitchBank(0x67);
 	codecWriteReg(0x24, 0x98);

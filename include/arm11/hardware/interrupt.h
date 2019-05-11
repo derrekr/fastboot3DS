@@ -87,6 +87,8 @@ typedef enum
 	IRQ_PXI_NOT_EMPTY = 83,
 	IRQ_I2C1          = 84,
 	IRQ_I2C2          = 85,
+	IRQ_SPI3          = 86,  // SPI bus 3 interrupt status update
+	IRQ_SPI1          = 87,  // SPI bus 1 interrupt status update
 	IRQ_PDN           = 88,
 	IRQ_I2C3          = 92,
 	IRQ_SHELL_OPENED  = 96,
