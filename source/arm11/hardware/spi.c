@@ -54,12 +54,12 @@ static const struct
 } spiDevTable[] =
 {
 	{SPI_BUS3, 0u<<6 | NSPI_CLK_512KHz},
-	{SPI_BUS3, 1u<<6 | 0}, // TODO: Baudrate
-	{SPI_BUS3, 2u<<6 | 0}, // TODO: Baudrate
+	{SPI_BUS3, 1u<<6 | 0}, // TODO: Clock
+	{SPI_BUS3, 2u<<6 | 0}, // TODO: Clock
 	{SPI_BUS1, 0u<<6 | NSPI_CLK_4MHz},
-	{SPI_BUS1, 1u<<6 | 0}, // TODO: Baudrate
-	{SPI_BUS1, 2u<<6 | 0}, // TODO: Baudrate
-	{SPI_BUS2, 0u<<6 | 0}  // TODO: Baudrate
+	{SPI_BUS1, 1u<<6 | 0}, // TODO: Clock
+	{SPI_BUS1, 2u<<6 | 0}, // TODO: Clock
+	{SPI_BUS2, 0u<<6 | 0}  // TODO: Clock
 };
 
 
@@ -121,11 +121,11 @@ void NSPI_init(void)
 	regs->NSPI_INT_STAT = NSPI_INT_AP_TIMEOUT | NSPI_INT_AP_SUCCESS | NSPI_INT_UNK;
 }
 
-bool NSPI_autoPollBit(SpiDevice dev, u8 cmd, u8 timeout, u8 off, bool bitSet)
+bool _NSPI_autoPollBit(SpiDevice dev, u32 params)
 {
 	SpiRegs *const regs = nspiGetBusRegsBase(spiDevTable[dev].busId);
 
-	regs->NSPI_AUTOPOLL = NSPI_AUTOPOLL_START | bitSet<<30 | off<<24 | timeout<<16 | cmd;
+	regs->NSPI_AUTOPOLL = NSPI_AUTOPOLL_START | params;
 
 	u32 res;
 	do

@@ -62,16 +62,13 @@ typedef enum
 void SPICARD_init(void);
 
 /**
- * @brief      Automatically polls a bit of the command response.
+ * @brief      Automatically polls a bit of the command response. Use with the macro below.
  *
- * @param[in]  cmd      The command.
- * @param[in]  timeout  The timeout. Must be 0-15. Tries = 31<<NspiClk + timeout.
- * @param[in]  off      The bit offset. Must be 0-7.
- * @param[in]  bitSet   Poll for a set ur unset bit.
+ * @param[in]  params  The parameters. Use the macro below.
  *
  * @return     Returns false on failure/timeout and true on success.
  */
-bool SPICARD_autoPollBit(u8 cmd, u8 timeout, u8 off, bool bitSet);
+bool _SPICARD_autoPollBit(u32 params);
 
 /**
  * @brief      Writes and/or reads data to/from a SPI device.
@@ -84,3 +81,16 @@ bool SPICARD_autoPollBit(u8 cmd, u8 timeout, u8 off, bool bitSet);
  * @param[in]  done     Set to true if this is the last transfer (chip select).
  */
 void SPICARD_writeRead(NspiClk clk, const u32 *in, u32 *out, u32 inSize, u32 outSize, bool done);
+
+
+/**
+ * @brief      Automatically polls a bit of the command response.
+ *
+ * @param[in]  cmd      The command.
+ * @param[in]  timeout  The timeout. Must be 0-15. Tries = 31<<NspiClk + timeout.
+ * @param[in]  off      The bit offset. Must be 0-7.
+ * @param[in]  bitSet   Poll for a set ur unset bit.
+ *
+ * @return     Returns false on failure/timeout and true on success.
+ */
+#define SPICARD_autoPollBit(cmd, timeout, off, bitSet) _SPICARD_autoPollBit((bitSet)<<30 | (off)<<24 | (timeout)<<16 | (cmd))

@@ -67,7 +67,10 @@ void TIMER_sleepTicks(u32 ticks)
 	REG_TIMER_LOAD = ticks;
 	REG_TIMER_CNT = TIMER_IRQ_ENABLE | TIMER_SINGLE_SHOT | TIMER_ENABLE;
 
-	while(REG_TIMER_COUNTER) __wfe();
+	do
+	{
+		__wfi();
+	} while(REG_TIMER_COUNTER); // Checking the REG_TIMER_CNT enable bit is broken.
 
 	REG_TIMER_INT_STAT = 1;
 }

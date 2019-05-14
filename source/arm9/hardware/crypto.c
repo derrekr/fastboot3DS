@@ -308,7 +308,7 @@ void AES_setCryptParams(AES_ctx *const ctx, u8 inEndianessOrder, u8 outEndianess
 static void aesProcessBlocksCpu(const u32 *in, u32 *out, u32 blocks)
 {
 	REG_AES_BLKCNT_HIGH = blocks;
-	REG_AESCNT |= AES_ENABLE | 3<<12 | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
+	REG_AESCNT |= AES_ENABLE | 3u<<12 | AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
 
 	for(u32 i = 0; i < blocks * 4; i += 4)
 	{
@@ -354,7 +354,10 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | AES_IRQ_ENABLE | aesFifoSize<<14 | (3 - aesFifoSize)<<12 |
 	              AES_FLUSH_READ_FIFO | AES_FLUSH_WRITE_FIFO;
-	while(REG_AESCNT & AES_ENABLE) __wfi();
+	do
+	{
+		__wfi();
+	} while(REG_AESCNT & AES_ENABLE);
 }
 
 void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
@@ -676,7 +679,7 @@ bool RSA_decrypt2048(u32 *const decSig, const u32 *const encSig)
 	fb_assert(encSig != NULL);
 
 	const u8 keyslot = RSA_GET_KEYSLOT;
-	rsaWaitBusy();
+	rsaWaitBusy(); // TODO: IRQs?
 	if(!(rsaSlots[keyslot].REG_RSA_SLOTCNT & RSA_KEY_STAT_SET)) return false;
 
 	REG_RSA_CNT |= RSA_INPUT_NORMAL | RSA_INPUT_BIG;
@@ -697,32 +700,20 @@ bool RSA_verify2048(const u32 *const encSig, const u32 *const data, u32 size)
 	alignas(4) u8 decSig[0x100];
 	if(!RSA_decrypt2048((u32*)decSig, encSig)) return false;
 
-	if(decSig[0] != 0x00 || decSig[1] != 0x01) return false;
-
+	if(*((u16*)decSig) != 0x0100u) return false;
 	u32 read = 2;
-	while(read < 0x100)
-	{
-		if(decSig[read] != 0xFF) break;
-		read++;
-	}
+	while(decSig[read] == 0xFF && ++read < 0x100);
 	if(read != 0xCC || decSig[read] != 0x00) return false;
 
 	// ASN.1 is a clusterfuck so we skip parsing the remaining headers
 	// and hardcode the hash location.
 
-	alignas(4) u8 hash[32];
-	sha(data, size, (u32*)hash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
+	u32 calcHash[8];
+	sha(data, size, calcHash, SHA_INPUT_BIG | SHA_MODE_256, SHA_OUTPUT_BIG);
 
 	// Compare hash
-	u8 res = 0;
-	for(u32 i = 0; i < 32; i++)
-	{
-		u8 tmp;
-		if(decSig[0xE0 + i] == hash[i]) tmp = 0;
-		else tmp = 1;
-
-		res |= tmp;
-	}
+	u32 res = 0;
+	for(u32 i = 0; i < 8; i++) res |= ((u32*)(decSig + 0xE0))[i] ^ calcHash[i];
 
 	return res == 0;
 }

@@ -64,6 +64,8 @@ void IRQ_init(void)
 	}
 	else // Other core. Same as above but for core specific IRQs.
 	{
+		REGs_GID_ENA_CLR[0] = 0xFFFFFFFFu;
+
 		REGs_GID_PEN_CLR[0] = 0xFFFFFFFFu;
 
 		for(u32 i = 0; i < 8; i++) REGs_GID_IPRIO[i] = 0xE0E0E0E0u;

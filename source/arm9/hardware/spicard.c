@@ -89,9 +89,9 @@ void SPICARD_init(void)
 	REG_NSPI_INT_STAT = NSPI_INT_AP_TIMEOUT | NSPI_INT_AP_SUCCESS | NSPI_INT_UNK; // Aknowledge
 }
 
-bool SPICARD_autoPollBit(u8 cmd, u8 timeout, u8 off, bool bitSet)
+bool _SPICARD_autoPollBit(u32 params)
 {
-	REG_NSPI_AUTOPOLL = NSPI_AUTOPOLL_START | bitSet<<30 | off<<24 | timeout<<16 | cmd;
+	REG_NSPI_AUTOPOLL = NSPI_AUTOPOLL_START | params;
 
 	u32 res;
 	do

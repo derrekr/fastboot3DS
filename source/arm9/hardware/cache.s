@@ -52,8 +52,8 @@ ASM_FUNC flushDCache
 		mov r0, #0
 		flushDCache_inner_lp:
 			orr r2, r1, r0             @ Generate segment and line address
-			mcr p15, 0, r2, c7, c10, 2 @ "Clean data cache entry Index and segment"
 			add r0, r0, #CACHE_LINE_SIZE
+			mcr p15, 0, r2, c7, c10, 2 @ "Clean data cache entry Index and segment"
 			cmp r0, #(DCACHE_SIZE / 4)
 			bne flushDCache_inner_lp
 		add r1, r1, #0x40000000
@@ -69,8 +69,8 @@ ASM_FUNC flushInvalidateDCache
 		mov r0, #0
 		flushInvalidateDCache_inner_lp:
 			orr r2, r1, r0             @ Generate segment and line address
-			mcr p15, 0, r2, c7, c14, 2 @ "Clean and flush data cache entry Index and segment"
 			add r0, r0, #CACHE_LINE_SIZE
+			mcr p15, 0, r2, c7, c14, 2 @ "Clean and flush data cache entry Index and segment"
 			cmp r0, #(DCACHE_SIZE / 4)
 			bne flushInvalidateDCache_inner_lp
 		add r1, r1, #0x40000000
@@ -85,13 +85,13 @@ ASM_FUNC flushDCacheRange
 	bhi flushDCache
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
+	mov r2, #0
 	flushDCacheRange_lp:
 		mcr p15, 0, r0, c7, c10, 1  @ "Clean data cache entry Address"
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt flushDCacheRange_lp
-	mov r0, #0
-	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
+	mcr p15, 0, r2, c7, c10, 4      @ Drain write buffer
 	bx lr
 
 
@@ -100,13 +100,13 @@ ASM_FUNC flushInvalidateDCacheRange
 	bhi flushInvalidateDCache
 	add r1, r1, r0
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
+	mov r2, #0
 	flushInvalidateDCacheRange_lp:
 		mcr p15, 0, r0, c7, c14, 1  @ "Clean and flush data cache entry Address"
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt flushInvalidateDCacheRange_lp
-	mov r0, #0
-	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
+	mcr p15, 0, r2, c7, c10, 4      @ Drain write buffer
 	bx lr
 
 
@@ -125,13 +125,13 @@ ASM_FUNC invalidateDCacheRange
 	tst r1, #(CACHE_LINE_SIZE - 1)
 	mcrne p15, 0, r1, c7, c10, 1    @ "Clean data cache entry Address"
 	bic r0, r0, #(CACHE_LINE_SIZE - 1)
+	mov r2, #0
 	invalidateDCacheRange_lp:
 		mcr p15, 0, r0, c7, c6, 1   @ "Flush data cache single entry Address"
 		add r0, r0, #CACHE_LINE_SIZE
 		cmp r0, r1
 		blt invalidateDCacheRange_lp
-	mov r0, #0
-	mcr p15, 0, r0, c7, c10, 4      @ Drain write buffer
+	mcr p15, 0, r2, c7, c10, 4      @ Drain write buffer
 	bx lr
 
 
