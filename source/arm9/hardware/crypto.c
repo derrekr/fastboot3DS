@@ -620,36 +620,41 @@ void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess
 #define REGs_RSA_SLOT1   ((vu32*)(RSA_REGS_BASE + 0x110))
 #define REGs_RSA_SLOT2   ((vu32*)(RSA_REGS_BASE + 0x120))
 #define REGs_RSA_SLOT3   ((vu32*)(RSA_REGS_BASE + 0x130))
-#define rsaSlots         ((RsaSlot*)(RSA_REGS_BASE + 0x100))
 #define REGs_RSA_EXP     ((vu32*)(RSA_REGS_BASE + 0x200))
 #define REGs_RSA_MOD     ((vu32*)(RSA_REGS_BASE + 0x400))
 #define REGs_RSA_TXT     ((vu32*)(RSA_REGS_BASE + 0x800))
+
 
 typedef struct
 {
 	vu32 REG_RSA_SLOTCNT;
 	vu32 REG_RSA_SLOTSIZE;
-	vu32 REG_RSA_SLOT_UNK_0x8;
-	vu32 REG_RSA_SLOT_UNK_0xC;
+	vu32 REG_RSA_SLOTUNK_0x8;
+	vu32 REG_RSA_SLOTUNK_0xC;
 } RsaSlot;
 
+
+
+static inline void rsaWaitBusyIrq(void)
+{
+	do
+	{
+		__wfi();
+	} while(REG_RSA_CNT & RSA_CNT_ENABLE);
+}
 
 void RSA_init(void)
 {
 	REG_RSA_UNK_F0 = 0;
-}
 
-static void rsaWaitBusy(void)
-{
-	while(REG_RSA_CNT & RSA_ENABLE);
+	IRQ_registerHandler(IRQ_RSA, NULL);
 }
 
 void RSA_selectKeyslot(u8 keyslot)
 {
 	fb_assert(keyslot < 4);
 
-	rsaWaitBusy();
-	REG_RSA_CNT = (REG_RSA_CNT & ~RSA_KEYSLOT(0xFu)) | RSA_KEYSLOT(keyslot);
+	REG_RSA_CNT = keyslot<<RSA_CNT_KEYSLOT_SHIFT;
 }
 
 bool RSA_setKey2048(u8 keyslot, const u32 *const mod, u32 exp)
@@ -657,13 +662,11 @@ bool RSA_setKey2048(u8 keyslot, const u32 *const mod, u32 exp)
 	fb_assert(keyslot < 4);
 	fb_assert(mod != NULL);
 
-	RsaSlot *slot = &rsaSlots[keyslot];
-	rsaWaitBusy();
-	if(slot->REG_RSA_SLOTCNT & RSA_KEY_WR_PROT) return false;
-	// Unset key if bit 31 is not set. No idea why but boot9 does this.
-	if(!(slot->REG_RSA_SLOTCNT & RSA_KEY_UNK_BIT31)) slot->REG_RSA_SLOTCNT &= ~RSA_KEY_STAT_SET;
+	RsaSlot *const slot = &((RsaSlot*)REGs_RSA_SLOT0)[keyslot];
+	if(slot->REG_RSA_SLOTCNT & RSA_SLOTCNT_WR_PROT) return false;
+	if(!(slot->REG_RSA_SLOTCNT & RSA_SLOTCNT_BIT31)) slot->REG_RSA_SLOTCNT &= ~RSA_SLOTCNT_SET;
 
-	REG_RSA_CNT = RSA_INPUT_NORMAL | RSA_INPUT_BIG | RSA_KEYSLOT(keyslot);
+	REG_RSA_CNT = RSA_CNT_INPUT_NORMAL | RSA_CNT_INPUT_BIG | keyslot<<RSA_CNT_KEYSLOT_SHIFT;
 	iomemset(REGs_RSA_EXP, 0, 0x100 - 4);
 	REGs_RSA_EXP[(0x100>>2) - 1] = exp;
 
@@ -678,15 +681,15 @@ bool RSA_decrypt2048(u32 *const decSig, const u32 *const encSig)
 	fb_assert(decSig != NULL);
 	fb_assert(encSig != NULL);
 
-	const u8 keyslot = RSA_GET_KEYSLOT;
-	rsaWaitBusy(); // TODO: IRQs?
-	if(!(rsaSlots[keyslot].REG_RSA_SLOTCNT & RSA_KEY_STAT_SET)) return false;
+	const u8 keyslot = (REG_RSA_CNT & RSA_CNT_KEYSLOT_MASK)>>RSA_CNT_KEYSLOT_SHIFT;
+	RsaSlot *const slot = &((RsaSlot*)REGs_RSA_SLOT0)[keyslot];
+	if(!(slot->REG_RSA_SLOTCNT & RSA_SLOTCNT_SET)) return false;
 
-	REG_RSA_CNT |= RSA_INPUT_NORMAL | RSA_INPUT_BIG;
+	REG_RSA_CNT = (REG_RSA_CNT & ~RSA_CNT_INPUT_MASK) | RSA_CNT_INPUT_NORMAL | RSA_CNT_INPUT_BIG;
 	iomemcpy(REGs_RSA_TXT, encSig, 0x100);
 
-	REG_RSA_CNT |= RSA_ENABLE;
-	rsaWaitBusy();
+	REG_RSA_CNT |= RSA_CNT_IRQ_ENABLE | RSA_CNT_ENABLE;
+	rsaWaitBusyIrq();
 	iomemcpy(decSig, REGs_RSA_TXT, 0x100);
 
 	return true;

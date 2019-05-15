@@ -273,22 +273,23 @@ void sha(const u32 *data, u32 size, u32 *const hash, u8 params, u8 hashEndianess
 //////////////////////////////////
 
 // REG_RSA_CNT
-#define RSA_ENABLE          (1u)
-#define RSA_UNK_BIT1        (1u<<1)
-#define RSA_KEYSLOT(k)      ((k)<<4)
-#define RSA_GET_KEYSLOT     ((REG_RSA_CNT & RSA_KEYSLOT(0xFu))>>4)
-#define RSA_INPUT_BIG       (1u<<8)
-#define RSA_INPUT_LITTLE    (0u)
-#define RSA_INPUT_NORMAL    (1u<<9)
-#define RSA_INPUT_REVERSED  (0u)
+#define RSA_CNT_ENABLE          (1u)
+#define RSA_CNT_IRQ_ENABLE      (1u<<1)
+#define RSA_CNT_KEYSLOT_SHIFT   (4u)
+#define RSA_CNT_KEYSLOT_MASK    (3u<<RSA_CNT_KEYSLOT_SHIFT)
+#define RSA_CNT_INPUT_BIG       (1u<<8)
+#define RSA_CNT_INPUT_LITTLE    (0u)
+#define RSA_CNT_INPUT_NORMAL    (1u<<9)
+#define RSA_CNT_INPUT_REVERSED  (0u)
+#define RSA_CNT_INPUT_MASK      (RSA_CNT_INPUT_NORMAL | RSA_CNT_INPUT_BIG)
 
-// RSA_SLOTCNT
-#define RSA_KEY_STAT_SET    (1u)
-#define RSA_KEY_WR_PROT     (1u<<1)
-#define RSA_KEY_UNK_BIT31   (1u<<31)
+// REG_RSA_SLOTCNT
+#define RSA_SLOTCNT_SET         (1u)
+#define RSA_SLOTCNT_WR_PROT     (1u<<1)
+#define RSA_SLOTCNT_BIT31       (1u<<31)
 
-// RSA_SLOTSIZE
-#define RSA_SLOTSIZE_2048   (0x40u)
+// REG_RSA_SLOTSIZE
+#define RSA_SLOTSIZE_2048       (0x40u)
 
 
 /**
