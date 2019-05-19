@@ -127,22 +127,22 @@
 
 enum
 {
-	NDMA_STARTUP_TIMER0    = 0<<24,
-	NDMA_STARTUP_TIMER1    = 1<<24,
-	NDMA_STARTUP_TIMER2    = 2<<24,
-	NDMA_STARTUP_TIMER3    = 3<<24,
-	NDMA_STARTUP_CTRCARD0  = 4<<24,  // Fires with SPICARD aswell but seems to be broken.
-	NDMA_STARTUP_CTRCARD1  = 5<<24,  // Fires with SPICARD aswell but seems to be broken.
-	NDMA_STARTUP_MMC1      = 6<<24,
-	NDMA_STARTUP_MMC2      = 7<<24,  // Guess based on DSi documentation
-	NDMA_STARTUP_AES_IN    = 8<<24,  // AES write fifo
-	NDMA_STARTUP_AES_OUT   = 9<<24,  // AES read fifo
-	NDMA_STARTUP_SHA       = 10<<24,
-	NDMA_STARTUP_UNK_11    = 11<<24,
-	NDMA_STARTUP_UNK_12    = 12<<24,
-	NDMA_STARTUP_UNK_13    = 13<<24,
-	NDMA_STARTUP_UNK_14    = 14<<24,
-	NDMA_STARTUP_AES_SHA   = 15<<24  // Unconfirmed
+	NDMA_STARTUP_TIMER0       =  0u<<24,
+	NDMA_STARTUP_TIMER1       =  1u<<24,
+	NDMA_STARTUP_TIMER2       =  2u<<24,
+	NDMA_STARTUP_TIMER3       =  3u<<24,
+	NDMA_STARTUP_CTRCARD0     =  4u<<24, // Fires with SPICARD aswell but seems to be broken.
+	NDMA_STARTUP_CTRCARD1     =  5u<<24, // Fires with SPICARD aswell but seems to be broken.
+	NDMA_STARTUP_MMC1         =  6u<<24,
+	NDMA_STARTUP_MMC2         =  7u<<24, // Guess based on DSi documentation
+	NDMA_STARTUP_AES_IN       =  8u<<24, // AES write fifo
+	NDMA_STARTUP_AES_OUT      =  9u<<24, // AES read fifo
+	NDMA_STARTUP_SHA_IN       = 10u<<24,
+	NDMA_STARTUP_SHA_OUT      = 11u<<24, // For chaining
+	NDMA_STARTUP_UNK_12       = 12u<<24,
+	NDMA_STARTUP_UNK_13       = 13u<<24,
+	NDMA_STARTUP_UNK_14       = 14u<<24,
+	NDMA_STARTUP_MMC_AES_SHA  = 15u<<24  // Unconfirmed
 };
 
 

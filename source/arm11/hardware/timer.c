@@ -45,7 +45,7 @@ void TIMER_start(u8 prescaler, u32 ticks, bool autoReload, bool enableIrq)
 	fb_assert(prescaler > 0);
 
 	REG_TIMER_LOAD = ticks;
-	REG_TIMER_CNT = (prescaler - 1)<<8 | (enableIrq ? TIMER_IRQ_ENABLE : 0) |
+	REG_TIMER_CNT = (prescaler - 1u)<<8 | (enableIrq ? TIMER_IRQ_ENABLE : 0u) |
 	                (autoReload ? TIMER_AUTO_RELOAD : TIMER_SINGLE_SHOT) | TIMER_ENABLE;
 }
 

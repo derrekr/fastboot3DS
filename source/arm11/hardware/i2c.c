@@ -91,19 +91,19 @@ static I2cRegs* i2cGetBusRegsBase(u8 busId)
 	return base;
 }
 
-static inline void i2cWaitBusyIrq(const I2cRegs *const regs)
+static inline void i2cWaitBusyIrq(const vu8 *const I2C_CNT)
 {
 	do
 	{
 		__wfi();
-	} while(regs->I2C_CNT & I2C_ENABLE);
+	} while(*I2C_CNT & I2C_ENABLE);
 }
 
-static bool i2cCheckAck(I2cRegs *const regs)
+static bool i2cCheckAck(vu8 *const I2C_CNT)
 {
-	if(!(regs->I2C_CNT & I2C_ACK)) // If ack flag is 0 it failed.
+	if(!(*I2C_CNT & I2C_ACK)) // If ack flag is 0 it failed.
 	{
-		regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
+		*I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_ERROR | I2C_STOP;
 		return false;
 	}
 
@@ -149,22 +149,22 @@ static bool i2cStartTransfer(u8 devAddr, u8 regAddr, bool read, I2cRegs *const r
 		// Select device and start.
 		regs->I2C_DATA = devAddr;
 		regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE | I2C_START;
-		i2cWaitBusyIrq(regs);
-		if(!i2cCheckAck(regs)) continue;
+		i2cWaitBusyIrq(&regs->I2C_CNT);
+		if(!i2cCheckAck(&regs->I2C_CNT)) continue;
 
 		// Select register.
 		regs->I2C_DATA = regAddr;
 		regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE;
-		i2cWaitBusyIrq(regs);
-		if(!i2cCheckAck(regs)) continue;
+		i2cWaitBusyIrq(&regs->I2C_CNT);
+		if(!i2cCheckAck(&regs->I2C_CNT)) continue;
 
 		// Select device in read mode for read transfer.
 		if(read)
 		{
 			regs->I2C_DATA = devAddr | 1u; // Set bit 0 for read.
 			regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE | I2C_START;
-			i2cWaitBusyIrq(regs);
-			if(!i2cCheckAck(regs)) continue;
+			i2cWaitBusyIrq(&regs->I2C_CNT);
+			if(!i2cCheckAck(&regs->I2C_CNT)) continue;
 		}
 
 		break;
@@ -184,13 +184,13 @@ bool I2C_readRegBuf(I2cDevice devId, u8 regAddr, u8 *out, u32 size)
 	while(--size)
 	{
 		regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_READ | I2C_ACK;
-		i2cWaitBusyIrq(regs);
+		i2cWaitBusyIrq(&regs->I2C_CNT);
 		*out++ = regs->I2C_DATA;
 	}
 
 	// Last byte transfer.
 	regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_READ | I2C_STOP;
-	i2cWaitBusyIrq(regs);
+	i2cWaitBusyIrq(&regs->I2C_CNT);
 	*out = regs->I2C_DATA;
 
 	return true;
@@ -208,15 +208,15 @@ bool I2C_writeRegBuf(I2cDevice devId, u8 regAddr, const u8 *in, u32 size)
 	{
 		regs->I2C_DATA = *in++;
 		regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE;
-		i2cWaitBusyIrq(regs);
-		if(!i2cCheckAck(regs)) return false;
+		i2cWaitBusyIrq(&regs->I2C_CNT);
+		if(!i2cCheckAck(&regs->I2C_CNT)) return false;
 	}
 
 	// Last byte transfer.
 	regs->I2C_DATA = *in;
 	regs->I2C_CNT = I2C_ENABLE | I2C_IRQ_ENABLE | I2C_DIRE_WRITE | I2C_STOP;
-	i2cWaitBusyIrq(regs);
-	if(!i2cCheckAck(regs)) return false;
+	i2cWaitBusyIrq(&regs->I2C_CNT);
+	if(!i2cCheckAck(&regs->I2C_CNT)) return false;
 
 	return true;
 }
@@ -248,13 +248,13 @@ bool I2C_writeRegIntSafe(I2cDevice devId, u8 regAddr, u8 data)
 		regs->I2C_DATA = devAddr;
 		regs->I2C_CNT = I2C_ENABLE | I2C_DIRE_WRITE | I2C_START;
 		while(regs->I2C_CNT & I2C_ENABLE);
-		if(!i2cCheckAck(regs)) continue;
+		if(!i2cCheckAck(&regs->I2C_CNT)) continue;
 
 		// Select register.
 		regs->I2C_DATA = regAddr;
 		regs->I2C_CNT = I2C_ENABLE | I2C_DIRE_WRITE;
 		while(regs->I2C_CNT & I2C_ENABLE);
-		if(!i2cCheckAck(regs)) continue;
+		if(!i2cCheckAck(&regs->I2C_CNT)) continue;
 
 		break;
 	} while(--tries > 0);
@@ -264,7 +264,7 @@ bool I2C_writeRegIntSafe(I2cDevice devId, u8 regAddr, u8 data)
 	regs->I2C_DATA = data;
 	regs->I2C_CNT = I2C_ENABLE | I2C_DIRE_WRITE | I2C_STOP;
 	while(regs->I2C_CNT & I2C_ENABLE);
-	if(!i2cCheckAck(regs)) return false;
+	if(!i2cCheckAck(&regs->I2C_CNT)) return false;
 
 	return true;
 }

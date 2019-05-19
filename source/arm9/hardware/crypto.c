@@ -169,17 +169,13 @@ static void setupKeys(void)
 void AES_init(void)
 {
 	REG_AESCNT = AES_MAC_SIZE(4) | AES_FLUSH_WRITE_FIFO | AES_FLUSH_READ_FIFO;
-	*((vu8*)0x10000008) |= 0xCu; // ??
+	*((vu8*)0x10000008) = 0; // ??
 
 	REG_NDMA0_DST_ADDR = REG_AESWRFIFO;
 	REG_NDMA0_INT_CNT = NDMA_INT_SYS_FREQ;
-	REG_NDMA0_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_IN | NDMA_BURST_WORDS(4) |
-	                NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
 
 	REG_NDMA1_SRC_ADDR = REG_AESRDFIFO;
 	REG_NDMA1_INT_CNT = NDMA_INT_SYS_FREQ;
-	REG_NDMA1_CNT = NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_OUT | NDMA_BURST_WORDS(4) |
-	                NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 
 	IRQ_registerHandler(IRQ_AES, NULL);
 
@@ -195,31 +191,20 @@ void AES_setKey(u8 keyslot, AesKeyType type, u8 orderEndianess, bool twlScramble
 	REG_AESCNT = (u32)orderEndianess<<23;
 	if(keyslot > 3)
 	{
-		REG_AESKEYCNT = 0x80u | (type > AES_KEY_NORMAL && twlScrambler ? 1u : 0u)<<6 | keyslot;
-		REG_AESKEYFIFO[type] = key[0];
-		REG_AESKEYFIFO[type] = key[1];
-		REG_AESKEYFIFO[type] = key[2];
-		REG_AESKEYFIFO[type] = key[3];
+		REG_AESKEYCNT = 1u<<7 | (type > AES_KEY_NORMAL && twlScrambler ? 1u : 0u)<<6 | keyslot;
+		for(u32 i = 0; i < 4; i++) REG_AESKEYFIFO[type] = key[i];
 	}
 	else
 	{
-		u32 lastu32;
 		vu32 *twlKeyNReg = &REG_AESKEY0[12u * keyslot + type * 4u];
 		if(orderEndianess & AES_INPUT_NORMAL)
 		{
-			twlKeyNReg[0] = key[3];
-			twlKeyNReg[1] = key[2];
-			twlKeyNReg[2] = key[1];
-			lastu32 = key[0];
+			for(u32 i = 0; i < 4; i++) twlKeyNReg[i] = key[3u - i];
 		}
 		else
 		{
-			twlKeyNReg[0] = key[0];
-			twlKeyNReg[1] = key[1];
-			twlKeyNReg[2] = key[2];
-			lastu32 = key[3];
+			for(u32 i = 0; i < 4; i++) twlKeyNReg[i] = key[i];
 		}
-		twlKeyNReg[3] = lastu32;
 	}
 }
 
@@ -238,21 +223,15 @@ void AES_setNonce(AES_ctx *const ctx, u8 orderEndianess, const u32 nonce[3])
 
 
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
-	u32 *const ctrIvNonce = ctx->ctrIvNonce;
-	u32 lastu32;
+	u32 *const ctxNonce = ctx->ctrIvNonce;
 	if(orderEndianess & AES_INPUT_NORMAL)
 	{
-		ctrIvNonce[0] = nonce[2];
-		ctrIvNonce[1] = nonce[1];
-		lastu32 = nonce[0];
+		for(u32 i = 0; i < 3; i++) ctxNonce[i] = nonce[2u - i];
 	}
 	else
 	{
-		ctrIvNonce[0] = nonce[0];
-		ctrIvNonce[1] = nonce[1];
-		lastu32 = nonce[2];
+		for(u32 i = 0; i < 3; i++) ctxNonce[i] = nonce[i];
 	}
-	ctrIvNonce[2] = lastu32;
 }
 
 void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
@@ -262,38 +241,29 @@ void AES_setCtrIv(AES_ctx *const ctx, u8 orderEndianess, const u32 ctrIv[4])
 
 
 	ctx->ctrIvNonceParams = (u32)orderEndianess<<23;
-	u32 *const ctrIvNonce = ctx->ctrIvNonce;
-	u32 lastu32;
+	u32 *const ctxCtrIv = ctx->ctrIvNonce;
 	if(orderEndianess & AES_INPUT_NORMAL)
 	{
-		ctrIvNonce[0] = ctrIv[3];
-		ctrIvNonce[1] = ctrIv[2];
-		ctrIvNonce[2] = ctrIv[1];
-		lastu32 = ctrIv[0];
+		for(u32 i = 0; i < 4; i++) ctxCtrIv[i] = ctrIv[3u - i];
 	}
 	else
 	{
-		ctrIvNonce[0] = ctrIv[0];
-		ctrIvNonce[1] = ctrIv[1];
-		ctrIvNonce[2] = ctrIv[2];
-		lastu32 = ctrIv[3];
+		for(u32 i = 0; i < 4; i++) ctxCtrIv[i] = ctrIv[i];
 	}
-	ctrIvNonce[3] = lastu32;
 }
 
-// TODO: Handle endianess!
 NAKED void AES_addCounter(u32 ctr[4], u32 val)
 {
 	__asm__
 	(
-		"stmfd sp!, {r4, lr}\n\t"
-		"ldm r0, {r2-r4, lr}\n\t"
+		"str lr, [sp, #-4]!\n\t"
+		"ldm r0, {r2, r3, r12, lr}\n\t"
 		"adds r2, r1, lsr #4\n\t"
 		"addcss r3, r3, #1\n\t"
-		"addcss r4, r4, #1\n\t"
+		"addcss r12, r12, #1\n\t"
 		"addcs lr, lr, #1\n\t"
-		"stm r0, {r2-r4, lr}\n\t"
-		"ldmfd sp!, {r4, pc}\n\t"
+		"stm r0, {r2, r3, r12, lr}\n\t"
+		"ldr pc, [sp], #4\n\t"
 		: : "r" (ctr), "r" (val) :
 	);
 }
@@ -337,19 +307,19 @@ static void aesProcessBlocksDma(const u32 *in, u32 *out, u32 blocks)
 
 
 	// Check block alignment
-	u32 aesFifoSize;
-	if(!(blocks & 1)) aesFifoSize = 1; // 32 bytes
-	else              aesFifoSize = 0; // 16 bytes
+	const u8 aesFifoSize = (blocks & 1u ? 0u : 1u); // 1 = 32 bytes, 0 = 16 bytes
 
 	REG_NDMA0_SRC_ADDR = (u32)in;
 	REG_NDMA0_TOTAL_CNT = blocks<<2;
 	REG_NDMA0_LOG_BLK_CNT = aesFifoSize * 4 + 4;
-	REG_NDMA0_CNT |= NDMA_ENABLE;
+	REG_NDMA0_CNT = NDMA_ENABLE | NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_IN |
+	                NDMA_BURST_WORDS(4) | NDMA_SRC_UPDATE_INC | NDMA_DST_UPDATE_FIXED;
 
 	REG_NDMA1_DST_ADDR = (u32)out;
 	REG_NDMA1_TOTAL_CNT = blocks<<2;
 	REG_NDMA1_LOG_BLK_CNT = aesFifoSize * 4 + 4;
-	REG_NDMA1_CNT |= NDMA_ENABLE;
+	REG_NDMA1_CNT = NDMA_ENABLE | NDMA_TOTAL_CNT_MODE | NDMA_STARTUP_AES_OUT |
+	                NDMA_BURST_WORDS(4) | NDMA_SRC_UPDATE_FIXED | NDMA_DST_UPDATE_INC;
 
 	REG_AES_BLKCNT_HIGH = blocks;
 	REG_AESCNT |= AES_ENABLE | AES_IRQ_ENABLE | aesFifoSize<<14 | (3 - aesFifoSize)<<12 |
@@ -374,10 +344,7 @@ void AES_ctr(AES_ctx *const ctx, const u32 *in, u32 *out, u32 blocks, bool dma)
 	while(blocks)
 	{
 		REG_AESCNT = ctrParams;
-		REG_AESCTR[0] = ctr[0];
-		REG_AESCTR[1] = ctr[1];
-		REG_AESCTR[2] = ctr[2];
-		REG_AESCTR[3] = ctr[3];
+		for(u32 i = 0; i < 4; i++) REG_AESCTR[i] = ctr[i];
 
 		REG_AESCNT = aesParams;
 		u32 blockNum = ((blocks > AES_MAX_BLOCKS) ? AES_MAX_BLOCKS : blocks);
@@ -496,9 +463,7 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 
 
 	REG_AESCNT = ctx->ctrIvNonceParams;
-	REG_AESCTR[0] = ctx->ctrIvNonce[0];
-	REG_AESCTR[1] = ctx->ctrIvNonce[1];
-	REG_AESCTR[2] = ctx->ctrIvNonce[2];
+	for(u32 i = 0; i < 3; i++) REG_AESCTR[i] = ctx->ctrIvNonce[i];
 
 	REG_AES_BLKCNT_LOW = 0;
 	REG_AESCNT = (enc ? AES_MODE_CCM_ENCRYPT : AES_MODE_CCM_DECRYPT) |
@@ -508,18 +473,12 @@ bool AES_ccm(const AES_ctx *const ctx, const u32 *const in, u32 *const out, u32 
 	// This is broken right now with DMA due to a (AES engine?) bug.
 	if(!enc)
 	{
-		*((vu32*)REG_AESWRFIFO) = mac[0];
-		*((vu32*)REG_AESWRFIFO) = mac[1];
-		*((vu32*)REG_AESWRFIFO) = mac[2];
-		*((vu32*)REG_AESWRFIFO) = mac[3];
+		for(u32 i = 0; i < 4; i++) *((vu32*)REG_AESWRFIFO) = mac[i];
 		while(REG_AESCNT & AES_ENABLE);
 	}
 	else
 	{
-		mac[0] = *((vu32*)REG_AESRDFIFO);
-		mac[1] = *((vu32*)REG_AESRDFIFO);
-		mac[2] = *((vu32*)REG_AESRDFIFO);
-		mac[3] = *((vu32*)REG_AESRDFIFO);
+		for(u32 i = 0; i < 4; i++) mac[i] = *((vu32*)REG_AESRDFIFO);
 	}
 
 	if(enc) return true;

@@ -85,14 +85,14 @@ static SpiRegs* nspiGetBusRegsBase(u8 busId)
 	return base;
 }
 
-static void nspiWaitBusy(const SpiRegs *const regs)
+static void nspiWaitBusy(const vu32 *const NSPI_CNT)
 {
-	while(regs->NSPI_CNT & NSPI_CNT_ENABLE);
+	while(*NSPI_CNT & NSPI_CNT_ENABLE);
 }
 
-static void nspiWaitFifoBusy(const SpiRegs *const regs)
+static void nspiWaitFifoBusy(const vu32 *const NSPI_STATUS)
 {
-	while(regs->NSPI_STATUS & NSPI_STATUS_BUSY);
+	while(*NSPI_STATUS & NSPI_STATUS_BUSY);
 }
 
 void NSPI_init(void)
@@ -151,12 +151,12 @@ void NSPI_writeRead(SpiDevice dev, const u32 *in, u32 *out, u32 inSize, u32 outS
 		u32 counter = 0;
 		do
 		{
-			if((counter & 31) == 0) nspiWaitFifoBusy(regs);
+			if((counter & 31) == 0) nspiWaitFifoBusy(&regs->NSPI_STATUS);
 			regs->NSPI_FIFO = *in++;
 			counter += 4;
 		} while(counter < inSize);
 
-		nspiWaitBusy(regs);
+		nspiWaitBusy(&regs->NSPI_CNT);
 	}
 	if(out)
 	{
@@ -166,12 +166,12 @@ void NSPI_writeRead(SpiDevice dev, const u32 *in, u32 *out, u32 inSize, u32 outS
 		u32 counter = 0;
 		do
 		{
-			if((counter & 31) == 0) nspiWaitFifoBusy(regs);
+			if((counter & 31) == 0) nspiWaitFifoBusy(&regs->NSPI_STATUS);
 			*out++ = regs->NSPI_FIFO;
 			counter += 4;
 		} while(counter < outSize);
 
-		nspiWaitBusy(regs);
+		nspiWaitBusy(&regs->NSPI_CNT);
 	}
 
 	if(done) regs->NSPI_DONE = NSPI_DONE_DONE;

@@ -29,7 +29,7 @@
 #define TIMER_IRQ_ENABLE   (1u<<2)
 
 // p is the prescaler value and n the frequence
-#define TIMER_FREQ(p, n)   (TIMER_BASE_FREQ / 2 / (p) / (n))
+#define TIMER_FREQ(p, f)  (TIMER_BASE_FREQ / 2 / (p) / (f))
 
 
 
