@@ -181,7 +181,8 @@ void setupMmu(void)
 		            0, true, L1_TO_L2(ATTR_SHARED_DEVICE));
 
 		// VRAM mapping
-		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NA, 0, true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
+		mmuMapSections(VRAM_BASE, VRAM_BASE, 6, true, PERM_PRIV_RW_USR_NA, 0,
+		               true, ATTR_NORM_WRITE_TROUGH_NO_ALLOC);
 
 		// AXIWRAM core 0/1 stack mapping
 		mmuMapPages(A11_C0_STACK_START, A11_C0_STACK_START, 4, mmuTables->l2Axiwram,
@@ -222,7 +223,7 @@ void setupMmu(void)
 		// Invalidate tag RAMs before enabling SMP as recommended by the MPCore doc.
 		REG_SCU_CNT = 0x1FFE;        // Disable SCU and parity checking. Access to all CPUs interfaces.
 		REG_SCU_INVAL_TAG = 0xFFFF;  // Invalidate SCU tag RAMs of all CPUs.
-		REG_SCU_CNT |= 0x2001u;      // Enable SCU and parity checking.
+		REG_SCU_CNT = 0x1FFEu | 1;   // Enable SCU.
 
 		syncFlag = true;
 		__sev();
@@ -236,9 +237,8 @@ void setupMmu(void)
 
 
 	// Enable Return stack, Dynamic branch prediction, Static branch prediction,
-	// Instruction folding, SMP mode: the CPU is taking part in coherency
-	// and L1 parity checking
-	__setAcr(__getAcr() | 0x6F);
+	// Instruction folding and SMP mode: the CPU is taking part in coherency
+	__setAcr(__getAcr() | 0x2F);
 
 	// Enable MMU, D-Cache, Program flow prediction,
 	// I-Cache, high exception vectors, Unaligned data access,

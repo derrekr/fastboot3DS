@@ -451,9 +451,11 @@ int Nand_Init()
 
 int SD_Init()
 {
-	// We need to send at least 74 clock pulses.
+	// We need to send at least 74 clock pulses before talking to the card.
 	set_target(&handleSD);
-	wait(0x1980); // ~75-76 clocks
+	// TMIO base clock is half of the CPU clock so 2 CPU cycles = 1 base clock pulse.
+	// cycles = 2 * [TMIO clock divider] * 74
+	wait(2 * 128 * 74);
 
 	sdmmc_send_command(&handleSD,0,0);
 	sdmmc_send_command(&handleSD,0x10408,0x1AA);

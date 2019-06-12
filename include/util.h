@@ -26,7 +26,7 @@
 
 
 
-void wait(u32 cycles);
+NAKED void wait(u32 cycles);
 
 // case insensitive string compare function
 int strnicmp(const char *str1, const char *str2, u32 len);

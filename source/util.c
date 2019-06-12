@@ -23,12 +23,15 @@
 
 
 
-void NAKED wait(u32 cycles)
+NAKED void wait(u32 cycles)
 {
-	__asm__("subs %0, %0, #2\n"
-	        "nop\n"
-	        "bgt wait\n"
-	        "bx lr" : : "r" (cycles) : "cc", "memory");
+#ifdef ARM9
+	__asm__("subs %0, %0, #4\n\t"
+#elif ARM11
+	__asm__("subs %0, %0, #5\n\t"
+#endif
+	        "bcs wait\n\t"
+	        "bx lr" : : "r" (cycles) : "cc");
 }
 
 // case insensitive string compare function

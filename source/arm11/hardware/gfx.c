@@ -30,6 +30,7 @@
 #include "arm11/hardware/interrupt.h"
 #include "arm11/hardware/timer.h"
 #include "arm.h"
+//#include "util.h"
 
 
 #define PDN_REGS_BASE           (IO_MEM_ARM9_ARM11 + 0x40000)
@@ -250,6 +251,8 @@ void GFX_init(bool clearScreens)
 {
 	if(REG_PDN_GPU_CNT != 0x1007F) // Check if screens are already initialized
 	{
+		//REG_PDN_GPU_CNT = 0x10000;
+		//wait(134);
 		REG_PDN_GPU_CNT = 0x1007F;
 		*((vu32*)0x10202014) = 0x00000001;
 		*((vu32*)0x1020200C) &= 0xFFFEFFFE;
