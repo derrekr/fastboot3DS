@@ -158,7 +158,7 @@ void setupMmu(void)
 	// Context ID Register (ASID = 0, PROCID = 0)
 	__setCidr(0);
 	// TTBR0 address shared page table walk and outer cachable write-through, no allocate on write
-	__setTtbr0(A11_MMU_TABLES_BASE | 0x12);
+	__setTtbr0((u32)mmuTables->l1 | 0x12);
 	// Use the 16 KiB L1 table only
 	__setTtbcr(0);
 	// Domain 0 = client, remaining domains all = no access
@@ -189,8 +189,9 @@ void setupMmu(void)
 		            true, PERM_PRIV_RW_USR_NA, 0, true, L1_TO_L2(ATTR_NORM_WRITE_BACK_ALLOC));
 
 		// AXIWRAM MMU table mapping
-		mmuMapPages(A11_MMU_TABLES_BASE, A11_MMU_TABLES_BASE, 5, mmuTables->l2Axiwram, true,
-		            PERM_PRIV_RO_USR_NA, 0, true, L1_TO_L2(ATTR_NORM_NONCACHABLE));
+		const u32 mmuTablesPages = ((sizeof(MmuTables) + 0xFFFu) & ~0xFFFu) / 0x1000;
+		mmuMapPages((u32)mmuTables, (u32)mmuTables, mmuTablesPages, mmuTables->l2Axiwram, true,
+		            PERM_PRIV_RO_USR_NA, 0, true, L1_TO_L2(ATTR_NORM_WRITE_TROUGH_NO_ALLOC));
 
 		extern const u32 __start__[];
 		extern const u32 __text_pages__[];
