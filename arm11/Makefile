@@ -24,7 +24,6 @@ INCLUDES	:=	../include ../thirdparty
 DEFINES		:=	-DARM11 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
 				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)
 ASSETS		:=	../assets
-LDNAME		:=	arm11.ld
 
 ifneq ($(strip $(NO_DEBUG)),)
 	DEFINES += -DNDEBUG
@@ -33,21 +32,19 @@ endif
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -marm -mthumb-interwork
+ARCH	:=	-march=armv6k+vfpv2 -mtune=mpcore -mfloat-abi=hard -mtp=soft -marm -mthumb-interwork
 
-CFLAGS	:=	$(ARCH) -std=gnu11 -O2 -g -flto -mword-relocations -ffunction-sections \
+CFLAGS	:=	$(ARCH) -std=gnu17 -O2 -g -flto -mword-relocations -ffunction-sections \
 			-Wall -Wextra -Wno-unused-function
-
 CFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-CXXFLAGS	:=	$(ARCH) -std=c++14 -O2 -g -flto -fno-rtti -fno-exceptions \
+CXXFLAGS	:=	$(ARCH) -std=c++17 -O2 -g -flto -fno-rtti -fno-exceptions \
 				-mword-relocations -ffunction-sections -Wall -Wextra \
 				-Wno-unused-function
-
 CXXFLAGS	+=	$(INCLUDE) $(DEFINES)
 
 ASFLAGS	:=	$(ARCH) -g -flto $(INCLUDE) $(DEFINES)
-LDFLAGS	=	$(ARCH) -g -flto -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
+LDFLAGS	=	$(ARCH) -g -flto -specs=../arm11.specs -Wl,-Map,$(notdir $*.map) -nostartfiles
 
 LIBS	:=
 
@@ -103,30 +100,33 @@ export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
 export HFILES	:=	$(ASSETFILES:.png=_spla.h) $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+					-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean all
+
+.PHONY: $(BUILD) all clean
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(BUILD) $(DEPSDIR)
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@mkdir -p $@
+
+ifneq ($(DEPSDIR),$(BUILD))
+$(DEPSDIR):
+	@mkdir -p $@
+endif
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT)11.bin $(OUTPUT)11.elf
 
-
 #---------------------------------------------------------------------------------
 else
-
-DEPENDS	:=	$(OFILES:.o=.d)
 
 #---------------------------------------------------------------------------------
 # main targets
@@ -147,7 +147,6 @@ $(OUTPUT)11.elf	:	$(OFILES)
 	@echo $(notdir $<)
 	@$(bin2o)
 
-
 #---------------------------------------------------------------------------------
 # rules for conversion of .png to .spla
 #---------------------------------------------------------------------------------
@@ -166,7 +165,6 @@ endef
 	@echo $(notdir $^)
 	@$(call splashConv,$^)
 
-
 #---------------------------------------------------------------------------------
 %.elf:
 #---------------------------------------------------------------------------------
@@ -174,8 +172,7 @@ endef
 	@$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 	@$(NM) -CSn $@ > $(notdir $*.lst)
 
-
--include $(DEPENDS)
+-include $(DEPSDIR)/*.d
 
 #---------------------------------------------------------------------------------------
 endif

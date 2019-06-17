@@ -23,7 +23,6 @@ DATA		:=
 INCLUDES	:=	../include ../thirdparty
 DEFINES		:=	-DARM9 -D_3DS -DVERS_STRING=\"$(VERS_STRING)\" \
 				-DVERS_MAJOR=$(VERS_MAJOR) -DVERS_MINOR=$(VERS_MINOR)
-LDNAME		:=	arm9.ld
 
 ifneq ($(strip $(NO_DEBUG)),)
 	DEFINES += -DNDEBUG
@@ -34,19 +33,16 @@ endif
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv5te -mtune=arm946e-s -mfloat-abi=soft -mtp=soft -marm -mthumb-interwork
 
-CFLAGS	:=	$(ARCH) -std=c11 -O2 -g -flto -mword-relocations -ffunction-sections \
-			-Wall -Wextra -Wno-unused-function
-
+CFLAGS	:=	$(ARCH) -std=c17 -O2 -g -flto -mword-relocations \
+			-ffunction-sections -Wall -Wextra
 CFLAGS	+=	$(INCLUDE) $(DEFINES)
 
-CXXFLAGS	:=	$(ARCH) -std=c++14 -O2 -g -flto -fno-rtti -fno-exceptions \
-				-mword-relocations -ffunction-sections -Wall -Wextra \
-				-Wno-unused-function
-
+CXXFLAGS	:=	$(ARCH) -std=c++17 -O2 -g -flto -fno-rtti -fno-exceptions \
+				-mword-relocations -ffunction-sections -Wall -Wextra
 CXXFLAGS	+=	$(INCLUDE) $(DEFINES)
 
 ASFLAGS	:=	$(ARCH) -g -flto $(INCLUDE) $(DEFINES)
-LDFLAGS	=	$(ARCH) -g -flto -Wl,--use-blx,--gc-sections,-Map,$(notdir $*.map) -nostartfiles -T ../$(LDNAME)
+LDFLAGS	=	$(ARCH) -g -flto -specs=../arm9.specs -Wl,-Map,$(notdir $*.map) -nostartfiles
 
 LIBS	:=
 
@@ -100,30 +96,33 @@ export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
 export HFILES	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+					-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean all
+
+.PHONY: $(BUILD) all clean
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(BUILD) $(DEPSDIR)
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@mkdir -p $@
+
+ifneq ($(DEPSDIR),$(BUILD))
+$(DEPSDIR):
+	@mkdir -p $@
+endif
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT)9.bin $(OUTPUT)9.elf
 
-
 #---------------------------------------------------------------------------------
 else
-
-DEPENDS	:=	$(OFILES:.o=.d)
 
 #---------------------------------------------------------------------------------
 # main targets
@@ -151,8 +150,7 @@ $(OUTPUT)9.elf	:	$(OFILES)
 	@$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 	@$(NM) -CSn $@ > $(notdir $*.lst)
 
-
--include $(DEPENDS)
+-include $(DEPSDIR)/*.d
 
 #---------------------------------------------------------------------------------------
 endif
