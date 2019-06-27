@@ -24,36 +24,36 @@
 
 typedef enum
 {
-	IRQ_DMAC_1_0      = 0,  // DMAC_1 = NDMA
-	IRQ_DMAC_1_1      = 1,
-	IRQ_DMAC_1_2      = 2,
-	IRQ_DMAC_1_3      = 3,
-	IRQ_DMAC_1_4      = 4,
-	IRQ_DMAC_1_5      = 5,
-	IRQ_DMAC_1_6      = 6,
-	IRQ_DMAC_1_7      = 7,
-	IRQ_TIMER_0       = 8,
-	IRQ_TIMER_1       = 9,
-	IRQ_TIMER_2       = 10,
-	IRQ_TIMER_3       = 11,
-	IRQ_PXI_SYNC      = 12,
-	IRQ_PXI_NOT_FULL  = 13,
-	IRQ_PXI_NOT_EMPTY = 14,
-	IRQ_AES           = 15,
-	IRQ_SDIO_1        = 16,
-	IRQ_SDIO_1_ASYNC  = 17,
-	IRQ_SDIO_3        = 18,
-	IRQ_SDIO_3_ASYNC  = 19,
-	IRQ_DEBUG_RECV    = 20,
-	IRQ_DEBUG_SEND    = 21,
-	IRQ_RSA           = 22,
-	IRQ_CTR_CARD_1    = 23, // SPICARD and CTRCARD too?
-	IRQ_CTR_CARD_2    = 24,
-	IRQ_CGC           = 25,
-	IRQ_CGC_DET       = 26,
-	IRQ_DS_CARD       = 27,
-	IRQ_DMAC_2        = 28,
-	IRQ_DMAC_2_ABORT  = 29
+	IRQ_DMAC_1_0      =  0u, // DMAC_1 =  NDMA
+	IRQ_DMAC_1_1      =  1u,
+	IRQ_DMAC_1_2      =  2u,
+	IRQ_DMAC_1_3      =  3u,
+	IRQ_DMAC_1_4      =  4u,
+	IRQ_DMAC_1_5      =  5u,
+	IRQ_DMAC_1_6      =  6u,
+	IRQ_DMAC_1_7      =  7u,
+	IRQ_TIMER_0       =  8u,
+	IRQ_TIMER_1       =  9u,
+	IRQ_TIMER_2       = 10u,
+	IRQ_TIMER_3       = 11u,
+	IRQ_PXI_SYNC      = 12u,
+	IRQ_PXI_NOT_FULL  = 13u,
+	IRQ_PXI_NOT_EMPTY = 14u,
+	IRQ_AES           = 15u,
+	IRQ_SDIO_1        = 16u,
+	IRQ_SDIO_1_ASYNC  = 17u,
+	IRQ_SDIO_3        = 18u,
+	IRQ_SDIO_3_ASYNC  = 19u,
+	IRQ_DEBUG_RECV    = 20u,
+	IRQ_DEBUG_SEND    = 21u,
+	IRQ_RSA           = 22u,
+	IRQ_CTR_CARD_1    = 23u, // SPICARD and CTRCARD too?
+	IRQ_CTR_CARD_2    = 24u,
+	IRQ_CGC           = 25u,
+	IRQ_CGC_DET       = 26u,
+	IRQ_DS_CARD       = 27u,
+	IRQ_DMAC_2        = 28u,
+	IRQ_DMAC_2_ABORT  = 29u
 } Interrupt;
 
 

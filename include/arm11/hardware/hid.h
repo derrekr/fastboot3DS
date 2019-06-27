@@ -32,29 +32,29 @@
 
 enum
 {
-	KEY_A            = (1u<<0),  // A
-	KEY_B            = (1u<<1),  // B
-	KEY_SELECT       = (1u<<2),  // Select
-	KEY_START        = (1u<<3),  // Start
-	KEY_DRIGHT       = (1u<<4),  // D-Pad Right
-	KEY_DLEFT        = (1u<<5),  // D-Pad Left
-	KEY_DUP          = (1u<<6),  // D-Pad Up
-	KEY_DDOWN        = (1u<<7),  // D-Pad Down
-	KEY_R            = (1u<<8),  // R
-	KEY_L            = (1u<<9),  // L
-	KEY_X            = (1u<<10), // X
-	KEY_Y            = (1u<<11), // Y
-	KEY_ZL           = (1u<<14), // ZL (New 3DS only)
-	KEY_ZR           = (1u<<15), // ZR (New 3DS only)
-	KEY_TOUCH        = (1u<<20), // Touch (Not actually provided by HID)
-	KEY_CSTICK_RIGHT = (1u<<24), // C-Stick Right (New 3DS only)
-	KEY_CSTICK_LEFT  = (1u<<25), // C-Stick Left (New 3DS only)
-	KEY_CSTICK_UP    = (1u<<26), // C-Stick Up (New 3DS only)
-	KEY_CSTICK_DOWN  = (1u<<27), // C-Stick Down (New 3DS only)
-	KEY_CPAD_RIGHT   = (1u<<28), // Circle Pad Right
-	KEY_CPAD_LEFT    = (1u<<29), // Circle Pad Left
-	KEY_CPAD_UP      = (1u<<30), // Circle Pad Up
-	KEY_CPAD_DOWN    = (1u<<31), // Circle Pad Down
+	KEY_A            = 1u<<0,  // A
+	KEY_B            = 1u<<1,  // B
+	KEY_SELECT       = 1u<<2,  // Select
+	KEY_START        = 1u<<3,  // Start
+	KEY_DRIGHT       = 1u<<4,  // D-Pad Right
+	KEY_DLEFT        = 1u<<5,  // D-Pad Left
+	KEY_DUP          = 1u<<6,  // D-Pad Up
+	KEY_DDOWN        = 1u<<7,  // D-Pad Down
+	KEY_R            = 1u<<8,  // R
+	KEY_L            = 1u<<9,  // L
+	KEY_X            = 1u<<10, // X
+	KEY_Y            = 1u<<11, // Y
+	KEY_ZL           = 1u<<14, // ZL (New 3DS only)
+	KEY_ZR           = 1u<<15, // ZR (New 3DS only)
+	KEY_TOUCH        = 1u<<20, // Touch (Not actually provided by HID)
+	KEY_CSTICK_RIGHT = 1u<<24, // C-Stick Right (New 3DS only)
+	KEY_CSTICK_LEFT  = 1u<<25, // C-Stick Left (New 3DS only)
+	KEY_CSTICK_UP    = 1u<<26, // C-Stick Up (New 3DS only)
+	KEY_CSTICK_DOWN  = 1u<<27, // C-Stick Down (New 3DS only)
+	KEY_CPAD_RIGHT   = 1u<<28, // Circle Pad Right
+	KEY_CPAD_LEFT    = 1u<<29, // Circle Pad Left
+	KEY_CPAD_UP      = 1u<<30, // Circle Pad Up
+	KEY_CPAD_DOWN    = 1u<<31, // Circle Pad Down
 
 	// Generic catch-all directions
 	KEY_UP    = KEY_DUP    | KEY_CPAD_UP,    // D-Pad Up or Circle Pad Up
@@ -66,13 +66,13 @@ enum
 // Extra keys use with hidGetExtraKeys()
 enum
 {
-	KEY_POWER        = (1u<<0),
-	KEY_POWER_HELD   = (1u<<1),
-	KEY_HOME         = (1u<<2), // Auto clears on release
-	KEY_WIFI         = (1u<<3),
-	KEY_SHELL        = (1u<<4), // Auto clears on open
-	KEY_BAT_CHARGING = (1u<<5), // Auto clears when charging stops
-	KEY_VOL_SLIDER   = (1u<<6)
+	KEY_POWER        = 1u<<0,
+	KEY_POWER_HELD   = 1u<<1,
+	KEY_HOME         = 1u<<2, // Auto clears on release
+	KEY_WIFI         = 1u<<3,
+	KEY_SHELL        = 1u<<4, // Auto clears on open
+	KEY_BAT_CHARGING = 1u<<5, // Auto clears when charging stops
+	KEY_VOL_SLIDER   = 1u<<6
 };
 
 typedef struct

@@ -26,15 +26,15 @@
 
 
 enum McuRegisters {
-	RegBattery = 0x0B,
-	RegExHW = 0x0F,
-	RegPower = 0x20,
-	RegLCDs = 0x22,
-	RegWifiLED = 0x2A,
-	RegCamLED = 0x2B,
-	Reg3DLED = 0x2C,
-	RegRTC = 0x30,
-	RegSysModel = 0x7F
+	RegBattery  = 0x0Bu,
+	RegExHW     = 0x0Fu,
+	RegPower    = 0x20u,
+	RegLCDs     = 0x22u,
+	RegWifiLED  = 0x2Au,
+	RegCamLED   = 0x2Bu,
+	Reg3DLED    = 0x2Cu,
+	RegRTC      = 0x30u,
+	RegSysModel = 0x7Fu
 };
 
 

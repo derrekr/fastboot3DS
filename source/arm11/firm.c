@@ -66,7 +66,10 @@ noreturn void firmLaunch(void)
 	deinitCpu();
 
 	// Change sp to a safe location
-	__asm__ volatile("mov sp, %0" : : "r" (A11_STUB_ENTRY) : "sp");
+	register vu32 sp __asm__("sp");
+	sp = A11_STUB_ENTRY;
+	(void)sp; // Shut up unused variable warning.
+
 	((void (*)(void))A11_STUB_ENTRY)();
 	while(1);
 }

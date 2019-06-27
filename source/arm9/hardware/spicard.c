@@ -37,12 +37,12 @@
 
 
 
-static void nspiWaitBusy(void)
+static inline void nspiWaitBusy(void)
 {
 	while(REG_NSPI_CNT & NSPI_CNT_ENABLE);
 }
 
-static void nspiWaitFifoBusy(void)
+static inline void nspiWaitFifoBusy(void)
 {
 	while(REG_NSPI_STATUS & NSPI_STATUS_BUSY);
 }
@@ -85,8 +85,8 @@ void SPICARD_init(void)
 	REG_CFG9_CARDCTL |= 1u<<8;
 
 	IRQ_registerHandler(IRQ_CTR_CARD_1, NULL);
-	REG_NSPI_INT_MASK = NSPI_INT_UNK; // Disable interrupt 1
-	REG_NSPI_INT_STAT = NSPI_INT_AP_TIMEOUT | NSPI_INT_AP_SUCCESS | NSPI_INT_UNK; // Aknowledge
+	REG_NSPI_INT_MASK = NSPI_INT_TRANSF_END; // Disable interrupt 1
+	REG_NSPI_INT_STAT = NSPI_INT_AP_TIMEOUT | NSPI_INT_AP_SUCCESS | NSPI_INT_TRANSF_END; // Aknowledge
 }
 
 bool _SPICARD_autoPollBit(u32 params)

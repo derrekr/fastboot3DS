@@ -37,9 +37,9 @@ typedef struct
 
 enum
 {
-	I2C_BUS1 = 0,
-	I2C_BUS2 = 1,
-	I2C_BUS3 = 2
+	I2C_BUS1 = 0u,
+	I2C_BUS2 = 1u,
+	I2C_BUS3 = 2u
 };
 
 static const struct

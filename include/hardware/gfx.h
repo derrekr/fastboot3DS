@@ -49,12 +49,12 @@
 #ifdef ARM11
 typedef enum
 {
-	GFX_EVENT_PSC0   = 0,
-	GFX_EVENT_PSC1   = 1,
-	GFX_EVENT_PDC0   = 2,
-	GFX_EVENT_PDC1   = 3,
-	GFX_EVENT_PPF    = 4,
-	GFX_EVENT_P3D    = 5
+	GFX_EVENT_PSC0   = 0u,
+	GFX_EVENT_PSC1   = 1u,
+	GFX_EVENT_PDC0   = 2u,
+	GFX_EVENT_PDC1   = 3u,
+	GFX_EVENT_PPF    = 4u,
+	GFX_EVENT_P3D    = 5u
 } GfxEvent;
 
 

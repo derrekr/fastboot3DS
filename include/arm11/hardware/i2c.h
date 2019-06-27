@@ -33,17 +33,17 @@
 
 typedef enum
 {
-	I2C_DEV_POWER     = 0,  // Unconfirmed
-	I2C_DEV_CAMERA    = 1,  // Unconfirmed
-	I2C_DEV_CAMERA2   = 2,  // Unconfirmed
-	I2C_DEV_MCU       = 3,
-	I2C_DEV_GYRO      = 10,
-	I2C_DEV_DEBUG_PAD = 12,
-	I2C_DEV_IR        = 13,
-	I2C_DEV_EEPROM    = 14, // Unconfirmed
-	I2C_DEV_NFC       = 15,
-	I2C_DEV_QTM       = 16,
-	I2C_DEV_N3DS_HID  = 17
+	I2C_DEV_POWER     =  0u, // Unconfirmed
+	I2C_DEV_CAMERA    =  1u, // Unconfirmed
+	I2C_DEV_CAMERA2   =  2u, // Unconfirmed
+	I2C_DEV_MCU       =  3u,
+	I2C_DEV_GYRO      = 10u,
+	I2C_DEV_DEBUG_PAD = 12u,
+	I2C_DEV_IR        = 13u,
+	I2C_DEV_EEPROM    = 14u, // Unconfirmed
+	I2C_DEV_NFC       = 15u,
+	I2C_DEV_QTM       = 16u,
+	I2C_DEV_N3DS_HID  = 17u
 } I2cDevice;
 
 

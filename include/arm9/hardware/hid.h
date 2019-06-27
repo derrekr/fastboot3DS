@@ -12,18 +12,18 @@
 
 enum
 {
-	KEY_A       = (1),
-	KEY_B       = (1<<1),
-	KEY_SELECT  = (1<<2),
-	KEY_START   = (1<<3),
-	KEY_DRIGHT  = (1<<4),
-	KEY_DLEFT   = (1<<5),
-	KEY_DUP     = (1<<6),
-	KEY_DDOWN   = (1<<7),
-	KEY_R       = (1<<8),
-	KEY_L       = (1<<9),
-	KEY_X       = (1<<10),
-	KEY_Y       = (1<<11)
+	KEY_A       = 1u,
+	KEY_B       = 1u<<1,
+	KEY_SELECT  = 1u<<2,
+	KEY_START   = 1u<<3,
+	KEY_DRIGHT  = 1u<<4,
+	KEY_DLEFT   = 1u<<5,
+	KEY_DUP     = 1u<<6,
+	KEY_DDOWN   = 1u<<7,
+	KEY_R       = 1u<<8,
+	KEY_L       = 1u<<9,
+	KEY_X       = 1u<<10,
+	KEY_Y       = 1u<<11
 };
 
 

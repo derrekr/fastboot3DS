@@ -202,14 +202,14 @@ checkSuperhax:
 
 .align 2
 setupVfp:
-	mov r0, #0
-	mov r1, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
-	mov r2, #0x40000000         @ Clear exception bits and enable VFP11
-	mov r3, #0x3000000          @ Round to nearest (RN) mode, flush-to-zero mode, default NaN mode
-	mcr p15, 0, r1, c1, c0, 2   @ Write Coprocessor Access Control Register
-	mcr p15, 0, r0, c7, c5, 4   @ Flush Prefetch Buffer
-	fmxr fpexc, r2              @ Write Floating-point exception register
-	fmxr fpscr, r3              @ Write Floating-Point Status and Control Register
+	mov r0, #0xF00000           @ Give full access to cp10/11 in user and privileged mode
+	mov r1, #0
+	mcr p15, 0, r0, c1, c0, 2   @ Write Coprocessor Access Control Register
+	mcr p15, 0, r1, c7, c5, 4   @ Flush Prefetch Buffer
+	mov r0, #0x40000000         @ Clear exception bits and enable VFP11
+	mov r1, #0x3000000          @ Round to nearest (RN) mode, flush-to-zero mode, default NaN mode
+	fmxr fpexc, r0              @ Write Floating-point exception register
+	fmxr fpscr, r1              @ Write Floating-Point Status and Control Register
 	bx lr
 
 .pool
@@ -229,10 +229,6 @@ deinitCpu:
 	cpsid aif, #PSR_SYS_MODE
 	bl stubExceptionVectors
 	bl flushDCache
-	mov r2, #0
-	@ Disable VFP11
-	fmxr fpscr, r2              @ Write Floating-Point Status and Control Register
-	fmxr fpexc, r2              @ Write Floating-point exception register
 
 	ldr r1, =0xC03805           @ Disable MMU, D-Cache, Program flow prediction, I-Cache,
 	                            @ high exception vectors, Unaligned data access,

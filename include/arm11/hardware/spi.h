@@ -39,7 +39,7 @@
 
 // REG_NSPI_INT_MASK Bit set = disabled.
 // REG_NSPI_INT_STAT Status and aknowledge.
-#define NSPI_INT_UNK         (1u)    // Fires on auto poll success aswell. Transfer finished?
+#define NSPI_INT_TRANSF_END  (1u)    // Fires on (each?) auto poll try aswell
 #define NSPI_INT_AP_SUCCESS  (1u<<1) // Auto poll
 #define NSPI_INT_AP_TIMEOUT  (1u<<2) // Auto poll
 
@@ -47,24 +47,24 @@
 // TODO: Confirm these clocks
 enum
 {
-	NSPI_CLK_128KHz = 0,
-	NSPI_CLK_256KHz = 1,
-	NSPI_CLK_512KHz = 2,
-	NSPI_CLK_1MHz   = 3,
-	NSPI_CLK_2MHz   = 4,
-	NSPI_CLK_4MHz   = 5,
+	NSPI_CLK_128KHz = 0u,
+	NSPI_CLK_256KHz = 1u,
+	NSPI_CLK_512KHz = 2u,
+	NSPI_CLK_1MHz   = 3u,
+	NSPI_CLK_2MHz   = 4u,
+	NSPI_CLK_4MHz   = 5u,
 };
 
 // TODO: Proper device table
 typedef enum
 {
-	SPI_DEV_UNK1   = 0,
-	SPI_DEV_NVRAM  = 1,
-	SPI_DEV_UNK3   = 2,
-	SPI_DEV_CODEC  = 3,
-	SPI_DEV_UNK5   = 4,
-	SPI_DEV_UNK6   = 5,
-	SPI_DEV_UNK7   = 6  // Don't use autopoll on this.
+	NSPI_DEV_UNK1   = 0u,
+	NSPI_DEV_NVRAM  = 1u,
+	NSPI_DEV_UNK3   = 2u,
+	NSPI_DEV_CODEC  = 3u,
+	NSPI_DEV_UNK5   = 4u,
+	NSPI_DEV_UNK6   = 5u,
+	NSPI_DEV_UNK7   = 6u
 } SpiDevice;
 
 

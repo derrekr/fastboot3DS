@@ -62,9 +62,9 @@
 
 typedef enum
 {
-	AES_KEY_NORMAL = 0,
-	AES_KEY_X      = 1,
-	AES_KEY_Y      = 2,
+	AES_KEY_NORMAL = 0u,
+	AES_KEY_X      = 1u,
+	AES_KEY_Y      = 2u
 } AesKeyType;
 
 typedef struct

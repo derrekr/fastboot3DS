@@ -31,12 +31,12 @@
 
 typedef enum
 {
-	PWLED_NORMAL    = 0,
-	PWLED_SLEEP     = 2,
-	PWLED_OFF       = 3,
-	PWLED_RED       = 4,
-	PWLED_BLUE      = 5,
-	PWLED_BLINK_RED = 6
+	PWLED_NORMAL    = 0u,
+	PWLED_SLEEP     = 2u,
+	PWLED_OFF       = 3u,
+	PWLED_RED       = 4u,
+	PWLED_BLUE      = 5u,
+	PWLED_BLINK_RED = 6u
 } PwLedState;
 
 
