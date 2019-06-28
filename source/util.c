@@ -26,12 +26,12 @@
 NAKED void wait(u32 cycles)
 {
 #ifdef ARM9
-	__asm__("subs %0, %0, #4\n\t"
+	__asm__("1: subs %0, %0, #4\n\t"
 #elif ARM11
-	__asm__("subs %0, %0, #5\n\t"
+	__asm__("1: subs %0, %0, #5\n\t"
 #endif
-	        "bcs wait\n\t"
-	        "bx lr" : : "r" (cycles) : "cc");
+	        "bcs 1b\n\t"
+	        "bx lr\n\t" : : "r" (cycles) : "cc");
 }
 
 // case insensitive string compare function
