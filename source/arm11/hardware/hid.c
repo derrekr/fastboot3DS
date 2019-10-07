@@ -57,7 +57,8 @@ void hidInit(void)
 
 	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
 	MCU_setIrqBitmask(0xFFBF3F80u);
-	GPIO_setBit(19, 9); // This enables the MCU IRQ.
+	// Configure GPIO for MCU event IRQs
+	GPIO_config(GPIO_3_MCU, GPIO_INPUT | GPIO_EDGE_FALLING | GPIO_IRQ_ENABLE);
 
 	//CODEC_init();
 }

@@ -21,19 +21,51 @@
 #include "types.h"
 
 
+#define GPIO_INPUT         (0u)
+#define GPIO_OUTPUT        (1u)
+#define GPIO_EDGE_FALLING  (0u)
+#define GPIO_EDGE_RISING   (1u<<1)
+#define GPIO_IRQ_ENABLE    (1u<<2)
+
+
+typedef enum
+{
+	GPIO_1_0           =  0u<<4 | 0u,
+	GPIO_1_1           =  1u<<4 | 0u,
+	GPIO_1_2           =  2u<<4 | 0u,
+
+	GPIO_2_0           =  0u<<4 | 1u,
+	GPIO_2_1           =  1u<<4 | 1u,
+
+	GPIO_3_0           =  0u<<4 | 2u,
+	GPIO_3_1           =  1u<<4 | 2u,
+	GPIO_3_2           =  2u<<4 | 2u,
+	GPIO_3_3           =  3u<<4 | 2u,
+	GPIO_3_4           =  4u<<4 | 2u,
+	GPIO_3_5           =  5u<<4 | 2u,
+	GPIO_3_6           =  6u<<4 | 2u,
+	GPIO_3_7           =  7u<<4 | 2u,
+	GPIO_3_8           =  8u<<4 | 2u,
+	GPIO_3_9           =  9u<<4 | 2u,
+	GPIO_3_10          = 10u<<4 | 2u,
+	GPIO_3_11          = 11u<<4 | 2u,
+
+	GPIO_4_0           =  0u<<4 | 3u,
+
+	// Aliases
+	GPIO_1_TOUCHSCREEN = GPIO_1_1, // Unset while the touchscreen is used
+	GPIO_1_SHELL       = GPIO_1_2, // 1 when closed
+
+	GPIO_3_HEADPH_JACK = GPIO_3_8, // Unset while headphones are plugged in
+	GPIO_3_MCU         = GPIO_3_9
+} Gpio;
+
+
 
 /**
- * @brief      Sets a bit in the specified GPIO register.
+ * @brief      Configures the specified GPIO.
  *
- * @param[in]  reg     The register number.
- * @param[in]  bitNum  The bit number.
+ * @param[in]  gpio  The gpio.
+ * @param[in]  cfg   The configuration.
  */
-void GPIO_setBit(u16 reg, u8 bitNum);
-
-/**
- * @brief      Clears a bit in the specified GPIO register.
- *
- * @param[in]  reg     The register number.
- * @param[in]  bitNum  The bit number.
- */
-void GPIO_clearBit(u16 reg, u8 bitNum);
+void GPIO_config(Gpio gpio, u8 cfg);
