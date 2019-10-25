@@ -149,9 +149,9 @@ setupExceptionVectors:
 _vectorStubs:
 	ldr pc, irqHandlerPtr
 	irqHandlerPtr:                  .word irqHandler
-	ldr pc, fiqHandlerPtr
+	udf #2
 	fiqHandlerPtr:                  .word (A9_VECTORS_START + 0x08)
-	ldr pc, svcHandlerPtr
+	udf #3
 	svcHandlerPtr:                  .word (A9_VECTORS_START + 0x10)
 	ldr pc, undefInstrHandlerPtr
 	undefInstrHandlerPtr:           .word undefInstrHandler

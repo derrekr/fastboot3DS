@@ -7,7 +7,7 @@ endif
 
 export TARGET := fastboot3DS
 ENTRY9        := 0x080000D4
-ENTRY11       := 0x1FF89040
+ENTRY11       := 0x1FF89034
 SECTION0_ADR  := 0x080000C0
 SECTION0_TYPE := 0
 SECTION0_FILE := arm9/$(TARGET)9.bin

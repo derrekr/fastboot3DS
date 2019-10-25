@@ -64,20 +64,19 @@ __start__:
 vectors:
 	ldr pc, resetHandlerPtr         @ Reset vector
 	ldr pc, undefInstrHandlerPtr    @ Undefined instruction vector
-	ldr pc, svcHandlerPtr           @ Software interrupt (SVC) vector
+	udf #3                          @ Software interrupt (SVC) vector
 	ldr pc, prefetchAbortHandlerPtr @ Prefetch abort vector
 	ldr pc, dataAbortHandlerPtr     @ Data abort vector
-	ldr pc, reservedHandlerPtr      @ Reserved (unused) vector
+	udf #6                          @ Reserved (unused) vector
 	ldr pc, irqHandlerPtr           @ Interrupt (IRQ) vector
-	ldr pc, fiqHandlerPtr           @ Fast interrupt (FIQ) vector
+	udf #8                          @ Fast interrupt (FIQ) vector
 	resetHandlerPtr:         .word _start
 	undefInstrHandlerPtr:    .word undefInstrHandler
-	svcHandlerPtr:           .word (vectors + 0x08)
+	@svcHandlerPtr:           .word (vectors + 0x08)
 	prefetchAbortHandlerPtr: .word prefetchAbortHandler
 	dataAbortHandlerPtr:     .word dataAbortHandler
-	reservedHandlerPtr:      .word (vectors + 0x14)
 	irqHandlerPtr:           .word irqHandler
-	fiqHandlerPtr:           .word (vectors + 0x1C)
+	@fiqHandlerPtr:           .word (vectors + 0x1C)
 
 
 _start:

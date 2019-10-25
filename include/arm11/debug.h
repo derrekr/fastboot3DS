@@ -47,5 +47,5 @@ static inline dataAbortTest(void)
 
 static inline undefInstrTest(void)
 {
-	__asm__ volatile(".word 0xFFFFFFFF" : :);
+	__asm__ volatile("udf #0xDEAD" : :);
 }*/
