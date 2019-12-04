@@ -47,42 +47,42 @@ void MCU_init(void)
 void MCU_disableLEDs(void)
 {
 	// disable wifi LED
-	I2C_writeReg(I2C_DEV_MCU, RegWifiLED, 0);
+	I2C_writeReg(I2C_DEV_CTR_MCU, RegWifiLED, 0);
 	
 	// disable 3D LED
-	I2C_writeReg(I2C_DEV_MCU, Reg3DLED, 0);
+	I2C_writeReg(I2C_DEV_CTR_MCU, Reg3DLED, 0);
 	
 	// disable camera LED
-	I2C_writeReg(I2C_DEV_MCU, RegCamLED, 0);
+	I2C_writeReg(I2C_DEV_CTR_MCU, RegCamLED, 0);
 }
 
 void MCU_powerOnLCDs(void)
 {
 	// bit1 = lcd power enable for both screens
-	I2C_writeReg(I2C_DEV_MCU, RegLCDs, 1<<5 | 1<<3 | 1<<1);
+	I2C_writeReg(I2C_DEV_CTR_MCU, RegLCDs, 1<<5 | 1<<3 | 1<<1);
 }
 
 void MCU_powerOffLCDs(void)
 {
 	// bit0 = lcd power disable for both screens (also disables backlight)
-	I2C_writeReg(I2C_DEV_MCU, RegLCDs, 1);
+	I2C_writeReg(I2C_DEV_CTR_MCU, RegLCDs, 1);
 }
 
 void MCU_triggerPowerOff(void)
 {
-	I2C_writeRegIntSafe(I2C_DEV_MCU, RegPower, 1);
+	I2C_writeRegIntSafe(I2C_DEV_CTR_MCU, RegPower, 1);
 }
 
 void MCU_triggerReboot(void)
 {
-	I2C_writeRegIntSafe(I2C_DEV_MCU, RegPower, 1u << 2);
+	I2C_writeRegIntSafe(I2C_DEV_CTR_MCU, RegPower, 1u << 2);
 }
 
 u8 MCU_readBatteryLevel(void)
 {
 	u8 state;
 
-	if(!I2C_readRegBuf(I2C_DEV_MCU, RegBattery, &state, 1))
+	if(!I2C_readRegBuf(I2C_DEV_CTR_MCU, RegBattery, &state, 1))
 		return 0;
 	
 	return state;
@@ -90,14 +90,14 @@ u8 MCU_readBatteryLevel(void)
 
 u8 MCU_readExternalHwState(void)
 {
-	return I2C_readReg(I2C_DEV_MCU, RegExHW);
+	return I2C_readReg(I2C_DEV_CTR_MCU, RegExHW);
 }
 
 u8 MCU_readSystemModel(void)
 {
 	u8 sysinfo[0x13];
 
-	if(!I2C_readRegBuf(I2C_DEV_MCU, RegSysModel, sysinfo, sizeof sysinfo))
+	if(!I2C_readRegBuf(I2C_DEV_CTR_MCU, RegSysModel, sysinfo, sizeof sysinfo))
 		return 0xFF;
 	
 	return sysinfo[9];
@@ -107,34 +107,34 @@ void MCU_readRTC(void *rtc)
 {
 	if(!rtc) return;
 	
-	I2C_readRegBuf(I2C_DEV_MCU, RegRTC, rtc, 8);
+	I2C_readRegBuf(I2C_DEV_CTR_MCU, RegRTC, rtc, 8);
 }
 
 u32 MCU_readReceivedIrqs(void)
 {
 	u32 data;
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x10, (u8*)&data, 4)) return 0;
+	if(!I2C_readRegBuf(I2C_DEV_CTR_MCU, 0x10, (u8*)&data, 4)) return 0;
 	return data;
 }
 
 bool MCU_setIrqBitmask(u32 mask)
 {
-	return I2C_writeRegBuf(I2C_DEV_MCU, 0x18, (const u8*)&mask, 4);
+	return I2C_writeRegBuf(I2C_DEV_CTR_MCU, 0x18, (const u8*)&mask, 4);
 }
 
 u8 MCU_readHidHeld(void)
 {
 	u8 data[19];
-	if(!I2C_readRegBuf(I2C_DEV_MCU, 0x7F, data, sizeof(data))) return 0xFF;
+	if(!I2C_readRegBuf(I2C_DEV_CTR_MCU, 0x7F, data, sizeof(data))) return 0xFF;
 	return data[18];
 }
 
 bool MCU_powerOnLcdBacklights(void)
 {
-	return I2C_writeReg(I2C_DEV_MCU, 0x22, 1<<5 | 1<<3); // bit3 = lower screen, bit5 = upper
+	return I2C_writeReg(I2C_DEV_CTR_MCU, 0x22, 1<<5 | 1<<3); // bit3 = lower screen, bit5 = upper
 }
 
 bool MCU_setPowerLedState(PwLedState state)
 {
-	return I2C_writeReg(I2C_DEV_MCU, 0x29, state);
+	return I2C_writeReg(I2C_DEV_CTR_MCU, 0x29, state);
 }

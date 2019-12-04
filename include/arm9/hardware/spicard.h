@@ -22,17 +22,17 @@
 
 
 // REG_NSPI_CNT
-#define NSPI_CNT_BUS_1BIT    (0u)
-#define NSPI_CNT_BUS_4BIT    (1u<<12)
-#define NSPI_CNT_DIRE_READ   (0u)
-#define NSPI_CNT_DIRE_WRITE  (1u<<13)
-#define NSPI_CNT_ENABLE      (1u<<15)
+#define NSPI_BUS_1BIT        (0u)
+#define NSPI_BUS_4BIT        (1u<<12)
+#define NSPI_DIR_READ        (0u)
+#define NSPI_DIR_WRITE       (1u<<13)
+#define NSPI_ENABLE          (1u<<15)
 
-// REG_NSPI_DONE
-#define NSPI_DONE            (0u)
+// REG_NSPI_CS
+#define NSPI_DESELECT        (0u)
 
-// REG_NSPI_STATUS
-#define NSPI_STATUS_BUSY     (1u)
+// NSPI_FIFO_STAT
+#define NSPI_FIFO_BUSY       (1u)
 
 // REG_NSPI_AUTOPOLL
 #define NSPI_AUTOPOLL_START  (1u<<31)

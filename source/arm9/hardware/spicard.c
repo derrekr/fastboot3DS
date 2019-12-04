@@ -25,26 +25,26 @@
 #include "arm9/hardware/ndma.h"
 
 
-#define SPICARD_REGS_BASE  (IO_MEM_ARM9_ONLY + 0xD800)
-#define REG_NSPI_CNT       *((vu32*)(SPICARD_REGS_BASE + 0x00))
-#define REG_NSPI_DONE      *((vu32*)(SPICARD_REGS_BASE + 0x04))
-#define REG_NSPI_BLKLEN    *((vu32*)(SPICARD_REGS_BASE + 0x08))
-#define REG_NSPI_FIFO      *((vu32*)(SPICARD_REGS_BASE + 0x0C))
-#define REG_NSPI_STATUS    *((vu32*)(SPICARD_REGS_BASE + 0x10))
-#define REG_NSPI_AUTOPOLL  *((vu32*)(SPICARD_REGS_BASE + 0x14))
-#define REG_NSPI_INT_MASK  *((vu32*)(SPICARD_REGS_BASE + 0x18))
-#define REG_NSPI_INT_STAT  *((vu32*)(SPICARD_REGS_BASE + 0x1C))
+#define SPICARD_REGS_BASE   (IO_MEM_ARM9_ONLY + 0xD800)
+#define REG_NSPI_CNT        *((vu32*)(SPICARD_REGS_BASE + 0x00))
+#define REG_NSPI_CS         *((vu8* )(SPICARD_REGS_BASE + 0x04)) // 32 bit but can be accessed as u8
+#define REG_NSPI_BLKLEN     *((vu32*)(SPICARD_REGS_BASE + 0x08))
+#define REG_NSPI_FIFO       *((vu32*)(SPICARD_REGS_BASE + 0x0C))
+#define REG_NSPI_FIFO_STAT  *((vu8* )(SPICARD_REGS_BASE + 0x10)) // 32 bit but can be accessed as u8
+#define REG_NSPI_AUTOPOLL   *((vu32*)(SPICARD_REGS_BASE + 0x14))
+#define REG_NSPI_INT_MASK   *((vu32*)(SPICARD_REGS_BASE + 0x18))
+#define REG_NSPI_INT_STAT   *((vu32*)(SPICARD_REGS_BASE + 0x1C))
 
 
 
 static inline void nspiWaitBusy(void)
 {
-	while(REG_NSPI_CNT & NSPI_CNT_ENABLE);
+	while(REG_NSPI_CNT & NSPI_ENABLE);
 }
 
 static inline void nspiWaitFifoBusy(void)
 {
-	while(REG_NSPI_STATUS & NSPI_STATUS_BUSY);
+	while(REG_NSPI_FIFO_STAT & NSPI_FIFO_BUSY);
 }
 
 void SPICARD_init(void)
@@ -106,12 +106,12 @@ bool _SPICARD_autoPollBit(u32 params)
 
 void SPICARD_writeRead(NspiClk clk, const u32 *in, u32 *out, u32 inSize, u32 outSize, bool done)
 {
-	const u32 cntParams = NSPI_CNT_ENABLE | NSPI_CNT_BUS_1BIT | clk;
+	const u32 cntParams = NSPI_ENABLE | NSPI_BUS_1BIT | clk;
 
 	if(in)
 	{
 		REG_NSPI_BLKLEN = inSize;
-		REG_NSPI_CNT = cntParams | NSPI_CNT_DIRE_WRITE;
+		REG_NSPI_CNT = cntParams | NSPI_DIR_WRITE;
 
 		u32 counter = 0;
 		do
@@ -126,7 +126,7 @@ void SPICARD_writeRead(NspiClk clk, const u32 *in, u32 *out, u32 inSize, u32 out
 	if(out)
 	{
 		REG_NSPI_BLKLEN = outSize;
-		REG_NSPI_CNT = cntParams | NSPI_CNT_DIRE_READ;
+		REG_NSPI_CNT = cntParams | NSPI_DIR_READ;
 
 		u32 counter = 0;
 		do
@@ -139,5 +139,5 @@ void SPICARD_writeRead(NspiClk clk, const u32 *in, u32 *out, u32 inSize, u32 out
 		nspiWaitBusy();
 	}
 
-	if(done) REG_NSPI_DONE = NSPI_DONE;
+	if(done) REG_NSPI_CS = NSPI_DESELECT;
 }

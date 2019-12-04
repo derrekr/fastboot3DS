@@ -22,17 +22,17 @@
 
 
 // REG_NSPI_CNT
-#define NSPI_CNT_BUS_1BIT    (0u)
-#define NSPI_CNT_BUS_4BIT    (1u<<12)
-#define NSPI_CNT_DIRE_READ   (0u)
-#define NSPI_CNT_DIRE_WRITE  (1u<<13)
-#define NSPI_CNT_ENABLE      (1u<<15)
+#define NSPI_BUS_1BIT        (0u)
+#define NSPI_BUS_4BIT        (1u<<12)
+#define NSPI_DIR_READ        (0u)
+#define NSPI_DIR_WRITE       (1u<<13)
+#define NSPI_ENABLE          (1u<<15)
 
-// REG_NSPI_DONE
-#define NSPI_DONE_DONE       (0u)
+// REG_NSPI_CS
+#define NSPI_DESELECT        (0u)
 
-// REG_NSPI_STATUS
-#define NSPI_STATUS_BUSY     (1u)
+// NSPI_FIFO_STAT
+#define NSPI_FIFO_BUSY       (1u)
 
 // REG_NSPI_AUTOPOLL
 #define NSPI_AUTOPOLL_START  (1u<<31)
@@ -58,13 +58,13 @@ enum
 // TODO: Proper device table
 typedef enum
 {
-	NSPI_DEV_UNK1   = 0u,
-	NSPI_DEV_NVRAM  = 1u,
-	NSPI_DEV_UNK3   = 2u,
-	NSPI_DEV_CODEC  = 3u,
-	NSPI_DEV_UNK5   = 4u,
-	NSPI_DEV_UNK6   = 5u,
-	NSPI_DEV_UNK7   = 6u
+	NSPI_DEV_POWERMAN   = 0u, // Unused DS(i) mode power management
+	NSPI_DEV_NVRAM      = 1u, // WiFi SPI flash
+	NSPI_DEV_TWL_CODEC  = 2u,
+	NSPI_DEV_CTR_CODEC  = 3u,
+	NSPI_DEV_UNK5       = 4u, // Unused?
+	NSPI_DEV_UNK6       = 5u, // Unused?
+	NSPI_DEV_UNK7       = 6u  // Unused?
 } SpiDevice;
 
 

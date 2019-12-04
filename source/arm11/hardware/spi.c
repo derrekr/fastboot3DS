@@ -31,10 +31,12 @@
 typedef struct
 {
 	vu32 NSPI_CNT;
-	vu32 NSPI_DONE;
+	vu8  NSPI_CS;        // 32 bit but can be accessed as u8
+	u8 padd1[3];
 	vu32 NSPI_BLKLEN;
 	vu32 NSPI_FIFO;
-	vu32 NSPI_STATUS;
+	vu8  NSPI_FIFO_STAT; // 32 bit but can be accessed as u8
+	u8 padd2[3];
 	vu32 NSPI_AUTOPOLL;
 	vu32 NSPI_INT_MASK;
 	vu32 NSPI_INT_STAT;
@@ -53,13 +55,13 @@ static const struct
 	u8 csClk;
 } spiDevTable[] =
 {
-	{SPI_BUS3, 0u<<6 | NSPI_CLK_512KHz},
-	{SPI_BUS3, 1u<<6 | 0}, // TODO: Clock
-	{SPI_BUS3, 2u<<6 | 0}, // TODO: Clock
+	{SPI_BUS3, 0u<<6 | NSPI_CLK_512KHz}, // TODO: Confirm clock
+	{SPI_BUS3, 1u<<6 | NSPI_CLK_1MHz},
+	{SPI_BUS3, 2u<<6 | NSPI_CLK_4MHz},   // TODO: Confirm clock
 	{SPI_BUS1, 0u<<6 | NSPI_CLK_4MHz},
-	{SPI_BUS1, 1u<<6 | 0}, // TODO: Clock
-	{SPI_BUS1, 2u<<6 | 0}, // TODO: Clock
-	{SPI_BUS2, 0u<<6 | 0}  // TODO: Clock
+	{SPI_BUS1, 1u<<6 | 0},               // Unused?
+	{SPI_BUS1, 2u<<6 | 0},               // Unused?
+	{SPI_BUS2, 0u<<6 | 0}                // Unused?
 };
 
 
@@ -85,14 +87,14 @@ static SpiRegs* nspiGetBusRegsBase(u8 busId)
 	return base;
 }
 
-static inline void nspiWaitBusy(const vu32 *const NSPI_CNT)
+static inline void nspiWaitBusy(const SpiRegs *const regs)
 {
-	while(*NSPI_CNT & NSPI_CNT_ENABLE);
+	while(regs->NSPI_CNT & NSPI_ENABLE);
 }
 
-static inline void nspiWaitFifoBusy(const vu32 *const NSPI_STATUS)
+static inline void nspiWaitFifoBusy(const SpiRegs *const regs)
 {
-	while(*NSPI_STATUS & NSPI_STATUS_BUSY);
+	while(regs->NSPI_FIFO_STAT & NSPI_FIFO_BUSY);
 }
 
 void NSPI_init(void)
@@ -141,38 +143,38 @@ bool _NSPI_autoPollBit(SpiDevice dev, u32 params)
 void NSPI_writeRead(SpiDevice dev, const u32 *in, u32 *out, u32 inSize, u32 outSize, bool done)
 {
 	SpiRegs *const regs = nspiGetBusRegsBase(spiDevTable[dev].busId);
-	const u32 cntParams = NSPI_CNT_ENABLE | spiDevTable[dev].csClk;
+	const u32 cntParams = NSPI_ENABLE | spiDevTable[dev].csClk;
 
 	if(in)
 	{
 		regs->NSPI_BLKLEN = inSize;
-		regs->NSPI_CNT = cntParams | NSPI_CNT_DIRE_WRITE;
+		regs->NSPI_CNT = cntParams | NSPI_DIR_WRITE;
 
 		u32 counter = 0;
 		do
 		{
-			if((counter & 31) == 0) nspiWaitFifoBusy(&regs->NSPI_STATUS);
+			if((counter & 31) == 0) nspiWaitFifoBusy(regs);
 			regs->NSPI_FIFO = *in++;
 			counter += 4;
 		} while(counter < inSize);
 
-		nspiWaitBusy(&regs->NSPI_CNT);
+		nspiWaitBusy(regs);
 	}
 	if(out)
 	{
 		regs->NSPI_BLKLEN = outSize;
-		regs->NSPI_CNT = cntParams | NSPI_CNT_DIRE_READ;
+		regs->NSPI_CNT = cntParams | NSPI_DIR_READ;
 
 		u32 counter = 0;
 		do
 		{
-			if((counter & 31) == 0) nspiWaitFifoBusy(&regs->NSPI_STATUS);
+			if((counter & 31) == 0) nspiWaitFifoBusy(regs);
 			*out++ = regs->NSPI_FIFO;
 			counter += 4;
 		} while(counter < outSize);
 
-		nspiWaitBusy(&regs->NSPI_CNT);
+		nspiWaitBusy(regs);
 	}
 
-	if(done) regs->NSPI_DONE = NSPI_DONE_DONE;
+	if(done) regs->NSPI_CS = NSPI_DESELECT;
 }

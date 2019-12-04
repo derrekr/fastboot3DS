@@ -20,52 +20,69 @@
 
 #include "types.h"
 #include "arm11/hardware/spi.h"
+#include "arm11/hardware/timer.h"
+#include "arm11/hardware/gpio.h"
 
 
 
-static void codecReadRegBuf(u8 reg, u32 *buf, u32 size)
+static void codecSwitchBank(u8 bank)
 {
-	alignas(4) u8 inBuf[4];
+	static u8 curBank = 0x63;
+	if(bank != curBank)
+	{
+		alignas(4) u8 inBuf[4];
+		inBuf[0] = 0; // Write
+		inBuf[1] = bank;
+		NSPI_writeRead(NSPI_DEV_CTR_CODEC, (u32*)inBuf, NULL, 2, 0, true);
 
-	inBuf[0] = reg<<1 | 1u;
-	NSPI_writeRead(NSPI_DEV_CODEC, (u32*)inBuf, buf, 1, size, true);
+		curBank = bank;
+	}
 }
 
-static u8 codecReadReg(u8 reg)
+static void codecReadRegBuf(u8 bank, u8 reg, u32 *buf, u32 size)
+{
+	codecSwitchBank(bank);
+
+	alignas(4) u8 inBuf[4];
+	inBuf[0] = reg<<1 | 1u;
+	NSPI_writeRead(NSPI_DEV_CTR_CODEC, (u32*)inBuf, buf, 1, size, true);
+}
+
+static u8 codecReadReg(u8 bank, u8 reg)
 {
 	alignas(4) u8 outBuf[4];
-
-	codecReadRegBuf(reg, (u32*)outBuf, 1);
+	codecReadRegBuf(bank, reg, (u32*)outBuf, 1);
 
 	return outBuf[0];
 }
 
-static void codecWriteReg(u8 reg, u8 val)
+static void codecWriteRegBuf(u8 bank, u8 reg, u32 *buf, u32 size)
 {
-	alignas(4) u8 inBuf[4];
+	codecSwitchBank(bank);
 
+	alignas(4) u8 inBuf[4];
+	inBuf[0] = reg<<1; // Write
+	NSPI_writeRead(NSPI_DEV_CTR_CODEC, (u32*)inBuf, NULL, 1, 0, false);
+	NSPI_writeRead(NSPI_DEV_CTR_CODEC, buf, NULL, size, 0, true);
+}
+
+static void codecWriteReg(u8 bank, u8 reg, u8 val)
+{
+	codecSwitchBank(bank);
+
+	alignas(4) u8 inBuf[4];
 	inBuf[0] = reg<<1; // Write
 	inBuf[1] = val;
-
-	NSPI_writeRead(NSPI_DEV_CODEC, (u32*)inBuf, NULL, 2, 0, true);
+	NSPI_writeRead(NSPI_DEV_CTR_CODEC, (u32*)inBuf, NULL, 2, 0, true);
 }
 
-static void codecMaskReg(u8 reg, u8 mask, u8 val)
+static void codecMaskReg(u8 bank, u8 reg, u8 val, u8 mask)
 {
-	u8 data = codecReadReg(reg);
+	u8 data = codecReadReg(bank, reg);
 	data = (data & ~mask) | (val & mask);
-	codecWriteReg(reg, data);
+	codecWriteReg(bank, reg, data);
 }
 
-static void codecSwitchBank(u8 bank)
-{
-	static u8 curBank = 0;
-	if(bank != curBank)
-	{
-		codecWriteReg(0, bank);
-		curBank = bank;
-	}
-}
 
 void CODEC_init(void)
 {
@@ -73,24 +90,26 @@ void CODEC_init(void)
 	if(inited) return;
 	inited = true;
 
+
 	NSPI_init();
 
-	codecSwitchBank(0x67);
-	codecWriteReg(0x24, 0x98);
-	codecWriteReg(0x26, 0x00);
-	codecWriteReg(0x25, 0x43);
-	codecWriteReg(0x24, 0x18);
-	codecWriteReg(0x17, 0x43);
-	codecWriteReg(0x19, 0x69);
-	codecWriteReg(0x1B, 0x80);
-	codecWriteReg(0x27, 0x11);
-	codecWriteReg(0x26, 0xEC);
-	codecWriteReg(0x24, 0x18);
-	codecWriteReg(0x25, 0x53);
+	// Circle pad
+	codecWriteReg(0x67, 0x24, 0x98);
+	codecWriteReg(0x67, 0x26, 0x00);
+	codecWriteReg(0x67, 0x25, 0x43);
+	codecWriteReg(0x67, 0x24, 0x18);
+	codecWriteReg(0x67, 0x17, 0x43);
+	codecWriteReg(0x67, 0x19, 0x69);
+	codecWriteReg(0x67, 0x1B, 0x80);
+	codecWriteReg(0x67, 0x27, 0x11);
+	codecWriteReg(0x67, 0x26, 0xEC);
+	codecWriteReg(0x67, 0x24, 0x18);
+	codecWriteReg(0x67, 0x25, 0x53);
 
-	codecMaskReg(0x26, 0x80, 0x80);
-	codecMaskReg(0x24, 0x80, 0x00);
-	codecMaskReg(0x25, 0x3C, 0x10);
+	// Touchscreen
+	codecMaskReg(0x67, 0x26, 0x80, 0x80);
+	codecMaskReg(0x67, 0x24, 0, 0x80);
+	codecMaskReg(0x67, 0x25, 0x10, 0x3C);
 }
 
 void CODEC_getRawData(u32 buf[13])
@@ -99,6 +118,5 @@ void CODEC_getRawData(u32 buf[13])
 	// This reg read seems useless and doesn't affect funtionality.
 	//codecReadReg(0x26);
 
-	codecSwitchBank(0xFB);
-	codecReadRegBuf(1, buf, 52);
+	codecReadRegBuf(0xFB, 1, buf, 52);
 }

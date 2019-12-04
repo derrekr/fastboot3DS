@@ -21,29 +21,45 @@
 #include "types.h"
 
 
+// REG_I2C_CNT
 #define I2C_STOP          (1u)
 #define I2C_START         (1u<<1)
 #define I2C_ERROR         (1u<<2)
 #define I2C_ACK           (1u<<4)
-#define I2C_DIRE_WRITE    (0u)
-#define I2C_DIRE_READ     (1u<<5)
+#define I2C_DIR_WRITE     (0u)
+#define I2C_DIR_READ      (1u<<5)
 #define I2C_IRQ_ENABLE    (1u<<6)
 #define I2C_ENABLE        (1u<<7)
+
+// REG_I2C_CNTEX
+#define I2C_SCL_STATE     (1u)     // Read-only SCL line state?
+#define I2C_CLK_STRETCH   (1u<<1)  // Enables clock stretching
+#define I2C_UNK_CNTEX15   (1u<<15) // Unknown
+
+// REG_I2C_SCL
+#define I2C_DELAYS(high, low)  ((high)<<8 | (low)) // TODO: How long and when does it delay?
 
 
 typedef enum
 {
-	I2C_DEV_POWER     =  0u, // Unconfirmed
-	I2C_DEV_CAMERA    =  1u, // Unconfirmed
-	I2C_DEV_CAMERA2   =  2u, // Unconfirmed
-	I2C_DEV_MCU       =  3u,
-	I2C_DEV_GYRO      = 10u,
-	I2C_DEV_DEBUG_PAD = 12u,
-	I2C_DEV_IR        = 13u,
-	I2C_DEV_EEPROM    = 14u, // Unconfirmed
+	I2C_DEV_TWL_MCU   =  0u, // DSi mode MCU
+	I2C_DEV_CAMERA1   =  1u, // Internal self-facing camera
+	I2C_DEV_CAMERA2   =  2u, // External right camera
+	I2C_DEV_CTR_MCU   =  3u,
+	I2C_DEV_CAMERA3   =  4u, // External left camera
+	I2C_DEV_LCD0      =  5u, // Upper LCD
+	I2C_DEV_LCD1      =  6u, // Lower LCD
+	I2C_DEV_UNK7      =  7u, // Debug?
+	I2C_DEV_UNK8      =  8u, // Debug?
+	I2C_DEV_UNK9      =  9u, // HID debug?
+	I2C_DEV_GYRO_OLD  = 10u, // Old 3DS only?
+	I2C_DEV_GYRO_NEW  = 11u, // New 3DS only?
+	I2C_DEV_UNK12     = 12u, // HID "DebugPad"?
+	I2C_DEV_IR        = 13u, // Infrared (IrDA)
+	I2C_DEV_EEPROM    = 14u, // Dev unit only?
 	I2C_DEV_NFC       = 15u,
-	I2C_DEV_QTM       = 16u,
-	I2C_DEV_N3DS_HID  = 17u
+	I2C_DEV_QTM       = 16u, // IO expander chip (New 3DS only)
+	I2C_DEV_N3DS_HID  = 17u  // C-Stick and ZL/ZR buttons
 } I2cDevice;
 
 

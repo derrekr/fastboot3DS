@@ -30,34 +30,36 @@
 
 typedef enum
 {
-	GPIO_1_0           =  0u<<4 | 0u,
-	GPIO_1_1           =  1u<<4 | 0u,
-	GPIO_1_2           =  2u<<4 | 0u,
+	GPIO_1_0           =  0u<<3 | 0u,
+	GPIO_1_1           =  1u<<3 | 0u,
+	GPIO_1_2           =  2u<<3 | 0u,
 
-	GPIO_2_0           =  0u<<4 | 1u,
-	GPIO_2_1           =  1u<<4 | 1u,
+	GPIO_2_0           =  0u<<3 | 1u,
+	GPIO_2_1           =  1u<<3 | 1u,
 
-	GPIO_3_0           =  0u<<4 | 2u,
-	GPIO_3_1           =  1u<<4 | 2u,
-	GPIO_3_2           =  2u<<4 | 2u,
-	GPIO_3_3           =  3u<<4 | 2u,
-	GPIO_3_4           =  4u<<4 | 2u,
-	GPIO_3_5           =  5u<<4 | 2u,
-	GPIO_3_6           =  6u<<4 | 2u,
-	GPIO_3_7           =  7u<<4 | 2u,
-	GPIO_3_8           =  8u<<4 | 2u,
-	GPIO_3_9           =  9u<<4 | 2u,
-	GPIO_3_10          = 10u<<4 | 2u,
-	GPIO_3_11          = 11u<<4 | 2u,
+	GPIO_3_0           =  0u<<3 | 2u,
 
-	GPIO_4_0           =  0u<<4 | 3u,
+	GPIO_4_0           =  0u<<3 | 3u,
+	GPIO_4_1           =  1u<<3 | 3u,
+	GPIO_4_2           =  2u<<3 | 3u,
+	GPIO_4_3           =  3u<<3 | 3u,
+	GPIO_4_4           =  4u<<3 | 3u,
+	GPIO_4_5           =  5u<<3 | 3u,
+	GPIO_4_6           =  6u<<3 | 3u,
+	GPIO_4_7           =  7u<<3 | 3u,
+	GPIO_4_8           =  8u<<3 | 3u,
+	GPIO_4_9           =  9u<<3 | 3u,
+	GPIO_4_10          = 10u<<3 | 3u,
+	GPIO_4_11          = 11u<<3 | 3u,
+
+	GPIO_5_0           =  0u<<3 | 4u,
 
 	// Aliases
-	GPIO_1_TOUCHSCREEN = GPIO_1_1, // Unset while the touchscreen is used
+	GPIO_1_TOUCHSCREEN = GPIO_1_1, // Unset while touchscreen pen down
 	GPIO_1_SHELL       = GPIO_1_2, // 1 when closed
 
-	GPIO_3_HEADPH_JACK = GPIO_3_8, // Unset while headphones are plugged in
-	GPIO_3_MCU         = GPIO_3_9
+	GPIO_4_HEADPH_JACK = GPIO_4_8, // Unset while headphones are plugged in
+	GPIO_4_MCU         = GPIO_4_9
 } Gpio;
 
 
@@ -69,3 +71,20 @@ typedef enum
  * @param[in]  cfg   The configuration.
  */
 void GPIO_config(Gpio gpio, u8 cfg);
+
+/**
+ * @brief      Reads a GPIO pin.
+ *
+ * @param[in]  gpio  The gpio.
+ *
+ * @return     The state. Either 0 or 1.
+ */
+u8 GPIO_read(Gpio gpio);
+
+/**
+ * @brief      Writes a GPIO pin.
+ *
+ * @param[in]  gpio  The gpio.
+ * @param[in]  val   The value.
+ */
+void GPIO_write(Gpio gpio, u8 val);

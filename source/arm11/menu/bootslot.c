@@ -33,7 +33,7 @@ u8 readStoredBootslot(void)
 		return 0;
 	
 	if (stored_slot == INVALID_BOOT_SLOT)
-		stored_slot = I2C_readReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG);
+		stored_slot = I2C_readReg(I2C_DEV_CTR_MCU, BOOTSLOT_STORE_REG);
 	
 	// slot must not exceed # of boot slots
 	if (stored_slot > N_BOOTSLOTS)
@@ -53,7 +53,7 @@ bool storeBootslot(u8 slot)
 	if (slot != stored_slot)
 	{
 		stored_slot = slot;
-		return I2C_writeReg(I2C_DEV_MCU, BOOTSLOT_STORE_REG, (u8) slot);
+		return I2C_writeReg(I2C_DEV_CTR_MCU, BOOTSLOT_STORE_REG, (u8) slot);
 	}
 	else
 	{

@@ -92,16 +92,34 @@ typedef enum
 	IRQ_SPI1          =  87u, // SPI bus 1 interrupt status update
 	IRQ_PDN           =  88u,
 	IRQ_I2C3          =  92u,
-	IRQ_SHELL_OPENED  =  96u,
-	IRQ_SHELL_CLOSED  =  98u,
-	IRQ_TOUCHSCREEN   =  99u, // Triggers on hitting the touchscreen.
-	IRQ_HEADPH_JACK   = 100u, // Headphone jack. Triggers on both plugging in and out? GPIO reg 9, bit 8.
-	IRQ_MCU_HID       = 113u, // HOME/POWER pressed/released, shell opened/closed and WiFi switch pressed. GPIO reg 19, bit 9.
+	IRQ_GPIO_1_2      =  96u,
+	IRQ_SHELL_CLOSED  =  98u, // GPIO_1_0?
+	IRQ_GPIO_1_1      =  99u,
+	IRQ_GPIO_2_0      = 100u,
+	IRQ_GPIO_2_1      = 102u,
+	IRQ_GPIO_4_0      = 104u,
+	IRQ_GPIO_4_1      = 105u,
+	IRQ_GPIO_4_2      = 106u,
+	IRQ_GPIO_4_3      = 107u,
+	IRQ_GPIO_4_4      = 108u,
+	IRQ_GPIO_4_5      = 109u,
+	IRQ_GPIO_4_6      = 110u,
+	IRQ_GPIO_4_7      = 111u,
+	IRQ_GPIO_4_8      = 112u,
+	IRQ_GPIO_4_9      = 113u,
+	IRQ_GPIO_4_10     = 114u,
+	IRQ_GPIO_4_11     = 115u,
 	IRQ_GAMECARD      = 117u, // Gamecard inserted
 	IRQ_PERF_MONITOR0 = 120u, // Core 0 performance monitor. Triggers on any counter overflow
 	IRQ_PERF_MONITOR1 = 121u, // Core 1 performance monitor. Triggers on any counter overflow
 	IRQ_PERF_MONITOR2 = 122u, // Unconfirmed. Core 2 performance monitor. Triggers on any counter overflow
-	IRQ_PERF_MONITOR3 = 123u  // Unconfirmed. Core 3 performance monitor. Triggers on any counter overflow
+	IRQ_PERF_MONITOR3 = 123u, // Unconfirmed. Core 3 performance monitor. Triggers on any counter overflow
+
+	// Aliases
+	IRQ_SHELL_OPENED  = IRQ_GPIO_1_2,
+	IRQ_TOUCHSCREEN   = IRQ_GPIO_1_1, // Triggers on touchscreen pen down.
+	IRQ_HEADPH_JACK   = IRQ_GPIO_2_0, // Headphone jack. Triggers on both plugging in and out?
+	IRQ_CTR_MCU       = IRQ_GPIO_4_9  // Various MCU events trigger this. See MCU interrupt mask.
 } Interrupt;
 
 

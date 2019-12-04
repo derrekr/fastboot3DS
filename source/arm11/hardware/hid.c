@@ -55,10 +55,10 @@ void hidInit(void)
 	tmp |= ~state<<1 & KEY_HOME;          // Current HOME button state
 	extraKeys = tmp;
 
-	IRQ_registerHandler(IRQ_MCU_HID, 14, 0, true, hidIrqHandler);
+	IRQ_registerHandler(IRQ_CTR_MCU, 14, 0, true, hidIrqHandler);
 	MCU_setIrqBitmask(0xFFBF3F80u);
 	// Configure GPIO for MCU event IRQs
-	GPIO_config(GPIO_3_MCU, GPIO_INPUT | GPIO_EDGE_FALLING | GPIO_IRQ_ENABLE);
+	GPIO_config(GPIO_4_MCU, GPIO_INPUT | GPIO_EDGE_FALLING | GPIO_IRQ_ENABLE);
 
 	//CODEC_init();
 }
