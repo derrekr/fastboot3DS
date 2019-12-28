@@ -52,8 +52,9 @@
 
 #ifdef ARM11
 
-#define __cpsid(flags) __asm__ volatile("cpsid " #flags : : : "memory");
-#define __cpsie(flags) __asm__ volatile("cpsie " #flags : : : "memory");
+#define __cpsid(flags) __asm__ volatile("cpsid " #flags : : : "memory")
+#define __cpsie(flags) __asm__ volatile("cpsie " #flags : : : "memory")
+#define __setend(end) __asm__ volatile("setend " #end : : : "memory")
 
 static inline void __wfi(void)
 {
@@ -191,7 +192,7 @@ static inline void __wfi(void)
 	__asm__ volatile("mcr p15, 0, %0, c7, c0, 4" : : "r" (0) : "memory");
 }
 
-#endif // ifdef ARM11, elif ARM9
+#endif // ifdef ARM11
 
 static inline u32 __getCpsr(void)
 {

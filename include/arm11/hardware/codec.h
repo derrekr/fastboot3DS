@@ -22,13 +22,23 @@
 
 
 /**
- * @brief      Initialize CODEC for Circle-Pad/Touchscreen.
+ * @brief      Initialize CODEC for Circle-Pad/Touchscreen/Sound.
  */
 void CODEC_init(void);
+
+/**
+ * @brief      Deinitializes the CODEC chip for sleep or poweroff.
+ */
+void CODEC_deinit(void);
+
+/**
+ * @brief      The opposite of CODEC_deinit(). Does a partial init.
+ */
+void CODEC_wakeup(void);
 
 /**
  * @brief      Get raw ADC data for Circle-Pad/Touchscreen.
  *
  * @param[in]  buf   The buffer to write the data to.
  */
-void CODEC_getRawData(u32 buf[13]);
+void CODEC_getRawAdcData(u32 buf[13]);

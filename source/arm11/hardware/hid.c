@@ -90,7 +90,7 @@ static void updateMcuIrqState(void)
 {
 	alignas(4) u8 buf[13 * 4];
 
-	CODEC_getRawData((u32*)buf);
+	CODEC_getRawAdcData((u32*)buf);
 
 	// Touchscreen
 	u32 emuButtons = !(buf[0] & 1u<<4)<<20; // KEY_TOUCH

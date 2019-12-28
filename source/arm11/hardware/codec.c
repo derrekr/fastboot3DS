@@ -24,6 +24,64 @@
 #include "arm11/hardware/gpio.h"
 
 
+typedef struct
+{
+	u8 driverGainHP;
+	u8 driverGainSP;
+	u8 analogVolumeHP;
+	u8 analogVolumeSP;
+	s8 shutterVolume[2];
+	u8 microphoneBias;
+	u8 quickCharge;
+	u8 PGA_GAIN; // microphone gain
+	u8 reserved[3];
+	s16 filterHP32[15]; // 3 * 5
+	s16 filterHP47[15];
+	s16 filterSP32[15];
+	s16 filterSP47[15];
+	s16 filterMic32[28]; // (1+2)+((1+4)*5)
+	s16 filterMic47[28];
+	s16 filterFree[28];
+	u8 analogInterval;
+	u8 analogStabilize;
+	u8 analogPrecharge;
+	u8 analogSense;
+	u8 analogDebounce;
+	u8 analog_XP_Pullup;
+	u8 YM_Driver;
+	u8 reserved2;
+} CodecCal;
+
+
+alignas(4) static CodecCal fallbackCal =
+{
+	0u,
+	1u,
+	0u,
+	7u,
+	{0xFD, 0xEC},
+	3u,
+	2u,
+	0u,
+	{0, 0, 0},
+	{32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32736, 49168, 0, 16352, 0},
+	{32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32745, 49164, 0, 16361, 0},
+	{32767, 38001, 22413, 30870, 36440, 51536, 30000, 51536, 0, 0, 32736, 49168, 0, 16352, 0},
+	{32767, 36541, 25277, 31456, 35336, 51134, 30000, 51134, 0, 0, 32745, 49164, 0, 16361, 0},
+	{32767, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0},
+	{32767, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0},
+	{32767, 0, 0, 52577, 56751, 32767, 8785, 12959, 52577, 56751, 32767, 8785, 12959, 52577, 56751, 32767, 8785, 12959, 32767, 0, 0, 0, 0, 32767, 0, 0, 0, 0},
+	1u,
+	9u,
+	4u,
+	3u,
+	0u,
+	6u,
+	1u,
+	0u
+};
+
+
 
 static void codecSwitchBank(u8 bank)
 {
@@ -83,6 +141,74 @@ static void codecMaskReg(u8 bank, u8 reg, u8 val, u8 mask)
 	codecWriteReg(bank, reg, data);
 }
 
+// Helpers
+static void codecSwapCalibrationData(CodecCal *cal)
+{
+	u16 *tmp = (u16*)cal->filterHP32;
+	for(int i = 0; i < 15; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+
+	tmp = (u16*)cal->filterHP47;
+	for(int i = 0; i < 15; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+
+	tmp = (u16*)cal->filterSP32;
+	for(int i = 0; i < 15; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+
+	tmp = (u16*)cal->filterSP47;
+	for(int i = 0; i < 15; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+
+	tmp = (u16*)cal->filterMic32;
+	for(int i = 0; i < 28; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+
+	tmp = (u16*)cal->filterMic47;
+	for(int i = 0; i < 28; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+
+	tmp = (u16*)cal->filterFree;
+	for(int i = 0; i < 28; i++)
+	{
+		tmp[i] = __builtin_bswap16(tmp[i]);
+	}
+}
+
+static void codecMaskWaitReg(u8 bank, u8 reg, u8 val, u8 mask)
+{
+	for(u32 i = 0; i < 64; i++) // Some kind of timeout? No error checking.
+	{
+		codecMaskReg(bank, reg, val, mask);
+		if((codecReadReg(bank, reg) & mask) == val) break;
+	}
+}
+
+static void codecEnableTouchscreen(void)
+{
+	codecMaskReg(0x67, 0x26, 0x80, 0x80);
+	codecMaskReg(0x67, 0x24, 0, 0x80);
+	codecMaskReg(0x67, 0x25, 0x10, 0x3C);
+}
+
+static void codecDisableTouchscreen(void)
+{
+	codecMaskReg(0x67, 0x26, 0, 0x80);
+	codecMaskReg(0x67, 0x24, 0x80, 0x80);
+}
+
 
 void CODEC_init(void)
 {
@@ -93,26 +219,27 @@ void CODEC_init(void)
 
 	NSPI_init();
 
+	// TODO: Load calibration from HWCAL files on eMMC.
+	CodecCal *const cal = &fallbackCal;
+	codecSwapCalibrationData(cal); // Come the fuck on. Why is this not stored in the correct endianness?
+
 	// Circle pad
 	codecWriteReg(0x67, 0x24, 0x98);
 	codecWriteReg(0x67, 0x26, 0x00);
 	codecWriteReg(0x67, 0x25, 0x43);
 	codecWriteReg(0x67, 0x24, 0x18);
-	codecWriteReg(0x67, 0x17, 0x43);
-	codecWriteReg(0x67, 0x19, 0x69);
-	codecWriteReg(0x67, 0x1B, 0x80);
-	codecWriteReg(0x67, 0x27, 0x11);
+	codecWriteReg(0x67, 0x17, cal->analogPrecharge<<4 | cal->analogSense);
+	codecWriteReg(0x67, 0x19, cal->analog_XP_Pullup<<4 | cal->analogStabilize);
+	codecWriteReg(0x67, 0x1B, cal->YM_Driver<<7 | cal->analogDebounce);
+	codecWriteReg(0x67, 0x27, 0x10u | cal->analogInterval);
 	codecWriteReg(0x67, 0x26, 0xEC);
 	codecWriteReg(0x67, 0x24, 0x18);
 	codecWriteReg(0x67, 0x25, 0x53);
 
-	// Touchscreen
-	codecMaskReg(0x67, 0x26, 0x80, 0x80);
-	codecMaskReg(0x67, 0x24, 0, 0x80);
-	codecMaskReg(0x67, 0x25, 0x10, 0x3C);
+	codecEnableTouchscreen();
 }
 
-void CODEC_getRawData(u32 buf[13])
+void CODEC_getRawAdcData(u32 buf[13])
 {
 	//codecSwitchBank(0x67);
 	// This reg read seems useless and doesn't affect funtionality.
