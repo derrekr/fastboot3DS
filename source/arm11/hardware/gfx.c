@@ -289,10 +289,6 @@ void GFX_init(bool clearScreens)
 		GFX_waitForEvent(GFX_EVENT_PSC1, true);
 		GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
 		GFX_waitForEvent(GFX_EVENT_PSC0, true);
-
-		// The transfer engine is borked on screen init on New 3DS.
-		// Doing a dummy texture copy fixes it.
-		GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)RENDERBUF_SUB, 0, 16);
 	}
 
 	// We must make sure the I2C bus is not used until this finishes
