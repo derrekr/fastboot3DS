@@ -86,14 +86,14 @@ alignas(4) static CodecCal fallbackCal =
 static void codecSwitchBank(u8 bank)
 {
 	static u8 curBank = 0x63;
-	if(bank != curBank)
+	if(curBank != bank)
 	{
+		curBank = bank;
+
 		alignas(4) u8 inBuf[4];
 		inBuf[0] = 0; // Write
 		inBuf[1] = bank;
 		NSPI_writeRead(NSPI_DEV_CTR_CODEC, (u32*)inBuf, NULL, 2, 0, true);
-
-		curBank = bank;
 	}
 }
 
@@ -209,6 +209,21 @@ static void codecDisableTouchscreen(void)
 	codecMaskReg(0x67, 0x24, 0x80, 0x80);
 }
 
+static void codecLegacyStuff(bool enabled)
+{
+	if(enabled)
+	{
+		*((vu16*)0x10141114) |= 2u;
+		*((vu16*)0x10141116) |= 2u;
+		codecMaskReg(0x67, 0x25, 0x40, 0x40);
+	}
+	else
+	{
+		codecMaskReg(0x67, 0x25, 0, 0x40);
+		*((vu16*)0x10141114) &= ~2u;
+	}
+}
+
 
 void CODEC_init(void)
 {
@@ -223,6 +238,125 @@ void CODEC_init(void)
 	CodecCal *const cal = &fallbackCal;
 	codecSwapCalibrationData(cal); // Come the fuck on. Why is this not stored in the correct endianness?
 
+	// General codec reset + init?
+	*((vu8*)0x10141220) = 2;
+	codecWriteReg(0x64, 1, 1);
+	TIMER_sleepMs(40);
+	codecSwitchBank(0); // What? Dummy switch after reset?
+	codecWriteReg(0x64, 0x43, 0x11);
+	codecMaskReg(0x65, 0x77, 1, 1);
+	codecMaskReg(0, 0x39, 0x66, 0x66);
+	codecWriteReg(0x65, 0x7A, 1);
+	codecMaskReg(0x64, 0x22, 0x18, 0x18);
+	GPIO_config(GPIO_2_0, GPIO_IRQ_ENABLE | GPIO_EDGE_RISING | GPIO_INPUT); // Headphone jack IRQ
+	//codecMaskReg(0x64, 0x45, (*((vu8*)0x10147010) & 1u)<<4 | 1u<<5, 0x30); // GPIO bitmask 8.
+	codecMaskReg(0x64, 0x45, 0, 0x30); // With automatic output switching
+	codecMaskReg(0x64, 0x43, 0, 0x80);
+	codecMaskReg(0x64, 0x43, 0x80, 0x80);
+	codecWriteReg(0, 0xB, 0x87);
+	codecMaskReg(0x64, 0x7C, 0, 1);
+
+	// sub_3257FC()
+	codecMaskReg(0x64, 0x22, 0, 4);
+	// In AgbBg this is swapped at runtime.
+	alignas(4) static const u16 unkData1[3] = {0xE17F, 0x1F80, 0xC17F};
+	codecWriteRegBuf(4, 8, (u32*)unkData1, 6);
+	codecWriteRegBuf(5, 8, (u32*)cal->filterMic32, 56);
+	codecWriteRegBuf(5, 0x48, (u32*)cal->filterMic47, 56);
+	codecMaskReg(1, 0x30, 0x40, 0xC0);
+	codecMaskReg(1, 0x31, 0x40, 0xC0);
+	codecWriteReg(0x65, 0x33, cal->microphoneBias);
+	codecMaskWaitReg(0x65, 0x41, cal->PGA_GAIN, 0x3F);
+	codecMaskWaitReg(0x65, 0x42, cal->quickCharge, 3);
+	codecWriteReg(1, 0x2F, 0x2Bu & 0x7Fu);
+	codecMaskReg(0x64, 0x31, 0x44, 0x44); // AgbBg uses val = 0 here
+	codecWriteReg(0, 0x41, cal->shutterVolume[0]);
+	codecWriteReg(0, 0x42, cal->shutterVolume[0]);
+	codecWriteReg(0x64, 0x7B, cal->shutterVolume[1]);
+
+	// Sound stuff starts here
+	GPIO_config(GPIO_4_0, GPIO_OUTPUT);
+	GPIO_write(GPIO_4_0, 1); // GPIO bitmask 0x40
+	TIMER_sleepMs(10); // Fixed 10 ms delay when setting this GPIO.
+	*((vu16*)0x10145000) = 0xE800u; // 47.61 kHz. codec module writes 0xC800 instead.
+	*((vu16*)0x10145002) = 0xE000u;
+	codecMaskReg(0x65, 0x11, 0x10, 0x1C);
+	codecWriteReg(0x64, 0x7A, 0);
+	codecWriteReg(0x64, 0x78, 0);
+	{ // This code block is missing in AgbBg but present in codec module.
+		const bool flag = (~codecReadReg(0, 0x40) & 0xCu) == 0;
+		codecMaskReg(0, 0x3F, 0, 0xC0);
+		codecWriteReg(0, 0x40, 0xC);
+		for(u32 i = 0; i < 100; i++) // Some kind of timeout? No error checking.
+		{
+			if(!(~codecReadReg(0x64, 0x26) & 0x44u)) break;
+			TIMER_sleepMs(1);
+		}
+		codecWriteRegBuf(9, 2, (u32*)cal->filterFree, 6);
+		codecWriteRegBuf(8, 0xC, (u32*)&cal->filterFree[3], 50);
+		codecWriteRegBuf(9, 8, (u32*)cal->filterFree, 6);
+		codecWriteRegBuf(8, 0x4C, (u32*)&cal->filterFree[3], 50);
+		if(!flag)
+		{
+			codecMaskReg(0, 0x3F, 0xC0, 0xC0);
+			codecWriteReg(0, 0x40, 0);
+		}
+	}
+	{
+		const bool flag = (~codecReadReg(0x64, 0x77) & 0xCu) == 0;
+		codecMaskReg(0x64, 0x77, 0xC, 0xC);
+		for(u32 i = 0; i < 100; i++) // Some kind of timeout? No error checking.
+		{
+			if(!(~codecReadReg(0x64, 0x26) & 0x88u)) break;
+			TIMER_sleepMs(1);
+		}
+		codecWriteRegBuf(0xA, 2, (u32*)cal->filterFree, 6);
+		codecWriteRegBuf(0xA, 0xC, (u32*)&cal->filterFree[3], 50);
+		if(!flag) codecMaskReg(0x64, 0x77, 0, 0xC);
+	}
+
+	codecWriteRegBuf(0xC, 2, (u32*)cal->filterSP32, 30);
+	codecWriteRegBuf(0xC, 0x42, (u32*)cal->filterSP32, 30);
+	codecWriteRegBuf(0xC, 0x20, (u32*)cal->filterSP47, 30);
+	codecWriteRegBuf(0xC, 0x60, (u32*)cal->filterSP47, 30);
+	codecWriteRegBuf(0xB, 2, (u32*)cal->filterHP32, 30);
+	codecWriteRegBuf(0xB, 0x42, (u32*)cal->filterHP32, 30);
+	codecWriteRegBuf(0xB, 0x20, (u32*)cal->filterHP47, 30);
+	codecWriteRegBuf(0xB, 0x60, (u32*)cal->filterHP47, 30);
+	codecMaskReg(0x64, 0x76, 0xC0, 0xC0);
+	TIMER_sleepMs(10);
+	for(u32 i = 0; i < 100; i++) // Some kind of timeout? No error checking.
+	{
+		if(!(~codecReadReg(0x64, 0x25) & 0x88u)) break;
+		TIMER_sleepMs(1);
+	}
+	codecWriteReg(0x65, 0xA, 0xA);
+
+	codecMaskReg(0, 0x3F, 0xC0, 0xC0);
+	codecWriteReg(0, 0x40, 0);
+	codecMaskReg(0x64, 0x77, 0, 0xC);
+
+	u8 val;
+	if((codecReadReg(0, 2) & 0xFu) <= 1u && ((codecReadReg(0, 3) & 0x70u)>>4 <= 2u))
+	{
+		val = 0x3C;
+	}
+	else val = 0x1C;
+	codecWriteReg(0x65, 0xB, val);
+
+	codecWriteReg(0x65, 0xC, (cal->driverGainHP<<3) | 4);
+	codecWriteReg(0x65, 0x16, cal->analogVolumeHP);
+	codecWriteReg(0x65, 0x17, cal->analogVolumeHP);
+	codecMaskReg(0x65, 0x11, 0xC0, 0xC0);
+	codecWriteReg(0x65, 0x12, (cal->driverGainSP<<2) | 2);
+	codecWriteReg(0x65, 0x13, (cal->driverGainSP<<2) | 2);
+	codecWriteReg(0x65, 0x1B, cal->analogVolumeSP);
+	codecWriteReg(0x65, 0x1C, cal->analogVolumeSP);
+	TIMER_sleepMs(38);
+	GPIO_write(GPIO_4_0, 0); // GPIO bitmask 0x40
+	TIMER_sleepMs(18); // Fixed 18 ms delay when unsetting this GPIO.
+
+
 	// Circle pad
 	codecWriteReg(0x67, 0x24, 0x98);
 	codecWriteReg(0x67, 0x26, 0x00);
@@ -236,7 +370,74 @@ void CODEC_init(void)
 	codecWriteReg(0x67, 0x24, 0x18);
 	codecWriteReg(0x67, 0x25, 0x53);
 
+	// Not needed?
+	//I2C_writeReg(I2C_DEV_CTR_MCU, 0x26, I2C_readReg(I2C_DEV_CTR_MCU, 0x26) | 0x10);
+
 	codecEnableTouchscreen();
+}
+
+bool touchscreenState = false;
+bool legacySwitchState = false;
+
+void CODEC_deinit(void)
+{
+	GPIO_write(GPIO_4_0, 1); // GPIO bitmask 0x40
+	TIMER_sleepMs(10); // Fixed 10 ms delay when setting this GPIO.
+	legacySwitchState = (codecReadReg(0x67, 0x25) & 0x40u) != 0;
+	if(!legacySwitchState) codecLegacyStuff(true);
+	codecMaskReg(0x67, 0x25, 0, 3);
+	touchscreenState = (codecReadReg(0x67, 0x24)>>7) == 0;
+	codecDisableTouchscreen();
+	codecMaskReg(0x64, 0x76, 0, 0xC0);
+	TIMER_sleepMs(30);
+	for(u32 i = 0; i < 100; i++)
+	{
+		if(!(codecReadReg(0x64, 0x25) & 0x88u)) break;
+		TIMER_sleepMs(1);
+	}
+	codecMaskReg(0x64, 0x22, 2, 2);
+	TIMER_sleepMs(30);
+	for(u32 i = 0; i < 64; i++)
+	{
+		if(codecReadReg(0x64, 0x22) & 1u) break;
+		TIMER_sleepMs(1);
+	}
+	*((vu16*)0x10145000) &= ~0x8000u;
+	*((vu16*)0x10145002) &= ~0x8000u;
+	*((vu8* )0x10141220) = 0;
+	GPIO_write(GPIO_4_0, 0); // GPIO bitmask 0x40
+	TIMER_sleepMs(18); // Fixed 18 ms delay when unsetting this GPIO.
+}
+
+void CODEC_wakeup(void)
+{
+	GPIO_write(GPIO_4_0, 1); // GPIO bitmask 0x40
+	TIMER_sleepMs(10); // Fixed 10 ms delay when setting this GPIO.
+	*((vu8* )0x10141220) = 2u;
+	*((vu16*)0x10145000) |= 0x8000u;
+	*((vu16*)0x10145002) |= 0x8000u;
+	//codecMaskReg(0x64, 0x45, 0, 0x30); // Output select automatic
+	codecMaskReg(0x64, 0x43, 0, 0x80);
+	codecMaskReg(0x64, 0x43, 0x80, 0x80);
+	codecMaskReg(0x64, 0x22, 0, 2);
+	TIMER_sleepMs(40);
+	for(u32 i = 0; i < 40; i++)
+	{
+		if(!(codecReadReg(0x64, 0x22) & 1u)) break;
+		TIMER_sleepMs(1);
+	}
+	codecMaskReg(0x64, 0x76, 0xC0, 0xC0);
+	TIMER_sleepMs(10);
+	for(u32 i = 0; i < 100; i++)
+	{
+		if(!(~codecReadReg(0x64, 0x25) & 0x88u)) break;
+		TIMER_sleepMs(1);
+	}
+	codecMaskReg(0x67, 0x25, 3, 3);
+	codecLegacyStuff(legacySwitchState);
+	if(touchscreenState) codecEnableTouchscreen();
+	GPIO_write(GPIO_4_0, 0); // GPIO bitmask 0x40
+	TIMER_sleepMs(18); // Fixed 18 ms delay when unsetting this GPIO.
 }
 
 void CODEC_getRawAdcData(u32 buf[13])

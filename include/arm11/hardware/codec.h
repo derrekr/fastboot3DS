@@ -21,6 +21,7 @@
 #include "types.h"
 
 
+
 /**
  * @brief      Initialize CODEC for Circle-Pad/Touchscreen/Sound.
  */
