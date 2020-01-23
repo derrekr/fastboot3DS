@@ -28,7 +28,7 @@
 #define PXI_REGS_BASE                       (IO_MEM_ARM9_ARM11 + 0x63000)
 #endif
 #define REG_PXI_SYNC_RECVD                  *((const vu8*)(PXI_REGS_BASE + 0x00))
-#define REG_PXI_SYNC_SENT                   *((vu8 *)(PXI_REGS_BASE + 0x01))
+#define REG_PXI_SYNC_SENT                   *((vu8 *)(PXI_REGS_BASE + 0x01)) // Write-only
 #define REG_PXI_SYNC_IRQ                    *((vu8 *)(PXI_REGS_BASE + 0x03))
 #define REG_PXI_SYNC                        *((vu32*)(PXI_REGS_BASE + 0x00))
 #define REG_PXI_CNT                         *((vu16*)(PXI_REGS_BASE + 0x04))
@@ -49,6 +49,7 @@
 // REG_PXI_SYNC_IRQ
 #ifdef ARM9
 #define PXI_SYNC_IRQ_IRQ                    (1u<<5)
+#define PXI_SYNC_IRQ_IRQ2                   (1u<<6)
 #elif ARM11
 #define PXI_SYNC_IRQ_IRQ                    (1u<<6)
 #endif
@@ -57,7 +58,7 @@
 // REG_PXI_CNT
 #define PXI_CNT_SFIFO_EMPTY                 (1u<<0)
 #define PXI_CNT_SFIFO_FULL                  (1u<<1)
-#define PXI_CNT_SFIFO_EMPTY_IRQ_ENABLE      (1u<<2)
+#define PXI_CNT_SFIFO_NOT_FULL_IRQ_ENABLE   (1u<<2)
 #define PXI_CNT_FLUSH_SFIFO                 (1u<<3)
 #define PXI_CNT_RFIFO_EMPTY                 (1u<<8)
 #define PXI_CNT_RFIFO_FULL                  (1u<<9)

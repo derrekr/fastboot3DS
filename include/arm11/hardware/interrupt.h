@@ -83,7 +83,7 @@ typedef enum
 	IRQ_PPF           =  44u,
 	IRQ_P3D           =  45u,
 	IRQ_PXI_SYNC      =  80u,
-	IRQ_PXI_UNK       =  81u, // Unknown what this is for
+	IRQ_PXI_SYNC2     =  81u,
 	IRQ_PXI_NOT_FULL  =  82u,
 	IRQ_PXI_NOT_EMPTY =  83u,
 	IRQ_I2C1          =  84u,
