@@ -18,9 +18,9 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <tgmath.h>
 #include "mem_map.h"
 #include "types.h"
+#include "util.h"
 
 
 #define NDMA_REGS_BASE           (IO_MEM_ARM9_ONLY + 0x2000)
@@ -100,7 +100,7 @@
 
 
 // REG_NDMA_GLOBAL_CNT
-#define NDMA_ROUND_ROBIN(n)    ((u32)log2(n)<<16 | 1u<<31 | 1u) // n = number of CPU cycles
+#define NDMA_ROUND_ROBIN(n)    (intLog2(n)<<16 | 1u<<31 | 1u) // n = number of CPU cycles
 #define NDMA_HIGHEST_PRIO      (1u)
 
 // REG_NDMA_INT_CNT
@@ -117,7 +117,7 @@
 #define NDMA_SRC_UPDATE_FILL   (3u<<13)
 #define NDMA_SRC_ADDR_RELOAD   (1u<<15)
 // The block length is 2^n words (Example: 2^15 = 32768 words = 0x20000 bytes)
-#define NDMA_BURST_WORDS(n)    ((u32)log2(n)<<16)
+#define NDMA_BURST_WORDS(n)    (intLog2(n)<<16)
 #define NDMA_IMMEDIATE_MODE    (16u<<24)
 #define NDMA_TOTAL_CNT_MODE    (0u)
 #define NDMA_REPEATING_MODE    (1u<<29)

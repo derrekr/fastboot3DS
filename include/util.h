@@ -40,3 +40,9 @@ void memcpy_s(void *dstBuf, size_t dstBufSize, size_t dstBufOffset,
 u32 getleu32(const void* ptr);
 
 u32 swap32(u32 val);
+
+static inline u32 intLog2(u32 val)
+{
+	// The result is undefined if __builtin_clz() is called with 0.
+	return (val ? 31u - __builtin_clz(val) : 0u);
+}
