@@ -46,17 +46,26 @@
 #define REG_LCD_BACKLIGHT_MAIN  *((vu32*)(LCD_REGS_BASE + 0x240))
 #define REG_LCD_BACKLIGHT_SUB   *((vu32*)(LCD_REGS_BASE + 0xA40))
 
-#define GPU_EXT_REGS_BASE       (IO_MEM_ARM11_ONLY + 0x200000)
-#define REG_GPU_EXT_CNT         *((vu32*)(GPU_EXT_REGS_BASE + 0x0004))
+#define GX_REGS_BASE            (IO_MEM_ARM11_ONLY + 0x200000)
+#define REG_GX_PSC_CLK          *((vu32*)(GX_REGS_BASE + 0x0004)) // ?
 
-#define REGs_PSC0                ((vu32*)(GPU_EXT_REGS_BASE + 0x0010))
-#define REGs_PSC1                ((vu32*)(GPU_EXT_REGS_BASE + 0x0020))
+#define REG_GX_PSC_FILL0_S_ADR  *((vu32*)(GX_REGS_BASE + 0x0010)) // Start address
+#define REG_GX_PSC_FILL0_E_ADR  *((vu32*)(GX_REGS_BASE + 0x0014)) // End address
+#define REG_GX_PSC_FILL0_VAL    *((vu32*)(GX_REGS_BASE + 0x0018)) // Fill value
+#define REG_GX_PSC_FILL0_CNT    *((vu32*)(GX_REGS_BASE + 0x001C))
 
-#define REGs_TRANS_ENGINE        ((vu32*)(GPU_EXT_REGS_BASE + 0x0C00))
+#define REG_GX_PSC_FILL1_S_ADR  *((vu32*)(GX_REGS_BASE + 0x0020))
+#define REG_GX_PSC_FILL1_E_ADR  *((vu32*)(GX_REGS_BASE + 0x0024))
+#define REG_GX_PSC_FILL1_VAL    *((vu32*)(GX_REGS_BASE + 0x0028))
+#define REG_GX_PSC_FILL1_CNT    *((vu32*)(GX_REGS_BASE + 0x002C))
+
+#define REG_GX_PSC_UNK          *((vu32*)(GX_REGS_BASE + 0x0030)) // ? gsp mudule only changes bit 8-11.
+
+#define REGs_GX_PPF              ((vu32*)(GX_REGS_BASE + 0x0C00))
 
 
 static u32 activeFb = 0;
-static volatile bool eventTable[6] = {0};
+static volatile bool eventTable[6] = {false};
 
 
 
@@ -167,18 +176,18 @@ void GX_memoryFill(u64 *buf0a, u32 buf0v, u32 buf0Sz, u32 val0, u64 *buf1a, u32 
 {
 	if(buf0a)
 	{
-		REGs_PSC0[0] = (u32)buf0a>>3;            // Start address
-		REGs_PSC0[1] = ((u32)buf0a + buf0Sz)>>3; // End address 
-		REGs_PSC0[2] = val0;                     // Fill value
-		REGs_PSC0[3] = buf0v | 1u;               // Pattern + start
+		REG_GX_PSC_FILL0_S_ADR = (u32)buf0a>>3;
+		REG_GX_PSC_FILL0_E_ADR = ((u32)buf0a + buf0Sz)>>3;
+		REG_GX_PSC_FILL0_VAL   = val0;
+		REG_GX_PSC_FILL0_CNT   = buf0v | 1u; // Pattern + start
 	}
 
 	if(buf1a)
 	{
-		REGs_PSC1[0] = (u32)buf1a>>3;            // Start address
-		REGs_PSC1[1] = ((u32)buf1a + buf1Sz)>>3; // End address
-		REGs_PSC1[2] = val1;                     // Fill value
-		REGs_PSC1[3] = buf1v | 1u;               // Pattern + start
+		REG_GX_PSC_FILL1_S_ADR = (u32)buf1a>>3;
+		REG_GX_PSC_FILL1_E_ADR = ((u32)buf1a + buf1Sz)>>3;
+		REG_GX_PSC_FILL1_VAL   = val1;
+		REG_GX_PSC_FILL1_CNT   = buf1v | 1u; // Pattern + start
 	}
 }
 
@@ -186,13 +195,13 @@ void GX_displayTransfer(u64 *in, u32 indim, u64 *out, u32 outdim, u32 flags)
 {
 	if(!in || !out) return;
 
-	REGs_TRANS_ENGINE[0] = (u32)in>>3;
-	REGs_TRANS_ENGINE[1] = (u32)out>>3;
-	REGs_TRANS_ENGINE[2] = indim;
-	REGs_TRANS_ENGINE[3] = outdim;
-	REGs_TRANS_ENGINE[4] = flags;
-	REGs_TRANS_ENGINE[5] = 0;
-	REGs_TRANS_ENGINE[6] = 1;
+	REGs_GX_PPF[0] = (u32)in>>3;
+	REGs_GX_PPF[1] = (u32)out>>3;
+	REGs_GX_PPF[2] = indim;
+	REGs_GX_PPF[3] = outdim;
+	REGs_GX_PPF[4] = flags;
+	REGs_GX_PPF[5] = 0;
+	REGs_GX_PPF[6] = 1;
 }
 
 // Example: GX_textureCopy(in, (240 * 2)<<12 | (240 * 2)>>4, out, (240 * 2)<<12 | (240 * 2)>>4, 240 * 400);
@@ -201,13 +210,13 @@ void GX_textureCopy(u64 *in, u32 indim, u64 *out, u32 outdim, u32 size)
 {
 	if(!in || !out) return;
 
-	REGs_TRANS_ENGINE[0] = (u32)in>>3;
-	REGs_TRANS_ENGINE[1] = (u32)out>>3;
-	REGs_TRANS_ENGINE[4] = 1u<<3;
-	REGs_TRANS_ENGINE[8] = size;
-	REGs_TRANS_ENGINE[9] = indim;
-	REGs_TRANS_ENGINE[10] = outdim;
-	REGs_TRANS_ENGINE[6] = 1;
+	REGs_GX_PPF[0] = (u32)in>>3;
+	REGs_GX_PPF[1] = (u32)out>>3;
+	REGs_GX_PPF[4] = 1u<<3;
+	REGs_GX_PPF[8] = size;
+	REGs_GX_PPF[9] = indim;
+	REGs_GX_PPF[10] = outdim;
+	REGs_GX_PPF[6] = 1;
 }
 
 void GFX_setBrightness(u32 top, u32 sub)
@@ -254,6 +263,9 @@ void GFX_init(bool clearScreens)
 		//REG_PDN_GPU_CNT = 0x10000;
 		//wait(134);
 		REG_PDN_GPU_CNT = 0x1007F;
+		// PSC and PPF stuff
+		//REG_GX_PSC_CLK = 0x70100;
+
 		*((vu32*)0x10202014) = 0x00000001;
 		*((vu32*)0x1020200C) &= 0xFFFEFFFE;
 		REG_LCD_COLORFILL_MAIN = 1u<<24; // Force blackscreen
