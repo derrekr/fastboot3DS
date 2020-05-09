@@ -526,7 +526,7 @@ PrintConsole* consoleInit(int screen, PrintConsole* console, bool clear) {
 
 	console->consoleInitialised = 1;
 
-	if(screen==0) {
+	if(screen==SCREEN_TOP) {
 		console->frameBuffer = (u16*)RENDERBUF_TOP;
 		console->consoleWidth = 66;
 		console->windowWidth = 66;

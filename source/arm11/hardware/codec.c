@@ -279,7 +279,7 @@ void CODEC_init(void)
 	GPIO_config(GPIO_4_0, GPIO_OUTPUT);
 	GPIO_write(GPIO_4_0, 1); // GPIO bitmask 0x40
 	TIMER_sleepMs(10); // Fixed 10 ms delay when setting this GPIO.
-	*((vu16*)0x10145000) = 0xC800u | 0x20u<<6;
+	*((vu16*)0x10145000) = 0xE800u; // 47.61 kHz. codec module writes 0xC800 instead.
 	*((vu16*)0x10145002) = 0xE000u;
 	codecMaskReg(0x65, 0x11, 0x10, 0x1C);
 	codecWriteReg(0x64, 0x7A, 0);
