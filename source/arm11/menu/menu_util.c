@@ -202,7 +202,7 @@ u32 ee_printf_progress(const char *const fmt, u32 w, u64 curr, u64 max)
 
 void clearScreens(void)
 {
-	GX_memoryFill((u64*)RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, (u64*)RENDERBUF_SUB, 1u<<9, SCREEN_SIZE_SUB, 0);
+	GX_memoryFill(RENDERBUF_TOP, 1u<<9, SCREEN_SIZE_TOP, 0, RENDERBUF_BOT, 1u<<9, SCREEN_SIZE_BOT, 0);
 	GFX_waitForEvent(GFX_EVENT_PSC0, true);
 }
 
@@ -215,7 +215,7 @@ void drawTopBorder(void)
 	if (!color)
 	{
 		u8 rtc[8];
-		MCU_readRTC(rtc);
+		MCU_getRTCTime(rtc);
 		color = consoleGetRGB565Color((rtc[0] % 6) + 1);
 	}
 	
@@ -276,7 +276,7 @@ bool drawCustomSplash(const char* folder)
 		}
 		fClose(fHandle);
 		
-		if (drawSplashscreen(splash_data, (u16*)splash_buffer, -1, -1, SCREEN_SUB))
+		if (drawSplashscreen(splash_data, (u16*)splash_buffer, -1, -1, SCREEN_BOT))
 			res = true;
 	}
 	
@@ -292,21 +292,21 @@ bool drawCustomSplash(const char* folder)
 // only intended to be ran when the shell is closed
 void sleepmode(void)
 {
-	GFX_enterLowPowerState();
+	//GFX_enterLowPowerState();
 	MCU_setPowerLedState(PWLED_SLEEP);
 	do
 	{
 		__wfi();
 		hidScanInput();
 	} while(hidGetExtraKeys(0) & KEY_SHELL);
-	MCU_setPowerLedState(PWLED_NORMAL);
-	GFX_returnFromLowPowerState();
+	MCU_setPowerLedState(PWLED_AUTO);
+	//GFX_returnFromLowPowerState();
 }
 
 void updateScreens(void)
 {
-	GX_textureCopy((u64*)RENDERBUF_TOP, 0, (u64*)GFX_getFramebuffer(SCREEN_TOP),
-				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_SUB);
+	GX_textureCopy(RENDERBUF_TOP, 0, GFX_getFramebuffer(SCREEN_TOP),
+				   0, SCREEN_SIZE_TOP + SCREEN_SIZE_BOT);
 	GFX_waitForEvent(GFX_EVENT_PPF, true); // Texture copy
 	GFX_swapFramebufs();
 	GFX_waitForEvent(GFX_EVENT_PDC0, true); // VBlank

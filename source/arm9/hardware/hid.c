@@ -2,11 +2,13 @@
  * This code is part of ctrulib (https://github.com/smealum/ctrulib)
  */
 
-#include "mem_map.h"
 #include "types.h"
+#include "mem_map.h"
 
 
-#define REG_HID_PAD  (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
+#define HID_REGS_BASE     (IO_MEM_ARM9_ARM11 + 0x46000)
+#define REG_HID_PAD       (*((vu16*)(HID_REGS_BASE + 0x0)) ^ 0xFFFFu)
+#define REG_HID_PADCNT     *((vu16*)(HID_REGS_BASE + 0x2))
 
 
 static u32 kHeld, kDown, kUp;

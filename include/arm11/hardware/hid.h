@@ -23,12 +23,15 @@
  */
 
 #include "types.h"
+#include "mem_map.h"
 
 
-#define REG_HID_PAD               (*((vu16*)(IO_MEM_ARM9_ARM11 + 0x46000)) ^ 0xFFFFu)
+#define HID_REGS_BASE     (IO_MEM_ARM9_ARM11 + 0x46000)
+#define REG_HID_PAD       (*((vu16*)(HID_REGS_BASE + 0x0)) ^ 0xFFFFu)
+#define REG_HID_PADCNT     *((vu16*)(HID_REGS_BASE + 0x2))
 
 
-#define HID_KEY_MASK_ALL          ((1u<<12) - 1)
+#define HID_KEY_MASK_ALL  ((1u<<12) - 1)
 
 enum
 {
@@ -61,6 +64,11 @@ enum
 	KEY_DOWN  = KEY_DDOWN  | KEY_CPAD_DOWN,  // D-Pad Down or Circle Pad Down
 	KEY_LEFT  = KEY_DLEFT  | KEY_CPAD_LEFT,  // D-Pad Left or Circle Pad Left
 	KEY_RIGHT = KEY_DRIGHT | KEY_CPAD_RIGHT, // D-Pad Right or Circle Pad Right
+
+	// Masks
+	KEY_DPAD   = KEY_DDOWN       | KEY_DUP       | KEY_DLEFT       | KEY_DRIGHT,
+	KEY_CSTICK = KEY_CSTICK_DOWN | KEY_CSTICK_UP | KEY_CSTICK_LEFT | KEY_CSTICK_RIGHT,
+	KEY_CPAD   = KEY_CPAD_DOWN   | KEY_CPAD_UP   | KEY_CPAD_LEFT   | KEY_CPAD_RIGHT
 };
 
 // Extra keys use with hidGetExtraKeys()

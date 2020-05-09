@@ -19,6 +19,7 @@
 // Based on code from https://github.com/xerpi/linux_3ds/blob/master/drivers/input/misc/nintendo3ds_codec_hid.c
 
 #include "types.h"
+#include "arm11/hardware/codec.h"
 #include "arm11/hardware/spi.h"
 #include "arm11/hardware/timer.h"
 #include "arm11/hardware/gpio.h"
@@ -278,7 +279,7 @@ void CODEC_init(void)
 	GPIO_config(GPIO_4_0, GPIO_OUTPUT);
 	GPIO_write(GPIO_4_0, 1); // GPIO bitmask 0x40
 	TIMER_sleepMs(10); // Fixed 10 ms delay when setting this GPIO.
-	*((vu16*)0x10145000) = 0xE800u; // 47.61 kHz. codec module writes 0xC800 instead.
+	*((vu16*)0x10145000) = 0xC800u | 0x20u<<6;
 	*((vu16*)0x10145002) = 0xE000u;
 	codecMaskReg(0x65, 0x11, 0x10, 0x1C);
 	codecWriteReg(0x64, 0x7A, 0);
@@ -440,11 +441,17 @@ void CODEC_wakeup(void)
 	TIMER_sleepMs(18); // Fixed 18 ms delay when unsetting this GPIO.
 }
 
-void CODEC_getRawAdcData(u32 buf[13])
+bool CODEC_getRawAdcData(CdcAdcData *data)
 {
-	//codecSwitchBank(0x67);
-	// This reg read seems useless and doesn't affect funtionality.
-	//codecReadReg(0x26);
+	if((codecReadReg(0x67, 0x26) & 2u) == 0)
+	{
+		codecReadRegBuf(0xFB, 1, (u32*)data, sizeof(CdcAdcData));
 
-	codecReadRegBuf(0xFB, 1, buf, 52);
+		return true;
+	}
+
+	// Codec module does this when data is unavailable. Why?
+	//codecSwitchBank(0);
+
+	return false;
 }

@@ -213,8 +213,8 @@ u32 menuSetSplash(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		
 		// check if selection at least looks valid
 		const char* splash_name[] = { CSPLASH_NAME_TOP, CSPLASH_NAME_SUB };
-		const u32 splash_bin_width[] = { SCREEN_WIDTH_TOP, SCREEN_WIDTH_SUB };
-		const u32 splash_bin_height[] = { SCREEN_HEIGHT_TOP, SCREEN_HEIGHT_SUB };
+		const u32 splash_bin_width[] = { SCREEN_WIDTH_TOP, SCREEN_WIDTH_BOT };
+		const u32 splash_bin_height[] = { SCREEN_HEIGHT_TOP, SCREEN_HEIGHT_BOT };
 		char* splash_path =  (char*) malloc(FF_MAX_LFN + 1);
 		char* splash_bin_path =  (char*) malloc(FF_MAX_LFN + 1);
 		bool valid = false;
@@ -606,7 +606,7 @@ u32 menuBackupNand(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// current state of the RTC
 	u8 rtc[8] = { 0 };
-	MCU_readRTC(rtc);
+	MCU_getRTCTime(rtc);
 	
 	// create NAND backup filename
 	char fpath[64];

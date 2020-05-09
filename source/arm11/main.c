@@ -96,7 +96,7 @@ int main(void)
 	bool splash_wait = false;
 	if(show_menu || (!nextBootSlot && (bootmode != BootModeQuiet)))
 	{
-		if (!gfx_initialized) GFX_init(true);
+		if (!gfx_initialized) GFX_init(GFX_RGB565, GFX_RGB565);
 		gfx_initialized = true;
 		if(configDataExist(KSplashScreen))
 		{
@@ -116,7 +116,7 @@ int main(void)
 			{
 				splash_wait = drawSplashscreen(banner_spla, tmpBuf, -1, -1, SCREEN_TOP);
 				if (bootmode == BootModeQuick)
-					drawSplashscreen(menu_spla, tmpBuf, -1, 16, SCREEN_SUB);
+					drawSplashscreen(menu_spla, tmpBuf, -1, 16, SCREEN_BOT);
 				free(tmpBuf);
 			}
 			else
@@ -231,7 +231,7 @@ menu_start: ;
 		{
 			if(!gfx_initialized)
 			{
-				GFX_init(true);
+				GFX_init(GFX_RGB565, GFX_RGB565);
 				gfx_initialized = true;
 			}
 			// init and select terminal console
@@ -271,7 +271,7 @@ menu_start: ;
 		{
 			// init menu console
 			PrintConsole menu_con;
-			consoleInit(SCREEN_SUB, &menu_con, false);
+			consoleInit(SCREEN_BOT, &menu_con, false);
 
 			// run menu
 			menu_ret = menuProcess(&menu_con, &term_con, menu_fb3ds);
@@ -383,7 +383,11 @@ menu_end:
 	if (configHasChanged()) writeConfigFile();
 	
 	// deinit GFX if it was initialized
-	if(gfx_initialized) GFX_deinit(firm_err == 1);
+	if(gfx_initialized)
+	{
+		if(firm_err == 1) GFX_setFramebufFmt(GFX_BGR8, GFX_BGR8);
+		else              GFX_deinit();
+	}
 	
 	// deinit filesystem
 	fsUnmountAll();
@@ -411,8 +415,7 @@ menu_end:
 		// make sure GFX is in the right state
 		if(!gfx_initialized && (firm_err == 1))
 		{
-			GFX_init(true);
-			GFX_deinit(true);
+			GFX_init(GFX_BGR8, GFX_BGR8);
 		}
 		
 		// launch firm

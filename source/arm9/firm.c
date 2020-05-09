@@ -314,10 +314,10 @@ s32 loadVerifyFirm(const char *const path, bool skipHashCheck, bool installMode)
 		{
 			(u8*)FRAMEBUF_TOP_A_1,
 			(u8*)FRAMEBUF_TOP_A_1,
-			(u8*)FRAMEBUF_SUB_A_1 + 0x17700,
+			(u8*)FRAMEBUF_BOT_A_1 + 0x17700,
 			(u8*)FRAMEBUF_TOP_A_2,
 			(u8*)FRAMEBUF_TOP_A_2,
-			(u8*)FRAMEBUF_SUB_A_2 + 0x17700
+			(u8*)FRAMEBUF_BOT_A_2 + 0x17700
 		};
 
 		memcpy((void*)(ITCM_KERNEL_MIRROR + 0x7478), &fbs, sizeof(fbs));

@@ -24,6 +24,6 @@
 
 void getBatteryState(BatteryState *battery)
 {
-	battery->percent = MCU_readBatteryLevel();
+	battery->percent = MCU_getBatteryLevel();
 	battery->charging = hidGetExtraKeys(0) & KEY_BAT_CHARGING;
 }

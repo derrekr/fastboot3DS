@@ -64,13 +64,13 @@ void PXI_init(void)
 	REG_PXI_CNT = PXI_CNT_ENABLE_SRFIFO | PXI_CNT_FIFO_ERROR | PXI_CNT_FLUSH_SFIFO;
 
 #ifdef ARM9
-	REG_PXI_SYNC_SENT = 9;
-	while(REG_PXI_SYNC_RECVD != 11);
+	pxiSendWord(0x99);
+	while(pxiRecvWord() != 0x11);
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, pxiIrqHandler);
 #elif ARM11
-	while(REG_PXI_SYNC_RECVD != 9);
-	REG_PXI_SYNC_SENT = 11;
+	while(pxiRecvWord() != 0x99);
+	pxiSendWord(0x11);
 
 	IRQ_registerHandler(IRQ_PXI_SYNC, 13, 0, true, pxiIrqHandler);
 #endif

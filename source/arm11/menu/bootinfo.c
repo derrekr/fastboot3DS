@@ -59,7 +59,7 @@ void getBootInfo(bootInfo* info)
 
 	// Get MCU system information.
 	if (int_model >= NUM_MODELS)
-		int_model = MCU_readSystemModel();
+		int_model = MCU_getSystemModel();
 	if (int_model < NUM_MODELS)
 		ee_snprintf(info->model, 24, "%s", s_modelNames[int_model].name);
 	

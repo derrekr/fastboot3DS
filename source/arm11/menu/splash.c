@@ -40,7 +40,7 @@ static bool validateSplashHeader(const SplashHeader *const header, u8 screen)
 
 	const u16 width = header->width, height = header->height;
 	if(width == 0 || height == 0) return false;
-	if(width > (screen ? SCREEN_WIDTH_TOP : SCREEN_WIDTH_SUB) || height > SCREEN_HEIGHT_TOP)
+	if(width > (screen ? SCREEN_WIDTH_BOT : SCREEN_WIDTH_TOP) || height > SCREEN_HEIGHT_TOP)
 		return false;
 
 	const u32 flags = header->flags;
@@ -70,22 +70,22 @@ bool drawSplashscreen(const void *const data, u16 *const tmpBuf, s32 startX, s32
 	else imgData = (u16*)(data + sizeof(SplashHeader));
 
 	u32 screenWidth, screenHeight, xx, yy;
-	if(screen)	/* SCREEN_TOP */
+	if(!screen)	/* SCREEN_TOP */
 	{
 		screenWidth = SCREEN_WIDTH_TOP;
 		screenHeight = SCREEN_HEIGHT_TOP;
 	}
-	else	/* SCREEN_SUB */
+	else	/* SCREEN_BOT */
 	{
-		screenWidth = SCREEN_WIDTH_SUB;
-		screenHeight = SCREEN_HEIGHT_SUB;
+		screenWidth = SCREEN_WIDTH_BOT;
+		screenHeight = SCREEN_HEIGHT_BOT;
 	}
 	if(startX < 0 || (u32)startX > screenWidth - width) xx = (screenWidth - width) / 2;
 	else xx = (u32)startX;
 	if(startY < 0 || (u32)startY > screenHeight - height) yy = (screenHeight - height) / 2;
 	else yy = (u32)startY;
 
-	u16 *fb = (screen ? (u16*)RENDERBUF_TOP : (u16*)RENDERBUF_SUB);
+	u16 *fb = (screen ? (u16*)RENDERBUF_BOT : (u16*)RENDERBUF_TOP);
 	for(u32 x = 0; x < width; x++)
 	{
 		for(u32 y = 0; y < height; y++)

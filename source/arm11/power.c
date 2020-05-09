@@ -29,7 +29,6 @@
 
 static void power_safe_halt(void)
 {
-	MCU_powerOffLCDs();
 	PXI_sendCmd(IPC_CMD9_PREPARE_POWER, NULL, 0);
 
 	// give the screens a bit of time to turn off
@@ -42,7 +41,7 @@ noreturn void power_off(void)
 {
 	power_safe_halt();
 
-	MCU_triggerPowerOff();
+	MCU_powerOffSys();
 
 	__cpsid(aif);
 	while(1) __wfi();
@@ -52,7 +51,7 @@ noreturn void power_reboot(void)
 {
 	power_safe_halt();
 
-	MCU_triggerReboot();
+	MCU_rebootSys();
 
 	__cpsid(aif);
 	while(1) __wfi();
