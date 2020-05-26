@@ -63,6 +63,7 @@ u32 menuInstallFirm(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
+u32 menuMoveConfig(PrintConsole* term_con, PrintConsole* menu_con, u32 param);
 
 // everything below has to go
 u32 menuDummyFunc(PrintConsole* term_con, PrintConsole* menu_con, u32 param);

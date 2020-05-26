@@ -75,6 +75,7 @@ bool loadConfigFile();
 bool configIsLoaded();
 bool configHasChanged();
 FsDevice configGetStorageLocation();
+bool configSetStorageLocation(FsDevice device);
 bool writeConfigFile();
 void *configCopyText(int key);
 const void *configGetData(int key);

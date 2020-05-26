@@ -75,6 +75,7 @@
 #define DESC_DUMP_BOOTROM	"Dump boot9.bin, boot11.bin & otp.bin.\nFiles are written to sdmc:/3DS. Your console will power off when finished."
 
 #define DESC_UPDATE			"Update fastboot3ds. Only signed updates are allowed."
+#define DESC_MOVE_CONFIG	"Change location of the config file."
 #define DESC_CREDITS    	"Show fastboot3ds credits."
 
 // unused definitions below:
@@ -152,10 +153,11 @@ MenuInfo menu_fb3ds[] =
 		}
 	},
 	{ // 6
-		"Miscellaneous", 3, NULL, 0,
+		"Miscellaneous", 4, NULL, 0,
 		{
 			{ "Update fastboot3DS",			DESC_UPDATE,				&menuUpdateFastboot3ds,	0 },
 			{ "Dump bootroms & OTP",		DESC_DUMP_BOOTROM,			&menuDumpBootrom,		0 },
+			{ "Change config location",		DESC_MOVE_CONFIG,			&menuMoveConfig,		0 },
 			{ "Credits",					DESC_CREDITS,				&menuShowCredits,		0 }
 		}
 	},

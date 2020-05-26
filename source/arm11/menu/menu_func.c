@@ -1137,6 +1137,63 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	return result;
 }
 
+u32 menuMoveConfig(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
+{
+	(void) menu_con;
+	(void) param;
+	u32 result = MENU_FAIL;
+
+	FsDevice loc_conf = configGetStorageLocation();
+	FsDevice loc_new = (loc_conf == FS_DEVICE_NAND) ? FS_DEVICE_SDMC : FS_DEVICE_NAND;
+	
+	// select & clear console
+	consoleSelect(term_con);
+	consoleClear();
+
+	
+	ee_printf(ESC_SCHEME_ACCENT1 "Moving config file:\nCurrent location is %s\n" ESC_RESET "\nMoving config to %s...\n",
+			(loc_conf == FS_DEVICE_NAND) ? "NAND" : "SDMC",
+			(loc_new == FS_DEVICE_NAND) ? "NAND" : "SDMC");
+	updateScreens();
+	
+	
+	// ensure SD mounted
+	if (!fsEnsureMounted("sdmc:"))
+	{
+		ee_printf("SD not inserted or corrupt!\n");
+		goto fail;
+	}
+	
+	// get NAND size (return value in sectors)
+	const s64 nand_size = fGetDeviceSize(FS_DEVICE_NAND) * 0x200;
+	if (!nand_size)
+	{
+		ee_printf("Failed communicating with NAND!\n");
+		goto fail;
+	}
+	
+	// actually move the config file
+	if (!configSetStorageLocation(loc_new))
+	{
+		ee_printf("Failed moving the config file!\n");
+		goto fail;
+	}
+
+	ee_printf("Config written to new location.\n");
+	result = MENU_OK;
+	
+	
+	fail:
+	
+	ee_printf("\nPress B or HOME to return.");
+	updateScreens();
+	outputEndWait();
+
+	
+	hidScanInput(); // throw away any input from impatient users
+	return result;
+}
+
 u32 menuShowCredits(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 {
 	(void) menu_con;

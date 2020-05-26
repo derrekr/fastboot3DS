@@ -53,6 +53,7 @@ typedef struct {
 
 static void unloadConfigFile();
 static bool createConfigFile();
+static bool moveConfigFile();
 static bool parseConfigFile();
 static bool parsePath(AttributeEntryType *attr);
 static bool writePath(AttributeEntryType *attr, const void *newData, int key);
@@ -139,7 +140,6 @@ bool loadConfigFile()
 	s32 file;
 	u32 fileSize;
 	bool SdPresent;
-	bool adpotChanges = false;
 	bool createFile = false;
 	
 	if(filebuf)
@@ -162,11 +162,13 @@ bool loadConfigFile()
 			if(fStat(NandFilepath, &fileStat) == FR_OK)
 			{
 				/*	no config on SD, but there is one on the NAND,
-					so just load it and save it later on.	*/
-				adpotChanges = true;
+					so we will use this instead.	*/
+				filepath = NandFilepath;
 			}
-			
-			createFile = true;
+			else
+			{
+				createFile = true;
+			}
 		}	
 	}
 	else	/* use NAND */
@@ -184,12 +186,6 @@ bool loadConfigFile()
 		// try to create a file
 		if(!createConfigFile())
 			return false;
-		
-		if(adpotChanges)
-		{
-			// created file on SD, load config from NAND
-			filepath = NandFilepath;
-		}
 		
 		// retrieve size
 		if(fStat(filepath, &fileStat) != FR_OK)
@@ -235,13 +231,6 @@ bool loadConfigFile()
 	
 	if(!parseConfigFile())
 		goto fail;
-	
-	// we loaded a file we want to adpot?
-	if(adpotChanges)
-	{
-		filepath = SdmcFilepath;
-		configDirty = true;
-	}
 	
 	return true;
 	
@@ -299,6 +288,17 @@ FsDevice configGetStorageLocation()
 		return FS_DEVICE_SDMC;
 	
 	return FS_DEVICE_NAND;
+}
+
+bool configSetStorageLocation(FsDevice device)
+{
+	if (!configLoaded)
+		panic();
+
+	if (device == configGetStorageLocation())
+		return false;
+
+	return moveConfigFile();
 }
 
 bool writeConfigFile()
@@ -365,6 +365,38 @@ static bool createConfigFile()
 	filebuf = NULL;
 	
 	return ret;
+}
+
+static bool moveConfigFile()
+{
+	const char* filepath_old = filepath;
+
+	// if current location is SD:
+	// delete config file from SD, write to NAND
+	if (configGetStorageLocation() == FS_DEVICE_SDMC)
+	{
+		fUnlink(filepath);
+
+		filepath = NandFilepath;
+	}
+	// if current location is NAND and SD present:
+	// just change the location
+	else
+	{
+		filepath = SdmcFilepath;
+	}
+
+	if (writeConfigFile())
+	{
+		configDirty = false;
+		return true;
+	}
+	else
+	{
+		filepath = filepath_old;
+		configDirty = true;
+		return false;
+	}
 }
 
 static inline bool isEOL(const char c)
