@@ -292,9 +292,6 @@ FsDevice configGetStorageLocation()
 
 bool configSetStorageLocation(FsDevice device)
 {
-	if (!configLoaded)
-		panic();
-
 	if (device == configGetStorageLocation())
 		return false;
 
@@ -386,14 +383,16 @@ static bool moveConfigFile()
 		filepath = SdmcFilepath;
 	}
 
-	if (writeConfigFile())
+	if (configLoaded && writeConfigFile())
 	{
 		configDirty = false;
 		return true;
 	}
 	else
 	{
-		filepath = filepath_old;
+		if (configLoaded)
+			filepath = filepath_old;
+		
 		configDirty = true;
 		return false;
 	}
