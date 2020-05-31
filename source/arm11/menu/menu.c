@@ -80,7 +80,7 @@ void menuBuildDescString(char* desc, u32 flags, u32 index, const char* desc_raw)
 		if(configDataExist(KBootOption1 + slot))
 		{
 			slot_path = slot_path_store;
-			truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 40, 8);
+			truncateString(slot_path, (char*) configGetData(KBootOption1 + slot), 52, 8);
 		}
 		
 		if(configDataExist(KBootOption1Buttons + slot))
