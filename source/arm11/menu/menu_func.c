@@ -1164,11 +1164,10 @@ u32 menuMoveConfig(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 		goto fail;
 	}
 	
-	// get NAND size (return value in sectors)
-	const s64 nand_size = fGetDeviceSize(FS_DEVICE_NAND) * 0x200;
-	if (!nand_size)
+	// ensure NAND mounted
+	if (!fsEnsureMounted("nand:"))
 	{
-		ee_printf("Failed communicating with NAND!\n");
+		ee_printf("NAND may be corrupt!\n");
 		goto fail;
 	}
 	
