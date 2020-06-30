@@ -1155,6 +1155,7 @@ u32 menuMoveConfig(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	if(!configIsLoaded())
 	{
 		ee_printf("Config not found");
+		goto fail;
 	}
 
 	loc_conf = configGetStorageLocation();
