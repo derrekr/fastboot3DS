@@ -1143,13 +1143,22 @@ u32 menuMoveConfig(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	(void) param;
 	u32 result = MENU_FAIL;
 
-	FsDevice loc_conf = configGetStorageLocation();
-	FsDevice loc_new = (loc_conf == FS_DEVICE_NAND) ? FS_DEVICE_SDMC : FS_DEVICE_NAND;
+	FsDevice loc_conf;
+	FsDevice loc_new;
 	
 	// select & clear console
 	consoleSelect(term_con);
 	consoleClear();
 
+
+	// safety check: config file
+	if(!configIsLoaded())
+	{
+		ee_printf("Config not found");
+	}
+
+	loc_conf = configGetStorageLocation();
+	loc_new = (loc_conf == FS_DEVICE_NAND) ? FS_DEVICE_SDMC : FS_DEVICE_NAND;
 	
 	ee_printf(ESC_SCHEME_ACCENT1 "Moving config file:\nCurrent location is %s\n" ESC_RESET "\nMoving config to %s...\n",
 			(loc_conf == FS_DEVICE_NAND) ? "NAND" : "SDMC",
