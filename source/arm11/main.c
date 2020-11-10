@@ -130,8 +130,43 @@ int main(void)
 	}
 	
 	
-	// check keys held at boot
+	// store keys held at boot
 	u32 kHeld = hidKeysHeld();
+
+
+	// wait for splash duration
+	if (splash_wait)
+	{
+		u32 dmsec = SPLASH_DEFAULT_MSEC;
+		if (configDataExist(KSplashDuration))
+		{
+			// prevent bad splash delays
+			s32 dkey = *(s32*) configGetData(KSplashDuration);
+			dmsec = (dkey < SPLASH_MIN_MSEC) ? SPLASH_MIN_MSEC : (dkey) > SPLASH_MAX_MSEC ? SPLASH_MAX_MSEC : (u32) dkey;
+		}
+
+		// convert msecs to vblanks and wait for the specified amount
+		u32 dvblank = (dmsec + (VBLANK_APPROX_MSEC-1)) / VBLANK_APPROX_MSEC;
+		for (u32 i = 0; i < dvblank; i++)
+		{
+			GFX_waitForEvent(GFX_EVENT_PDC0, true);
+			hidScanInput();
+			if (hidGetExtraKeys(0) & KEY_HOME)
+			{
+				show_menu = true;
+				startFirmLaunch = false;
+			}
+		}
+	}
+
+
+	// update keys held after splash
+	u32 kHeldNew = hidKeysHeld();
+	if (kHeldNew & 0xfff)
+	{
+		kHeld = kHeldNew;
+	}
+
 	
 	// boot slot keycombo held?
 	if (!err_string && (kHeld & 0xfff))
@@ -184,39 +219,15 @@ int main(void)
 		if (firm_err >= 0)
 			startFirmLaunch = true;
 	}
-	
-	
-	if (splash_wait)
+
+
+	// delay before showing anything else on screen
+	if (splash_wait && (show_menu || err_string || dump_bootroms))
 	{
-		u32 dmsec = SPLASH_DEFAULT_MSEC;
-		if (configDataExist(KSplashDuration))
-		{
-			// prevent bad splash delays
-			s32 dkey = *(s32*) configGetData(KSplashDuration);
-			dmsec = (dkey < SPLASH_MIN_MSEC) ? SPLASH_MIN_MSEC : (dkey) > SPLASH_MAX_MSEC ? SPLASH_MAX_MSEC : (u32) dkey;
-		}
-
-		// convert msecs to vblanks and wait for the specified amount
-		u32 dvblank = (dmsec + (VBLANK_APPROX_MSEC-1)) / VBLANK_APPROX_MSEC;
-		for (u32 i = 0; i < dvblank; i++)
-		{
+		clearScreens();
+		updateScreens();
+		for (u32 i = 0; i < 8; i++)
 			GFX_waitForEvent(GFX_EVENT_PDC0, true);
-			hidScanInput();
-			if (hidGetExtraKeys(0) & KEY_HOME)
-			{
-				show_menu = true;
-				startFirmLaunch = false;
-			}
-		}
-
-		// delay before showing menu
-		if (show_menu)
-		{
-			clearScreens();
-			updateScreens();
-			for (u32 i = 0; i < 8; i++)
-				GFX_waitForEvent(GFX_EVENT_PDC0, true);
-		}
 	}
 
 	
