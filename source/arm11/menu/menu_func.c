@@ -487,7 +487,7 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 			do
 			{
 				GFX_waitForEvent(GFX_EVENT_PDC0, true);
-				if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD)) return MENU_FAIL;
+				if(hidGetExtraKeys(0) & (KEY_POWER | KEY_POWER_HELD | KEY_HOME)) return MENU_FAIL;
 				
 				hidScanInput();
 				kHeldNew = hidKeysHeld();
