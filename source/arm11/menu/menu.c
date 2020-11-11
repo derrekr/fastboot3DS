@@ -353,6 +353,12 @@ u32 menuProcess(PrintConsole* menu_con, PrintConsole* desc_con, MenuInfo* info)
 			// call menu entry function
 			MenuEntry* entry = &(curr_menu->entries[index]);
 			menu_ret = (*(entry->function))(desc_con, menu_con, entry->param);
+			// wait until HOME released
+			do
+			{
+				GFX_waitForEvent(GFX_EVENT_PDC0, true);
+				hidScanInput();
+			} while (hidGetExtraKeys(0) & KEY_HOME);
 			// force redraw (somewhat hacky)
 			last_menu = NULL;
 		}

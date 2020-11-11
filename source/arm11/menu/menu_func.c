@@ -494,9 +494,6 @@ u32 menuSetupBootKeys(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 				if(hidGetExtraKeys(0) & KEY_SHELL) sleepmode();
 			}
 			while ((kHeld == kHeldNew) && (++vBlanks < 100));
-			
-			// check HOME key
-			if (hidGetExtraKeys(0) & KEY_HOME) return MENU_FAIL;
 		}
 		while (!((kHeld|kHeldNew) & 0xfff));
 		// repeat checks until actual buttons are held
