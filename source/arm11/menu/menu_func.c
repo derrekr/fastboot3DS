@@ -1129,7 +1129,7 @@ u32 menuUpdateFastboot3ds(PrintConsole* term_con, PrintConsole* menu_con, u32 pa
 	
 	fail:
 	
-	ee_printf("\nPress B or HOME to return.");
+	ee_printf("\nPress B or HOME to %s.", (result == MENU_RET_REBOOT) ? "reboot" : "return");
 	updateScreens();
 	outputEndWait();
 
