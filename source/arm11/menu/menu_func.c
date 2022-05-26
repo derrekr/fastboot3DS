@@ -995,7 +995,7 @@ u32 menuDumpBootrom(PrintConsole* term_con, PrintConsole* menu_con, u32 param)
 	
 	// dump boot9.bin
 	ee_printf("%-20.20s", "Dump ARM9 bootrom");
-	u8 *dumpPtr = (u8*)VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE;
+	u8 *dumpPtr = (u8*)AXIWRAM_BASE + AXIWRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE;
 	bool valid = fsQuickCreate("sdmc:/3ds/boot9.bin", dumpPtr, BOOT9_SIZE);
 	ee_printf(valid ? ESC_SCHEME_GOOD "success\n" ESC_RESET : ESC_SCHEME_BAD "failed!\n" ESC_RESET);
 	updateScreens();

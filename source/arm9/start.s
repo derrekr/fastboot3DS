@@ -97,9 +97,10 @@ _start:
 	msr cpsr_cxsf, #PSR_INT_OFF | PSR_SYS_MODE
 	ldr sp, =A9_STACK_END
 
+	bl checkSuperhax
+
 	bl setupMpu
 
-	bl checkSuperhax
 	@ Clear bss section
 	ldr r0, =__bss_start__
 	ldr r1, =__bss_end__
@@ -181,7 +182,7 @@ checkSuperhax:
 	ldrb r1, [r0]
 	cmp r1, #0
 	bxne lr
-	ldr r0, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE
+	ldr r0, =AXIWRAM_BASE + AXIWRAM_SIZE - OTP_SIZE - BOOT11_SIZE - BOOT9_SIZE
 	ldr r1, =BOOT9_BASE
 	ldr r2, =BOOT9_SIZE
 	str lr, [sp, #-4]!

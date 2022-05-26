@@ -190,7 +190,7 @@ checkSuperhax:
 	bxeq lr
 	ldr r1, =__superhaxEnabled
 	mov r2, #1
-	ldr r0, =VRAM_BASE + VRAM_SIZE - OTP_SIZE - BOOT11_SIZE
+	ldr r0, =AXIWRAM_BASE + AXIWRAM_SIZE - OTP_SIZE - BOOT11_SIZE
 	strb r2, [r1]
 	ldr r1, =BOOT11_BASE
 	ldr r2, =BOOT11_SIZE
