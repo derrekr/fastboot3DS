@@ -155,9 +155,10 @@ void GFX_init(GfxFbFmt fmtTop, GfxFbFmt fmtBot)
 	IRQ_registerHandler(IRQ_PPF, 14, 0, true, gfxIrqHandler);
 	IRQ_registerHandler(IRQ_P3D, 14, 0, true, gfxIrqHandler);
 
-	// Clear entire VRAM.
+	// Clear first half of VRAM.
+	// The bootrom dumps are stored in the other half.
 	GX_memoryFill((u32*)VRAM_BANK0, 1u<<9, VRAM_SIZE / 2, 0,
-	              (u32*)VRAM_BANK1, 1u<<9, VRAM_SIZE / 2, 0);
+	              NULL, 0, 0, 0);
 
 	// Backlight and other stuff.
 	REG_LCD_ABL0_LIGHT = 0;
@@ -188,7 +189,6 @@ void GFX_init(GfxFbFmt fmtTop, GfxFbFmt fmtBot)
 
 	// Make sure the fills finished.
 	GFX_waitForEvent(GFX_EVENT_PSC0, false);
-	GFX_waitForEvent(GFX_EVENT_PSC1, false);
 	REG_LCD_ABL0_FILL = 0;
 	REG_LCD_ABL1_FILL = 0;
 
